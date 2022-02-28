@@ -45,14 +45,27 @@ export default (Str = '') => {
       result['attributes'] = parts.reduce((obj, attr) => {
         const match = /(.+)=["'](.+)["']/.exec(attr)
         if (match) {
-          const val = parseFloat(match[2])
-          obj[match[1]] = isNaN(val) ? match[2] : val
+          obj[match[1]] = parseValue(match[2])
         }
         return obj
       }, {})
     }
 
     return result
+  }
+
+  const parseValue = (match) => {
+    // x0 color
+    if(typeof match === 'string' && match.startsWith('0x')) {
+      return Number(match)
+    }
+    // hex color (with or without alpha channel)
+    if(typeof match === 'string' && match.length === 8 || match.length === 6 && !isNaN(Number('0x' + match))) {
+      return Number('0x' + (match.length === 6 ? 'ff' + match : match))
+    } else {
+      const float = parseFloat(match)
+      return isNaN(float) ? match : float
+    }
   }
 
   return parse()

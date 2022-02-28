@@ -260,24 +260,63 @@ test("Parse simple single tag where one of the attributes has a dash in it's nam
   assert.end()
 })
 
-// test('Parse tag with color attribute', assert => {
+test('Parse tag with hex color attribute with alpha channel', assert => {
 
-//   const template = `<Component  color="0xff5aaade"></Component>`
+  const template = `<Component  color="805aaade"></Component>`
 
-//   const expected = {
-//     children: [
-//       {
-//         ref: 'Component',
-//         type: 'Component',
-//         color: 0xff5aaade
-//       }
-//     ]
-//   }
-//   const actual = parser(template)
+  const expected = {
+    children: [
+      {
+        ref: 'Component',
+        type: 'Component',
+        color: Number('0x805aaade')
+      }
+    ]
+  }
+  const actual = parser(template)
 
-//   assert.deepEqual(actual, expected, 'Parser should return object representation of template')
-//   assert.end()
-// })
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+
+test('Parse tag with hex color attribute without alpha and set it to default of ff', assert => {
+
+  const template = `<Component  color="5aaade"></Component>`
+
+  const expected = {
+    children: [
+      {
+        ref: 'Component',
+        type: 'Component',
+        color: Number('0xff5aaade')
+      }
+    ]
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse tag with 0x type of color', assert => {
+
+  const template = `<Component  color="0xff5aaade"></Component>`
+
+  const expected = {
+    children: [
+      {
+        ref: 'Component',
+        type: 'Component',
+        color: Number('0xff5aaade')
+      }
+    ]
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
 
 test('Parse self closing tag', (assert) => {
   const template = '<Component />'
