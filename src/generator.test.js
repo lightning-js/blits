@@ -13,23 +13,43 @@ test('Type', (assert) => {
   assert.end()
 })
 
-test('Returns a string with a function', (assert) => {
+test('Returns an object with a render function and a context object', (assert) => {
   const result = generator()
-  const expected = 'function'
+  const expected = 'object'
   const actual = typeof result
 
-  assert.equal(actual, expected, 'Generator should return function')
+  assert.equal(actual, expected, 'Generator should return object')
+  assert.ok('render' in result, 'Generator object should have a render key')
+  assert.ok('context' in result, 'Generator object should have a context key')
+  assert.end()
+})
+
+test('Render returns a function', (assert) => {
+  const result = generator()
+  const expected = 'function'
+  const actual = typeof result.render
+
+  assert.equal(actual, expected, 'Render key should return a function')
+  assert.end()
+})
+
+test('Context returns an object', (assert) => {
+  const result = generator()
+  const expected = 'object'
+  const actual = typeof result.context
+
+  assert.equal(actual, expected, 'Context key should return an object')
   assert.end()
 })
 
 test('Generate code for an empty template', (assert) => {
   const expected = `
-  function anonymous(parent,state,els) {
+  function anonymous(parent,state,els,context) {
       if(!els) var els = []
       return els
   }
   `
-  const actual = generator().toString()
+  const actual = generator().render.toString()
   assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
   assert.end()
 
@@ -48,7 +68,7 @@ test('Generate code for a template with a single simple element', (assert) => {
   }
 
   const expected = `
-  function anonymous(parent,state,els) {
+  function anonymous(parent,state,els,context) {
       if(!els) var els = []
 
       if(!els[1]) {
@@ -63,7 +83,7 @@ test('Generate code for a template with a single simple element', (assert) => {
   }
   `
 
-  const actual = generator(templateObject).toString()
+  const actual = generator(templateObject).render.toString()
 
   assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
   assert.end()
@@ -88,7 +108,7 @@ test('Generate code for a template with a simple element and a simple nested ele
   }
 
   const expected = `
-  function anonymous(parent,state,els) {
+  function anonymous(parent,state,els,context) {
       if(!els) var els = []
 
       if(!els[1]) {
@@ -111,7 +131,7 @@ test('Generate code for a template with a simple element and a simple nested ele
   }
   `
 
-  const actual = generator(templateObject).toString()
+  const actual = generator(templateObject).render.toString()
 
   assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
   assert.end()
@@ -133,7 +153,7 @@ test('Generate code for a template with a single element with attributes', (asse
   }
 
   const expected = `
-  function anonymous(parent,state,els) {
+  function anonymous(parent,state,els,context) {
       if(!els) var els = []
 
       if(!els[1]) {
@@ -150,7 +170,7 @@ test('Generate code for a template with a single element with attributes', (asse
   }
   `
 
-  const actual = generator(templateObject).toString()
+  const actual = generator(templateObject).render.toString()
 
   assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
   assert.end()
@@ -180,7 +200,7 @@ test('Generate code for a template with attributes and a nested element with att
   }
 
   const expected = `
-  function anonymous(parent,state,els) {
+  function anonymous(parent,state,els,context) {
       if(!els) var els = []
 
       if(!els[1]) {
@@ -207,7 +227,7 @@ test('Generate code for a template with attributes and a nested element with att
   }
   `
 
-  const actual = generator(templateObject).toString()
+  const actual = generator(templateObject).render.toString()
 
   assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
   assert.end()
@@ -234,7 +254,7 @@ test('Generate code for a template with attributes and 2 nested elements with at
           },
           {
             ref: 'Element2',
-            type: 'Element2',
+            type: 'Element',
             w: 100,
             h: 300,
             x: 50,
@@ -245,7 +265,7 @@ test('Generate code for a template with attributes and 2 nested elements with at
   }
 
   const expected = `
-  function anonymous(parent,state,els) {
+  function anonymous(parent,state,els,context) {
       if(!els) var els = []
 
       if(!els[1]) {
@@ -275,7 +295,7 @@ test('Generate code for a template with attributes and 2 nested elements with at
       }
 
       els[3]['ref'] = "Element2"
-      els[3]['type'] = "Element2"
+      els[3]['type'] = "Element"
       els[3]['w'] = 100
       els[3]['h'] = 300
       els[3]['x'] = 50
@@ -284,7 +304,7 @@ test('Generate code for a template with attributes and 2 nested elements with at
   }
   `
 
-  const actual = generator(templateObject).toString()
+  const actual = generator(templateObject).render.toString()
 
   assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
   assert.end()
@@ -311,7 +331,7 @@ test('Generate code for a template with attributes and deep nested elements with
           },
           {
             ref: 'Element2',
-            type: 'Element2',
+            type: 'Element',
             w: 100,
             h: 300,
             x: 50,
@@ -323,7 +343,7 @@ test('Generate code for a template with attributes and deep nested elements with
               },
               {
                 ref: 'Button2',
-                type: 'Button2',
+                type: 'Button',
                 label: 'World',
               },
             ],
@@ -334,7 +354,7 @@ test('Generate code for a template with attributes and deep nested elements with
   }
 
   const expected = `
-  function anonymous(parent,state,els) {
+  function anonymous(parent,state,els,context) {
       if(!els) var els = []
 
       if(!els[1]) {
@@ -364,7 +384,7 @@ test('Generate code for a template with attributes and deep nested elements with
       }
 
       els[3]['ref'] = "Element2"
-      els[3]['type'] = "Element2"
+      els[3]['type'] = "Element"
       els[3]['w'] = 100
       els[3]['h'] = 300
       els[3]['x'] = 50
@@ -385,14 +405,14 @@ test('Generate code for a template with attributes and deep nested elements with
       }
 
       els[5]['ref'] = "Button2"
-      els[5]['type'] = "Button2"
+      els[5]['type'] = "Button"
       els[5]['label'] = "World"
 
       return els
   }
   `
 
-  const actual = generator(templateObject).toString()
+  const actual = generator(templateObject).render.toString()
 
   assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
   assert.end()
@@ -417,7 +437,7 @@ test('Generate code for a template with dynamic attributes', (assert) => {
   }
 
   const expected = `
-  function anonymous(parent,state,els) {
+  function anonymous(parent,state,els,context) {
       if(!els) var els = []
 
       if(!els[1]) {
@@ -438,7 +458,7 @@ test('Generate code for a template with dynamic attributes', (assert) => {
       return els
   }`
 
-  const actual = generator(templateObject).toString()
+  const actual = generator(templateObject).render.toString()
 
   assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
   assert.end()
@@ -461,7 +481,7 @@ test('Generate code for a template with an attribute with a dash', (assert) => {
   }
 
   const expected = `
-  function anonymous(parent,state,els) {
+  function anonymous(parent,state,els,context) {
       if(!els) var els = []
 
       if(!els[1]) {
@@ -478,7 +498,7 @@ test('Generate code for a template with an attribute with a dash', (assert) => {
       return els
   }`
 
-  const actual = generator(templateObject).toString()
+  const actual = generator(templateObject).render.toString()
 
   assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
 

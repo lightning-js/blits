@@ -1,20 +1,22 @@
 let counter = 0
-export default (templateObject = {children: []}) => {
-
+export default function(templateObject = {children: []}) {
+  const context = {props: []}
   const code = ['if(!els) var els = []']
   counter = 0
 
   templateObject.children.forEach(child => {
-      generateElementCode(child, code, 'parent')
+      generateElementCode(child, code, 'parent', this, context)
   })
 
   code.push('return els')
 
-  return new Function('parent', 'state', 'els', code.join('\n'))
-
+  return {
+    render: new Function('parent', 'state', 'els', 'context', code.join('\n')),
+    context
+  }
 }
 
-const generateElementCode = (tpl, code, parent) => {
+const generateElementCode = (tpl, code, parent, scope, context) => {
   counter++
   code.push(`
       if(!els[${counter}]) {
@@ -29,7 +31,20 @@ const generateElementCode = (tpl, code, parent) => {
   keys.forEach(key => {
       if(key === 'children') {
           tpl.children.forEach(child => {
-              generateElementCode(child, code, `${parent}`)
+            if(child.type && (child.type !== 'Component' && child.type !== 'Element') && scope && scope.components && scope.components[child.type]) {
+              counter++
+              if(!context[child.type]) {
+                context[child.type] = scope.components[child.type]
+              }
+              context.props.push({props: child})
+              code.push(`
+                if(!els[${counter}]) {
+                  els[${counter}] = context['${child.type}'](context.props[${context.props.length - 1}], ${parent})
+                }
+              `)
+            } else {
+              generateElementCode(child, code, `${parent}`, scope, context)
+            }
           })
       } else {
           let val
