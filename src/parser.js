@@ -37,12 +37,12 @@ export default (Str = '') => {
   }
 
   const parseTag = (tagStr) => {
-    const result = {}
-    const parts = tagStr.split(' ')
-
-    result['type'] = parts.shift()
-    if (parts.length) {
-      result['attributes'] = parts.reduce((obj, attr) => {
+    const result = {
+      type: tagStr.match(/[^\s]+/).shift()
+    }
+    const attributes = tagStr.match(/[:*\w-]+="[^"]*"/g) || []
+    if (attributes.length) {
+      result['attributes'] = attributes.reduce((obj, attr) => {
         const match = /(.+)=["'](.+)["']/.exec(attr)
         if (match) {
           obj[match[1]] = parseValue(match[2])
@@ -62,7 +62,11 @@ export default (Str = '') => {
     // hex color (with or without alpha channel)
     if(typeof match === 'string' && match.length === 8 || match.length === 6 && !isNaN(Number('0x' + match))) {
       return Number('0x' + (match.length === 6 ? 'ff' + match : match))
-    } else {
+    }
+    if(typeof match === 'string' && (match.startsWith('()') || match.startsWith('function()'))) {
+      return new Function(match)
+    }
+    else {
       const float = parseFloat(match)
       return isNaN(float) ? match : float
     }

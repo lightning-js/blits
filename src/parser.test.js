@@ -388,3 +388,21 @@ test('Parse multiple nested self closing tags', (assert) => {
   assert.deepEqual(actual, expected, 'Parser should return object representation of template')
   assert.end()
 })
+
+test('Parse attributes which values have spaces in it', (assert) => {
+  const template = '<Component attribute="I have spaces"></Component>'
+
+  const expected = {
+    children: [
+      {
+        ref: 'Component',
+        type: 'Component',
+        attribute: 'I have spaces'
+      }
+    ],
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
