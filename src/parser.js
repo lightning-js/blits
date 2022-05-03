@@ -8,8 +8,12 @@ export default (Str = '') => {
         if (Str.charCodeAt(position + 1) === '/'.charCodeAt(0)) {
           return output
         }
+        if(Str.substring(position + 1, position + 4) === '!--') {
+          position = Str.indexOf('-->', position) + 3
+        } else {
+          parseNode(output)
+        }
 
-        parseNode(output)
       }
       position++
     }

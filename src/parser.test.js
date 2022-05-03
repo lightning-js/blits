@@ -245,77 +245,6 @@ test("Parse simple single tag where one of the attributes has a dash in it's nam
   assert.end()
 })
 
-// test('Parse tag with hex color attribute with alpha channel', assert => {
-
-//   const template = `<Component  color="805aaade"></Component>`
-
-//   const expected = {
-//     children: [
-//       {
-//         type: 'Component',
-//         color: Number('0x805aaade')
-//       }
-//     ]
-//   }
-//   const actual = parser(template)
-
-//   assert.deepEqual(actual, expected, 'Parser should return object representation of template')
-//   assert.end()
-// })
-
-
-// test('Parse tag with hex color attribute without alpha and set it to default of ff', assert => {
-
-//   const template = `<Component color="5aaade"></Component>`
-
-//   const expected = {
-//     children: [
-//       {
-//         type: 'Component',
-//         color: Number('0xff5aaade')
-//       }
-//     ]
-//   }
-//   const actual = parser(template)
-
-//   assert.deepEqual(actual, expected, 'Parser should return object representation of template')
-//   assert.end()
-// })
-
-// test('Parse tag with 0x type of color', assert => {
-
-//   const template = `<Component  color="0xff5aaade"></Component>`
-
-//   const expected = {
-//     children: [
-//       {
-//         type: 'Component',
-//         color: Number('0xff5aaade')
-//       }
-//     ]
-//   }
-//   const actual = parser(template)
-
-//   assert.deepEqual(actual, expected, 'Parser should return object representation of template')
-//   assert.end()
-// })
-
-// test('Parse self closing tag', (assert) => {
-//   const template = '<Component />'
-
-//   const expected = {
-//     children: [
-//       {
-//         type: 'Component',
-//       },
-//     ],
-//   }
-//   const actual = parser(template)
-
-//   assert.deepEqual(actual, expected, 'Parser should return object representation of template')
-//   assert.end()
-// })
-
 test('Parse nested self closing tag', (assert) => {
   const template = '<Component><Input /></Component>'
 
@@ -399,6 +328,119 @@ test('Parse attributes with an expression in it', (assert) => {
         ':attribute2': '$ok ? \'Yes\' : \'No\'',
         ':attribute3': '$text.split(\'\').reverse().join(\'\')'
       }
+    ],
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with commented tag (and skip it)', (assert) => {
+  const template = `
+    <Component x="10" y="20">
+      <!--Element w="100" h="300" x="0"></Element-->
+      <Element w="100" h="300" x="50">
+        <Button label="Hello"></Button>
+        <!--Button label="World"></Button-->
+      </Element>
+    </Component>`
+
+  const expected = {
+    children: [
+      {
+        type: 'Component',
+        x: 10,
+        y: 20,
+        children: [
+          {
+            type: 'Element',
+            w: 100,
+            h: 300,
+            x: 50,
+            children: [
+              {
+                type: 'Button',
+                label: 'Hello',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with comment spanned across multiple tags (and skip it)', (assert) => {
+  const template = `
+    <Component x="10" y="20">
+      <!--Element w="100" h="300" x="0"></Element-->
+      <Element w="100" h="300" x="50">
+        <!--Button label="Hello"></Button>
+        <Button label="World"></Button-->
+      </Element>
+    </Component>`
+
+  const expected = {
+    children: [
+      {
+        type: 'Component',
+        x: 10,
+        y: 20,
+        children: [
+          {
+            type: 'Element',
+            w: 100,
+            h: 300,
+            x: 50,
+          },
+        ],
+      },
+    ],
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with enclosing comment (and skip it)', (assert) => {
+  const template = `
+    <Component x="10" y="20">
+      <Element w="100" h="300" x="0"></Element>
+      <Element w="100" h="300" x="50">
+        <!--
+          <Button label="Hello"></Button>
+          <Button label="World"></Button>
+        -->
+      </Element>
+    </Component>`
+
+  const expected = {
+    children: [
+      {
+        type: 'Component',
+        x: 10,
+        y: 20,
+        children: [
+          {
+            type: 'Element',
+            w: 100,
+            h: 300,
+            x: 0,
+          },
+          {
+            type: 'Element',
+            w: 100,
+            h: 300,
+            x: 50,
+          },
+        ],
+      },
     ],
   }
   const actual = parser(template)
