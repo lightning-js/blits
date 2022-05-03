@@ -20,7 +20,7 @@ export default (Str = '') => {
   const parseNode = (output) => {
     const endPosition = Str.indexOf('>', position)
     const tag = parseTag(Str.substring(position + 1, endPosition))
-    const node = { ...{ ref: tag.type, type: tag.type }, ...tag.attributes }
+    const node = { ...{ type: tag.type }, ...tag.attributes }
 
     // self closing tag
     if (Str.charCodeAt(endPosition - 1) === '/'.charCodeAt(0)) {
@@ -55,21 +55,8 @@ export default (Str = '') => {
   }
 
   const parseValue = (match) => {
-    // x0 color
-    if(typeof match === 'string' && match.startsWith('0x')) {
-      return Number(match)
-    }
-    // hex color (with or without alpha channel)
-    if(typeof match === 'string' && match.length === 8 || match.length === 6 && !isNaN(Number('0x' + match))) {
-      return Number('0x' + (match.length === 6 ? 'ff' + match : match))
-    }
-    if(typeof match === 'string' && (match.startsWith('()') || match.startsWith('function()'))) {
-      return new Function(match)
-    }
-    else {
-      const float = parseFloat(match)
-      return isNaN(float) ? match : float
-    }
+    const float = parseFloat(match)
+    return isNaN(float) ? match : float
   }
 
   return parse()
