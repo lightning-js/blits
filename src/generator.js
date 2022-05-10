@@ -9,9 +9,8 @@ export default function(templateObject = {children: []}) {
   })
 
   code.push('return els')
-
   return {
-    render: new Function('parent', 'state', 'els', 'context', code.join('\n')),
+    render: new Function('parent', 'component', 'els', 'context', code.join('\n')),
     context
   }
 }
@@ -31,6 +30,7 @@ const generateElementCode = (tpl, code, parent, scope, context) => {
   keys.forEach(key => {
       if(key === 'children') {
           tpl.children.forEach(child => {
+            // TODO: think about Component / Element naming -> maybe Tag?
             if(child.type && (child.type !== 'Component' && child.type !== 'Element') && scope && scope.components && scope.components[child.type]) {
               counter++
               if(!context[child.type]) {
@@ -47,42 +47,57 @@ const generateElementCode = (tpl, code, parent, scope, context) => {
             }
           })
       } else {
-          let val
-          // faster / better with regex maybe? let's investigate later
-          if(key.startsWith('bind:') || key.startsWith(':')) {
-            val = `state.${tpl[key]}`
-            key = key.slice(key.indexOf(':') + 1)
-          } else {
-            val = castValue(tpl[key])
-          }
-          code.push(`els[${counter}]['${key}'] = ${val}`)
-        }
+        code.push(cast`${counter} ${key} ${tpl[key]}`)
+      }
   })
 
   return code
 }
 
-// maybe move this to the parser ...
-const castValue = (val) => {
 
-  if(typeof val === 'string' && val.startsWith('0x')) {
-      return val.toString()
+
+
+const normalizeColor = color => {
+  if(!color.startsWith('0x')) {
+    color = '0x' + (color.length === 6 ? 'ff' + color : color)
   }
-  let float = parseFloat(val)
+  return color
+}
 
-  if(typeof val === 'string' && val.startsWith('$')) {
-      return `state.${val.replace('$', '')}`
+
+const cast = (str, counter, key, val) => {
+
+  let castedValue
+
+  // colors
+  if(key === 'color' && !val.startsWith('$')) {
+    castedValue = normalizeColor(val)
+  }
+  // numeric
+  else if(!isNaN(parseFloat(val))) {
+      castedValue = parseFloat(val)
+  }
+  // boolean true
+  else if(val.toLowerCase() === 'true') {
+      castedValue = true
+  }
+  // boolean false
+  else if(val.toLowerCase === 'false') {
+      castedValue = false
+  }
+  // dynamic value
+  else if(val.startsWith('$')) {
+      castedValue = `component.state.${val.replace('$', '')}` // todo normalize color
+  }
+  // static string
+  else {
+      castedValue = `"${val}"`
   }
 
-  if(!isNaN(float)) {
-      return float
+  // reactive value (for now just remove the colons, rethink this part to be more efficient!)
+  if(key.startsWith(':')) {
+    key = key.substring(1)
   }
-  try {
-      if(val.toLowerCase() === 'true' || val.toLowerCase() === 'false') {
-          return val
-      }
-  } catch(e) {}
 
-  return `"${val}"`
-
+  return `els[${counter}]['${key}'] = ${castedValue}`
 }
