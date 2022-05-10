@@ -64,8 +64,8 @@ test('Parse simple single tag with static attributes', (assert) => {
     children: [
       {
         type: 'Component',
-        x: 10,
-        y: 20,
+        x: '10',
+        y: '20',
       },
     ],
   }
@@ -82,13 +82,13 @@ test('Parse tag with attributes and nested tag with attributes', (assert) => {
     children: [
       {
         type: 'Component',
-        x: 10,
-        y: 20,
+        x: '10',
+        y: '20',
         children: [
           {
             type: 'Element',
-            w: 100,
-            h: 300,
+            w: '100',
+            h: '300',
           },
         ],
       },
@@ -111,20 +111,20 @@ test('Parse tag with attributes and 2 nested tags with attributes', (assert) => 
     children: [
       {
         type: 'Component',
-        x: 10,
-        y: 20,
+        x: '10',
+        y: '20',
         children: [
           {
             type: 'Element',
-            w: 100,
-            h: 300,
-            x: 0,
+            w: '100',
+            h: '300',
+            x: '0',
           },
           {
             type: 'Element',
-            w: 100,
-            h: 300,
-            x: 50,
+            w: '100',
+            h: '300',
+            x: '50',
           },
         ],
       },
@@ -150,20 +150,20 @@ test('Parse tag with attributes and deep nested tag with attributes', (assert) =
     children: [
       {
         type: 'Component',
-        x: 10,
-        y: 20,
+        x: '10',
+        y: '20',
         children: [
           {
             type: 'Element',
-            w: 100,
-            h: 300,
-            x: 0,
+            w: '100',
+            h: '300',
+            x: '0',
           },
           {
             type: 'Element',
-            w: 100,
-            h: 300,
-            x: 50,
+            w: '100',
+            h: '300',
+            x: '50',
             children: [
               {
                 type: 'Button',
@@ -212,8 +212,8 @@ test('Parse tag with attributes and reactive attributes', (assert) => {
     children: [
       {
         type: 'Component',
-        x: 10,
-        y: 20,
+        x: '10',
+        y: '20',
         ':w': 'foo',
         ':h': 'test',
         test: 'ok',
@@ -234,8 +234,8 @@ test("Parse simple single tag where one of the attributes has a dash in it's nam
       {
         type: 'Component',
         'my-Attribute': 'this',
-        x: 10,
-        y: 20,
+        x: '10',
+        y: '20',
       },
     ],
   }
@@ -350,14 +350,14 @@ test('Parse template with commented tag (and skip it)', (assert) => {
     children: [
       {
         type: 'Component',
-        x: 10,
-        y: 20,
+        x: '10',
+        y: '20',
         children: [
           {
             type: 'Element',
-            w: 100,
-            h: 300,
-            x: 50,
+            w: '100',
+            h: '300',
+            x: '50',
             children: [
               {
                 type: 'Button',
@@ -389,14 +389,14 @@ test('Parse template with comment spanned across multiple tags (and skip it)', (
     children: [
       {
         type: 'Component',
-        x: 10,
-        y: 20,
+        x: '10',
+        y: '20',
         children: [
           {
             type: 'Element',
-            w: 100,
-            h: 300,
-            x: 50,
+            w: '100',
+            h: '300',
+            x: '50',
           },
         ],
       },
@@ -424,20 +424,20 @@ test('Parse template with enclosing comment (and skip it)', (assert) => {
     children: [
       {
         type: 'Component',
-        x: 10,
-        y: 20,
+        x: '10',
+        y: '20',
         children: [
           {
             type: 'Element',
-            w: 100,
-            h: 300,
-            x: 0,
+            w: '100',
+            h: '300',
+            x: '0',
           },
           {
             type: 'Element',
-            w: 100,
-            h: 300,
-            x: 50,
+            w: '100',
+            h: '300',
+            x: '50',
           },
         ],
       },

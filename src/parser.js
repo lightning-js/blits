@@ -49,7 +49,7 @@ export default (Str = '') => {
       result['attributes'] = attributes.reduce((obj, attr) => {
         const match = /(.+)=["'](.+)["']/.exec(attr)
         if (match) {
-          obj[match[1]] = parseValue(match[2])
+          obj[match[1]] = match[2]
         }
         return obj
       }, {})
@@ -58,10 +58,6 @@ export default (Str = '') => {
     return result
   }
 
-  const parseValue = (match) => {
-    const float = parseFloat(match)
-    return isNaN(float) ? match : float
-  }
 
   return parse()
 }
