@@ -72,7 +72,7 @@ test('Generate code for a template with a single simple element', (assert) => {
 
       if(!els[1]) {
         els[1] = this.createElement()
-        parent.childList.add(els[1])
+        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
       }
 
       els[1]['type'] = "Component"
@@ -109,14 +109,14 @@ test('Generate code for a template with a simple element and a simple nested ele
 
       if(!els[1]) {
         els[1] = this.createElement()
-        parent.childList.add(els[1])
+        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
       }
 
       els[1]['type'] = "Component"
 
       if(!els[2]) {
         els[2] = this.createElement()
-        els[1].childList.add(els[2])
+        els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
       }
 
       els[2]['type'] = "Element"
@@ -151,7 +151,7 @@ test('Generate code for a template with a single element with attributes', (asse
 
       if(!els[1]) {
         els[1] = this.createElement()
-        parent.childList.add(els[1])
+        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
       }
 
       els[1]['type'] = "Component"
@@ -195,7 +195,7 @@ test('Generate code for a template with attributes and a nested element with att
 
       if(!els[1]) {
         els[1] = this.createElement()
-        parent.childList.add(els[1])
+        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
       }
 
       els[1]['type'] = "Component"
@@ -204,7 +204,7 @@ test('Generate code for a template with attributes and a nested element with att
 
       if(!els[2]) {
         els[2] = this.createElement()
-        els[1].childList.add(els[2])
+        els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
       }
 
       els[2]['type'] = "Element"
@@ -255,7 +255,7 @@ test('Generate code for a template with attributes and 2 nested elements with at
 
       if(!els[1]) {
         els[1] = this.createElement()
-        parent.childList.add(els[1])
+        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
       }
 
       els[1]['type'] = "Component"
@@ -264,7 +264,7 @@ test('Generate code for a template with attributes and 2 nested elements with at
 
       if(!els[2]) {
         els[2] = this.createElement()
-        els[1].childList.add(els[2])
+        els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
       }
 
       els[2]['type'] = "Element"
@@ -274,7 +274,7 @@ test('Generate code for a template with attributes and 2 nested elements with at
 
       if(!els[3]) {
         els[3] = this.createElement()
-        els[1].childList.add(els[3])
+        els[1].childList ? els[1].childList.add(els[3]) : els[1].add(els[3])
       }
 
       els[3]['type'] = "Element"
@@ -336,7 +336,7 @@ test('Generate code for a template with attributes and deep nested elements with
 
       if(!els[1]) {
         els[1] = this.createElement()
-        parent.childList.add(els[1])
+        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
       }
 
       els[1]['type'] = "Component"
@@ -345,7 +345,7 @@ test('Generate code for a template with attributes and deep nested elements with
 
       if(!els[2]) {
         els[2] = this.createElement()
-        els[1].childList.add(els[2])
+        els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
       }
 
       els[2]['type'] = "Element"
@@ -355,7 +355,7 @@ test('Generate code for a template with attributes and deep nested elements with
 
       if(!els[3]) {
         els[3] = this.createElement()
-        els[1].childList.add(els[3])
+        els[1].childList ? els[1].childList.add(els[3]) : els[1].add(els[3])
       }
 
       els[3]['type'] = "Element"
@@ -366,7 +366,7 @@ test('Generate code for a template with attributes and deep nested elements with
 
       if(!els[4]) {
         els[4] = this.createElement()
-        els[3].childList.add(els[4])
+        els[3].childList ? els[3].childList.add(els[4]) : els[3].add(els[4])
       }
 
       els[4]['type'] = "Button"
@@ -374,7 +374,7 @@ test('Generate code for a template with attributes and deep nested elements with
 
       if(!els[5]) {
         els[5] = this.createElement()
-        els[3].childList.add(els[5])
+        els[3].childList ? els[3].childList.add(els[5]) : els[3].add(els[5])
       }
 
       els[5]['type'] = "Button"
@@ -414,7 +414,7 @@ test('Generate code for a template with simple dynamic attributes', (assert) => 
 
       if(!els[1]) {
         els[1] = this.createElement()
-        parent.childList.add(els[1])
+        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
       }
 
       els[1]['ref'] = "Component"
@@ -458,7 +458,7 @@ test('Generate code for a template with an attribute with a dash', (assert) => {
 
       if(!els[1]) {
         els[1] = this.createElement()
-        parent.childList.add(els[1])
+        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
       }
 
       els[1]['ref'] = "Component"
@@ -497,7 +497,7 @@ test('Generate code for a template with dynamic attributes with code to be evalu
 
       if(!els[1]) {
         els[1] = this.createElement()
-        parent.childList.add(els[1])
+        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
       }
 
       els[1]['type'] = "Component"
