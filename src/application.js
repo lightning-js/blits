@@ -4,15 +4,15 @@ import Component from './component.js'
 
 const Application = (config, target = null) => {
 
-  const {stage} = app({w: 1920, h: 1080, clearColor: 0xff333333})
+  const a = app({w: 1920, h: 1080, clearColor: 0xff000000})
 
-  const application = Component('App', config).apply()
+  const application = Component('App', config)()
 
   if(target && target instanceof Element === false) {
     target = document.getElementById(target)
   }
 
-  target && target.appendChild(stage.getCanvas())
+  target && target.appendChild(a.canvas)
   return application
 
 }

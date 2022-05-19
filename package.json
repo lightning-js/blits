@@ -34,8 +34,8 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/core": "^2.6.0",
     "@lightningjs/render-code-generator": "file:../code-generator",
+    "@lightningjs/renderer": "file:../renderer",
     "@lightningjs/template-parser": "file:../template-parser",
     "@vue/reactivity": "^3.2.29"
   }

@@ -1,22 +1,10 @@
-import lng from '../../node_modules/@lightningjs/core/index.js'
+import { App } from '../../node_modules/@lightningjs/renderer/index.js'
 
-export let stage
-export let wrapper
+export let app
 
 export default (config) => {
 
-  stage = new lng.Stage(config)
+  app = App(config)
 
-  wrapper = new lng.Element(stage)
-
-  // quick hack :)
-  wrapper.getOption = () => {}
-
-  // wrapper will end up being root
-  stage.setApplication(wrapper)
-  stage.init()
-
-  return {
-    stage, wrapper
-  }
+  return app
 }

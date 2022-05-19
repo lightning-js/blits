@@ -1,8 +1,15 @@
 import parser from '../node_modules/@lightningjs/template-parser/index.js'
 import renderGenerator from '../node_modules/@lightningjs/render-code-generator/index.js'
 import { emit, registerHooks } from './lib/hooks.js'
-import { stage, wrapper } from './lib/app.js'
+import { app } from './lib/app.js'
 import { reactive, effect } from '../node_modules/@vue/reactivity/dist/reactivity.esm-browser.js'
+import { createNode } from '../node_modules/@lightningjs/renderer/index.js'
+import { normalizeARGB } from '../node_modules/@lightningjs/renderer/lib/utils.js'
+
+const stage = {
+  createElement: createNode,
+  normalizeARGB,
+}
 
 const Component = (name, config) => {
 
@@ -34,8 +41,9 @@ const Component = (name, config) => {
     }
 
     let el
+
     effect(() => {
-      el = render.apply(stage, [wrapper, this, el, context])
+      el = render.apply(stage, [app.root || parent, this, el, context])
     })
   }
 
