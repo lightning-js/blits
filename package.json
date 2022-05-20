@@ -1,5 +1,5 @@
 {
-  "name": "@lightningjs/template-parser",
+  "name": "@lightningjs/bolt-template-parser",
   "version": "0.0.1",
   "description": "Bolt Template Parser",
   "main": "index.js",
