@@ -19,7 +19,7 @@
     }
   },
   "type": "module",
-  "author": "Michiel van der Geest <m.van.der.geest@metrological.com>",
+  "author": "Michiel van der Geest <hello@michielvandergeest.com>",
   "license": "Apache-2",
   "devDependencies": {
     "babel-eslint": "^10.1.0",
@@ -34,9 +34,9 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/render-code-generator": "file:../code-generator",
-    "@lightningjs/renderer": "file:../renderer",
-    "@lightningjs/template-parser": "file:../template-parser",
+    "@lightningjs/bolt-code-generator": "github:lightning-js/bolt-code-generator",
+    "@lightningjs/bolt-template-parser": "github:lightning-js/bolt-template-parser",
+    "@lightningjs/lightning-renderer": "github:lightning-js/lightning-renderer#feature/bolt-integration",
     "@vue/reactivity": "^3.2.29"
   }
 }
