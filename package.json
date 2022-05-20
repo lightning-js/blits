@@ -1,7 +1,7 @@
 {
-  "name": "@lightningjs/render-code-generator",
+  "name": "@lightningjs/bolt-code-generator",
   "version": "0.0.1",
-  "description": "",
+  "description": "Bolt C",
   "main": "index.js",
   "scripts": {
     "test": "tape '{,!(node_modules)/**/}*.test.js' | tap-diff",
@@ -19,7 +19,7 @@
     }
   },
   "type": "module",
-  "author": "Michiel van der Geest <m.van.der.geest@metrological.com>",
+  "author": "Michiel van der Geest <hello@michielvandergeest.com>",
   "license": "Apache-2",
   "devDependencies": {
     "babel-eslint": "^10.1.0",
