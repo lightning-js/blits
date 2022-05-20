@@ -1,10 +1,10 @@
-import parser from '../node_modules/@lightningjs/template-parser/index.js'
-import renderGenerator from '../node_modules/@lightningjs/render-code-generator/index.js'
+import parser from '../../../@lightningjs/bolt-template-parser/index.js'
+import renderGenerator from '../../../@lightningjs/bolt-code-generator/index.js'
 import { emit, registerHooks } from './lib/hooks.js'
 import { app } from './lib/app.js'
-import { reactive, effect } from '../node_modules/@vue/reactivity/dist/reactivity.esm-browser.js'
-import { createNode } from '../node_modules/@lightningjs/renderer/index.js'
-import { normalizeARGB } from '../node_modules/@lightningjs/renderer/lib/utils.js'
+import { reactive, effect } from '../../../@vue/reactivity/dist/reactivity.esm-browser.js'
+import { createNode } from '../../../@lightningjs/lightning-renderer/index.js'
+import { normalizeARGB } from '../../../@lightningjs/lightning-renderer/lib/utils.js'
 
 const stage = {
   createElement: createNode,
