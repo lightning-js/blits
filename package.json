@@ -34,9 +34,9 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/bolt-code-generator": "github:lightning-js/bolt-code-generator",
-    "@lightningjs/bolt-template-parser": "github:lightning-js/bolt-template-parser",
-    "@lightningjs/lightning-renderer": "github:lightning-js/lightning-renderer#feature/bolt-integration",
+    "@lightningjs/bolt-code-generator": "file:../code-generator",
+    "@lightningjs/bolt-template-parser": "file:../template-parser",
+    "@lightningjs/lightning-renderer": "file:../renderer",
     "@vue/reactivity": "^3.2.29"
   }
 }
