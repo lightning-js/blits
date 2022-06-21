@@ -2,29 +2,29 @@ let counter = 0
 
 export default function(templateObject = {children: []}) {
   const context = {props: []}
-  const code = ['if(!els) var els = []']
+  const renderCode = ['var els = []']
+  const updateCode = []
   counter = 0
 
   templateObject.children.forEach(child => {
-      generateElementCode(child, code, 'parent', this, context)
+      generateElementCode(child, renderCode, updateCode, 'parent', this, context)
   })
 
-  code.push('return els')
+  renderCode.push('return els')
 
   return {
-    render: new Function('parent', 'component', 'els', 'context', code.join('\n')),
+    render: new Function('parent', 'component', 'context', renderCode.join('\n')),
+    update: new Function('component', 'els', 'context', updateCode.join('\n')),
     context
   }
 }
 
-const generateElementCode = (tpl, code, parent, scope, context) => {
+const generateElementCode = (tpl, renderCode, updateCode, parent, scope, context) => {
   counter++
   // note, code below contains a temporary L2/L3 compatibility hack
-  code.push(`
-      if(!els[${counter}]) {
-          els[${counter}] = this.createElement()
-          ${parent}.childList ? ${parent}.childList.add(els[${counter}]) : ${parent}.add(els[${counter}])
-      }
+  renderCode.push(`
+    els[${counter}] = this.createElement()
+    ${parent}.childList ? ${parent}.childList.add(els[${counter}]) : ${parent}.add(els[${counter}])
   `)
 
   parent = `els[${counter}]`
@@ -40,21 +40,21 @@ const generateElementCode = (tpl, code, parent, scope, context) => {
                 context[child.type] = scope.components[child.type]
               }
               context.props.push({props: child})
-              code.push(`
-                if(!els[${counter}]) {
-                  els[${counter}] = context['${child.type}'](context.props[${context.props.length - 1}], ${parent})
-                }
+              renderCode.push(`
+                els[${counter}] = context['${child.type}'](context.props[${context.props.length - 1}], ${parent})
               `)
             } else {
-              generateElementCode(child, code, `${parent}`, scope, context)
+              generateElementCode(child, renderCode, updateCode, `${parent}`, scope, context)
             }
           })
       } else {
-        code.push(cast`${counter} ${key} ${tpl[key]}`)
+        if(key.indexOf(':') === 0) {
+          updateCode.push(cast`${counter} ${key} ${tpl[key]}`)
+        } else {
+          renderCode.push(cast`${counter} ${key} ${tpl[key]}`)
+        }
       }
   })
-
-  return code
 }
 
 

@@ -20,6 +20,7 @@ test('Returns an object with a render function and a context object', (assert) =
 
   assert.equal(actual, expected, 'Generator should return an object')
   assert.ok('render' in result, 'Generator object should have a render key')
+  assert.ok('update' in result, 'Generator object should have a update key')
   assert.ok('context' in result, 'Generator object should have a context key')
   assert.end()
 })
@@ -33,7 +34,16 @@ test('The render key is a function', (assert) => {
   assert.end()
 })
 
-test('The contex is an object', (assert) => {
+test('The update key is a function', (assert) => {
+  const result = generator()
+  const expected = 'function'
+  const actual = typeof result.update
+
+  assert.equal(actual, expected, 'Update key should return a function')
+  assert.end()
+})
+
+test('The contex key is an object', (assert) => {
   const result = generator()
   const expected = 'object'
   const actual = typeof result.context
@@ -42,21 +52,27 @@ test('The contex is an object', (assert) => {
   assert.end()
 })
 
-test('Generate code for an empty template', (assert) => {
-  const expected = `
-  function anonymous(parent,component,els,context) {
-      if(!els) var els = []
+test('Generate render and update code for an empty template', (assert) => {
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      var els = []
       return els
   }
   `
-  const actual = generator().render.toString()
-  assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
+
+  const expectedUpdate = `
+  function anonymous(component,els,context) {
+  }
+  `
+  const actual = generator()
+  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
+  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a update function with the correct code')
   assert.end()
 
 })
 
 
-test('Generate code for a template with a single simple element', (assert) => {
+test('Generate render and update code for a template with a single simple element', (assert) => {
 
   const templateObject = {
     children: [
@@ -66,14 +82,12 @@ test('Generate code for a template with a single simple element', (assert) => {
     ],
   }
 
-  const expected = `
-  function anonymous(parent,component,els,context) {
-      if(!els) var els = []
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      var els = []
 
-      if(!els[1]) {
-        els[1] = this.createElement()
-        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
-      }
+      els[1] = this.createElement()
+      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
 
       els[1]['type'] = "Component"
 
@@ -81,9 +95,15 @@ test('Generate code for a template with a single simple element', (assert) => {
   }
   `
 
-  const actual = generator(templateObject).render.toString()
+  const expectedUpdate = `
+  function anonymous(component,els,context) {
+  }
+  `
 
-  assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
+  const actual = generator(templateObject)
+
+  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
+  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a update function with the correct code')
   assert.end()
 
 })
@@ -103,21 +123,17 @@ test('Generate code for a template with a simple element and a simple nested ele
     ],
   }
 
-  const expected = `
-  function anonymous(parent,component,els,context) {
-      if(!els) var els = []
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      var els = []
 
-      if(!els[1]) {
-        els[1] = this.createElement()
-        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
-      }
+      els[1] = this.createElement()
+      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
 
       els[1]['type'] = "Component"
 
-      if(!els[2]) {
-        els[2] = this.createElement()
-        els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
-      }
+      els[2] = this.createElement()
+      els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
 
       els[2]['type'] = "Element"
 
@@ -125,9 +141,15 @@ test('Generate code for a template with a simple element and a simple nested ele
   }
   `
 
-  const actual = generator(templateObject).render.toString()
+  const expectedUpdate = `
+  function anonymous(component,els,context) {
+  }
+  `
 
-  assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
+  const actual = generator(templateObject)
+
+  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
+  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a update function with the correct code')
   assert.end()
 
 })
@@ -145,14 +167,12 @@ test('Generate code for a template with a single element with attributes', (asse
     ],
   }
 
-  const expected = `
-  function anonymous(parent,component,els,context) {
-      if(!els) var els = []
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      var els = []
 
-      if(!els[1]) {
-        els[1] = this.createElement()
-        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
-      }
+      els[1] = this.createElement()
+      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
 
       els[1]['type'] = "Component"
       els[1]['x'] = 10
@@ -162,9 +182,15 @@ test('Generate code for a template with a single element with attributes', (asse
   }
   `
 
-  const actual = generator(templateObject).render.toString()
+  const expectedUpdate = `
+  function anonymous(component,els,context) {
+  }
+  `
 
-  assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
+  const actual = generator(templateObject)
+
+  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
+  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a update function with the correct code')
   assert.end()
 
 })
@@ -189,23 +215,19 @@ test('Generate code for a template with attributes and a nested element with att
     ],
   }
 
-  const expected = `
-  function anonymous(parent,component,els,context) {
-      if(!els) var els = []
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      var els = []
 
-      if(!els[1]) {
-        els[1] = this.createElement()
-        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
-      }
+      els[1] = this.createElement()
+      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
 
       els[1]['type'] = "Component"
       els[1]['x'] = 10
       els[1]['y'] = 20
 
-      if(!els[2]) {
-        els[2] = this.createElement()
-        els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
-      }
+      els[2] = this.createElement()
+      els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
 
       els[2]['type'] = "Element"
       els[2]['w'] = 100
@@ -215,9 +237,16 @@ test('Generate code for a template with attributes and a nested element with att
   }
   `
 
-  const actual = generator(templateObject).render.toString()
+  const expectedUpdate = `
+  function anonymous(component,els,context) {
+  }
+  `
 
-  assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
+
+  const actual = generator(templateObject)
+
+  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
+  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a render function with the correct code')
   assert.end()
 
 })
@@ -249,33 +278,27 @@ test('Generate code for a template with attributes and 2 nested elements with at
     ],
   }
 
-  const expected = `
-  function anonymous(parent,component,els,context) {
-      if(!els) var els = []
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      var els = []
 
-      if(!els[1]) {
-        els[1] = this.createElement()
-        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
-      }
+      els[1] = this.createElement()
+      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
 
       els[1]['type'] = "Component"
       els[1]['x'] = 10
       els[1]['y'] = 20
 
-      if(!els[2]) {
-        els[2] = this.createElement()
-        els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
-      }
+      els[2] = this.createElement()
+      els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
 
       els[2]['type'] = "Element"
       els[2]['w'] = 100
       els[2]['h'] = 300
       els[2]['x'] = 0
 
-      if(!els[3]) {
-        els[3] = this.createElement()
-        els[1].childList ? els[1].childList.add(els[3]) : els[1].add(els[3])
-      }
+      els[3] = this.createElement()
+      els[1].childList ? els[1].childList.add(els[3]) : els[1].add(els[3])
 
       els[3]['type'] = "Element"
       els[3]['w'] = 100
@@ -286,9 +309,15 @@ test('Generate code for a template with attributes and 2 nested elements with at
   }
   `
 
-  const actual = generator(templateObject).render.toString()
+  const expectedUpdate = `
+  function anonymous(component,els,context) {
+  }
+  `
 
-  assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
+  const actual = generator(templateObject)
+
+  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
+  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a render function with the correct code')
   assert.end()
 
 })
@@ -330,52 +359,41 @@ test('Generate code for a template with attributes and deep nested elements with
     ],
   }
 
-  const expected = `
-  function anonymous(parent,component,els,context) {
-      if(!els) var els = []
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      var els = []
 
-      if(!els[1]) {
-        els[1] = this.createElement()
-        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
-      }
+      els[1] = this.createElement()
+      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
 
       els[1]['type'] = "Component"
       els[1]['x'] = 10
       els[1]['y'] = 20
 
-      if(!els[2]) {
-        els[2] = this.createElement()
-        els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
-      }
+      els[2] = this.createElement()
+      els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
 
       els[2]['type'] = "Element"
       els[2]['w'] = 100
       els[2]['h'] = 300
       els[2]['x'] = 0
 
-      if(!els[3]) {
-        els[3] = this.createElement()
-        els[1].childList ? els[1].childList.add(els[3]) : els[1].add(els[3])
-      }
+      els[3] = this.createElement()
+      els[1].childList ? els[1].childList.add(els[3]) : els[1].add(els[3])
 
       els[3]['type'] = "Element"
       els[3]['w'] = 100
       els[3]['h'] = 300
       els[3]['x'] = 50
 
-
-      if(!els[4]) {
-        els[4] = this.createElement()
-        els[3].childList ? els[3].childList.add(els[4]) : els[3].add(els[4])
-      }
+      els[4] = this.createElement()
+      els[3].childList ? els[3].childList.add(els[4]) : els[3].add(els[4])
 
       els[4]['type'] = "Button"
       els[4]['label'] = "Hello"
 
-      if(!els[5]) {
-        els[5] = this.createElement()
-        els[3].childList ? els[3].childList.add(els[5]) : els[3].add(els[5])
-      }
+      els[5] = this.createElement()
+      els[3].childList ? els[3].childList.add(els[5]) : els[3].add(els[5])
 
       els[5]['type'] = "Button"
       els[5]['label'] = "World"
@@ -384,9 +402,15 @@ test('Generate code for a template with attributes and deep nested elements with
   }
   `
 
-  const actual = generator(templateObject).render.toString()
+  const expectedUpdate = `
+  function anonymous(component,els,context) {
+  }
+  `
 
-  assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
+  const actual = generator(templateObject)
+
+  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
+  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a render function with the correct code')
   assert.end()
 
 })
@@ -408,31 +432,33 @@ test('Generate code for a template with simple dynamic attributes', (assert) => 
     ],
   }
 
-  const expected = `
-  function anonymous(parent,component,els,context) {
-      if(!els) var els = []
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      var els = []
 
-      if(!els[1]) {
-        els[1] = this.createElement()
-        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
-      }
+      els[1] = this.createElement()
+      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
 
       els[1]['ref'] = "Component"
       els[1]['type'] = "Component"
       els[1]['x'] = 10
       els[1]['y'] = 20
 
-      els[1]['w'] = component.state.foo
-      els[1]['h'] = component.state.test
-
       els[1]['test'] = "ok"
 
       return els
   }`
 
-  const actual = generator(templateObject).render.toString()
+  const expectedUpdate = `function anonymous(component,els,context) {
+    els[1]['w'] = component.state.foo
+    els[1]['h'] = component.state.test
+  }
+  `
 
-  assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
+  const actual = generator(templateObject)
+
+  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
+  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a update function with the correct code')
   assert.end()
 
 })
@@ -452,14 +478,12 @@ test('Generate code for a template with an attribute with a dash', (assert) => {
     ],
   }
 
-  const expected = `
-  function anonymous(parent,component,els,context) {
-      if(!els) var els = []
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      var els = []
 
-      if(!els[1]) {
-        els[1] = this.createElement()
-        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
-      }
+      els[1] = this.createElement()
+      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
 
       els[1]['ref'] = "Component"
       els[1]['type'] = "Component"
@@ -470,9 +494,14 @@ test('Generate code for a template with an attribute with a dash', (assert) => {
       return els
   }`
 
-  const actual = generator(templateObject).render.toString()
+  const expectedUpdate = `function anonymous(component,els,context) {
+  }
+  `
 
-  assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
+  const actual = generator(templateObject)
+
+  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
+  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a render function with the correct code')
 
   assert.end()
 })
@@ -491,26 +520,29 @@ test('Generate code for a template with dynamic attributes with code to be evalu
     ],
   }
 
-  const expected = `
-  function anonymous(parent,component,els,context) {
-      if(!els) var els = []
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      var els = []
 
-      if(!els[1]) {
-        els[1] = this.createElement()
-        parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
-      }
+      els[1] = this.createElement()
+      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
 
       els[1]['type'] = "Component"
-      els[1]['attribute1'] = component.state.foo * 2
-      els[1]['attribute2'] = component.state.ok ? 'Yes' : 'No'
-      els[1]['attribute3'] = component.state.text.split(\'\').reverse().join(\'\')
 
       return els
   }`
 
-  const actual = generator(templateObject).render.toString()
+  const expectedUpdate = `function anonymous(component,els,context) {
+    els[1]['attribute1'] = component.state.foo * 2
+    els[1]['attribute2'] = component.state.ok ? 'Yes' : 'No'
+    els[1]['attribute3'] = component.state.text.split(\'\').reverse().join(\'\')
+  }
+  `
 
-  assert.equal(normalize(actual), normalize(expected), 'Generator should return a function with the correct code')
+  const actual = generator(templateObject)
+
+  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
+  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a render function with the correct code')
 
   assert.end()
 })
