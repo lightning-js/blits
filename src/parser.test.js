@@ -448,3 +448,98 @@ test('Parse template with enclosing comment (and skip it)', (assert) => {
   assert.deepEqual(actual, expected, 'Parser should return object representation of template')
   assert.end()
 })
+
+
+test('Parse template with for loop', (assert) => {
+  const template = `
+    <List>
+      <ListItem :for="item in $items" />
+    </List>`
+
+  const expected = {
+    children: [
+      {
+        type: 'List',
+        children: [
+          {
+            type: 'ListItem',
+            ':for': 'item in $items'
+          },
+        ],
+      },
+    ],
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+
+test('Parse template with a conditional (if-statement)', (assert) => {
+  const template = `
+    <Component :if="$loggedIn === true">
+      <Text value="Welcome" />
+      <Avatar :user="$user" />
+    </Component>`
+
+  const expected = {
+    children: [
+      {
+        type: 'Component',
+        ':if': '$loggedIn === true',
+        children: [
+          {
+            type: 'Text',
+            'value': 'Welcome'
+          },
+          {
+            type: 'Avatar',
+            ':user': '$user'
+          }
+        ],
+      },
+    ],
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with a visibility toggle (show-statement)', (assert) => {
+  const template = `
+    <Poster w="200" h="500">
+      <Label :text="$text" />
+      <Image src="$image" />
+      <Star :show="$favorited === true" />
+    </Poster>`
+
+  const expected = {
+    children: [
+      {
+        type: 'Poster',
+        w: '200',
+        h: '500',
+        children: [
+          {
+            type: 'Label',
+            ':text': '$text'
+          },
+          {
+            type: 'Image',
+            'src': '$image'
+          },
+          {
+            type: 'Star',
+            ':show': '$favorited === true'
+          }
+        ],
+      },
+    ],
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
