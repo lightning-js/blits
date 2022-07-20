@@ -1,4 +1,4 @@
-import { App } from '../../../../@lightningjs/lightning-renderer/index.js'
+import { App } from '@lightningjs/lightning-renderer/index.js'
 
 export let app
 

@@ -1,10 +1,10 @@
-import parser from '../../../@lightningjs/bolt-template-parser/index.js'
-import renderGenerator from '../../../@lightningjs/bolt-code-generator/index.js'
+import parser from '@lightningjs/bolt-template-parser/index.js'
+import renderGenerator from '@lightningjs/bolt-code-generator/index.js'
 import { emit, registerHooks } from './lib/hooks.js'
 import { app } from './lib/app.js'
-import { reactive, effect } from '../../../@vue/reactivity/dist/reactivity.esm-browser.js'
-import { createNode } from '../../../@lightningjs/lightning-renderer/index.js'
-import { normalizeARGB } from '../../../@lightningjs/lightning-renderer/lib/utils.js'
+import { reactive, effect } from '@vue/reactivity/dist/reactivity.esm-browser.js'
+import { createNode } from '@lightningjs/lightning-renderer/index.js'
+import { normalizeARGB } from '@lightningjs/lightning-renderer/lib/utils.js'
 
 const stage = {
   createElement: createNode,
@@ -14,40 +14,40 @@ const stage = {
 const Component = (name, config) => {
 
   let render
+  let update
   let context
   let counter = 1
 
   const component = function (opts) {
-    this.id = 'component' + '_' + this.name + '_' + counter++
 
-    const props = config.props
-      ? config.props
-          .filter((prop) => prop in opts.props)
-          .reduce((acc, prop) => {
-            acc[prop] = opts.props[prop]
-            return acc
-          }, {})
-      : {}
+    this._id = 'component' + '_' + this.name + '_' + counter++
 
-    this.state = reactive({ ...(config.state && config.state.apply(props)), ...props })
+    this.state = reactive({...config.state && typeof config.state === 'function' && config.state(), ...opts.props})
 
-    registerHooks(opts.hooks, this.id)
-    emit('init', this.id, this)
+    registerHooks(opts.hooks, this._id)
+    emit('init', this._id, this)
 
-    if (!render) {
+    if (!render && !update) {
       const generatedCode = renderGenerator.call(config, parser(config.template))
       render = generatedCode.render
+      update = generatedCode.update
       context = generatedCode.context
     }
 
-    let el
+    this.el = render.apply(stage, [app.root || parent, this, context])
 
     effect(() => {
-      el = render.apply(stage, [app.root || parent, this, el, context])
+      update.apply(stage, [this, this.el, context])
     })
   }
 
   component.prototype.name = name
+
+  component.prototype.destroy = function() {
+    emit('destroy', this._id, this)
+    this.el[1].destroy()
+    setTimeout(() => delete this.el[1])
+  }
 
   component.prototype = Object.keys(config.methods || {}).reduce((prototype, method) => {
     prototype[method] = config.methods[method]
@@ -58,7 +58,10 @@ const Component = (name, config) => {
     config.props.forEach((key) => {
       Object.defineProperty(component.prototype, key, {
         get() {
-          return this.state[key]
+          return this.props[key]
+        },
+        set(v) {
+          this.props[key] = v
         },
       })
     })
@@ -74,6 +77,14 @@ const Component = (name, config) => {
           this.state[key] = v
         },
       })
+    })
+
+    Object.defineProperty(component.prototype, 'props', {
+      set(v = {}) {
+        Object.keys(v).forEach(prop => {
+          this[prop] = v[prop]
+        })
+      }
     })
 
   return (options = {}) => {
