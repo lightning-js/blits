@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "tape -r esm **/*.test.js | tap-diff",
+    "test": "tape '{,!(node_modules)/**/}*.test.js' | tap-diff",
     "lint": "eslint '**/*.js'",
     "lint:fix": "eslint '**/*.js' --fix"
   },
@@ -36,7 +36,6 @@
   "dependencies": {
     "@lightningjs/bolt-code-generator": "file:../code-generator",
     "@lightningjs/bolt-template-parser": "file:../template-parser",
-    "@lightningjs/lightning-renderer": "file:../renderer",
-    "@vue/reactivity": "^3.2.29"
+    "@lightningjs/lightning-renderer": "file:../renderer"
   }
 }
