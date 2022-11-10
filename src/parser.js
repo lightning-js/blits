@@ -1,50 +1,48 @@
-export default (Str = '') => {
-  let position = 0
+export default (template = '') => {
+  let cursor = 0
 
   const parse = () => {
     const output = { children: [] }
-    while (Str[position]) {
-      if (Str.charCodeAt(position) === '<'.charCodeAt(0)) {
-        if (Str.charCodeAt(position + 1) === '/'.charCodeAt(0)) {
+    while (template[cursor]) {
+      if (template.charCodeAt(cursor) === '<'.charCodeAt(0)) {
+        if (template.charCodeAt(cursor + 1) === '/'.charCodeAt(0)) {
           return output
         }
-        if(Str.substring(position + 1, position + 4) === '!--') {
-          position = Str.indexOf('-->', position) + 3
+        if(template.substring(cursor + 1, cursor + 4) === '!--') {
+          cursor = template.indexOf('-->', cursor) + 3
         } else {
           parseNode(output)
         }
-
       }
-      position++
+      cursor++
     }
 
     return output
   }
 
   const parseNode = (output) => {
-    const endPosition = Str.indexOf('>', position)
-    const tag = parseTag(Str.substring(position + 1, endPosition))
+    const endPosition = template.indexOf('>', cursor)
+    const tag = parseTag(template.substring(cursor + 1, endPosition))
     const node = { ...{ type: tag.type }, ...tag.attributes }
 
     // self closing tag
-    if (Str.charCodeAt(endPosition - 1) === '/'.charCodeAt(0)) {
+    if (template.charCodeAt(endPosition - 1) === '/'.charCodeAt(0)) {
       output.children.push(node)
     } else {
-      position = endPosition
+      cursor = endPosition
       const nested = parse()
       if (nested.children.length) {
         node.children = [...nested.children]
       }
-
       output.children.push(node)
     }
   }
 
-  const parseTag = (tagStr) => {
+  const parseTag = (tag) => {
     const result = {
-      type: tagStr.match(/[^\s]+/).shift()
+      type: tag.match(/[^\s]+/).shift()
     }
-    const attributes = tagStr.match(/[:*\w-]+="[^"]*"/g) || []
+    const attributes = tag.match(/[:*\w-]+="[^"]*"/g) || []
     if (attributes.length) {
       result['attributes'] = attributes.reduce((obj, attr) => {
         const match = /(.+)=["'](.+)["']/.exec(attr)
@@ -57,7 +55,6 @@ export default (Str = '') => {
 
     return result
   }
-
 
   return parse()
 }
