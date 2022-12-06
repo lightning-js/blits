@@ -1,8 +1,7 @@
 import parser from '@lightningjs/bolt-template-parser/index.js'
 import renderGenerator from '@lightningjs/bolt-code-generator/index.js'
 
-import { createNode } from '@lightningjs/lightning-renderer/index.js'
-import { normalizeARGB } from '@lightningjs/lightning-renderer/lib/utils.js'
+import element from './element.js'
 
 import { createHumanReadableId, createInternalId } from './lib/componentId.js'
 import { registerHooks, emit } from './lib/hooks.js'
@@ -16,8 +15,7 @@ import { effect } from './lib/reactivity/effect.js'
 // import setupWatch from './lib/setup/watch.js'
 
 const stage = {
-  createElement: createNode,
-  normalizeARGB,
+  element,
 }
 
 const required = (name) => {

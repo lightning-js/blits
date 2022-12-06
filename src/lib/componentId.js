@@ -6,5 +6,5 @@ export const createHumanReadableId = (name) => {
 }
 
 export const createInternalId = () => {
-  return `c_${(counter = counter + 1)}`
+  return ++counter
 }

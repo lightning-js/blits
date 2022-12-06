@@ -2,7 +2,10 @@
   "name": "@lightningjs/bolt",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./renderer": "./src/workers/renderer.js"
+  },
   "scripts": {
     "test": "tape '{,!(node_modules)/**/}*.test.js' | tap-diff",
     "lint": "eslint '**/*.js'",
@@ -36,6 +39,7 @@
   "dependencies": {
     "@lightningjs/bolt-code-generator": "file:../code-generator",
     "@lightningjs/bolt-template-parser": "file:../template-parser",
-    "@lightningjs/lightning-renderer": "file:../renderer"
+    "@lightningjs/renderer": "file:../renderer",
+    "@lightningjs/threadx": "file:../threadx"
   }
 }

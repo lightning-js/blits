@@ -1,12 +1,12 @@
 const cbs = {}
 
-export const emit = (hook, id, scope) => {
-  cbs[id] && cbs[id][hook] && cbs[id][hook].apply(scope)
+export const emit = (hook, name, scope) => {
+  cbs[name] && cbs[name][hook] && cbs[name][hook].apply(scope)
 }
 
-export const registerHooks = (hooks = {}, id) => {
-  cbs[id] = {}
+export const registerHooks = (hooks = {}, name) => {
+  cbs[name] = {}
   Object.keys(hooks).forEach((hook) => {
-    if (typeof hooks[hook] === 'function') cbs[id][hook] = hooks[hook]
+    if (typeof hooks[hook] === 'function') cbs[name][hook] = hooks[hook]
   })
 }
