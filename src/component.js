@@ -100,14 +100,15 @@ const Component = (name = required('name'), config = required('config')) => {
         enumerable: false,
         configurable: false,
       },
-      ___state: {
-        value: reactive(
-          (config.state && typeof config.state === 'function' && config.state.apply(this)) || {}
-        ),
-        writable: false,
-        enumerable: false,
-        configurable: false,
-      },
+    })
+
+    Object.defineProperty(this, '___state', {
+      value: reactive(
+        (config.state && typeof config.state === 'function' && config.state.apply(this)) || {}
+      ),
+      writable: false,
+      enumerable: false,
+      configurable: false,
     })
 
     lifecycle.state = 'init'
