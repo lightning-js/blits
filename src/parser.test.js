@@ -16,7 +16,7 @@ test('Returns an object', (assert) => {
 
   assert.equal(actual, expected, 'Parser should return an object')
   assert.ok('children' in result, 'Parser should return an object with a children key')
-  assert.ok(Array.isArray(result.children), 'Children key return by parser should be an array')
+  assert.ok(Array.isArray(result.children), 'Children key returned by parser should be an array')
   assert.end()
 })
 
@@ -533,6 +533,41 @@ test('Parse template with a visibility toggle (show-statement)', (assert) => {
           {
             type: 'Star',
             ':show': '$favorited === true'
+          }
+        ],
+      },
+    ],
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with a nameless tag', (assert) => {
+  const template = `
+    <>
+      <Component x="50" y="20">
+        <Component w="100" h="20" />
+      </Component>
+    </>`
+
+  const expected = {
+    children: [
+      {
+        type: '',
+        children: [
+          {
+            type: 'Component',
+            x: '50',
+            y: '20',
+            children: [
+              {
+                type: 'Component',
+                w: '100',
+                h: '20',
+              },
+            ],
           }
         ],
       },

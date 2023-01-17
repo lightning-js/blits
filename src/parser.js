@@ -40,7 +40,7 @@ export default (template = '') => {
 
   const parseTag = (tag) => {
     const result = {
-      type: tag.match(/[^\s]+/).shift()
+      type: tag && tag.match(/[^\s]+/).shift()
     }
     const attributes = tag.match(/[:*\w-]+="[^"]*"/g) || []
     if (attributes.length) {
