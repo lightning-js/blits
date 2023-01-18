@@ -555,10 +555,47 @@ test('Parse template with a nameless tag', (assert) => {
   const expected = {
     children: [
       {
-        type: '',
+        type: null,
         children: [
           {
             type: 'Component',
+            x: '50',
+            y: '20',
+            children: [
+              {
+                type: 'Component',
+                w: '100',
+                h: '20',
+              },
+            ],
+          }
+        ],
+      },
+    ],
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with a nameless tag but with arguments', (assert) => {
+  const template = `
+    <x="100" y="200">
+      <x="50" y="20">
+        <Component w="100" h="20" />
+      </>
+    </>`
+
+  const expected = {
+    children: [
+      {
+        type: null,
+        x: '100',
+        y: '200',
+        children: [
+          {
+            type: null,
             x: '50',
             y: '20',
             children: [

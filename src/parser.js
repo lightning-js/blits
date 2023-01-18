@@ -39,8 +39,9 @@ export default (template = '') => {
   }
 
   const parseTag = (tag) => {
+    let match
     const result = {
-      type: tag && tag.match(/[^\s]+/).shift()
+      type: (match = tag.match(/^([A-Za-z0-9]+)(?![A-Za-z0-9=])/)) && match[0] // || 'Element' maybe default to 'Element'
     }
     const attributes = tag.match(/[:*\w-]+="[^"]*"/g) || []
     if (attributes.length) {
