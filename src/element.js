@@ -7,18 +7,18 @@ export default (config) => {
   return {
     populate(data) {
       config.elementId = elementId
-      threadx.send('main.bolt', { ...config, ...data })
+      threadx.send('bolt', { ...config, ...data })
     },
     set(property, value) {
       if (property === 'imageSource') {
         if (value !== -1) {
-          threadx.send('main.images', {
-            boltId: elementId,
+          threadx.send('images', {
+            id: elementId,
             value,
           })
         }
       } else if (property === 'text') {
-        threadx.send('main.text', {
+        threadx.send('text', {
           elementId,
           value,
         })
@@ -27,7 +27,7 @@ export default (config) => {
           elementId,
         }
         mutation[property] = value
-        threadx.send('main.mutations', mutation)
+        threadx.send('mutations', mutation)
       }
     },
     delete() {

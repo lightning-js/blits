@@ -23,10 +23,9 @@ const required = (name) => {
 }
 
 const Component = (name = required('name'), config = required('config')) => {
-  let code = false
+  let code = null
 
   const setupComponent = (lifecycle) => {
-
     // code generation
     if (!code) {
       code = renderGenerator.call(config, parser(config.template))

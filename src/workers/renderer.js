@@ -8,26 +8,13 @@ export default () => {
   let app = null
   const nodes = new Map()
 
-  threadx
-    .register('renderer', [
-      {
-        name: 'events',
-        array: 'int32',
-        length: 2e4,
-        allowMissing: true,
-        mapping: ['boltId', 'property', 'value', 'event'],
-      },
-    ])
-    .then(() => {})
-
   self.addEventListener('message', ({ data: { event, payload } }) => {
     if (event === 'canvas') {
-      console.log('received canvas')
       canvas = payload.offscreenCanvas
       gl = createWebGLContext(canvas)
       app = application({
-        w: 1400,
-        h: 100,
+        w: 1920,
+        h: 1080,
         context: gl,
       })
       ready()
@@ -52,7 +39,7 @@ export default () => {
   const ready = () => {
     const mutationsQueue = {}
 
-    threadx.listen('main.mutations', (data) => {
+    threadx.listen('mutations', (data) => {
       data &&
         data.forEach((el) => {
           const node = nodes.get(el.elementId)
@@ -72,16 +59,16 @@ export default () => {
 
     const imagesQueue = {}
 
-    threadx.listen('main.images', (el) => {
-      const node = nodes.get(el.elementId)
+    threadx.listen('images', (el) => {
+      const node = nodes.get(el.id)
 
       if (node) {
         loadImage(el.text).then((data) => {
           node.imageBitmap = data
         })
       } else {
-        imagesQueue[el.elementId] = imagesQueue[el.elementId] || []
-        imagesQueue[el.elementId].push(el)
+        imagesQueue[el.id] = imagesQueue[el.id] || []
+        imagesQueue[el.id].push(el)
       }
     })
 
@@ -99,7 +86,7 @@ export default () => {
       }
     }
 
-    threadx.listen('main.bolt', (data) => {
+    threadx.listen('bolt', (data) => {
       data &&
         data.forEach((el) => {
           const { elementId, parentId } = el
@@ -137,5 +124,7 @@ export default () => {
           nodes.set(elementId, node)
         })
     })
+
+    globalThis.postMessage({ event: 'ready' })
   }
 }

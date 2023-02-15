@@ -3,7 +3,6 @@
     "eslint.validate": [
       "javascript"
     ],
-    "eslint.alwaysShowStatus": true,
     "editor.codeActionsOnSave": {
       "source.fixAll.eslint": true
     }
