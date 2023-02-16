@@ -19,9 +19,9 @@ test('Returns an object with a render function and a context object', (assert) =
   const actual = typeof result
 
   assert.equal(actual, expected, 'Generator should return an object')
-  assert.ok('render' in result, 'Generator object should have a render key')
-  assert.ok('update' in result, 'Generator object should have a update key')
-  assert.ok('context' in result, 'Generator object should have a context key')
+  assert.ok('render' in result, 'Generated object should have a render key')
+  assert.ok('effects' in result, 'Generated object should have an effects key')
+  assert.ok('context' in result, 'Generated object should have a context key')
   assert.end()
 })
 
@@ -34,12 +34,11 @@ test('The render key is a function', (assert) => {
   assert.end()
 })
 
-test('The update key is a function', (assert) => {
+test('The effects key is an array (of functions)', (assert) => {
   const result = generator()
-  const expected = 'function'
-  const actual = typeof result.update
+  const actual = Array.isArray(result.effects)
 
-  assert.equal(actual, expected, 'Update key should return a function')
+  assert.ok(actual, 'Update key should return an Array')
   assert.end()
 })
 
@@ -52,28 +51,29 @@ test('The contex key is an object', (assert) => {
   assert.end()
 })
 
-test('Generate render and update code for an empty template', (assert) => {
+test('Generate render and effect code for an empty template', (assert) => {
   const expectedRender = `
   function anonymous(parent,component,context) {
-      var els = []
-      return els
+      const elms = []
+      return elms
   }
   `
 
-  const expectedUpdate = `
-  function anonymous(component,els,context) {
-  }
-  `
   const actual = generator()
-  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
-  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a update function with the correct code')
-  assert.end()
 
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+  assert.end()
 })
 
-
-test('Generate render and update code for a template with a single simple element', (assert) => {
-
+test('Generate render and effect code for a template with a single simple element', (assert) => {
   const templateObject = {
     children: [
       {
@@ -84,32 +84,33 @@ test('Generate render and update code for a template with a single simple elemen
 
   const expectedRender = `
   function anonymous(parent,component,context) {
-      var els = []
+      const elms = []
 
-      els[1] = this.createElement()
-      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
+      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig1 = {}
 
-      els[1]['type'] = "Component"
+      elementConfig1['type'] = "Component"
 
-      return els
-  }
-  `
-
-  const expectedUpdate = `
-  function anonymous(component,els,context) {
+      elms[1].populate(elementConfig1)
+      return elms
   }
   `
 
   const actual = generator(templateObject)
 
-  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
-  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a update function with the correct code')
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
   assert.end()
-
 })
 
 test('Generate code for a template with a simple element and a simple nested element', (assert) => {
-
   const templateObject = {
     children: [
       {
@@ -125,38 +126,43 @@ test('Generate code for a template with a simple element and a simple nested ele
 
   const expectedRender = `
   function anonymous(parent,component,context) {
-      var els = []
+    const elms = []
 
-      els[1] = this.createElement()
-      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
+    elms[1] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+    const elementConfig1 = {}
 
-      els[1]['type'] = "Component"
+    elementConfig1['type'] = "Component"
 
-      els[2] = this.createElement()
-      els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
+    elms[1].populate(elementConfig1)
 
-      els[2]['type'] = "Element"
+    parent = elms[1]
 
-      return els
-  }
-  `
+    elms[2] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+    const elementConfig2 = {}
 
-  const expectedUpdate = `
-  function anonymous(component,els,context) {
+    elementConfig2['type'] = "Element"
+
+    elms[2].populate(elementConfig2)
+
+    return elms
   }
   `
 
   const actual = generator(templateObject)
 
-  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
-  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a update function with the correct code')
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
   assert.end()
-
 })
 
-
 test('Generate code for a template with a single element with attributes', (assert) => {
-
   const templateObject = {
     children: [
       {
@@ -169,35 +175,35 @@ test('Generate code for a template with a single element with attributes', (asse
 
   const expectedRender = `
   function anonymous(parent,component,context) {
-      var els = []
+      const elms = []
 
-      els[1] = this.createElement()
-      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
+      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig1 = {}
 
-      els[1]['type'] = "Component"
-      els[1]['x'] = 10
-      els[1]['y'] = 20
+      elementConfig1['type'] = "Component"
+      elementConfig1['x'] = 10
+      elementConfig1['y'] = 20
 
-      return els
-  }
-  `
-
-  const expectedUpdate = `
-  function anonymous(component,els,context) {
+      elms[1].populate(elementConfig1)
+      return elms
   }
   `
 
   const actual = generator(templateObject)
 
-  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
-  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a update function with the correct code')
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
   assert.end()
-
 })
 
-
 test('Generate code for a template with attributes and a nested element with attributes', (assert) => {
-
   const templateObject = {
     children: [
       {
@@ -217,43 +223,47 @@ test('Generate code for a template with attributes and a nested element with att
 
   const expectedRender = `
   function anonymous(parent,component,context) {
-      var els = []
+      const elms = []
 
-      els[1] = this.createElement()
-      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
+      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig1 = {}
 
-      els[1]['type'] = "Component"
-      els[1]['x'] = 10
-      els[1]['y'] = 20
+      elementConfig1['type'] = "Component"
+      elementConfig1['x'] = 10
+      elementConfig1['y'] = 20
 
-      els[2] = this.createElement()
-      els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
+      elms[1].populate(elementConfig1)
 
-      els[2]['type'] = "Element"
-      els[2]['w'] = 100
-      els[2]['h'] = 300
+      parent = elms[1]
 
-      return els
+      elms[2] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig2 = {}
+
+      elementConfig2['type'] = "Element"
+      elementConfig2['w'] = 100
+      elementConfig2['h'] = 300
+
+      elms[2].populate(elementConfig2)
+
+      return elms
   }
   `
-
-  const expectedUpdate = `
-  function anonymous(component,els,context) {
-  }
-  `
-
 
   const actual = generator(templateObject)
 
-  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
-  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a render function with the correct code')
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
   assert.end()
-
 })
 
-
 test('Generate code for a template with attributes and 2 nested elements with attributes', (assert) => {
-
   const templateObject = {
     children: [
       {
@@ -280,51 +290,60 @@ test('Generate code for a template with attributes and 2 nested elements with at
 
   const expectedRender = `
   function anonymous(parent,component,context) {
-      var els = []
+      const elms = []
 
-      els[1] = this.createElement()
-      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
+      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig1 = {}
 
-      els[1]['type'] = "Component"
-      els[1]['x'] = 10
-      els[1]['y'] = 20
+      elementConfig1['type'] = "Component"
+      elementConfig1['x'] = 10
+      elementConfig1['y'] = 20
 
-      els[2] = this.createElement()
-      els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
+      elms[1].populate(elementConfig1)
 
-      els[2]['type'] = "Element"
-      els[2]['w'] = 100
-      els[2]['h'] = 300
-      els[2]['x'] = 0
+      parent = elms[1]
 
-      els[3] = this.createElement()
-      els[1].childList ? els[1].childList.add(els[3]) : els[1].add(els[3])
+      elms[2] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig2 = {}
 
-      els[3]['type'] = "Element"
-      els[3]['w'] = 100
-      els[3]['h'] = 300
-      els[3]['x'] = 50
+      elementConfig2['type'] = "Element"
+      elementConfig2['w'] = 100
+      elementConfig2['h'] = 300
+      elementConfig2['x'] = 0
 
-      return els
-  }
-  `
+      elms[2].populate(elementConfig2)
 
-  const expectedUpdate = `
-  function anonymous(component,els,context) {
+      parent = elms[1]
+
+      elms[3] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig3 = {}
+
+      elementConfig3['type'] = "Element"
+      elementConfig3['w'] = 100
+      elementConfig3['h'] = 300
+      elementConfig3['x'] = 50
+
+      elms[3].populate(elementConfig3)
+
+      return elms
   }
   `
 
   const actual = generator(templateObject)
 
-  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
-  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a render function with the correct code')
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
   assert.end()
-
 })
 
-
 test('Generate code for a template with attributes and deep nested elements with attributes', (assert) => {
-
   const templateObject = {
     children: [
       {
@@ -345,11 +364,11 @@ test('Generate code for a template with attributes and deep nested elements with
             x: 50,
             children: [
               {
-                type: 'Button',
+                type: 'Element',
                 label: 'Hello',
               },
               {
-                type: 'Button',
+                type: 'Element',
                 label: 'World',
               },
             ],
@@ -361,67 +380,83 @@ test('Generate code for a template with attributes and deep nested elements with
 
   const expectedRender = `
   function anonymous(parent,component,context) {
-      var els = []
+      const elms = []
 
-      els[1] = this.createElement()
-      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
+      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig1 = {}
 
-      els[1]['type'] = "Component"
-      els[1]['x'] = 10
-      els[1]['y'] = 20
+      elementConfig1['type'] = "Component"
+      elementConfig1['x'] = 10
+      elementConfig1['y'] = 20
 
-      els[2] = this.createElement()
-      els[1].childList ? els[1].childList.add(els[2]) : els[1].add(els[2])
+      elms[1].populate(elementConfig1)
 
-      els[2]['type'] = "Element"
-      els[2]['w'] = 100
-      els[2]['h'] = 300
-      els[2]['x'] = 0
+      parent = elms[1]
 
-      els[3] = this.createElement()
-      els[1].childList ? els[1].childList.add(els[3]) : els[1].add(els[3])
+      elms[2] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig2 = {}
 
-      els[3]['type'] = "Element"
-      els[3]['w'] = 100
-      els[3]['h'] = 300
-      els[3]['x'] = 50
+      elementConfig2['type'] = "Element"
+      elementConfig2['w'] = 100
+      elementConfig2['h'] = 300
+      elementConfig2['x'] = 0
 
-      els[4] = this.createElement()
-      els[3].childList ? els[3].childList.add(els[4]) : els[3].add(els[4])
+      elms[2].populate(elementConfig2)
 
-      els[4]['type'] = "Button"
-      els[4]['label'] = "Hello"
+      parent = elms[1]
 
-      els[5] = this.createElement()
-      els[3].childList ? els[3].childList.add(els[5]) : els[3].add(els[5])
+      elms[3] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig3 = {}
 
-      els[5]['type'] = "Button"
-      els[5]['label'] = "World"
+      elementConfig3['type'] = "Element"
+      elementConfig3['w'] = 100
+      elementConfig3['h'] = 300
+      elementConfig3['x'] = 50
 
-      return els
-  }
-  `
+      elms[3].populate(elementConfig3)
 
-  const expectedUpdate = `
-  function anonymous(component,els,context) {
+      parent = elms[3]
+
+      elms[4] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig4 = {}
+
+      elementConfig4['type'] = "Element"
+      elementConfig4['label'] = "Hello"
+
+      elms[4].populate(elementConfig4)
+
+      parent = elms[3]
+
+      elms[5] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig5 = {}
+
+      elementConfig5['type'] = "Element"
+      elementConfig5['label'] = "World"
+
+      elms[5].populate(elementConfig5)
+
+      return elms
   }
   `
 
   const actual = generator(templateObject)
 
-  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
-  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a render function with the correct code')
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
   assert.end()
-
 })
 
-
 test('Generate code for a template with simple dynamic attributes', (assert) => {
-
   const templateObject = {
     children: [
       {
-        ref: 'Component',
         type: 'Component',
         x: 10,
         y: 20,
@@ -434,42 +469,63 @@ test('Generate code for a template with simple dynamic attributes', (assert) => 
 
   const expectedRender = `
   function anonymous(parent,component,context) {
-      var els = []
+      const elms = []
 
-      els[1] = this.createElement()
-      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
+      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig1 = {}
 
-      els[1]['ref'] = "Component"
-      els[1]['type'] = "Component"
-      els[1]['x'] = 10
-      els[1]['y'] = 20
+      elementConfig1['type'] = "Component"
+      elementConfig1['x'] = 10
+      elementConfig1['y'] = 20
+      elementConfig1['test'] = "ok"
 
-      els[1]['test'] = "ok"
+      elms[1].populate(elementConfig1)
 
-      return els
-  }`
+      return elms
+  }
+  `
 
-  const expectedUpdate = `function anonymous(component,els,context) {
-    els[1]['w'] = component.state.foo
-    els[1]['h'] = component.state.test
+  const expectedEffect1 = `
+  function anonymous(component,elms,context) {
+    elms[1].set('w', component.foo)
+  }
+  `
+
+  const expectedEffect2 = `
+  function anonymous(component,elms,context) {
+    elms[1].set('h', component.test)
   }
   `
 
   const actual = generator(templateObject)
 
-  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
-  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a update function with the correct code')
-  assert.end()
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 2,
+    'Generator should return an effects array with 2 items'
+  )
+  assert.equal(
+    normalize(actual.effects[0].toString()),
+    normalize(expectedEffect1),
+    'Generator should return first render function with the correct code'
+  )
+  assert.equal(
+    normalize(actual.effects[1].toString()),
+    normalize(expectedEffect2),
+    'Generator should return second render function with the correct code'
+  )
 
+  assert.end()
 })
 
-
 test('Generate code for a template with an attribute with a dash', (assert) => {
-
   const templateObject = {
     children: [
       {
-        ref: 'Component',
         type: 'Component',
         'my-Attribute': 'does it work?',
         x: 10,
@@ -480,69 +536,292 @@ test('Generate code for a template with an attribute with a dash', (assert) => {
 
   const expectedRender = `
   function anonymous(parent,component,context) {
-      var els = []
+      const elms = []
 
-      els[1] = this.createElement()
-      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
+      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig1 = {}
 
-      els[1]['ref'] = "Component"
-      els[1]['type'] = "Component"
-      els[1]['my-Attribute'] = "does it work?"
-      els[1]['x'] = 10
-      els[1]['y'] = 20
+      elementConfig1['type'] = "Component"
+      elementConfig1['my-Attribute'] = "does it work?"
+      elementConfig1['x'] = 10
+      elementConfig1['y'] = 20
 
-      return els
-  }`
+      elms[1].populate(elementConfig1)
 
-  const expectedUpdate = `function anonymous(component,els,context) {
+      return elms
   }
   `
 
   const actual = generator(templateObject)
 
-  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
-  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a render function with the correct code')
-
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
   assert.end()
 })
 
 test('Generate code for a template with dynamic attributes with code to be evaluated', (assert) => {
-
   const templateObject = {
     children: [
       {
         type: 'Component',
         ':attribute1': '$foo * 2',
-        ':attribute2': '$ok ? \'Yes\' : \'No\'',
-        ':attribute3': '$text.split(\'\').reverse().join(\'\')',
+        ':attribute2': "$ok ? 'Yes' : 'No'",
+        ':attribute3': "$text.split('').reverse().join('')",
         // ':attribute4': '$bar.foo * $blah.hello' => todo
-      }
+      },
     ],
   }
 
   const expectedRender = `
   function anonymous(parent,component,context) {
-      var els = []
+      const elms = []
 
-      els[1] = this.createElement()
-      parent.childList ? parent.childList.add(els[1]) : parent.add(els[1])
+      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig1 = {}
 
-      els[1]['type'] = "Component"
+      elementConfig1['type'] = "Component"
 
-      return els
-  }`
+      elms[1].populate(elementConfig1)
 
-  const expectedUpdate = `function anonymous(component,els,context) {
-    els[1]['attribute1'] = component.state.foo * 2
-    els[1]['attribute2'] = component.state.ok ? 'Yes' : 'No'
-    els[1]['attribute3'] = component.state.text.split(\'\').reverse().join(\'\')
+      return elms
+  }
+  `
+
+  const expectedEffect1 = `
+  function anonymous(component,elms,context) {
+    elms[1].set('attribute1', component.foo * 2)
+  }
+  `
+
+  const expectedEffect2 = `
+  function anonymous(component,elms,context) {
+    elms[1].set('attribute2', component.ok ? 'Yes' : 'No')
+  }
+  `
+
+  const expectedEffect3 = `
+  function anonymous(component,elms,context) {
+    elms[1].set('attribute3', component.text.split('').reverse().join(''))
   }
   `
 
   const actual = generator(templateObject)
 
-  assert.equal(normalize(actual.render.toString()), normalize(expectedRender), 'Generator should return a render function with the correct code')
-  assert.equal(normalize(actual.update.toString()), normalize(expectedUpdate), 'Generator should return a render function with the correct code')
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 3,
+    'Generator should return an effects array with 3 items'
+  )
+  assert.equal(
+    normalize(actual.effects[0].toString()),
+    normalize(expectedEffect1),
+    'Generator should return first render function with the correct code'
+  )
+  assert.equal(
+    normalize(actual.effects[1].toString()),
+    normalize(expectedEffect2),
+    'Generator should return second render function with the correct code'
+  )
+  assert.equal(
+    normalize(actual.effects[2].toString()),
+    normalize(expectedEffect3),
+    'Generator should return third render function with the correct code'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with custom components', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        type: 'Component',
+        children: [
+          {
+            type: 'Poster',
+          },
+          {
+            type: 'Poster',
+          },
+        ],
+      },
+    ],
+  }
+
+  const scope = {
+    components: {
+      Poster: () => {},
+    },
+  }
+
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig1 = {}
+
+      elementConfig1['type'] = "Component"
+
+      elms[1].populate(elementConfig1)
+
+      elms[2] = context['Poster'].call(null, context.props[0],elms[1])
+      elms[3] = context['Poster'].call(null, context.props[1],elms[1])
+
+      return elms
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with an unregistered custom component', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        type: 'Component',
+        children: [
+          {
+            type: 'Poster',
+          },
+          {
+            type: 'Poster2',
+          },
+        ],
+      },
+    ],
+  }
+
+  const scope = {
+    components: {
+      Poster: () => {},
+    },
+  }
+
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig1 = {}
+
+      elementConfig1['type'] = "Component"
+
+      elms[1].populate(elementConfig1)
+
+      elms[2] = context['Poster'].call(null, context.props[0],elms[1])
+
+      parent = elms[1]
+
+      elms[3] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig3 = {}
+
+      elementConfig3['type'] = "Poster2"
+
+      elms[3].populate(elementConfig3)
+
+      return elms
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with custom components with arguments', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        type: 'Component',
+        children: [
+          {
+            type: 'Poster',
+            x: 10,
+          },
+          {
+            type: 'Poster',
+            x: 100,
+            img: '$img',
+            ':options': '$options',
+          },
+        ],
+      },
+    ],
+  }
+
+  const scope = {
+    components: {
+      Poster: () => {},
+    },
+  }
+
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig1 = {}
+
+      elementConfig1['type'] = "Component"
+
+      elms[1].populate(elementConfig1)
+
+      elms[2] = context['Poster'].call(null, context.props[0],elms[1])
+
+      context.props[1].props.img = component.img
+      context.props[1].props.options = component.options
+
+      elms[3] = context['Poster'].call(null, context.props[1],elms[1])
+
+      return elms
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
 
   assert.end()
 })
