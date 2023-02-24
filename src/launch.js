@@ -41,10 +41,7 @@ export default (App, target, settings) => {
         const worker = threadx.worker('gl')
         worker.addEventListener('message', ({ data }) => {
           if (data.event === 'ready') {
-            // temporary timeout because ready event is sent too soon
-            setTimeout(() => {
-              resolve()
-            }, 400)
+            resolve()
           }
         })
 
