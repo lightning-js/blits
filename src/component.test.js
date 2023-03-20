@@ -11,7 +11,7 @@ test('Type', (assert) => {
 
 test('Component - Factory function', (assert) => {
   const expected = 'function'
-  const actual = typeof Component('my component')
+  const actual = typeof Component('my component', {})
 
   assert.equal(actual, expected, 'Component should be a factory function (i.e. return a function)')
   assert.end()

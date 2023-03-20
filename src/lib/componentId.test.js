@@ -42,7 +42,7 @@ test('Type createInternalId', (assert) => {
 })
 
 test('Returns an internal id, disregarding the component name', (assert) => {
-  const expected = 'c_1'
+  const expected = 1
   const actual = createInternalId('Spinner')
 
   assert.equal(actual, expected, 'createInternalId should return correct ID')
@@ -50,7 +50,7 @@ test('Returns an internal id, disregarding the component name', (assert) => {
 })
 
 test('Returns an id with incremented counter', (assert) => {
-  const expected = 'c_2'
+  const expected = 2
   const actual = createInternalId('Spinner')
 
   assert.equal(actual, expected, 'createInternalId should return correct ID')
@@ -58,7 +58,7 @@ test('Returns an id with incremented counter', (assert) => {
 })
 
 test('Uses the same counter for all components', (assert) => {
-  const expected = 'c_3'
+  const expected = 3
   const actual = createInternalId('Card')
 
   assert.equal(actual, expected, 'createInternalId should return correct ID')
