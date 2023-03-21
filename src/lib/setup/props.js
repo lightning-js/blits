@@ -1,4 +1,4 @@
-export default (component, props) => {
+export default (component, props = []) => {
   component.___propKeys = []
   // todo: props can also be an object, with defaults, type, required etc.
   props.forEach((key) => {
