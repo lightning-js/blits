@@ -1,11 +1,26 @@
+const baseProp = {
+  cast: (v) => v,
+  required: false,
+}
+
 export default (component, props = []) => {
   component.___propKeys = []
-  // todo: props can also be an object, with defaults, type, required etc.
-  props.forEach((key) => {
-    component.___propKeys.push(key)
-    Object.defineProperty(component.prototype, key, {
+  props.forEach((prop) => {
+    prop = { ...baseProp, ...(typeof prop === 'object' ? prop : { key: prop }) }
+    component.___propKeys.push(prop.key)
+    Object.defineProperty(component.prototype, prop.key, {
       get() {
-        return this.___props && key in this.___props && this.___props[key]
+        const value = prop.cast(
+          this.___props && prop.key in this.___props
+            ? this.___props[prop.key]
+            : prop.default || undefined
+        )
+
+        if (prop.required && value === undefined) {
+          console.warn(`${prop.key} is required`)
+        }
+
+        return value
       },
     })
   })

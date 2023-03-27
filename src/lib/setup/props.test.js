@@ -67,4 +67,120 @@ test('Get value of props', (assert) => {
   assert.end()
 })
 
+test('Passing props as an object', (assert) => {
 
+  const component = new Function()
+  const props = [{key: 'index', key: 'img', key: 'url'}]
+  propsFn(component, props)
+
+  assert.equal(props.length, component.___propKeys.length, 'All passed props should be stored on ___propKeys')
+  assert.equal(props.length, props.map(prop => component.___propKeys.indexOf(prop.key) > -1).filter(prop => prop === true).length, 'All passed props should be stored on ___propKeys')
+
+  props.forEach((prop) => {
+    assert.true(typeof Object.getOwnPropertyDescriptor(component.prototype, prop.key).get === 'function', `A getter should have been created for property ${prop}`)
+  })
+
+  assert.end()
+})
+
+test('Passing props as an object mixed with single keys', (assert) => {
+
+  const component = new Function()
+  const props = [{key: 'index'}, 'img', {key: 'url'}]
+  propsFn(component, props)
+
+  assert.equal(props.length, component.___propKeys.length, 'All passed props should be stored on ___propKeys')
+  assert.equal(props.length, props.map(prop => component.___propKeys.indexOf(typeof prop === 'object' ? prop.key : prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on ___propKeys')
+
+  props.forEach((prop) => {
+    assert.true(typeof Object.getOwnPropertyDescriptor(component.prototype, typeof prop === 'object' ? prop.key : prop).get === 'function', `A getter should have been created for property ${prop}`)
+  })
+
+  assert.end()
+})
+
+test('Casting props to a type', (assert) => {
+  const component = new Function()
+
+  const componentInstance = new component
+  componentInstance.___props = {
+    number: '1',
+    string: 100,
+    boolean: true,
+    image: 'my_image.jpg'
+  }
+
+  const props = [{
+    key: 'number',
+    cast: Number
+  }, {
+    key: 'string',
+    cast: String
+  }, {
+    key: 'boolean',
+    cast: Boolean
+  },{
+    key: 'image',
+    cast(v) {
+      return `http://localhost/${v}`
+    }
+  }]
+  propsFn(component, props)
+
+  assert.true(typeof componentInstance.number === 'number', 'Should cast prop value to a Number')
+  assert.true(typeof componentInstance.string === 'string', 'Should cast prop value to a String')
+  assert.true(typeof componentInstance.boolean === 'boolean', 'Should cast prop value to a Boolean')
+  assert.equal(componentInstance.image, 'http://localhost/my_image.jpg','Should cast according to a custom function')
+
+  assert.end()
+})
+
+test('Setting default value for undefined props', (assert) => {
+  const component = new Function()
+
+  const componentInstance = new component
+
+  const props = [{
+    key: 'missing',
+    default: 'I am missing'
+  }]
+  propsFn(component, props)
+
+  assert.equal(componentInstance.missing, 'I am missing','Should return default prop value when undefined')
+
+  assert.end()
+})
+
+test('Required props with default', (assert) => {
+  const component = new Function()
+
+  const componentInstance = new component
+
+  const props = [{
+    key: 'missing',
+    default: 'I am missing',
+    required: true
+  }]
+  propsFn(component, props)
+
+  assert.equal(componentInstance.missing, 'I am missing', 'Should return default prop value when undefined')
+
+  assert.end()
+})
+
+test('Required props without default', (assert) => {
+  const component = new Function()
+
+  const componentInstance = new component
+
+  const props = [{
+    key: 'missing',
+    required: true
+  }]
+  propsFn(component, props)
+
+  assert.equal(componentInstance.missing, undefined, 'Should return undefined prop value when undefined')
+  // todo: should log a warning about prop being required
+
+  assert.end()
+})
