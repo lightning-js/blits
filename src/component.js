@@ -94,7 +94,7 @@ const Component = (name = required('name'), config = required('config')) => {
         configurable: false,
       },
       ___props: {
-        value: opts.props,
+        value: reactive(opts.props || {}),
         writable: false,
         enumerable: false,
         configurable: false,
