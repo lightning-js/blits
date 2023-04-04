@@ -55,7 +55,7 @@ const Component = (name = required('name'), config = required('config')) => {
   }
 
   const createLifecycle = (scope) => {
-    const states = ['init', 'beforeSetup', 'setup']
+    const states = ['init', 'beforeSetup', 'setup', 'render']
 
     return {
       previous: null,
