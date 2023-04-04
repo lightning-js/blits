@@ -776,7 +776,6 @@ test('Generate code for a template with custom components with arguments', (asse
             type: 'Poster',
             x: 100,
             img: '$img',
-            ':options': '$options',
           },
         ],
       },
@@ -803,7 +802,6 @@ test('Generate code for a template with custom components with arguments', (asse
       elms[2] = context['Poster'].call(null, context.props[0],elms[1])
 
       context.props[1].props.img = component.img
-      context.props[1].props.options = component.options
 
       elms[3] = context['Poster'].call(null, context.props[1],elms[1])
 
@@ -821,6 +819,92 @@ test('Generate code for a template with custom components with arguments', (asse
   assert.ok(
     Array.isArray(actual.effects) && actual.effects.length === 0,
     'Generator should return an empty effects array'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with custom components with reactive props', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        type: 'Component',
+        children: [
+          {
+            type: 'Poster',
+            x: 10,
+            ':img': '$image',
+          },
+          {
+            type: 'Poster',
+            x: 100,
+            ':img': '$image',
+          },
+        ],
+      },
+    ],
+  }
+
+  const scope = {
+    components: {
+      Poster: () => {},
+    },
+  }
+
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.id() || 0})
+      const elementConfig1 = {}
+
+      elementConfig1['type'] = "Component"
+
+      elms[1].populate(elementConfig1)
+
+      context.props[0].props.img = component.image
+      elms[2] = context['Poster'].call(null, context.props[0],elms[1])
+
+      context.props[1].props.img = component.image
+      elms[3] = context['Poster'].call(null, context.props[1],elms[1])
+
+      return elms
+  }
+  `
+
+  const expectedEffect1 = `
+  function anonymous(component,elms,context) {
+    elms[2].___props.img = component.image
+  }
+  `
+
+  const expectedEffect2 = `
+  function anonymous(component,elms,context) {
+    elms[3].___props.img = component.image
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 2,
+    'Generator should return an effects array with 2 function'
+  )
+  assert.equal(
+    normalize(actual.effects[0].toString()),
+    normalize(expectedEffect1),
+    'Generator should return an effect function that updates a prop on the first custom component'
+  )
+
+  assert.equal(
+    normalize(actual.effects[1].toString()),
+    normalize(expectedEffect2),
+    'Generator should return an effect function that updates a prop on the second custom component'
   )
 
   assert.end()

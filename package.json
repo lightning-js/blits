@@ -1,7 +1,7 @@
 {
   "name": "@lightningjs/bolt-code-generator",
-  "version": "0.0.1",
-  "description": "Bolt C",
+  "version": "0.0.2",
+  "description": "Bolt Code Generator",
   "main": "index.js",
   "scripts": {
     "test": "c8 npm run test:run",
