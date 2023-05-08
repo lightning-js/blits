@@ -82,6 +82,8 @@ test('Generate render and effect code for a template with a single simple elemen
     ],
   }
 
+  // stel, parent is het component en die heeft een key 'element' (die dan weer een id heeft)
+
   const expectedRender = `
   function anonymous(parent,component,context) {
       const elms = []
@@ -676,8 +678,8 @@ test('Generate code for a template with custom components', (assert) => {
 
       elms[1].populate(elementConfig1)
 
-      elms[2] = context['Poster'].call(null, context.props[0],elms[1])
-      elms[3] = context['Poster'].call(null, context.props[1],elms[1])
+      elms[2] = context['Poster'].call(null, context.props[0],elms[1], component)
+      elms[3] = context['Poster'].call(null, context.props[1],elms[1], component)
 
       return elms
   }
@@ -732,7 +734,7 @@ test('Generate code for a template with an unregistered custom component', (asse
 
       elms[1].populate(elementConfig1)
 
-      elms[2] = context['Poster'].call(null, context.props[0],elms[1])
+      elms[2] = context['Poster'].call(null, context.props[0],elms[1], component)
 
       parent = elms[1]
 
@@ -799,11 +801,11 @@ test('Generate code for a template with custom components with arguments', (asse
 
       elms[1].populate(elementConfig1)
 
-      elms[2] = context['Poster'].call(null, context.props[0],elms[1])
+      elms[2] = context['Poster'].call(null, context.props[0],elms[1], component)
 
       context.props[1].props.img = component.img
 
-      elms[3] = context['Poster'].call(null, context.props[1],elms[1])
+      elms[3] = context['Poster'].call(null, context.props[1],elms[1], component)
 
       return elms
   }
@@ -863,10 +865,10 @@ test('Generate code for a template with custom components with reactive props', 
       elms[1].populate(elementConfig1)
 
       context.props[0].props.img = component.image
-      elms[2] = context['Poster'].call(null, context.props[0],elms[1])
+      elms[2] = context['Poster'].call(null, context.props[0],elms[1], component)
 
       context.props[1].props.img = component.image
-      elms[3] = context['Poster'].call(null, context.props[1],elms[1])
+      elms[3] = context['Poster'].call(null, context.props[1],elms[1], component)
 
       return elms
   }

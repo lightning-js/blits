@@ -51,7 +51,6 @@ const generateElementCode = (tpl, renderCode, effectsCode, parent, scope, contex
       if (
         child.type &&
         child.type !== 'Component' &&
-        child.type !== 'Element' &&
         scope &&
         scope.components &&
         scope.components[child.type]
@@ -85,7 +84,7 @@ const generateElementCode = (tpl, renderCode, effectsCode, parent, scope, contex
         renderCode.push(`
           elms[${counter}] = context['${child.type}'].call(null, context.props[${
           context.props.length - 1
-        }], ${parent})`)
+        }], ${parent}, component)`)
       } else {
         generateElementCode(child, renderCode, effectsCode, `${parent}`, scope, context)
       }
@@ -127,7 +126,7 @@ const interpolate = (str, counter, key, val) => {
   return `elms[${counter}].set('${key}', ${val})`
 }
 
-const cast = (str, counter, key, val) => {
+const cast = (str, counter, key, val = '') => {
   let castedValue
 
   // colors
