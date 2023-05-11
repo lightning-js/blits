@@ -1,41 +1,35 @@
-import threadx from '@lightningjs/threadx'
-
-let counter = 0
-
-const element = {
-  populate(data) {
-    this.config.elementId = this.elementId
-    threadx.send('bolt', { ...this.config, ...data })
-  },
-  set(property, value) {
-    if (property === 'imageSource') {
-      if (value !== -1) {
-        threadx.send('images', {
-          id: this.elementId,
-          value,
-        })
-      }
-    } else if (property === 'text') {
-      threadx.send('text', {
-        elementId: this.elementId,
-        value,
-      })
-    } else {
-      const mutation = {
-        elementId: this.elementId,
-      }
-      mutation[property] = value
-      threadx.send('mutations', mutation)
-    }
-  },
-  delete() {
-    // todo
-  },
-  id() {
-    return this.elementId
-  },
-}
+import { renderer } from './launch.js'
 
 export default (config) => {
-  return { ...element, ...{ elementId: ++counter, config } }
+  let node = null
+  return {
+    populate(data) {
+      const props = {
+        ...config,
+        ...data,
+      }
+
+      if (config.parentId) {
+        props.parent =
+          config.parentId === 'root' ? renderer.root : renderer.getNodeById(config.parentId)
+      }
+
+      node = renderer.createNode(props)
+    },
+    set(property, value) {
+      if (property === 'imageSource') {
+        node.src = value
+      } else if (property === 'parentId') {
+        node.parent = value === 'root' ? renderer.root : renderer.getNodeById(value)
+      } else {
+        node[property] = value
+      }
+    },
+    delete() {
+      node.parent = null
+    },
+    id() {
+      return node.id
+    },
+  }
 }
