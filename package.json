@@ -37,8 +37,8 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/bolt-code-generator": "file:../code-generator",
-    "@lightningjs/bolt-template-parser": "file:../template-parser",
+    "@lightningjs/bolt-code-generator": "file:../bolt-code-generator",
+    "@lightningjs/bolt-template-parser": "file:../bolt-template-parser",
     "@lightningjs/renderer": "file:../renderer",
     "@lightningjs/threadx": "file:../threadx"
   }
