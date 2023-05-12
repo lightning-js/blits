@@ -3,8 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "exports": {
-    ".": "./index.js",
-    "./renderer": "./src/workers/renderer.js"
+    ".": "./index.js"
   },
   "scripts": {
     "test": "tape '{,!(node_modules)/**/}*.test.js' | tap-diff",
