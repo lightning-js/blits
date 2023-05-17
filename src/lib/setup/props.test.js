@@ -184,3 +184,5 @@ test('Required props without default', (assert) => {
 
   assert.end()
 })
+
+// todo add test when setting a prop (should work, but should log a warning about avoiding mutating a prop)

@@ -22,6 +22,10 @@ export default (component, props = []) => {
 
         return value
       },
+      set(v) {
+        console.warn(`Warning! Avoid mutating props directly (${prop.key})`)
+        this.___props[prop.key] = v
+      },
     })
   })
 }
