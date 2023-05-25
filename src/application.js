@@ -18,6 +18,8 @@ const Application = (config) => {
     Focus.input(key, e)
   })
 
+  // temporary, this can be done a bit better
+  config.hooks = config.hooks || {}
   config.hooks.___init = function () {
     Focus.set(this)
   }
