@@ -27,7 +27,7 @@ const generateElementCode = (tpl, renderCode, effectsCode, parent, scope, contex
   }
 
   renderCode.push(`
-    elms[${counter}] = this.element({boltId: component.___id, parentId: parent && parent.id() || 'root'})
+    elms[${counter}] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
     const elementConfig${counter} = {}
   `)
 
