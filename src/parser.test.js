@@ -615,3 +615,83 @@ test('Parse template with a nameless tag but with arguments', (assert) => {
   assert.deepEqual(actual, expected, 'Parser should return object representation of template')
   assert.end()
 })
+
+test('Parse template with a transition argument (single value)', (assert) => {
+  const template = `
+    <Element x.transition="$offset" y="200">
+    </Element>`
+
+  const expected = {
+    children: [
+      {
+        type: 'Element',
+        x: '{transition: $offset}',
+        y: '200',
+      },
+    ]
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with a transition argument (object)', (assert) => {
+  const template = `
+    <Element :x.transition="{v: $offset, d: 2000}" y="200">
+    </Element>`
+
+  const expected = {
+    children: [
+      {
+        type: 'Element',
+        ':x': '{transition: {v: $offset, d: 2000}}',
+        y: '200',
+      },
+    ]
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with a different modifier', (assert) => {
+  const template = `
+    <Element x.modifier="ok" y="200">
+    </Element>`
+
+  const expected = {
+    children: [
+      {
+        type: 'Element',
+        x: '{modifier: ok}',
+        y: '200',
+      },
+    ]
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with a full transition object (without the transition modifier)', (assert) => {
+  const template = `
+    <Element :x="{transition: {v: $offset, d: 2000, p: 100}}" y="200">
+    </Element>`
+
+  const expected = {
+    children: [
+      {
+        type: 'Element',
+        ':x': '{transition: {v: $offset, d: 2000, p: 100}}',
+        y: '200',
+      },
+    ]
+  }
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})

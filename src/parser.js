@@ -43,12 +43,17 @@ export default (template = '') => {
     const result = {
       type: (match = tag.match(/^([A-Za-z0-9]+)(?![A-Za-z0-9=])/)) && match[0] // || 'Element' maybe default to 'Element'
     }
-    const attributes = tag.match(/[:*\w-]+="[^"]*"/g) || []
+    const attributes = tag.match(/[:*\w.-]+="[^"]*"/g) || []
     if (attributes.length) {
       result['attributes'] = attributes.reduce((obj, attr) => {
         const match = /(.+)=["'](.+)["']/.exec(attr)
         if (match) {
-          obj[match[1]] = match[2]
+          if(match[1].indexOf('.') > -1) {
+            const parts = match[1].split('.')
+            obj[parts[0]] = `{${parts[1]}: ${match[2]}}`
+          } else {
+            obj[match[1]] = match[2]
+          }
         }
         return obj
       }, {})
