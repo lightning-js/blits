@@ -911,3 +911,45 @@ test('Generate code for a template with custom components with reactive props', 
 
   assert.end()
 })
+
+test('Generate code for a template with a transition attributes', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        type: 'Component',
+        x: '{transition: $myX}',
+        y: '{transition: {v: $myY, d: 600, p: 100}}',
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      const elementConfig1 = {}
+
+      elementConfig1['type'] = "Component"
+      elementConfig1['x'] = "{transition: $myX}"
+      elementConfig1['y'] = "{transition: {v: $myY, d: 600, p: 100}}"
+
+      elms[1].populate(elementConfig1)
+
+      return elms
+  }
+  `
+
+  const actual = generator(templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+  assert.end()
+})

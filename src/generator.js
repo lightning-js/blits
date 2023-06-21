@@ -100,7 +100,6 @@ const normalizeColor = (color) => {
 }
 
 const interpolate = (str, counter, key, val) => {
-  key = key.substring(1)
   const replaceString = /('.*?')+/gi
   const replaceDollar = /\$/gi
   const matches = val.matchAll(replaceString)
@@ -123,6 +122,7 @@ const interpolate = (str, counter, key, val) => {
     val = val.replace(`[@@REPLACEMENT${idx}@@]`, el)
   })
 
+  key = key.substring(1)
   return `elms[${counter}].set('${key}', ${val})`
 }
 
@@ -157,14 +157,8 @@ const cast = (str, counter, key, val = '') => {
     castedValue = `"${val}"`
   }
 
-  // reactive value (for now just remove the colons, rethink this part to be more efficient!)
   if (key.startsWith(':')) {
     key = key.substring(1)
-    if (key === 'show') {
-      key = 'alpha'
-      castedValue = `(${castedValue})  ? 1 : 0.000001`
-    }
-    return `elms[${counter}].set('${key}', ${castedValue})`
   }
 
   return `elementConfig${counter}['${key}'] = ${castedValue}`
