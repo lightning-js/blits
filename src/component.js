@@ -125,13 +125,13 @@ const Component = (name = required('name'), config = required('config')) => {
 
     this.el = code.render.apply(stage, [parentEl, this, code.context])
 
-    this.lifecycle.state = 'render'
-
     code.effects.forEach((eff) => {
       effect(() => {
         eff.apply(stage, [this, this.el, code.context])
       })
     })
+    // next tick
+    setTimeout(() => (this.lifecycle.state = 'render'))
   }
   return (options = {}, parentEl, parentComponent) => {
     // const opts = { ...config, ...options } // not sure if this should be even possible?
