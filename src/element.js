@@ -23,6 +23,9 @@ export default (config) => {
           typeof props[prop] === 'object' && prop !== 'parent'
             ? unPackValue(props[prop])
             : props[prop]
+        if (prop === 'color') {
+          props[prop] = normalizeColor(props[prop])
+        }
         setProperties.push(prop)
       })
 
@@ -36,7 +39,11 @@ export default (config) => {
       } else if (prop === 'parentId') {
         node.parent = value === 'root' ? renderer.root : renderer.getNodeById(value)
       } else {
-        node[prop] = unPackValue(value)
+        value = unPackValue(value)
+        if (prop === 'color') {
+          value = normalizeColor(value)
+        }
+        node[prop] = value
       }
       setProperties.indexOf(prop) === -1 && setProperties.push(prop)
     },
@@ -49,12 +56,19 @@ export default (config) => {
     get id() {
       return initData.id || null
     },
-    animate(prop, v) {
+    animate(prop, value) {
       const obj = {}
-      obj[prop] = typeof v === 'object' ? v.v : v
+      let v = unPackValue(value)
+      if (prop === 'color') {
+        v = normalizeColor(v)
+      }
+      obj[prop] = v
       if (node[prop] !== obj[prop]) {
-        const f = node.animate(obj, typeof v === 'object' ? ('d' in v ? v.d : 200) : 200)
-        v.w ? setTimeout(() => f.start(), v.w) : f.start()
+        const f = node.animate(
+          obj,
+          typeof value === 'object' ? ('d' in value ? value.d : 200) : 200
+        )
+        value.w ? setTimeout(() => f.start(), value.w) : f.start()
       }
     },
   }
@@ -70,4 +84,13 @@ const unPackValue = (obj) => {
   } else {
     return obj
   }
+}
+
+const normalizeColor = (color = '') => {
+  color = color.toString()
+  if (!color.startsWith('0x')) {
+    color = '0x' + (color.length === 6 ? 'ff' + color : color)
+  }
+  const [prefix, a, r, g, b] = color.match(/.{2}/g)
+  return prefix + a + b + g + r
 }
