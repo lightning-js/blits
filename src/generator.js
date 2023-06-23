@@ -92,13 +92,6 @@ const generateElementCode = (tpl, renderCode, effectsCode, parent, scope, contex
   }
 }
 
-const normalizeColor = (color) => {
-  if (!color.startsWith('0x')) {
-    color = '0x' + (color.length === 6 ? 'ff' + color : color)
-  }
-  return color
-}
-
 const interpolate = (str, counter, key, val) => {
   const replaceString = /('.*?')+/gi
   const replaceDollar = /\$/gi
@@ -129,12 +122,8 @@ const interpolate = (str, counter, key, val) => {
 const cast = (str, counter, key, val = '') => {
   let castedValue
 
-  // colors
-  if (key === 'color' && !val.startsWith('$')) {
-    castedValue = normalizeColor(val)
-  }
   // numeric
-  else if (!isNaN(parseFloat(val))) {
+  if (!isNaN(parseFloat(val))) {
     castedValue = parseFloat(val)
   }
   // boolean true
@@ -147,10 +136,7 @@ const cast = (str, counter, key, val = '') => {
   }
   // dynamic value
   else if (val.startsWith('$')) {
-    castedValue =
-      key === 'color'
-        ? `this.normalizeARGB(component.${val.replace('$', '')})`
-        : `component.${val.replace('$', '')}`
+    castedValue = `component.${val.replace('$', '')}`
   }
   // static string
   else {
