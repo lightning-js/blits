@@ -89,8 +89,8 @@ const unPackValue = (obj) => {
 const normalizeColor = (color = '') => {
   color = color.toString()
   if (!color.startsWith('0x')) {
-    color = '0x' + (color.length === 6 ? 'ff' + color : color)
+    color = '0x' + (color.length === 6 ? color + 'ff' : color)
   }
-  const [prefix, a, r, g, b] = color.match(/.{2}/g)
+  const [prefix, r, g, b, a] = color.match(/.{2}/g)
   return prefix + a + b + g + r
 }
