@@ -1,4 +1,5 @@
 import { renderer } from './launch.js'
+import colors from './lib/colors.js'
 
 export default (config) => {
   let node = null
@@ -24,7 +25,7 @@ export default (config) => {
             ? unPackValue(props[prop])
             : props[prop]
         if (prop === 'color') {
-          props[prop] = normalizeColor(props[prop])
+          props[prop] = colors.normalize(props[prop])
         }
         setProperties.push(prop)
       })
@@ -41,7 +42,7 @@ export default (config) => {
       } else {
         value = unPackValue(value)
         if (prop === 'color') {
-          value = normalizeColor(value)
+          value = colors.normalize(value)
         }
         node[prop] = value
       }
@@ -60,7 +61,7 @@ export default (config) => {
       const obj = {}
       let v = unPackValue(value)
       if (prop === 'color') {
-        v = normalizeColor(v)
+        v = colors.normalize(v)
       }
       obj[prop] = v
       if (node[prop] !== obj[prop]) {
@@ -86,11 +87,16 @@ const unPackValue = (obj) => {
   }
 }
 
-const normalizeColor = (color = '') => {
-  color = color.toString()
-  if (!color.startsWith('0x')) {
-    color = '0x' + (color.length === 6 ? color + 'ff' : color)
-  }
-  const [prefix, r, g, b, a] = color.match(/.{2}/g)
-  return prefix + a + b + g + r
-}
+// const normalizeColor = (color = '') => {
+//   color = color.toString()
+
+//   if (color.startsWith('rgba(')) {
+//     //
+//   }
+
+//   if (!color.startsWith('0x')) {
+//     color = '0x' + (color.length === 6 ? color + 'ff' : color)
+//   }
+//   const [prefix, r, g, b, a] = color.match(/.{2}/g)
+//   return prefix + a + b + g + r
+// }
