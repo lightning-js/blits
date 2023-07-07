@@ -1,5 +1,5 @@
 import { renderer } from './launch.js'
-import colors from './lib/colors.js'
+import colors from './lib/colors/colors.js'
 
 export default (config) => {
   let node = null
@@ -86,17 +86,3 @@ const unPackValue = (obj) => {
     return obj
   }
 }
-
-// const normalizeColor = (color = '') => {
-//   color = color.toString()
-
-//   if (color.startsWith('rgba(')) {
-//     //
-//   }
-
-//   if (!color.startsWith('0x')) {
-//     color = '0x' + (color.length === 6 ? color + 'ff' : color)
-//   }
-//   const [prefix, r, g, b, a] = color.match(/.{2}/g)
-//   return prefix + a + b + g + r
-// }
