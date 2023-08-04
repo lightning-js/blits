@@ -1,98 +1,175 @@
 let counter
 
 export default function (templateObject = { children: [] }) {
-  const context = { props: [] }
-  const renderCode = ['const elms = []']
-  const effectsCode = []
+  const ctx = {
+    renderCode: ['const elms = []'],
+    effectsCode: [],
+    context: { props: [], components: this.components },
+  }
 
   counter = 0
-  templateObject.children.forEach((child) => {
-    generateElementCode(child, renderCode, effectsCode, false, this, context)
-  })
+  generateCode.call(ctx, templateObject)
+  ctx.renderCode.push('return elms')
 
-  renderCode.push('return elms')
+  console.log('RENDER code', ctx.renderCode.join('\n'))
+  console.log('EFFECTS code', ctx.effectsCode.join('\n--------------------\n'))
 
   return {
-    render: new Function('parent', 'component', 'context', renderCode.join('\n')),
-    effects: effectsCode.map((code) => new Function('component', 'elms', 'context', code)),
-    context,
+    render: new Function('parent', 'component', 'context', ctx.renderCode.join('\n')),
+    effects: ctx.effectsCode.map((code) => new Function('component', 'elms', 'context', code)),
+    context: ctx.context,
   }
 }
 
-const generateElementCode = (tpl, renderCode, effectsCode, parent, scope, context) => {
-  counter++
-
+const generateElementCode = function (
+  templateObject,
+  parent = false,
+  options = { counter: false, component: 'component.', forceEffect: false }
+) {
+  const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
   if (parent) {
     renderCode.push(`parent = ${parent}`)
   }
 
   renderCode.push(`
-    elms[${counter}] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+    elms[${options.counter} || ${counter}] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
     const elementConfig${counter} = {}
   `)
 
-  parent = `elms[${counter}]`
+  const children = templateObject['children']
+  delete templateObject['children']
 
-  const children = tpl['children']
-  delete tpl['children']
+  Object.keys(templateObject).forEach((key) => {
+    if (key === 'type') return
 
-  Object.keys(tpl).forEach((key) => {
-    if (key.indexOf(':') === 0) {
-      effectsCode.push(interpolate`${counter} ${key} ${tpl[key]}`)
+    if (isReactiveKey(key)) {
+      this.effectsCode.push(
+        `elms[${counter}].set('${key.substring(1)}', ${interpolate(
+          templateObject[key],
+          options.component
+        )})`
+      )
     } else {
-      renderCode.push(cast`${counter} ${key} ${tpl[key]}`)
+      renderCode.push(
+        `elementConfig${counter}['${key}'] = ${cast(templateObject[key], key, options.component)}`
+      )
     }
   })
-
   renderCode.push(`elms[${counter}].populate(elementConfig${counter})`)
 
   if (children) {
-    children.forEach((child) => {
-      if (
-        child.type &&
-        child.type !== 'Component' &&
-        scope &&
-        scope.components &&
-        scope.components[child.type]
-      ) {
-        counter++
-        if (!context[child.type]) {
-          context[child.type] = scope.components[child.type]
-        }
-
-        // TBD: maybe filter out some props here
-        context.props.push({ props: child })
-
-        Object.keys(child).forEach((key) => {
-          const val = child[key]
-          // interpolate this better!
-          if (typeof val === 'string' && val.startsWith('$')) {
-            if (key.startsWith(':')) {
-              key = key.substring(1)
-              effectsCode.push(`
-                elms[${counter}].___props.${key} = component.${val.substring(1)}
-              `)
-            }
-            renderCode.push(
-              `context.props[${context.props.length - 1}].props.${key} = component.${val.substring(
-                1
-              )} `
-            )
-          }
-        })
-
-        renderCode.push(`
-          elms[${counter}] = context['${child.type}'].call(null, context.props[${
-          context.props.length - 1
-        }], ${parent}, component)`)
-      } else {
-        generateElementCode(child, renderCode, effectsCode, `${parent}`, scope, context)
-      }
-    })
+    generateCode.call(this, { children }, `elms[${counter}]`)
   }
 }
 
-const interpolate = (str, counter, key, val) => {
+const generateComponentCode = function (
+  templateObject,
+  parent = false,
+  options = { counter: false, component: 'component.', forceEffect: false }
+) {
+  generateElementCode.call(this, templateObject, parent, options)
+  parent = `elms[${counter}]`
+
+  counter++
+
+  const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
+  if (parent) {
+    renderCode.push(`parent = ${parent}`)
+  }
+
+  renderCode.push(`const props${counter} = {}`)
+  Object.keys(templateObject).forEach((key) => {
+    if (key === 'type') return
+    if (isReactiveKey(key)) {
+      this.effectsCode.push(`
+        elms[${counter}].___props['${key.substring(1)}'] = ${interpolate(
+        templateObject[key],
+        options.component
+      )}
+      `)
+      renderCode.push(
+        `props${counter}['${key.substring(1)}'] = ${interpolate(
+          templateObject[key],
+          options.component
+        )}`
+      )
+    } else {
+      renderCode.push(
+        `props${counter}['${key}'] = ${cast(templateObject[key], key, options.component)}`
+      )
+    }
+  })
+
+  renderCode.push(`
+    elms[${counter}] = (context.components && context.components['${templateObject.type}'] || component.___components['${templateObject.type}'] || (() => { console.log('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, parent, component)
+  `)
+}
+
+const generateForLoopCode = function (templateObject, parent) {
+  const forLoop = templateObject[':for']
+  delete templateObject[':for']
+
+  const regex = /(.+)\s+in\s+(.+)/gi
+  //   const regex = /(:?\(*)(.+)\s+in\s+(.+)/gi
+
+  const result = regex.exec(forLoop)
+
+  // can be improved with a smarter regex
+  const [item, index = 'index'] = result[1]
+    .replace('(', '')
+    .replace(')', '')
+    .split(/\s*,\s*/)
+
+  // local context
+  const ctx = {
+    effectsCode: [],
+    context: { props: [], components: this.components },
+  }
+
+  if (parent) {
+    ctx.effectsCode.push(`parent = ${parent}`)
+  }
+  ctx.effectsCode.push(`
+    const collection = ${cast(result[2], ':for')}
+    for(let ${index} = 0; ${index} < collection.length; ${index}++) {
+      const ${item} = collection[${index}]
+  `)
+
+  if (templateObject.type !== 'Element') {
+    generateComponentCode.call(ctx, templateObject, false, {
+      counter: 'index',
+      component: '',
+      forceEffect: true,
+    })
+  } else {
+    generateElementCode.call(ctx, templateObject, parent, {
+      counter: 'index',
+      component: '',
+      forceEffect: true,
+    })
+  }
+  ctx.effectsCode.push('}')
+
+  this.effectsCode.push(ctx.effectsCode.join('\n'))
+}
+
+const generateCode = function (templateObject, parent = false) {
+  templateObject.children.forEach((childTemplateObject) => {
+    counter++
+
+    if (Object.keys(childTemplateObject).indexOf(':for') > -1) {
+      generateForLoopCode.call(this, childTemplateObject, parent)
+    } else {
+      if (childTemplateObject.type !== 'Element') {
+        generateComponentCode.call(this, childTemplateObject, parent)
+      } else {
+        generateElementCode.call(this, childTemplateObject, parent)
+      }
+    }
+  })
+}
+
+const interpolate = (val, component = 'component.') => {
   const replaceString = /('.*?')+/gi
   const replaceDollar = /\$/gi
   const matches = val.matchAll(replaceString)
@@ -108,22 +185,21 @@ const interpolate = (str, counter, key, val) => {
   }
 
   // replace remaining dollar signs
-  val = val.replace(replaceDollar, 'component.')
+  val = val.replace(replaceDollar, component)
 
   // restore string replacemenet
   restore.forEach((el, idx) => {
     val = val.replace(`[@@REPLACEMENT${idx}@@]`, el)
   })
 
-  key = key.substring(1)
-  return `elms[${counter}].set('${key}', ${val})`
+  return val
 }
 
-const cast = (str, counter, key, val = '') => {
+const cast = (val = '', key = false, component = 'component.') => {
   let castedValue
 
   // numeric
-  if (!isNaN(parseFloat(val))) {
+  if (key !== 'color' && !isNaN(parseFloat(val))) {
     castedValue = parseFloat(val)
   }
   // boolean true
@@ -131,21 +207,19 @@ const cast = (str, counter, key, val = '') => {
     castedValue = true
   }
   // boolean false
-  else if (val.toLowerCase === 'false') {
+  else if (val.toLowerCase() === 'false') {
     castedValue = false
   }
   // dynamic value
   else if (val.startsWith('$')) {
-    castedValue = `component.${val.replace('$', '')}`
+    castedValue = `${component}${val.replace('$', '')}`
   }
   // static string
   else {
     castedValue = `"${val}"`
   }
 
-  if (key.startsWith(':')) {
-    key = key.substring(1)
-  }
-
-  return `elementConfig${counter}['${key}'] = ${castedValue}`
+  return castedValue
 }
+
+const isReactiveKey = (str) => str.startsWith(':')
