@@ -134,7 +134,6 @@ const Component = (name = required('name'), config = required('config')) => {
     setTimeout(() => (this.lifecycle.state = 'render'))
   }
   return (options = {}, parentEl, parentComponent) => {
-    // const opts = { ...config, ...options } // not sure if this should be even possible?
     return new component(options, parentEl, parentComponent)
   }
 }
