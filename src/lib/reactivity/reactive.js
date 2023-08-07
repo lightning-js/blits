@@ -1,23 +1,45 @@
 import { track, trigger } from './effect.js'
 
+const arrayMethods = [
+  'constructor',
+  'includes',
+  'indexOf',
+  'lastIndexOf',
+  'push',
+  'pop',
+  'shift',
+  'splice',
+  'unshift',
+]
 const reactiveProxy = (target) => {
   const handler = {
     get(target, key, receiver) {
-      let result = Reflect.get(target, key, receiver)
+      if (Array.isArray(target) && arrayMethods.includes(key)) {
+        return Reflect.get(target, key, receiver)
+      }
+      track(target, key)
 
-      // can be improved
       if (typeof target[key] === 'object') {
         return reactiveProxy(target[key])
       }
 
-      track(target, key)
-      return result
+      return Reflect.get(target, key, receiver)
     },
     set(target, key, value, receiver) {
-      let oldValue = target[key]
-      let result = Reflect.set(target, key, value, receiver)
-      if (result && oldValue !== value) {
+      const oldValue = target[key]
+
+      const result = Reflect.set(target, key, value, receiver)
+
+      if (typeof result === 'object') {
+        reactiveProxy(target[key])
+      }
+
+      if (key === 'length') {
         trigger(target, key)
+      } else {
+        if (result && oldValue !== value) {
+          trigger(target, key)
+        }
       }
       return result
     },
