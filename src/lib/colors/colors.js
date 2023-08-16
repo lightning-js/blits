@@ -1,7 +1,7 @@
 import htmlColors from './htmlColors.js'
 
 export default {
-  normalize(color) {
+  normalize(color = '') {
     color = color.toString()
 
     if (color.startsWith('0x')) {
@@ -37,13 +37,13 @@ export default {
     }
     // hex rgba format
     else if (color.startsWith('#')) {
-      color = color.substr(1)
-      if (color.length === 3) {
-        color = color
-          .split('')
-          .map((c) => c + c)
-          .join('')
-      }
+      color = color.substring(1)
+    }
+    if (color.length === 3) {
+      color = color
+        .split('')
+        .map((c) => c + c)
+        .join('')
     }
 
     return rgbaToAbgr(color)
@@ -52,5 +52,6 @@ export default {
 
 const rgbaToAbgr = (rgba) => {
   const [prefix, r, g, b, a] = rgba.padEnd(8, 'f').padStart(10, '0x').match(/.{2}/g)
-  return prefix + a + b + g + r
+  return prefix + a + r + g + b
+  // return prefix + a + b + g + r
 }
