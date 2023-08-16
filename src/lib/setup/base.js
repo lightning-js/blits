@@ -25,5 +25,13 @@ export default (component) => {
         console.log('destroy', this)
       },
     },
+    select: {
+      value: function (id) {
+        return this.el.filter((child) => child['id'] === id).pop()
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
   })
 }

@@ -40,7 +40,8 @@ const Component = (name = required('name'), config = required('config')) => {
     lifecycle.state = 'beforeSetup'
 
     // setup props
-    if (config.props) setupProps(component, config.props)
+    // if (config.props) // because of the default props like id - might change this
+    setupProps(component, config.props)
 
     // setup methods
     if (config.methods) setupMethods(component, config.methods)

@@ -4,6 +4,9 @@ const baseProp = {
 }
 
 export default (component, props = []) => {
+  if (props.indexOf('id') === -1) {
+    props.push('id')
+  }
   component.___propKeys = []
   props.forEach((prop) => {
     prop = { ...baseProp, ...(typeof prop === 'object' ? prop : { key: prop }) }
