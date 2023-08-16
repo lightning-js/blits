@@ -65,10 +65,10 @@ export default (config) => {
       }
       obj[prop] = v
       if (node[prop] !== obj[prop]) {
-        const f = node.animate(
-          obj,
-          typeof value === 'object' ? ('d' in value ? value.d : 200) : 200
-        )
+        const f = node.animate(obj, {
+          duration: typeof value === 'object' ? ('d' in value ? value.d : 200) : 200,
+          easing: typeof value === 'object' ? ('f' in value ? value.f : 'linear') : 'linear',
+        })
         value.w ? setTimeout(() => f.start(), value.w) : f.start()
       }
     },
