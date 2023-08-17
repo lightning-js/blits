@@ -1,6 +1,8 @@
 import { renderer } from './launch.js'
 import colors from './lib/colors/colors.js'
 
+const colorProps = ['color', 'colorTop', 'colorBottom', 'colorLeft', 'colorRight']
+
 export default (config) => {
   let node = null
   let initData = null
@@ -24,7 +26,8 @@ export default (config) => {
           typeof props[prop] === 'object' && prop !== 'parent'
             ? unPackValue(props[prop])
             : props[prop]
-        if (prop === 'color') {
+        // if (prop === 'color') {
+        if (colorProps.indexOf(prop) > -1) {
           props[prop] = colors.normalize(props[prop])
         }
         setProperties.push(prop)
@@ -41,7 +44,8 @@ export default (config) => {
         node.parent = value === 'root' ? renderer.root : renderer.getNodeById(value)
       } else {
         value = unPackValue(value)
-        if (prop === 'color') {
+        if (colorProps.indexOf(prop) > -1) {
+          // if (prop === 'color') {
           value = colors.normalize(value)
         }
         node[prop] = value
