@@ -42,6 +42,9 @@ export default (config) => {
         node.src = value
       } else if (prop === 'parentId') {
         node.parent = value === 'root' ? renderer.root : renderer.getNodeById(value)
+      } else if (prop === 'effects' && value) {
+        // todo: only 1 shader for now (well, there _exists_ only one shader now ;) )
+        node.shader = value[0]
       } else {
         value = unPackValue(value)
         if (colorProps.indexOf(prop) > -1) {

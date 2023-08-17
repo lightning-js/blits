@@ -1,3 +1,4 @@
+import { renderer } from '../../launch.js'
 import Focus from '../../focus.js'
 
 export default (component) => {
@@ -32,6 +33,11 @@ export default (component) => {
       writable: false,
       enumerable: true,
       configurable: false,
+    },
+    shader: {
+      value: function (type, args) {
+        return renderer.makeShader('RoundedRectangle', args)
+      },
     },
   })
 }
