@@ -1,6 +1,7 @@
 import { renderer } from '../../launch.js'
 import Focus from '../../focus.js'
 import Image from '../../components/Image.js'
+import Circle from '../../components/Circle.js'
 
 export default (component) => {
   Object.defineProperties(component.prototype, {
@@ -46,6 +47,7 @@ export default (component) => {
     ___components: {
       value: {
         Image: Image(),
+        Circle: Circle(),
       },
       writable: false,
       enumerable: false,
