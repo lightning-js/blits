@@ -30,6 +30,9 @@ export default (config) => {
         if (colorProps.indexOf(prop) > -1) {
           props[prop] = colors.normalize(props[prop])
         }
+        if (prop === 'show') {
+          props['alpha'] = props[prop] ? 1 : 0
+        }
         setProperties.push(prop)
       })
 
@@ -45,6 +48,8 @@ export default (config) => {
       } else if (prop === 'effects' && value) {
         // todo: only 1 shader for now (well, there _exists_ only one shader now ;) )
         node.shader = value[0]
+      } else if (prop === 'show') {
+        node.alpha = value ? 1 : 0
       } else {
         value = unPackValue(value)
         if (colorProps.indexOf(prop) > -1) {
