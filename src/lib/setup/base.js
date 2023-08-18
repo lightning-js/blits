@@ -1,5 +1,6 @@
 import { renderer } from '../../launch.js'
 import Focus from '../../focus.js'
+import Image from '../../components/Image.js'
 
 export default (component) => {
   Object.defineProperties(component.prototype, {
@@ -38,6 +39,17 @@ export default (component) => {
       value: function (type, args) {
         return renderer.makeShader('RoundedRectangle', args)
       },
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    },
+    ___components: {
+      value: {
+        Image: Image(),
+      },
+      writable: false,
+      enumerable: false,
+      configurable: false,
     },
   })
 }
