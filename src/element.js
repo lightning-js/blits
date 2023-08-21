@@ -64,7 +64,7 @@ export default (config) => {
       node.parent = null
     },
     get nodeId() {
-      return node.id
+      return node && node.id
     },
     get id() {
       return initData.id || null
