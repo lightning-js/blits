@@ -8,9 +8,12 @@ import RouterView from '../../components/RouterView'
 export default (component) => {
   Object.defineProperties(component.prototype, {
     focus: {
-      value: function () {
+      value: function (e) {
         Focus.set(this)
         this.lifecycle.state = 'focus'
+        if (e instanceof KeyboardEvent) {
+          document.dispatchEvent(new KeyboardEvent('keydown', e))
+        }
       },
       writable: false,
       enumerable: true,

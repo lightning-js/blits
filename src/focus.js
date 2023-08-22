@@ -5,7 +5,6 @@ export default {
     return focusedComponent
   },
   set(v) {
-    // console.log('set focus to', v.componentId)
     focusedComponent = v
   },
   input(key, event) {
@@ -17,7 +16,8 @@ export default {
         focusChain.reverse().forEach((component) => component.unfocus())
         componentWithInputEvent.focus()
       }
-      focusedComponent.___inputEvents[key].apply(focusedComponent, event)
+      focusedComponent.___inputEvents[key] &&
+        focusedComponent.___inputEvents[key].call(focusedComponent, event)
     }
   },
 }

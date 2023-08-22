@@ -29,8 +29,8 @@ export const navigate = function () {
         }
         this.__currentView.destroy()
       }
-      this.__currentView = route.component.apply(null, {}, this.el[1], this.parent)
-      // this.__currentView.focus()
+      this.__currentView = route.component({}, this.el[1], this)
+      this.__currentView.focus()
     } else {
       console.log(`Route ${hash} not found`)
     }
