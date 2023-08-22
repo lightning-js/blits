@@ -28,6 +28,12 @@ export default (component) => {
     destroy: {
       value: function () {
         this.lifecycle.state = 'destroy'
+        for (let i = 0; i < this.___timeouts.length; i++) {
+          clearTimeout(this.___timeouts[i])
+        }
+        for (let i = 0; i < this.___intervals.length; i++) {
+          clearInterval(this.___intervals[i])
+        }
       },
       writable: false,
       enumerable: true,
@@ -65,6 +71,52 @@ export default (component) => {
       },
       writable: false,
       enumerable: false,
+      configurable: false,
+    },
+    ___timeouts: {
+      value: [],
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    },
+    $setTimeout: {
+      value: function (fn, ms, ...params) {
+        const timeoutId = setTimeout(
+          () => {
+            this.____timeouts = this.___timeouts.filter((id) => id !== timeoutId)
+            fn.apply(null, params)
+          },
+          ms,
+          params
+        )
+        this.___timeouts.push(timeoutId)
+        return timeoutId
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    ___intervals: {
+      value: [],
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    },
+    $setInterval: {
+      value: function (fn, ms, ...params) {
+        const intervalId = setInterval(
+          () => {
+            this.____intervals = this.___intervals.filter((id) => id !== intervalId)
+            fn.apply(null, params)
+          },
+          ms,
+          params
+        )
+        this.___intervals.push(intervalId)
+        return intervalId
+      },
+      writable: false,
+      enumerable: true,
       configurable: false,
     },
   })
