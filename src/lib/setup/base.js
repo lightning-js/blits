@@ -1,7 +1,9 @@
 import { renderer } from '../../launch.js'
 import Focus from '../../focus.js'
+import { to } from '../../router.js'
 import Image from '../../components/Image.js'
 import Circle from '../../components/Circle.js'
+import RouterView from '../../components/RouterView'
 
 export default (component) => {
   Object.defineProperties(component.prototype, {
@@ -25,8 +27,11 @@ export default (component) => {
     },
     destroy: {
       value: function () {
-        console.log('destroy', this)
+        this.lifecycle.state = 'destroy'
       },
+      writable: false,
+      enumerable: true,
+      configurable: false,
     },
     select: {
       value: function (id) {
@@ -44,10 +49,19 @@ export default (component) => {
       enumerable: false,
       configurable: false,
     },
+    $router: {
+      value: {
+        to,
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
     ___components: {
       value: {
         Image: Image(),
         Circle: Circle(),
+        RouterView: RouterView(),
       },
       writable: false,
       enumerable: false,

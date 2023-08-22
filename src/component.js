@@ -13,6 +13,7 @@ import setupMethods from './lib/setup/methods.js'
 import setupState from './lib/setup/state.js'
 import setupComputed from './lib/setup/computed.js'
 import setupInput from './lib/setup/input.js'
+import setupRoutes from './lib/setup/routes.js'
 import { effect } from './lib/reactivity/effect.js'
 // import setupWatch from './lib/setup/watch.js'
 
@@ -55,6 +56,8 @@ const Component = (name = required('name'), config = required('config')) => {
     // setup watchers
     // if (config.watch) setupWatch(component, config.watch)
 
+    if (config.routes) setupRoutes(component, config.routes)
+
     if (config.input) setupInput(component, config.input)
 
     component.setup = true
@@ -62,7 +65,7 @@ const Component = (name = required('name'), config = required('config')) => {
   }
 
   const createLifecycle = (scope) => {
-    const states = ['init', 'beforeSetup', 'setup', 'render', 'focus', 'unfocus']
+    const states = ['init', 'beforeSetup', 'setup', 'render', 'focus', 'unfocus', 'destroy']
 
     return {
       previous: null,
