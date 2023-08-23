@@ -33,6 +33,9 @@ export default (config) => {
         if (prop === 'show') {
           props['alpha'] = props[prop] ? 1 : 0
         }
+        if (prop === 'rotation') {
+          props[prop] = props[prop] * (Math.PI / 180)
+        }
         setProperties.push(prop)
       })
 
@@ -50,6 +53,8 @@ export default (config) => {
         node.shader = value[0]
       } else if (prop === 'show') {
         node.alpha = value ? 1 : 0
+      } else if (prop === 'rotation') {
+        node.rotation = value * (Math.PI / 180)
       } else {
         value = unPackValue(value)
         if (colorProps.indexOf(prop) > -1) {
@@ -70,10 +75,13 @@ export default (config) => {
       return initData.id || null
     },
     animate(prop, value) {
+      console.log('animate', prop, value)
       const obj = {}
       let v = unPackValue(value)
       if (prop === 'color') {
         v = colors.normalize(v)
+      } else if (prop === 'rotation') {
+        v = v * (Math.PI / 180)
       }
       obj[prop] = v
       if (node[prop] !== obj[prop]) {
