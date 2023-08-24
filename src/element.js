@@ -75,7 +75,6 @@ export default (config) => {
       return initData.id || null
     },
     animate(prop, value) {
-      console.log('animate', prop, value)
       const obj = {}
       let v = unPackValue(value)
       if (prop === 'color') {
