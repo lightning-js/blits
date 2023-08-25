@@ -4,6 +4,7 @@ import { to } from '../../router.js'
 import Image from '../../components/Image.js'
 import Circle from '../../components/Circle.js'
 import RouterView from '../../components/RouterView'
+import eventListeners from '../eventListeners.js'
 
 export default (component) => {
   Object.defineProperties(component.prototype, {
@@ -22,7 +23,6 @@ export default (component) => {
     unfocus: {
       value: function () {
         this.lifecycle.state = 'unfocus'
-        Focus.set(this.parent)
       },
       writable: false,
       enumerable: true,
@@ -37,6 +37,7 @@ export default (component) => {
         for (let i = 0; i < this.___intervals.length; i++) {
           clearInterval(this.___intervals[i])
         }
+        // todo clear up $listeners set by this component
       },
       writable: false,
       enumerable: true,
@@ -117,6 +118,22 @@ export default (component) => {
         )
         this.___intervals.push(intervalId)
         return intervalId
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    $emit: {
+      value: function (event, params) {
+        eventListeners.executeListeners(event, params)
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    $listen: {
+      value: function (event, callback) {
+        eventListeners.registerListener(event, callback)
       },
       writable: false,
       enumerable: true,
