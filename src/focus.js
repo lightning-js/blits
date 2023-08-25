@@ -4,8 +4,17 @@ export default {
   get() {
     return focusedComponent
   },
-  set(v) {
-    focusedComponent = v
+  set(component, event) {
+    if (component !== focusedComponent) {
+      if (focusedComponent && focusedComponent !== component.parent) {
+        focusedComponent.unfocus()
+      }
+      focusedComponent = component
+      focusedComponent.lifecycle.state = 'focus'
+      if (event instanceof KeyboardEvent) {
+        document.dispatchEvent(new KeyboardEvent('keydown', event))
+      }
+    }
   },
   input(key, event) {
     const focusChain = walkChain([focusedComponent], key)
@@ -16,8 +25,8 @@ export default {
         focusChain.reverse().forEach((component) => component.unfocus())
         componentWithInputEvent.focus()
       }
-      focusedComponent.___inputEvents[key] &&
-        focusedComponent.___inputEvents[key].call(focusedComponent, event)
+      componentWithInputEvent.___inputEvents[key] &&
+        componentWithInputEvent.___inputEvents[key].call(componentWithInputEvent, event)
     }
   },
 }

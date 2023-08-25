@@ -10,11 +10,7 @@ export default (component) => {
   Object.defineProperties(component.prototype, {
     focus: {
       value: function (e) {
-        Focus.set(this)
-        this.lifecycle.state = 'focus'
-        if (e instanceof KeyboardEvent) {
-          document.dispatchEvent(new KeyboardEvent('keydown', e))
-        }
+        Focus.set(this, e)
       },
       writable: false,
       enumerable: true,
