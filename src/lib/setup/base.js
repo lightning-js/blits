@@ -41,7 +41,18 @@ export default (component) => {
     },
     select: {
       value: function (id) {
-        return this.el.filter((child) => child['id'] === id).pop()
+        let selected = null
+        this.el.forEach((child) => {
+          if (Array.isArray(child)) {
+            child.forEach((c) => {
+              if (c['id'] === id) selected = c
+            })
+          } else {
+            if (child['id'] === id) selected = child
+          }
+        })
+
+        return selected
       },
       writable: false,
       enumerable: true,
