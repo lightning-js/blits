@@ -24,17 +24,25 @@ export default function (templateObject = { children: [] }) {
 const generateElementCode = function (
   templateObject,
   parent = false,
-  options = { counter: false, component: 'component.', forceEffect: false }
+  options = { index: false, component: 'component.', forceEffect: false }
 ) {
   const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
   if (parent) {
     renderCode.push(`parent = ${parent}`)
   }
 
+  const elm = options.index ? `elms[${counter}][${options.index}]` : `elms[${counter}]`
+
+  if (options.index) {
+    renderCode.push(`
+      elms[${counter}] = elms[${counter}] || []
+    `)
+  }
+
   renderCode.push(`
-    elms[${options.counter} || ${counter}] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
-    const elementConfig${counter} = {}
-  `)
+      ${elm} = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      const elementConfig${counter} = {}
+    `)
 
   const children = templateObject['children']
   delete templateObject['children']
@@ -44,10 +52,7 @@ const generateElementCode = function (
 
     if (isReactiveKey(key)) {
       this.effectsCode.push(
-        `elms[${counter}].set('${key.substring(1)}', ${interpolate(
-          templateObject[key],
-          options.component
-        )})`
+        `${elm}.set('${key.substring(1)}', ${interpolate(templateObject[key], options.component)})`
       )
     } else {
       renderCode.push(
@@ -55,7 +60,8 @@ const generateElementCode = function (
       )
     }
   })
-  renderCode.push(`elms[${counter}].populate(elementConfig${counter})`)
+
+  renderCode.push(`${elm}.populate(elementConfig${counter})`)
 
   if (children) {
     generateCode.call(this, { children }, `elms[${counter}]`)
@@ -65,14 +71,23 @@ const generateElementCode = function (
 const generateComponentCode = function (
   templateObject,
   parent = false,
-  options = { counter: false, component: 'component.', forceEffect: false }
+  options = { index: false, component: 'component.', forceEffect: false }
 ) {
   generateElementCode.call(this, templateObject, parent, options)
-  parent = `elms[${counter}]`
+
+  parent = options.index ? `elms[${counter}][${options.index}]` : `elms[${counter}]`
 
   counter++
-
   const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
+
+  const elm = options.index ? `elms[${counter}][${options.index}]` : `elms[${counter}]`
+
+  if (options.index) {
+    renderCode.push(`
+      elms[${counter}] = elms[${counter}] || []
+  `)
+  }
+
   if (parent) {
     renderCode.push(`parent = ${parent}`)
   }
@@ -82,11 +97,10 @@ const generateComponentCode = function (
     if (key === 'type') return
     if (isReactiveKey(key)) {
       this.effectsCode.push(`
-        elms[${counter}].___props['${key.substring(1)}'] = ${interpolate(
+          ${elm}.___props['${key.substring(1)}'] = ${interpolate(
         templateObject[key],
         options.component
-      )}
-      `)
+      )}`)
       renderCode.push(
         `props${counter}['${key.substring(1)}'] = ${interpolate(
           templateObject[key],
@@ -101,8 +115,8 @@ const generateComponentCode = function (
   })
 
   renderCode.push(`
-    elms[${counter}] = (context.components && context.components['${templateObject.type}'] || component.___components['${templateObject.type}'] || (() => { console.log('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, parent, component)
-  `)
+      ${elm} = (context.components && context.components['${templateObject.type}'] || component.___components['${templateObject.type}'] || (() => { console.log('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, ${parent}, component)
+    `)
 }
 
 const generateForLoopCode = function (templateObject, parent) {
@@ -122,35 +136,42 @@ const generateForLoopCode = function (templateObject, parent) {
 
   // local context
   const ctx = {
+    renderCode: [],
     effectsCode: [],
     context: { props: [], components: this.components },
   }
 
   if (parent) {
-    ctx.effectsCode.push(`parent = ${parent}`)
+    ctx.renderCode.push(`parent = ${parent}`)
   }
-  ctx.effectsCode.push(`
+  ctx.renderCode.push(`
     const collection = ${cast(result[2], ':for')}
-    for(let ${index} = 0; ${index} < collection.length; ${index}++) {
-      const ${item} = collection[${index}]
+    for(let __index = 0; __index < collection.length; __index++) {
+      parent = ${parent}
+      const scope = {
+        ${index}: __index,
+        ${item}: collection[__index]
+      }
   `)
 
   if (templateObject.type !== 'Element') {
     generateComponentCode.call(ctx, templateObject, false, {
-      counter: 'index',
-      component: '',
-      forceEffect: true,
+      index: `scope.${index}`,
+      component: 'scope.',
+      forceEffect: false,
     })
   } else {
     generateElementCode.call(ctx, templateObject, parent, {
-      counter: 'index',
-      component: '',
-      forceEffect: true,
+      index: `scope.${index}`,
+      component: 'scope.',
+      forceEffect: false,
     })
   }
-  ctx.effectsCode.push('}')
+  ctx.renderCode = ctx.renderCode.concat(ctx.effectsCode)
+  ctx.renderCode.push('console.log("ok")')
+  ctx.renderCode.push('}')
 
-  this.effectsCode.push(ctx.effectsCode.join('\n'))
+  this.effectsCode.push(ctx.renderCode.join('\n'))
 }
 
 const generateCode = function (templateObject, parent = false) {
