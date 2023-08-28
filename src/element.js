@@ -55,6 +55,8 @@ export default (config) => {
         node.alpha = value ? 1 : 0
       } else if (prop === 'rotation') {
         node.rotation = value * (Math.PI / 180)
+      } else if (prop === 'texture') {
+        node.texture = value
       } else {
         value = unPackValue(value)
         if (colorProps.indexOf(prop) > -1) {

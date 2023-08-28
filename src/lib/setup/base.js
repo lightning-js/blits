@@ -4,6 +4,7 @@ import { to } from '../../router.js'
 import Image from '../../components/Image.js'
 import Circle from '../../components/Circle.js'
 import RouterView from '../../components/RouterView.js'
+import Sprite from '../../components/Sprite.js'
 import eventListeners from '../eventListeners.js'
 
 export default (component) => {
@@ -79,6 +80,7 @@ export default (component) => {
         Image: Image(),
         Circle: Circle(),
         RouterView: RouterView(),
+        Sprite: Sprite(),
       },
       writable: false,
       enumerable: false,
@@ -142,6 +144,12 @@ export default (component) => {
       value: function (event, callback) {
         eventListeners.registerListener(event, callback)
       },
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    ___renderer: {
+      value: renderer,
       writable: false,
       enumerable: true,
       configurable: false,
