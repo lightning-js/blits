@@ -3,7 +3,7 @@ import Focus from '../../focus.js'
 import { to } from '../../router.js'
 import Image from '../../components/Image.js'
 import Circle from '../../components/Circle.js'
-import RouterView from '../../components/RouterView'
+import RouterView from '../../components/RouterView.js'
 import eventListeners from '../eventListeners.js'
 
 export default (component) => {
