@@ -40,9 +40,9 @@ const generateElementCode = function (
   }
 
   renderCode.push(`
-      ${elm} = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
-      const elementConfig${counter} = {}
-    `)
+    ${elm} = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+    const elementConfig${counter} = {}
+  `)
 
   const children = templateObject['children']
   delete templateObject['children']
@@ -85,7 +85,7 @@ const generateComponentCode = function (
   if (options.index) {
     renderCode.push(`
       elms[${counter}] = elms[${counter}] || []
-  `)
+    `)
   }
 
   if (parent) {
@@ -115,8 +115,8 @@ const generateComponentCode = function (
   })
 
   renderCode.push(`
-      ${elm} = (context.components && context.components['${templateObject.type}'] || component.___components['${templateObject.type}'] || (() => { console.log('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, ${parent}, component)
-    `)
+    ${elm} = (context.components && context.components['${templateObject.type}'] || component.___components['${templateObject.type}'] || (() => { console.log('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, ${parent}, component)
+  `)
 }
 
 const generateForLoopCode = function (templateObject, parent) {
@@ -168,7 +168,6 @@ const generateForLoopCode = function (templateObject, parent) {
     })
   }
   ctx.renderCode = ctx.renderCode.concat(ctx.effectsCode)
-  ctx.renderCode.push('console.log("ok")')
   ctx.renderCode.push('}')
 
   this.effectsCode.push(ctx.renderCode.join('\n'))
