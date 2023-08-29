@@ -14,8 +14,8 @@ import setupState from './lib/setup/state.js'
 import setupComputed from './lib/setup/computed.js'
 import setupInput from './lib/setup/input.js'
 import setupRoutes from './lib/setup/routes.js'
+import setupWatch from './lib/setup/watch.js'
 import { effect } from './lib/reactivity/effect.js'
-// import setupWatch from './lib/setup/watch.js'
 
 const stage = {
   element,
@@ -54,7 +54,7 @@ const Component = (name = required('name'), config = required('config')) => {
     if (config.computed) setupComputed(component, config.computed)
 
     // setup watchers
-    // if (config.watch) setupWatch(component, config.watch)
+    if (config.watch) setupWatch(component, config.watch)
 
     if (config.routes) setupRoutes(component, config.routes)
 
@@ -134,6 +134,19 @@ const Component = (name = required('name'), config = required('config')) => {
         eff.apply(stage, [this, this.el, code.context])
       })
     })
+
+    if (this.___watchers) {
+      Object.keys(this.___watchers).forEach((watchKey) => {
+        let old = this[watchKey]
+        effect(() => {
+          if (old !== this[watchKey]) {
+            this.___watchers[watchKey].apply(this, [this[watchKey], old])
+            old = this[watchKey]
+          }
+        })
+      })
+    }
+
     // next tick
     setTimeout(() => (this.lifecycle.state = 'render'))
   }

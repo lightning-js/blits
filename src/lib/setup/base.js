@@ -151,7 +151,7 @@ export default (component) => {
     ___renderer: {
       value: renderer,
       writable: false,
-      enumerable: true,
+      enumerable: false,
       configurable: false,
     },
   })
