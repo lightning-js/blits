@@ -67,7 +67,7 @@ const Component = (name = required('name'), config = required('config')) => {
   }
 
   const createLifecycle = (scope) => {
-    const states = ['init', 'beforeSetup', 'setup', 'render', 'focus', 'unfocus', 'destroy']
+    const states = ['init', 'beforeSetup', 'setup', 'ready', 'focus', 'unfocus', 'destroy']
 
     return {
       previous: null,
@@ -155,7 +155,7 @@ const Component = (name = required('name'), config = required('config')) => {
     }
 
     // next tick
-    setTimeout(() => (this.lifecycle.state = 'render'))
+    setTimeout(() => (this.lifecycle.state = 'ready'))
   }
   return (options = {}, parentEl, parentComponent) => {
     return new component(options, parentEl, parentComponent)
