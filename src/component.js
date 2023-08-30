@@ -56,8 +56,10 @@ const Component = (name = required('name'), config = required('config')) => {
     // setup watchers
     if (config.watch) setupWatch(component, config.watch)
 
+    // setup routes
     if (config.routes) setupRoutes(component, config.routes)
 
+    // setup input
     if (config.input) setupInput(component, config.input)
 
     component.setup = true
@@ -127,11 +129,16 @@ const Component = (name = required('name'), config = required('config')) => {
 
     this.lifecycle.state = 'init'
 
-    this.el = code.render.apply(stage, [parentEl, this, code.context])
+    Object.defineProperty(this, '___children', {
+      value: code.render.apply(stage, [parentEl, this, code.context]),
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    })
 
     code.effects.forEach((eff) => {
       effect(() => {
-        eff.apply(stage, [this, this.el, code.context])
+        eff.apply(stage, [this, this.___children, code.context])
       })
     })
 

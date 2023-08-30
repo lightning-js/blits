@@ -17,19 +17,19 @@ export const navigate = function () {
     const route = matchHash(hash, this.parent.___routes)
     if (route) {
       if (this.__currentView) {
-        for (let i = 0; i < this.__currentView.el.length - 1; i++) {
-          if (this.__currentView.el[i] && this.__currentView.el[i].delete) {
-            this.__currentView.el[i].delete()
-            this.__currentView.el[i] = null
+        for (let i = 0; i < this.__currentView.___children.length - 1; i++) {
+          if (this.__currentView.___children[i] && this.__currentView.___children[i].delete) {
+            this.__currentView.___children[i].delete()
+            this.__currentView.___children[i] = null
           } else {
-            if (this.__currentView.el[i] && this.__currentView.el[i].destroy) {
-              this.__currentView.el[i].destroy()
+            if (this.__currentView.___children[i] && this.__currentView.___children[i].destroy) {
+              this.__currentView.___children[i].destroy()
             }
           }
         }
         this.__currentView.destroy()
       }
-      this.__currentView = route.component({}, this.el[1], this)
+      this.__currentView = route.component({}, this.___children[0], this)
       this.__currentView.focus()
     } else {
       console.log(`Route ${hash} not found`)

@@ -3,7 +3,7 @@ import Component from './component.js'
 import Focus from './focus.js'
 
 const Application = (config) => {
-  // temporary location of mapping
+  // make configurable?
   const mapping = {
     ArrowLeft: 'left',
     ArrowRight: 'right',
@@ -18,7 +18,6 @@ const Application = (config) => {
     Focus.input(key, e)
   })
 
-  // temporary, this can be done a bit better
   config.hooks = config.hooks || {}
   config.hooks.___init = function () {
     Focus.set(this)

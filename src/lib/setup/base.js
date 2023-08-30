@@ -43,7 +43,7 @@ export default (component) => {
     select: {
       value: function (id) {
         let selected = null
-        this.el.forEach((child) => {
+        this.___children.forEach((child) => {
           if (Array.isArray(child)) {
             child.forEach((c) => {
               if (c['id'] === id) selected = c
