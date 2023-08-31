@@ -1,3 +1,5 @@
+import { Log } from '../log.js'
+
 const baseProp = {
   cast: (v) => v,
   required: false,
@@ -20,13 +22,13 @@ export default (component, props = []) => {
         )
 
         if (prop.required && value === undefined) {
-          console.warn(`${prop.key} is required`)
+          Log.warn(`${prop.key} is required`)
         }
 
         return value
       },
       set(v) {
-        console.warn(`Warning! Avoid mutating props directly (${prop.key})`)
+        Log.warn(`Warning! Avoid mutating props directly (${prop.key})`)
         this.___props[prop.key] = v
       },
     })

@@ -16,6 +16,7 @@ import setupInput from './lib/setup/input.js'
 import setupRoutes from './lib/setup/routes.js'
 import setupWatch from './lib/setup/watch.js'
 import { effect } from './lib/reactivity/effect.js'
+import { Log } from './lib/log.js'
 
 const stage = {
   element,
@@ -31,6 +32,7 @@ const Component = (name = required('name'), config = required('config')) => {
   const setupComponent = (lifecycle) => {
     // code generation
     if (!code) {
+      Log.debug(`Generating code for ${name} component`)
       code = renderGenerator.call(config, parser(config.template))
     }
 
@@ -77,6 +79,9 @@ const Component = (name = required('name'), config = required('config')) => {
       },
       set state(v) {
         if (states.indexOf(v) > -1 && v !== this.current) {
+          Log.debug(
+            `Setting lifecycle state from ${this.previous} to ${v} for ${scope.componentId}`
+          )
           this.previous = this.current
           // emit 'private' hook
           emit(`___${v}`, name, scope)

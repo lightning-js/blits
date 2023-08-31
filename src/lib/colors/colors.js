@@ -1,4 +1,5 @@
 import htmlColors from './htmlColors.js'
+import { Log } from '../log.js'
 
 export default {
   normalize(color = '') {
@@ -29,7 +30,7 @@ export default {
     }
     // HSL(A) color format
     else if (hslaRegex.test(color)) {
-      console.log('HSL(A) is not supported yet')
+      Log.error('HSL(A) color format is not supported yet')
     }
     // HTMl name color format
     else if (color in htmlColors) {

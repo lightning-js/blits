@@ -8,7 +8,7 @@ export default () =>
       <Element></Element>
     `,
     hooks: {
-      render() {
+      ready() {
         Router.navigate.apply(this)
         window.addEventListener('hashchange', () => Router.navigate.apply(this))
       },

@@ -30,7 +30,7 @@ export default () =>
       },
     },
     hooks: {
-      render() {
+      ready() {
         this.spriteTexture = this.___renderer.makeTexture('ImageTexture', {
           src: `${window.location.protocol}//${window.location.host}/${this.image}`,
         })

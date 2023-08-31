@@ -1,13 +1,15 @@
+import { Log } from '../log.js'
+
 export default (component, state) => {
   component.___stateKeys = []
 
   state = state.apply(component)
   Object.keys(state).forEach((key) => {
     if (component.___propKeys && component.___propKeys.indexOf(key) > -1) {
-      console.error(`State ${key} already exists as a prop`)
+      Log.error(`State ${key} already exists as a prop`)
     }
     if (component.___methodKeys && component.___methodKeys.indexOf(key) > -1) {
-      console.error(`State ${key} already exists as a method`)
+      Log.error(`State ${key} already exists as a method`)
     }
     component.___stateKeys.push(key)
     try {
@@ -20,7 +22,7 @@ export default (component, state) => {
         },
       })
     } catch (e) {
-      console.error(e)
+      Log.error(e)
     }
   })
 }

@@ -6,6 +6,7 @@ import Circle from '../../components/Circle.js'
 import RouterView from '../../components/RouterView.js'
 import Sprite from '../../components/Sprite.js'
 import eventListeners from '../eventListeners.js'
+import Log from '../log.js'
 
 export default (component) => {
   Object.defineProperties(component.prototype, {
@@ -150,6 +151,12 @@ export default (component) => {
     },
     ___renderer: {
       value: renderer,
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    },
+    $log: {
+      value: Log('App'),
       writable: false,
       enumerable: false,
       configurable: false,

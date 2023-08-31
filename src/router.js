@@ -1,3 +1,5 @@
+import { Log } from './lib/log.js'
+
 export const getHash = () => {
   return (document.location.hash || '/').replace(/^#/, '')
 }
@@ -32,7 +34,7 @@ export const navigate = function () {
       this.__currentView = route.component({}, this.___children[0], this)
       this.__currentView.focus()
     } else {
-      console.log(`Route ${hash} not found`)
+      Log.error(`Route ${hash} not found`)
     }
   }
 }
