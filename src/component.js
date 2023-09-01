@@ -162,9 +162,14 @@ const Component = (name = required('name'), config = required('config')) => {
     // next tick
     setTimeout(() => (this.lifecycle.state = 'ready'))
   }
-  return (options = {}, parentEl, parentComponent) => {
+
+  const factory = (options = {}, parentEl, parentComponent) => {
     return new component(options, parentEl, parentComponent)
   }
+
+  factory.config = config
+
+  return factory
 }
 
 export default Component
