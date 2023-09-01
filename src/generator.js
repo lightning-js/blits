@@ -7,7 +7,7 @@ export default function (templateObject = { children: [] }) {
     context: { props: [], components: this.components },
   }
 
-  counter = 0
+  counter = -1
   generateCode.call(ctx, templateObject)
   ctx.renderCode.push('return elms')
 
@@ -61,6 +61,16 @@ const generateElementCode = function (
     }
   })
 
+  if (options.holder === true) {
+    renderCode.push(`
+    if(typeof cmp${counter} !== 'undefined') {
+      for(key in cmp${counter}.config.props) {
+        delete  elementConfig${counter}[cmp${counter}.config.props[key]]
+      }
+    }
+    `)
+  }
+
   renderCode.push(`${elm}.populate(elementConfig${counter})`)
 
   if (children) {
@@ -71,14 +81,21 @@ const generateElementCode = function (
 const generateComponentCode = function (
   templateObject,
   parent = false,
-  options = { index: false, component: 'component.', forceEffect: false }
+  options = { index: false, component: 'component.', forceEffect: false, holder: false }
 ) {
-  generateElementCode.call(this, templateObject, parent, options)
+  const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
+
+  renderCode.push(`
+    const cmp${counter} =
+      (context.components && context.components['${templateObject.type}']) ||
+      component.___components['${templateObject.type}']
+  `)
+
+  generateElementCode.call(this, templateObject, parent, { ...options, ...{ holder: true } })
 
   parent = options.index ? `elms[${counter}][${options.index}]` : `elms[${counter}]`
 
   counter++
-  const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
 
   const elm = options.index ? `elms[${counter}][${options.index}]` : `elms[${counter}]`
 
