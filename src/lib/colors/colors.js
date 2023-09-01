@@ -6,7 +6,7 @@ export default {
     color = color.toString()
 
     if (color.startsWith('0x')) {
-      return rgbaToAbgr(color)
+      return color
     }
 
     const rgbaRegex = /rgba?\((.+)\)/gi
@@ -25,12 +25,13 @@ export default {
             return parseInt(c).toString(16).padStart(2, '0')
           })
           .join('')
-        return rgbaToAbgr(color)
+        return color.padEnd(8, 'f').padStart(10, '0x')
       }
     }
     // HSL(A) color format
     else if (hslaRegex.test(color)) {
-      Log.error('HSL(A) color format is not supported yet')
+      Log.warn('HSL(A) color format is not supported yet')
+      return 0xffffffff
     }
     // HTMl name color format
     else if (color in htmlColors) {
@@ -47,12 +48,6 @@ export default {
         .join('')
     }
 
-    return rgbaToAbgr(color)
+    return color.padEnd(8, 'f').padStart(10, '0x')
   },
-}
-
-const rgbaToAbgr = (rgba) => {
-  const [prefix, r, g, b, a] = rgba.padEnd(8, 'f').padStart(10, '0x').match(/.{2}/g)
-  return prefix + a + r + g + b
-  // return prefix + a + b + g + r
 }
