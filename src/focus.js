@@ -25,14 +25,21 @@ export default {
         focusChain.reverse().forEach((component) => component.unfocus())
         componentWithInputEvent.focus()
       }
-      componentWithInputEvent.___inputEvents[key] &&
+      if (componentWithInputEvent.___inputEvents[key]) {
         componentWithInputEvent.___inputEvents[key].call(componentWithInputEvent, event)
+      } else if (componentWithInputEvent.___inputEvents.any) {
+        componentWithInputEvent.___inputEvents.any.call(componentWithInputEvent, event)
+      }
     }
   },
 }
 
 const walkChain = (components, key) => {
-  if (components[0].___inputEvents && typeof components[0].___inputEvents[key] === 'function') {
+  if (
+    components[0].___inputEvents &&
+    (typeof components[0].___inputEvents[key] === 'function' ||
+      typeof components[0].___inputEvents.any === 'function')
+  ) {
     return components
   } else if (components[0].parent) {
     components.unshift(components[0].parent)
