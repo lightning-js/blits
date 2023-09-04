@@ -20,18 +20,19 @@ export const navigate = function () {
     if (route) {
       if (this.__currentView) {
         for (let i = 0; i < this.__currentView.___children.length - 1; i++) {
-          if (this.__currentView.___children[i] && this.__currentView.___children[i].delete) {
-            this.__currentView.___children[i].delete()
+          if (this.__currentView.___children[i] && this.__currentView.___children[i].destroy) {
+            this.__currentView.___children[i].destroy()
             this.__currentView.___children[i] = null
-          } else {
-            if (this.__currentView.___children[i] && this.__currentView.___children[i].destroy) {
-              this.__currentView.___children[i].destroy()
-            }
           }
         }
         this.__currentView.destroy()
+        this.__currentView = null
       }
-      this.__currentView = route.component({}, this.___children[0], this)
+      this.___children[1] = this.__currentView = route.component(
+        this.___props,
+        this.___children[0],
+        this
+      )
       this.__currentView.focus()
     } else {
       Log.error(`Route ${hash} not found`)

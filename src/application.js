@@ -13,17 +13,25 @@ const Application = (config) => {
     ' ': 'space',
   }
 
-  document.addEventListener('keydown', (e) => {
+  const handler = (e) => {
     const key = mapping[e.key] || e.key
     Focus.input(key, e)
-  })
+  }
+
+  document.addEventListener('keydown', handler)
 
   config.hooks = config.hooks || {}
   config.hooks.___init = function () {
     Focus.set(this)
   }
 
-  return Component('App', config)
+  config.hooks.___destroy = function () {
+    document.removeEventListener('keydown', handler)
+  }
+
+  const App = Component('App', config)
+
+  return App
 }
 
 export default Application

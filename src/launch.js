@@ -26,5 +26,18 @@ export default (App, target, settings) => {
     driver
   )
 
-  renderer.init().then(App)
+  let app
+
+  const handler = (e) => {
+    if (e.key === 'Escape') {
+      document.removeEventListener('keydown', handler)
+      app.destroy()
+      app = null
+      renderer = null
+    }
+  }
+
+  document.addEventListener('keydown', handler)
+
+  renderer.init().then(() => (app = App()))
 }

@@ -7,7 +7,7 @@ import RouterView from '../../components/RouterView.js'
 import Sprite from '../../components/Sprite.js'
 import Text from '../../components/Text.js'
 import eventListeners from '../eventListeners.js'
-import Log from '../log.js'
+import { default as log, Log } from '../log.js'
 
 export default (component) => {
   Object.defineProperties(component.prototype, {
@@ -36,7 +36,9 @@ export default (component) => {
         for (let i = 0; i < this.___intervals.length; i++) {
           clearInterval(this.___intervals[i])
         }
-        // todo clear up $listeners set by this component
+        eventListeners.removeListeners(this)
+        deleteChildren(this.___children)
+        Log.debug(`Destroyed component ${this.componentId}`)
       },
       writable: false,
       enumerable: true,
@@ -145,7 +147,7 @@ export default (component) => {
     },
     $listen: {
       value: function (event, callback) {
-        eventListeners.registerListener(event, callback)
+        eventListeners.registerListener(this, event, callback)
       },
       writable: false,
       enumerable: true,
@@ -158,10 +160,27 @@ export default (component) => {
       configurable: false,
     },
     $log: {
-      value: Log('App'),
+      value: log('App'),
       writable: false,
       enumerable: false,
       configurable: false,
     },
   })
+}
+
+const deleteChildren = function (children) {
+  for (let i = 0; i < children.length; i++) {
+    if (!children[i]) return
+    if (Array.isArray(children[i])) {
+      deleteChildren(children[i])
+    } else if (children[i].delete) {
+      children[i].delete()
+    } else if (children[i].destroy) {
+      children[i].destroy()
+      children[i] = null
+    }
+    children[i] = null
+  }
+
+  children = []
 }

@@ -1,6 +1,8 @@
 import { renderer } from './launch.js'
 import colors from './lib/colors/colors.js'
 
+import { Log } from './lib/log.js'
+
 const colorProps = ['color', 'colorTop', 'colorBottom', 'colorLeft', 'colorRight']
 
 export default (config) => {
@@ -69,6 +71,7 @@ export default (config) => {
       setProperties.indexOf(prop) === -1 && setProperties.push(prop)
     },
     delete() {
+      Log.debug('Deleting  Node', this.nodeId, node)
       node.parent = null
     },
     get nodeId() {
