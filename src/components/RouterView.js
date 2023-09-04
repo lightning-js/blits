@@ -3,7 +3,6 @@ import Router from '../router.js'
 
 export default () =>
   Component('RouterView', {
-    __currentView: null,
     template: `
       <Element></Element>
     `,

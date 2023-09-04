@@ -36,16 +36,17 @@ export default (config) => {
         if (prop === 'rotation') {
           props[prop] = props[prop] * (Math.PI / 180)
         }
+        if (prop === 'text') {
+          props[prop] = (props[prop] || '').toString()
+        }
         setProperties.push(prop)
       })
 
-      node = renderer.createNode(props)
+      node = 'textnode' in props ? renderer.createTextNode(props) : renderer.createNode(props)
     },
     set(prop, value) {
       if (typeof value === 'object' && 'transition' in value && setProperties.indexOf(prop) > -1) {
         this.animate(prop, value.transition)
-      } else if (prop === 'imageSource') {
-        node.src = value
       } else if (prop === 'parentId') {
         node.parent = value === 'root' ? renderer.root : renderer.getNodeById(value)
       } else if (prop === 'effects' && value) {

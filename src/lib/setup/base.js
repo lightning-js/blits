@@ -5,6 +5,7 @@ import Image from '../../components/Image.js'
 import Circle from '../../components/Circle.js'
 import RouterView from '../../components/RouterView.js'
 import Sprite from '../../components/Sprite.js'
+import Text from '../../components/Text.js'
 import eventListeners from '../eventListeners.js'
 import Log from '../log.js'
 
@@ -82,6 +83,7 @@ export default (component) => {
         Circle: Circle(),
         RouterView: RouterView(),
         Sprite: Sprite(),
+        Text: Text(),
       },
       writable: false,
       enumerable: false,
