@@ -60,6 +60,8 @@ export default (config) => {
         node.rotation = value * (Math.PI / 180)
       } else if (prop === 'texture') {
         node.texture = value
+      } else if (prop === 'text') {
+        node.text = (value || '').toString()
       } else {
         value = unPackValue(value)
         if (colorProps.indexOf(prop) > -1) {
