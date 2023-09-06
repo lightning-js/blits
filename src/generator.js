@@ -11,9 +11,6 @@ export default function (templateObject = { children: [] }) {
   generateCode.call(ctx, templateObject)
   ctx.renderCode.push('return elms')
 
-  console.log('RENDER code', ctx.renderCode.join('\n'))
-  console.log('EFFECTS code', ctx.effectsCode.join('\n--------------------\n'))
-
   return {
     render: new Function('parent', 'component', 'context', ctx.renderCode.join('\n')),
     effects: ctx.effectsCode.map((code) => new Function('component', 'elms', 'context', code)),
