@@ -13,8 +13,9 @@ export default () =>
         :weight="$weight"
         letterSpacing="$letterspacing"
         stretch="$stretch"
-        :width="$w"
-        textAlign="$textalign"
+        :w="$w"
+        contain="width"
+        :textAlign="$align"
       />`,
     props: [
       'content',
@@ -32,7 +33,7 @@ export default () =>
       'weight',
       'letterspacing',
       'stretch',
-      'textalign',
+      'align',
       'w',
     ],
     computed: {
