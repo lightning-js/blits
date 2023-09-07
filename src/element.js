@@ -10,9 +10,14 @@ export default (config) => {
   let initData = null
   let setProperties = []
 
+  const defaults = {
+    rotation: 0,
+  }
+
   return {
     populate(data) {
       const props = {
+        ...defaults,
         ...config,
         ...data,
       }
@@ -44,6 +49,10 @@ export default (config) => {
         setProperties.push(prop)
       })
 
+      if (!('color' in props)) {
+        props.color = 'src' in props ? '0xffffffff' : '0x00000000'
+      }
+
       node = 'textnode' in props ? renderer.createTextNode(props) : renderer.createNode(props)
     },
     set(prop, value) {
@@ -69,6 +78,9 @@ export default (config) => {
           value = colors.normalize(value)
         }
         node[prop] = value
+      }
+      if (prop === 'src' && setProperties.indexOf('color') === -1) {
+        this.set('color', 0xffffffff)
       }
       setProperties.indexOf(prop) === -1 && setProperties.push(prop)
     },
