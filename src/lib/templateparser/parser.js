@@ -24,7 +24,6 @@ export default (template = '') => {
     const endPosition = template.indexOf('>', cursor)
     const tag = parseTag(template.substring(cursor + 1, endPosition))
     const node = { ...{ type: tag.type }, ...tag.attributes }
-
     // self closing tag
     if (template.charCodeAt(endPosition - 1) === '/'.charCodeAt(0)) {
       output.children.push(node)
@@ -33,6 +32,9 @@ export default (template = '') => {
       const nested = parse()
       if (nested.children.length) {
         node.children = [...nested.children]
+      } else {
+        const content = template.substring(endPosition + 1, cursor).trim()
+        if(content) node.slotcontent = content
       }
       output.children.push(node)
     }
@@ -43,6 +45,7 @@ export default (template = '') => {
     const result = {
       type: (match = tag.match(/^([A-Za-z0-9]+)(?![A-Za-z0-9=])/)) && match[0] // || 'Element' maybe default to 'Element'
     }
+
     const attributes = tag.match(/[:*\w.-]+="[^"]*"/g) || []
     if (attributes.length) {
       result['attributes'] = attributes.reduce((obj, attr) => {
