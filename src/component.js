@@ -1,5 +1,5 @@
 import parser from '@lightningjs/bolt-template-parser/index.js'
-import renderGenerator from '@lightningjs/bolt-code-generator/index.js'
+import codegenerator from './lib/codegenerator/generator.js'
 
 import element from './element.js'
 
@@ -33,7 +33,7 @@ const Component = (name = required('name'), config = required('config')) => {
     // code generation
     if (!code) {
       Log.debug(`Generating code for ${name} component`)
-      code = renderGenerator.call(config, parser(config.template))
+      code = codegenerator.call(config, parser(config.template))
     }
 
     setupBase(component)
