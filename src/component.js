@@ -1,4 +1,4 @@
-import parser from '@lightningjs/bolt-template-parser/index.js'
+import parser from './lib/templateparser/parser.js'
 import codegenerator from './lib/codegenerator/generator.js'
 
 import element from './element.js'

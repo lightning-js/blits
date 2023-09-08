@@ -36,8 +36,6 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/bolt-template-parser": "file:../bolt-template-parser",
-    "@lightningjs/renderer": "file:../renderer",
-    "@lightningjs/threadx": "file:../threadx"
+    "@lightningjs/renderer": "file:../renderer"
   }
 }
