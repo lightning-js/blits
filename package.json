@@ -22,7 +22,7 @@
   },
   "type": "module",
   "author": "Michiel van der Geest <hello@michielvandergeest.com>",
-  "license": "Apache-2",
+  "license": "Apache-2.0",
   "devDependencies": {
     "babel-eslint": "^10.1.0",
     "eslint": "^8.8.0",
