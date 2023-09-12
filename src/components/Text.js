@@ -23,7 +23,7 @@ export default () =>
   Component('Text', {
     template: `
       <Element
-        textnode="true"
+        __textnode="true"
         :text="$text"
         fontFamily="$font"
         :fontSize="$size"
@@ -33,7 +33,6 @@ export default () =>
         letterSpacing="$letterspacing"
         stretch="$stretch"
         :w="$w"
-        contain="width"
         :textAlign="$align"
       />`,
     props: [
