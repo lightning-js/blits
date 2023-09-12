@@ -38,6 +38,13 @@ const transformations = {
       return obj
     }
   },
+  remap(props) {
+    'w' in props && (props.width = props.w)
+    delete props.w
+    'h' in props && (props.height = props.h)
+    delete props.h
+    return props
+  },
   parentId(props) {
     props.parent = props.parentId === 'root' ? renderer.root : renderer.getNodeById(props.parentId)
     delete props.parentId
@@ -95,6 +102,7 @@ const Element = {
     }
     this.initData = data
 
+    transformations.remap(props)
     Object.keys(props).forEach((prop) => {
       if (transformations[prop]) {
         props[prop] = transformations.unpackValue(props[prop])
@@ -114,6 +122,8 @@ const Element = {
     } else {
       const props = {}
       props[prop] = transformations.unpackValue(value)
+
+      transformations.remap(props)
       if (transformations[prop]) {
         transformations[prop](props, this.setProperties)
       }
@@ -138,9 +148,14 @@ const Element = {
     const props = {}
     props[prop] = transformations.unpackValue(value)
 
+    transformations.remap(props)
+
     if (transformations[prop]) {
       transformations[prop](props)
     }
+
+    // works for now
+    prop = Object.keys(props).pop()
 
     if (this.node[prop] !== props[prop]) {
       const f = this.node.animate(props, {
