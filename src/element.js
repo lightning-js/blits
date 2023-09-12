@@ -55,7 +55,7 @@ const transformations = {
     return props
   },
   show(props) {
-    props.alpha = props.alpha ? 1 : 0
+    props.alpha = props.show ? 1 : 0
     delete props.show
     return props
   },
@@ -128,7 +128,11 @@ const Element = {
       this.animate(prop, value.transition)
     } else {
       const props = {}
-      props[prop] = transformations.unpackValue(value)
+      if (prop !== 'texture') {
+        props[prop] = transformations.unpackValue(value)
+      } else {
+        props[prop] = value
+      }
 
       transformations.remap(props)
       if (transformations[prop]) {
