@@ -28,6 +28,14 @@ import Text from '../../components/Text.js'
 import eventListeners from '../eventListeners.js'
 import { default as log, Log } from '../log.js'
 
+const shaders = {
+  radius: 'radius',
+  rounded: 'radius',
+  border: 'border',
+  borderTop: 'borderTop',
+  glitch: 'glitch',
+}
+
 export default (component) => {
   Object.defineProperties(component.prototype, {
     focus: {
@@ -84,7 +92,14 @@ export default (component) => {
     },
     shader: {
       value: function (type, args) {
-        return renderer.makeShader('RoundedRectangle', args)
+        if (type in shaders) {
+          return {
+            type: shaders[type],
+            props: args,
+          }
+        } else {
+          Log.error(`Shader ${type} not found`)
+        }
       },
       writable: false,
       enumerable: false,

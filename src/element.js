@@ -74,8 +74,15 @@ const transformations = {
     return props
   },
   effects(props) {
-    // todo hook into dynamic shader
-    props.shader = props.effects[0]
+    props.shader = renderer.makeShader('DynamicShader', {
+      effects: props.effects.map((eff) => {
+        if (eff.props && eff.props.color) {
+          eff.props.color = colors.normalize(eff.props.color)
+        }
+        return eff
+      }),
+    })
+
     delete props.effects
     return props
   },
