@@ -22,7 +22,7 @@ export default (template = '') => {
   const clean = (template) => {
     // remove all unnecessary new lines and comments
     return template
-      .replace(/<!--[^>]*-->/g, '') // remove comments
+      .replace(/<!--.*?-->/gms, '') // remove comments
       .replace(/\r?\n\s*\r\n/gm, ' ') // remove empty lines
       .replace(/\r?\n\s*(\S)/gm, ' $1') // remove line endings & spacing
       .replace(/\r?\n/g, '') // remove all line endings
