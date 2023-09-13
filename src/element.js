@@ -41,6 +41,8 @@ const transformations = {
     delete props.w
     'h' in props && (props.height = props.h)
     delete props.h
+    'z' in props && (props.zIndex = props.z)
+    delete props.z
     return props
   },
   parentId(props) {
