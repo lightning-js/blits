@@ -708,3 +708,60 @@ test('Parse template with a full transition object (without the transition modif
   assert.deepEqual(actual, expected, 'Parser should return object representation of template')
   assert.end()
 })
+
+test('Parse template with attributes with values spread over multiple lines', (assert) => {
+  const template = `
+  <Component>
+    <Element
+      w="160" h="160" x="40" y="40" color="#fb923c"
+      :effects="[$shader(
+        'radius',
+        {radius: 44}
+      )]"
+    />
+    <Element
+      w="120" h="120"
+      x="100" y="100"
+      :effects="[
+        $shader(
+          'radius',
+          {
+            radius: 45
+          }
+        )
+      ]"
+    />
+  </Component>`
+
+  const expected = {
+    children: [
+      {
+        type: 'Component',
+        children: [
+          {
+            type: 'Element',
+            w: '160',
+            h: '160',
+            x: '40',
+            y: '40',
+            color: '#fb923c',
+            ':effects': "[$shader( 'radius', {radius: 44} )]",
+          },
+          {
+            type: 'Element',
+            w: '120',
+            h: '120',
+            x: '100',
+            y: '100',
+            ':effects': "[ $shader( 'radius', { radius: 45 } ) ]",
+          },
+        ],
+      },
+    ],
+  }
+
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
