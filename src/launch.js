@@ -38,6 +38,7 @@ export default (App, target, settings) => {
     {
       width: settings.width || 1920,
       height: settings.height || 1080,
+      coreExtensionModule: settings.coreExtensionModule,
     },
     target,
     driver
