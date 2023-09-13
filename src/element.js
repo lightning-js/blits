@@ -24,13 +24,23 @@ const isTransition = (value) => {
   return typeof value === 'object' && 'transition' in value
 }
 
+const isObjectString = (str) => {
+  return typeof str === 'string' && str.startsWith('{') && str.endsWith('}')
+}
+
+const parseToObject = (str) => {
+  return JSON.parse(str.replace(/'/g, '"').replace(/([\w-_]+)\s*:/g, '"$1":'))
+}
+
 const transformations = {
-  unpackValue(obj) {
+  unpackTransition(obj) {
     if (typeof obj === 'object' && obj.constructor.name === 'Object') {
       if ('value' in obj) {
         return obj.value
+      } else if ('transition' in obj) {
+        return this.unpackTransition(obj.transition)
       } else {
-        return this.unpackValue(obj[Object.keys(obj).pop()])
+        return obj
       }
     } else {
       return obj
@@ -41,35 +51,76 @@ const transformations = {
     delete props.w
     'h' in props && (props.height = props.h)
     delete props.h
-    return props
+    'z' in props && (props.zIndex = props.z)
+    delete props.z
   },
   parentId(props) {
     props.parent = props.parentId === 'root' ? renderer.root : renderer.getNodeById(props.parentId)
     delete props.parentId
-    return props
   },
   color(props) {
-    props.color = colors.normalize(props.color)
-    return props
+    if (
+      typeof props.color === 'object' ||
+      (isObjectString(props.color) && (props.color = parseToObject(props.color)))
+    ) {
+      const map = {
+        top: 'colorTop',
+        bottom: 'colorBottom',
+        left: 'colorLeft',
+        right: 'colorRight',
+      }
+      Object.entries(props.color).forEach((color) => {
+        props[map[color[0]]] = colors.normalize(color[1])
+      })
+      delete props.mount
+    } else {
+      props.color = colors.normalize(props.color)
+    }
+  },
+  mount(props) {
+    if (
+      typeof props.mount === 'object' ||
+      (isObjectString(props.mount) && (props.mount = parseToObject(props.mount)))
+    ) {
+      const map = {
+        x: 'mountX',
+        y: 'mountY',
+      }
+      Object.entries(props.mount).forEach((mount) => {
+        props[map[mount[0]]] = mount[1]
+      })
+      delete props.mount
+    }
+  },
+  pivot(props) {
+    if (
+      typeof props.pivot === 'object' ||
+      (isObjectString(props.pivot) && (props.pivot = parseToObject(props.pivot)))
+    ) {
+      const map = {
+        x: 'pivotX',
+        y: 'pivotY',
+      }
+      Object.entries(props.pivot).forEach((pivot) => {
+        props[map[pivot[0]]] = pivot[1]
+      })
+      delete props.pivot
+    }
   },
   show(props) {
     props.alpha = props.show ? 1 : 0
     delete props.show
-    return props
   },
   rotation(props) {
     props.rotation = props.rotation * (Math.PI / 180)
-    return props
   },
   text(props) {
     props.text = props.text.toString()
-    return props
   },
   textureColor(props) {
     if (!('color' in props)) {
       props.color = 'src' in props || 'texture' in props ? '0xffffffff' : '0x00000000'
     }
-    return props
   },
   effects(props) {
     props.shader = renderer.makeShader('DynamicShader', {
@@ -82,16 +133,14 @@ const transformations = {
     })
 
     delete props.effects
-    return props
   },
   src(props, setProperties) {
     if (setProperties.indexOf('color') === -1) {
       props.color = 0xffffffff
     }
-    return props
   },
   texture(props, setProperties) {
-    return this.src(props, setProperties)
+    this.src(props, setProperties)
   },
 }
 
@@ -110,7 +159,7 @@ const Element = {
     transformations.remap(props)
     Object.keys(props).forEach((prop) => {
       if (transformations[prop]) {
-        props[prop] = transformations.unpackValue(props[prop])
+        props[prop] = transformations.unpackTransition(props[prop])
         transformations[prop](props, this.setProperties)
       }
 
@@ -127,7 +176,7 @@ const Element = {
     } else {
       const props = {}
       if (prop !== 'texture') {
-        props[prop] = transformations.unpackValue(value)
+        props[prop] = transformations.unpackTransition(value)
       } else {
         props[prop] = value
       }
@@ -155,7 +204,7 @@ const Element = {
   },
   animate(prop, value) {
     const props = {}
-    props[prop] = transformations.unpackValue(value)
+    props[prop] = transformations.unpackTransition(value)
 
     transformations.remap(props)
 
