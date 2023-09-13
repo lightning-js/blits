@@ -40,11 +40,7 @@ export default (template = '') => {
         if (template.charCodeAt(cursor + 1) === '/'.charCodeAt(0)) {
           return output
         }
-        if (template.substring(cursor + 1, cursor + 4) === '!--') {
-          cursor = template.indexOf('-->', cursor) + 3
-        } else {
-          parseNode(output)
-        }
+        parseNode(output)
       }
       cursor++
     }
