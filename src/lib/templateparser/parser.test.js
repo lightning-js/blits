@@ -342,6 +342,8 @@ test('Parse attributes with an expression in it', (assert) => {
         ':attribute1': '$foo * 2',
         ':attribute2': "$ok ? 'Yes' : 'No'",
         ':attribute3': "$text.split('').reverse().join('')",
+        ':attribute4': '$size > 100 ? 110 : $size',
+        ':attribute5': 'Math.min($size, 100)',
       },
     ],
   }
