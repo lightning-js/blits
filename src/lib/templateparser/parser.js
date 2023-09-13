@@ -17,8 +17,23 @@
 
 export default (template = '') => {
   let cursor = 0
+  let cleaned = false
+
+  const clean = (template) => {
+    // remove all unnecessary new lines and comments
+    return template
+      .replace(/<!--[^>]*-->/g, '') // remove comments
+      .replace(/\r?\n\s*\r\n/gm, ' ') // remove empty lines
+      .replace(/\r?\n\s*(\S)/gm, ' $1') // remove line endings & spacing
+      .replace(/\r?\n/g, '') // remove all line endings
+  }
 
   const parse = () => {
+    if (!cleaned) {
+      template = clean(template)
+      cleaned = true
+    }
+
     const output = { children: [] }
     while (template[cursor]) {
       if (template.charCodeAt(cursor) === '<'.charCodeAt(0)) {
