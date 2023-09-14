@@ -35,8 +35,12 @@ export default (template = '') => {
     }
 
     const output = { children: [] }
+    let attributeStarted = false
     while (template[cursor]) {
-      if (template.charCodeAt(cursor) === '<'.charCodeAt(0)) {
+      if (template[cursor] === '"') {
+        attributeStarted = !attributeStarted
+      }
+      if (template.charCodeAt(cursor) === '<'.charCodeAt(0) && !attributeStarted) {
         if (template.charCodeAt(cursor + 1) === '/'.charCodeAt(0)) {
           return output
         }
@@ -49,7 +53,8 @@ export default (template = '') => {
   }
 
   const parseNode = (output) => {
-    const endPosition = template.indexOf('>', cursor)
+    const endTagMatch = template.slice(cursor).match(/(?:[^">]*|"[^"]*")*>/)
+    const endPosition = endTagMatch && endTagMatch[0] && endTagMatch[0].length + cursor - 1
     const tag = parseTag(template.substring(cursor + 1, endPosition))
     const node = { ...{ type: tag.type }, ...tag.attributes }
     // self closing tag
