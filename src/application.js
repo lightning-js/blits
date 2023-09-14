@@ -28,6 +28,7 @@ const Application = (config) => {
     ArrowDown: 'down',
     Enter: 'enter',
     ' ': 'space',
+    Backspace: 'back',
   }
 
   const handler = (e) => {
