@@ -12,15 +12,15 @@ To begin with the Lightning 3 App Development Framework, follow these simple ste
 2. Run the following command to create a new Lightning 3 App project:
 
 ```bash
-npm create @lightningjs/bolt
+npx @lightningjs/bolt@latest my_lightning3_app
 ```
 
-This will generate the necessary boilerplate code for you to start building your own Lightning 3 App.
+This will generate the necessary boilerplate code in the folder `my_lightning3_app` for you to start building your own Lightning 3 App.
 
 3. Navigate to the newly created project directory and install the project dependencies:
 
 ```bash
-cd your-lightning3-app
+cd my_lightning3_app
 npm install
 ```
 
