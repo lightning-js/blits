@@ -9,12 +9,14 @@
 - [Hooking into lifecycle events](lifecycle_events.md)
 - [Props](props.md)
 - [Handling user input](user_input.md)
-- Computed properties
+- [Computed properties](computed_properties.md)
+<!---
 - Watching changes
 - More complex logic in methods
 - Overview of default Element properties
 - Transitions
 - Implementing Custom components
 - Handling Text
-- Handling Images
+- Handling **Images**
 - Routing
+-->
