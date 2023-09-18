@@ -8,7 +8,7 @@
 - [Component state](component_state.md)
 - [Hooking into lifecycle events](lifecycle_events.md)
 - [Props](props.md)
-<!-- - Handling user input
+- [Handling user input](user_input.md)
 - Computed properties
 - Watching changes
 - More complex logic in methods
@@ -17,4 +17,4 @@
 - Implementing Custom components
 - Handling Text
 - Handling Images
-- Routing -->
+- Routing
