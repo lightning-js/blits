@@ -2,6 +2,7 @@
   "name": "@lightningjs/bolt",
   "version": "0.0.1",
   "description": "",
+  "bin": "bin/index.cjs",
   "exports": {
     ".": "./index.js"
   },
