@@ -10,8 +10,8 @@
 - [Props](props.md)
 - [Handling user input](user_input.md)
 - [Computed properties](computed_properties.md)
+- [Watching for changes](watchers.md)
 <!---
-- Watching changes
 - More complex logic in methods
 - Overview of default Element properties
 - Transitions
