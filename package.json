@@ -1,7 +1,7 @@
 {
   "name": "@lightningjs/bolt",
-  "version": "0.0.1",
-  "description": "",
+  "version": "0.3.0",
+  "description": "The Lightning 3 App Development Framework",
   "bin": "bin/index.cjs",
   "exports": {
     ".": "./index.js"
@@ -37,6 +37,6 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "file:../renderer"
+    "@lightningjs/renderer": "^0.3.0"
   }
 }
