@@ -1,10 +1,11 @@
 {
-  "name": "@lightningjs/bolt",
+  "name": "@lightningjs/blits",
   "version": "0.3.0",
-  "description": "The Lightning 3 App Development Framework",
+  "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.cjs",
   "exports": {
-    ".": "./index.js"
+    ".": "./index.js",
+    "./vite": "./vite/index.js"
   },
   "scripts": {
     "test": "tape '{,!(node_modules)/**/}*.test.js' | tap-diff",
@@ -37,6 +38,7 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "^0.3.0"
+    "@lightningjs/renderer": "^0.3.0",
+    "@lightningjs/vite-plugin-import-chunk-url": "^0.3.0"
   }
 }

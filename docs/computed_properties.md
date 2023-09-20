@@ -1,4 +1,4 @@
-# Lightning App Development Framework
+# Blits - Lightning 3 App Development Framework
 
 ## Computed properties
 

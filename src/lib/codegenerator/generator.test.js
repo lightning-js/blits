@@ -103,7 +103,7 @@ test('Generate render and effect code for a template with a single simple elemen
   function anonymous(parent,component,context) {
       const elms = []
 
-      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[1] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig1 = {}
 
       elementConfig1['type'] = "Component"
@@ -145,7 +145,7 @@ test('Generate code for a template with a simple element and a simple nested ele
   function anonymous(parent,component,context) {
     const elms = []
 
-    elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+    elms[1] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
     const elementConfig1 = {}
 
     elementConfig1['type'] = "Component"
@@ -154,7 +154,7 @@ test('Generate code for a template with a simple element and a simple nested ele
 
     parent = elms[1]
 
-    elms[2] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+    elms[2] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
     const elementConfig2 = {}
 
     elementConfig2['type'] = "Element"
@@ -194,7 +194,7 @@ test('Generate code for a template with a single element with attributes', (asse
   function anonymous(parent,component,context) {
       const elms = []
 
-      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[1] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig1 = {}
 
       elementConfig1['type'] = "Component"
@@ -242,7 +242,7 @@ test('Generate code for a template with attributes and a nested element with att
   function anonymous(parent,component,context) {
       const elms = []
 
-      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[1] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig1 = {}
 
       elementConfig1['type'] = "Component"
@@ -253,7 +253,7 @@ test('Generate code for a template with attributes and a nested element with att
 
       parent = elms[1]
 
-      elms[2] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[2] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig2 = {}
 
       elementConfig2['type'] = "Element"
@@ -309,7 +309,7 @@ test('Generate code for a template with attributes and 2 nested elements with at
   function anonymous(parent,component,context) {
       const elms = []
 
-      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[1] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig1 = {}
 
       elementConfig1['type'] = "Component"
@@ -320,7 +320,7 @@ test('Generate code for a template with attributes and 2 nested elements with at
 
       parent = elms[1]
 
-      elms[2] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[2] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig2 = {}
 
       elementConfig2['type'] = "Element"
@@ -332,7 +332,7 @@ test('Generate code for a template with attributes and 2 nested elements with at
 
       parent = elms[1]
 
-      elms[3] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[3] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig3 = {}
 
       elementConfig3['type'] = "Element"
@@ -399,7 +399,7 @@ test('Generate code for a template with attributes and deep nested elements with
   function anonymous(parent,component,context) {
       const elms = []
 
-      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[1] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig1 = {}
 
       elementConfig1['type'] = "Component"
@@ -410,7 +410,7 @@ test('Generate code for a template with attributes and deep nested elements with
 
       parent = elms[1]
 
-      elms[2] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[2] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig2 = {}
 
       elementConfig2['type'] = "Element"
@@ -422,7 +422,7 @@ test('Generate code for a template with attributes and deep nested elements with
 
       parent = elms[1]
 
-      elms[3] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[3] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig3 = {}
 
       elementConfig3['type'] = "Element"
@@ -434,7 +434,7 @@ test('Generate code for a template with attributes and deep nested elements with
 
       parent = elms[3]
 
-      elms[4] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[4] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig4 = {}
 
       elementConfig4['type'] = "Element"
@@ -444,7 +444,7 @@ test('Generate code for a template with attributes and deep nested elements with
 
       parent = elms[3]
 
-      elms[5] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[5] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig5 = {}
 
       elementConfig5['type'] = "Element"
@@ -488,7 +488,7 @@ test('Generate code for a template with simple dynamic attributes', (assert) => 
   function anonymous(parent,component,context) {
       const elms = []
 
-      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[1] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig1 = {}
 
       elementConfig1['type'] = "Component"
@@ -555,7 +555,7 @@ test('Generate code for a template with an attribute with a dash', (assert) => {
   function anonymous(parent,component,context) {
       const elms = []
 
-      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[1] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig1 = {}
 
       elementConfig1['type'] = "Component"
@@ -600,7 +600,7 @@ test('Generate code for a template with dynamic attributes with code to be evalu
   function anonymous(parent,component,context) {
       const elms = []
 
-      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[1] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig1 = {}
 
       elementConfig1['type'] = "Component"
@@ -686,7 +686,7 @@ test('Generate code for a template with custom components', (assert) => {
   function anonymous(parent,component,context) {
       const elms = []
 
-      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[1] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig1 = {}
 
       elementConfig1['type'] = "Component"
@@ -742,7 +742,7 @@ test('Generate code for a template with an unregistered custom component', (asse
   function anonymous(parent,component,context) {
       const elms = []
 
-      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[1] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig1 = {}
 
       elementConfig1['type'] = "Component"
@@ -753,7 +753,7 @@ test('Generate code for a template with an unregistered custom component', (asse
 
       parent = elms[1]
 
-      elms[3] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[3] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig3 = {}
 
       elementConfig3['type'] = "Poster2"
@@ -809,7 +809,7 @@ test('Generate code for a template with custom components with arguments', (asse
   function anonymous(parent,component,context) {
       const elms = []
 
-      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[1] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig1 = {}
 
       elementConfig1['type'] = "Component"
@@ -872,7 +872,7 @@ test('Generate code for a template with custom components with reactive props', 
   function anonymous(parent,component,context) {
       const elms = []
 
-      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[1] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig1 = {}
 
       elementConfig1['type'] = "Component"
@@ -942,7 +942,7 @@ test('Generate code for a template with a transition attributes', (assert) => {
   function anonymous(parent,component,context) {
       const elms = []
 
-      elms[1] = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      elms[1] = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
       const elementConfig1 = {}
 
       elementConfig1['type'] = "Component"

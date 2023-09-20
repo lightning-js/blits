@@ -1,3 +1,3 @@
-import renderer from '@lightningjs/bolt/renderer'
+import renderer from '@lightningjs/blits/renderer'
 
 renderer()

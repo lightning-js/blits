@@ -1,4 +1,4 @@
-# Lightning App Development Framework
+# Blits - Lightning 3 App Development Framework
 
 ## Watching for Changes
 
@@ -6,7 +6,7 @@ In some cases, you may want to execute specific actions whenever the value of a 
 
 You might be tempted to handle this functionality inside a computed property, but this is not recommended. Computed properties should not have side effects, as side effects could potentially lead your app into an endless loop if not handled carefully.
 
-Instead, the Lightning 3 App Development Framework allows you to specify **watchers**.
+Instead, Blits allows you to specify **watchers**.
 
 ### Using Watchers
 

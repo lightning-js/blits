@@ -1,8 +1,8 @@
-# Lightning App Development Framework
+# Blits - Lightning 3 App Development Framework
 
 ## Props
 
-Components in the Lightning 3 App Development Framework have their own internal state and logic. However, as each component is part of the larger app's scope, they may need to display different behaviors or appearances based on the rest of the app. To achieve this, components can receive `props` from their parent component.
+Components in Blits have their own internal state and logic. However, as each component is part of the larger app's scope, they may need to display different behaviors or appearances based on the rest of the app. To achieve this, components can receive `props` from their parent component.
 
 In the Component configuration object, you can specify exactly which props a component can accept. These props are passed to the child component via attributes in the parent component's template. Any attributes not explicitly defined as a prop will be ignored.
 

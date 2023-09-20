@@ -1,8 +1,8 @@
-# Lightning App Development Framework
+# Blits - Lightning 3 App Development Framework
 
 ## Hooking into Lifecycle Events
 
-In the Lightning 3 App Development Framework, components follow a defined flow of lifecycle events. Developers can integrate their logic into these events by specifying them in the `hooks` key of the Component configuration object.
+In Blits, components follow a defined flow of lifecycle events. Developers can integrate their logic into these events by specifying them in the `hooks` key of the Component configuration object.
 
 For each available lifecycle event, you can define a function with the same name as the event itself. This function will execute each time the event is triggered for your component's instance. It's essential to use a regular function instead of an arrow function if you intend to access the `this` scope of your component instance.
 

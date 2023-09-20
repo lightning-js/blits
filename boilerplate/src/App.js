@@ -1,8 +1,8 @@
-import Bolt from '@lightningjs/bolt'
+import Blits from '@lightningjs/blits'
 
 import Home from './pages/Home.js'
 
-export default Bolt.Application({
+export default Blits.Application({
   template: `
     <Element>
       <RouterView />

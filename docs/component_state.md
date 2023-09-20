@@ -1,8 +1,8 @@
-# Lightning App Development Framework
+# Blits - Lightning 3 App Development Framework
 
 ## Component State
 
-In the Lightning 3 App Development Framework, a component can start as simple as a template with fixed, hardcoded values. However, for dynamic behavior and logic, you'll often want to incorporate an internal state within your components.
+In Blits, a component can start as simple as a template with fixed, hardcoded values. However, for dynamic behavior and logic, you'll often want to incorporate an internal state within your components.
 
 Some key concepts to keep in mind:
 

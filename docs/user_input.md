@@ -1,10 +1,10 @@
-# Lightning App Development Framework
+# Blits - Lightning 3 App Development Framework
 
 ## Handling User Input
 
 You don't want your Lightning 3 App to be completely static, instead users should be able to navigate and interact with the app, often using devices like a remote control.
 
-The Lightning 3 App Development Framework offers a straightforward interface to handle user input for each component.
+Blits offers a straightforward interface to handle user input for each component.
 
 ### Configuring Input Handling
 

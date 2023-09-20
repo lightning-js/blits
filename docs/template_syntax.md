@@ -1,8 +1,8 @@
-# Lightning App Development Framework
+# Blits - Lightning 3 App Development Framework
 
 ## Template structure
 
-The Lightning 3 App Development Framework uses an easy-to-read XML-style template syntax. The syntax is inspired by frameworks like VueJS, so developers familiar with Vue will recognize certain concepts.
+Blits uses an easy-to-read XML-style template syntax. The syntax is inspired by frameworks like VueJS, so developers familiar with Vue will recognize certain concepts.
 
 The template key in the configuration object holds a string with an XML-like structure. Templates often span multiple lines, so it's advisable to use a JS template literal.
 

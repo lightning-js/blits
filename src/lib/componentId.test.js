@@ -27,7 +27,7 @@ test('Type createHumandReadableId', (assert) => {
 })
 
 test('Returns a readable id, based on a counter and component name', (assert) => {
-  const expected = 'BoltComponent::Spinner_1'
+  const expected = 'BlitsComponent::Spinner_1'
   const actual = createHumanReadableId('Spinner')
 
   assert.equal(actual, expected, 'createHumanReadableId should return correct ID')
@@ -35,7 +35,7 @@ test('Returns a readable id, based on a counter and component name', (assert) =>
 })
 
 test('Returns a readable id with incremented count', (assert) => {
-  const expected = 'BoltComponent::Spinner_2'
+  const expected = 'BlitsComponent::Spinner_2'
   const actual = createHumanReadableId('Spinner')
 
   assert.equal(actual, expected, 'createHumanReadableId should return correct ID')
@@ -43,7 +43,7 @@ test('Returns a readable id with incremented count', (assert) => {
 })
 
 test('Has a seperate count per component name', (assert) => {
-  const expected = 'BoltComponent::Card_1'
+  const expected = 'BlitsComponent::Card_1'
   const actual = createHumanReadableId('Card')
 
   assert.equal(actual, expected, 'createHumanReadableId should return correct ID')

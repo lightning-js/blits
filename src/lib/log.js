@@ -102,5 +102,5 @@ export default logger
 export let Log
 // review this pattern
 export const initLog = () => {
-  Log = logger('Bolt')
+  Log = logger('Blits')
 }

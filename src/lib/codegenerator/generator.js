@@ -54,7 +54,7 @@ const generateElementCode = function (
   }
 
   renderCode.push(`
-    ${elm} = this.element({boltId: component.___id, parentId: parent && parent.nodeId || 'root'})
+    ${elm} = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
     const elementConfig${counter} = {}
   `)
 

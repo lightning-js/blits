@@ -1,4 +1,4 @@
-import Bolt from '@lightningjs/bolt'
+import Blits from '@lightningjs/blits'
 
 import App from './App.js'
 
@@ -8,4 +8,4 @@ const settings = {
   multithreaded: false,
 }
 
-Bolt.Launch(App, 'app', settings)
+Blits.Launch(App, 'app', settings)

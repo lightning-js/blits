@@ -1,8 +1,8 @@
-import Bolt from '@lightningjs/bolt'
+import Blits from '@lightningjs/blits'
 
 import Loader from '../components/Loader.js'
 
-export default Bolt.Component('Loading', {
+export default Blits.Component('Loading', {
   components: {
     Loader,
   },

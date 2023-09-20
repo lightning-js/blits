@@ -1,9 +1,8 @@
-
-# Lightning App Development Framework
+# Blits - Lightning 3 App Development Framework
 
 ## Getting Started
 
-To begin with the Lightning 3 App Development Framework, follow these simple steps to set up your development environment and create your first Lightning 3 App.
+To begin with Blits, follow these simple steps to set up your development environment and create your first Lightning 3 App.
 
 ### Installation
 
@@ -12,7 +11,7 @@ To begin with the Lightning 3 App Development Framework, follow these simple ste
 2. Run the following command to create a new Lightning 3 App project:
 
 ```bash
-npx @lightningjs/bolt@latest my_lightning3_app
+npx @lightningjs/blits@latest my_lightning3_app
 ```
 
 This will generate the necessary boilerplate code in the folder `my_lightning3_app` for you to start building your own Lightning 3 App.
@@ -36,6 +35,6 @@ This command will create an application bundle and launch a development server u
 
 2. Once the server is up and running, open your web browser and navigate to the URL displayed in the console. Congratulations! You now have your brand new Lightning 3 App up and running.
 
-### Next stepts
+### Next steps
 
-You are now ready to dive into the world of TV app development using the Lightning 3 App Development Framework. In the following sections, we will explore the core concepts and guide you through building your TV applications step by step.
+You are now ready to dive into the world of TV app development using Blits. In the following sections, we will explore the core concepts and guide you through building your TV applications step by step.

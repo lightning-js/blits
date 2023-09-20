@@ -16,7 +16,7 @@
  */
 
 import { MainRenderDriver, RendererMain, ThreadXRenderDriver } from '@lightningjs/renderer'
-import RendererWorker from '@lightningjs/renderer/workers/renderer?worker'
+// import RendererWorker from '@lightningjs/renderer/workers/renderer?worker'
 import Settings from './settings.js'
 import { initLog } from './lib/log.js'
 
@@ -27,12 +27,12 @@ export default (App, target, settings) => {
 
   initLog()
 
-  const driver =
-    settings.multithreaded === true
-      ? new ThreadXRenderDriver({
-          RendererWorker,
-        })
-      : new MainRenderDriver()
+  const driver = new MainRenderDriver()
+  // settings.multithreaded === true
+  //   ? new ThreadXRenderDriver({
+  //       RendererWorker,
+  //     })
+  //   : new MainRenderDriver()
 
   renderer = new RendererMain(
     {
