@@ -77,6 +77,10 @@ export default (component) => {
             child.forEach((c) => {
               if (c['id'] === id) selected = c
             })
+          } else if (Object.getPrototypeOf(child) === Object.prototype) {
+            Object.keys(child).forEach((k) => {
+              if (child[k]['id'] === id) selected = child[k]
+            })
           } else {
             if (child['id'] === id) selected = child
           }
