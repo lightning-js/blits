@@ -23,8 +23,8 @@ const baseProp = {
 }
 
 export default (component, props = []) => {
-  if (props.indexOf('id') === -1) {
-    props.push('id')
+  if (props.indexOf('ref') === -1) {
+    props.push('ref')
   }
   component.___propKeys = []
   props.forEach((prop) => {

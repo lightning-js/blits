@@ -70,19 +70,19 @@ export default (component) => {
       configurable: false,
     },
     select: {
-      value: function (id) {
+      value: function (ref) {
         let selected = null
         this.___children.forEach((child) => {
           if (Array.isArray(child)) {
             child.forEach((c) => {
-              if (c['id'] === id) selected = c
+              if (c['ref'] === ref) selected = c
             })
           } else if (Object.getPrototypeOf(child) === Object.prototype) {
             Object.keys(child).forEach((k) => {
-              if (child[k]['id'] === id) selected = child[k]
+              if (child[k]['ref'] === ref) selected = child[k]
             })
           } else {
-            if (child['id'] === id) selected = child
+            if (child['ref'] === ref) selected = child
           }
         })
 
