@@ -30,6 +30,7 @@ export default () =>
         :weight="$weight"
         letterSpacing="$letterspacing"
         stretch="$stretch"
+        contain="$_contain"
         :w="$w"
         :textAlign="$align"
       />`,
@@ -37,7 +38,7 @@ export default () =>
       'content',
       {
         key: 'font',
-        default: 'TedNext',
+        default: 'lato',
       },
       {
         key: 'size',
@@ -51,11 +52,14 @@ export default () =>
       'stretch',
       'align',
       'w',
+      'contain',
     ],
     computed: {
       text() {
         return this.slotcontent || this.content || ''
       },
+      _contain() {
+        return this.contain || (this.align ? 'width' : null)
+      },
     },
-    hooks: {},
   })
