@@ -33,6 +33,8 @@ export default () =>
         contain="$_contain"
         :w="$w"
         :textAlign="$align"
+        @loaded="$@loaded"
+        @error="$@error"
       />`,
     props: [
       'content',
@@ -53,6 +55,8 @@ export default () =>
       'align',
       'w',
       'contain',
+      '@loaded',
+      '@error',
     ],
     computed: {
       text() {

@@ -297,6 +297,11 @@ const cast = (val = '', key = false, component = 'component.') => {
   else if (val.toLowerCase() === 'false') {
     castedValue = false
   }
+  // @-listener
+  else if (key.startsWith('@') && val) {
+    const c = component.slice(0, -1)
+    castedValue = `${c}['${val.replace('$', '')}'] && ${c}['${val.replace('$', '')}'].bind(${c})`
+  }
   // dynamic value
   else if (val.startsWith('$')) {
     castedValue = `${component}${val.replace('$', '')}`

@@ -80,7 +80,7 @@ export default (template = '') => {
       type: (match = tag.match(/^([A-Za-z0-9]+)(?![A-Za-z0-9=])/)) && match[0], // || 'Element' maybe default to 'Element'
     }
 
-    const attributes = tag.match(/[:*\w.-]+="[^"]*"/g) || []
+    const attributes = tag.match(/[:*@\w.-]+="[^"]*"/g) || []
     if (attributes.length) {
       result['attributes'] = attributes.reduce((obj, attr) => {
         const match = /(.+)=["'](.+)["']/.exec(attr)
