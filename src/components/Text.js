@@ -60,7 +60,11 @@ export default () =>
     ],
     computed: {
       text() {
-        return this.slotcontent || this.content || ''
+        return (
+          this.slotcontent ||
+          this.content ||
+          (this.slotcontent === 0 ? this.slotcontent : this.content === 0 ? this.content : '')
+        )
       },
       _contain() {
         return this.contain || (this.align ? 'width' : null)
