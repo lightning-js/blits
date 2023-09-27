@@ -36,7 +36,10 @@ const reactiveProxy = (target) => {
       }
       track(target, key)
 
-      if (typeof target[key] === 'object') {
+      if (
+        typeof target[key] === 'object' &&
+        Object.getPrototypeOf(target[key]) === Object.prototype
+      ) {
         return reactiveProxy(target[key])
       }
 
@@ -68,8 +71,10 @@ const reactiveDefineProperty = (target) => {
   Object.keys(target).forEach((key) => {
     let internalValue = target[key]
 
-    // can be improved
-    if (typeof target[key] === 'object') {
+    if (
+      typeof target[key] === 'object' &&
+      Object.getPrototypeOf(target[key]) === Object.prototype
+    ) {
       return reactiveDefineProperty(target[key])
     }
 
