@@ -212,8 +212,8 @@ const Element = {
   get nodeId() {
     return this.node && this.node.id
   },
-  get id() {
-    return this.initData.id || null
+  get ref() {
+    return this.initData.ref || null
   },
   animate(prop, value) {
     const props = {}
