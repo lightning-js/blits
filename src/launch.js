@@ -20,7 +20,7 @@ import { MainRenderDriver, RendererMain, ThreadXRenderDriver } from '@lightningj
 import Settings from './settings.js'
 import { initLog } from './lib/log.js'
 
-import coreExtensionModule from './fontLoader.js?importChunkUrl'
+// import coreExtensionModule from './fontLoader.js?importChunkUrl'
 
 export let renderer
 
@@ -40,7 +40,7 @@ export default (App, target, settings) => {
     {
       appWidth: settings.w || 1920,
       appHeight: settings.h || 1080,
-      coreExtensionModule: coreExtensionModule,
+      coreExtensionModule: settings.fontLoader,
     },
     target,
     driver
