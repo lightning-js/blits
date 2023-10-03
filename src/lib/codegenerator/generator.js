@@ -285,8 +285,29 @@ const interpolate = (val, component = 'component.') => {
 const cast = (val = '', key = false, component = 'component.') => {
   let castedValue
 
+  // inline content
+  if (key === 'content') {
+    castedValue = val
+    const regex = /\{\{\s*(\$\S+)\s*\}\}/g
+
+    const matches = [...castedValue.matchAll(regex)].reverse()
+
+    if (matches) {
+      // todo: optimize this ugly code ;)
+      matches.forEach((match) => {
+        castedValue =
+          castedValue.substring(0, match.index) +
+          "' + " +
+          `${component}${match[1].replace('$', '')}` +
+          " + '" +
+          castedValue.substring(match.index + match[0].length)
+      })
+
+      castedValue = "'" + castedValue + "'"
+    }
+  }
   // numeric
-  if (key !== 'color' && !isNaN(parseFloat(val))) {
+  else if (key !== 'color' && !isNaN(parseFloat(val))) {
     castedValue = parseFloat(val)
   }
   // boolean true

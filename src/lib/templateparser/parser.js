@@ -65,11 +65,12 @@ export default (template = '') => {
       const nested = parse()
       if (nested.children.length) {
         node.children = [...nested.children]
+      } else {
+        const content = template.substring(endPosition + 1, cursor).trim()
+        if (content) {
+          node.content = content
+        }
       }
-      // else {
-      //   const content = template.substring(endPosition + 1, cursor).trim()
-      //   if (content) node.slotcontent = content
-      // }
       output.children.push(node)
     }
   }
