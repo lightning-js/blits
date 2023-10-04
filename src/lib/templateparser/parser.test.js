@@ -767,3 +767,183 @@ test('Parse template with attributes with values spread over multiple lines', (a
   assert.deepEqual(actual, expected, 'Parser should return object representation of template')
   assert.end()
 })
+
+test('Parse template with inline text between tags', (assert) => {
+  const template = `
+  <Component>
+    <Element w="160" h="160" x="40" y="40" color="#fb923c">Lorem ipsum</Element>
+  </Component>`
+
+  const expected = {
+    children: [
+      {
+        type: 'Component',
+        children: [
+          {
+            type: 'Element',
+            w: '160',
+            h: '160',
+            x: '40',
+            y: '40',
+            color: '#fb923c',
+            _innerText: 'Lorem ipsum',
+          },
+        ],
+      },
+    ],
+  }
+
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with multiple inline texts between different tags', (assert) => {
+  const template = `
+  <Component>
+    <Element w="160" h="160" x="40" y="40" color="#fb923c">Lorem ipsum</Element>
+    <Element>dolor sit amet</Element>
+    <Element>
+      <Text>consectetur adipiscing elit</Text>
+      <Element>
+        <Text>sed do eiusmod tempor</Text>
+      </Element>
+    </Element>
+
+  </Component>`
+
+  const expected = {
+    children: [
+      {
+        type: 'Component',
+        children: [
+          {
+            type: 'Element',
+            w: '160',
+            h: '160',
+            x: '40',
+            y: '40',
+            color: '#fb923c',
+            _innerText: 'Lorem ipsum',
+          },
+          {
+            type: 'Element',
+            _innerText: 'dolor sit amet',
+          },
+          {
+            type: 'Element',
+            children: [
+              {
+                type: 'Text',
+                _innerText: 'consectetur adipiscing elit',
+              },
+              {
+                type: 'Element',
+                children: [
+                  {
+                    type: 'Text',
+                    _innerText: 'sed do eiusmod tempor',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  }
+
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with attribute name starts with @ character', (assert) => {
+  const template = `
+  <Component>
+    <Element w="160" h="160" x="40" y="40" color="#fb923c" @loaded="@loaded" />
+  </Component>`
+
+  const expected = {
+    children: [
+      {
+        type: 'Component',
+        children: [
+          {
+            type: 'Element',
+            w: '160',
+            h: '160',
+            x: '40',
+            y: '40',
+            color: '#fb923c',
+            '@loaded': '@loaded',
+          },
+        ],
+      },
+    ],
+  }
+
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with attribute values with delimited either single or double quotes', (assert) => {
+  const template = `
+  <Component>
+    <Element
+      w='160' h="160" x='40' y='40' color="#fb923c"
+      :effects='[$shader(
+        "radius",
+        {radius: 44}
+      )]'
+    />
+    <Element
+      w='120' h="120"
+      x='100' y="100"
+      :effects="[
+        $shader(
+          'radius',
+          {
+            radius: 45
+          }
+        )
+      ]"
+    />
+  </Component>`
+
+  const expected = {
+    children: [
+      {
+        type: 'Component',
+        children: [
+          {
+            type: 'Element',
+            w: '160',
+            h: '160',
+            x: '40',
+            y: '40',
+            color: '#fb923c',
+            ':effects': '[$shader( "radius", {radius: 44} )]',
+          },
+          {
+            type: 'Element',
+            w: '120',
+            h: '120',
+            x: '100',
+            y: '100',
+            ':effects': "[ $shader( 'radius', { radius: 45 } ) ]",
+          },
+        ],
+      },
+    ],
+  }
+
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})

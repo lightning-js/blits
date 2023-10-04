@@ -149,7 +149,7 @@ const Element = {
     rotation: 0,
   },
   populate(data) {
-    let props = {
+    const props = {
       ...this.defaults,
       ...this.config,
       ...data,
@@ -162,13 +162,26 @@ const Element = {
         props[prop] = transformations.unpackTransition(props[prop])
         transformations[prop](props, this.setProperties)
       }
-
       this.setProperties.push(prop)
     })
 
     transformations.textureColor(props, this.setProperties)
 
     this.node = props.__textnode ? renderer.createTextNode(props) : renderer.createNode(props)
+
+    if (props['@loaded']) {
+      const event = props.__textnode ? 'textLoaded' : 'txLoaded'
+      this.node.once(event, (el, { width: w, height: h }) => {
+        props['@loaded']({ w, h }, this)
+      })
+    }
+
+    if (props['@error']) {
+      const event = props.__textnode ? 'textFailed' : 'txFailed'
+      this.node.once(event, (el, error) => {
+        props['@error'](error, this)
+      })
+    }
   },
   set(prop, value) {
     if (isTransition(value) && this.setProperties.indexOf(prop) > -1) {
@@ -199,8 +212,8 @@ const Element = {
   get nodeId() {
     return this.node && this.node.id
   },
-  get id() {
-    return this.initData.id || null
+  get ref() {
+    return this.initData.ref || null
   },
   animate(prop, value) {
     const props = {}
