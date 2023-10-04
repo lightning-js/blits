@@ -74,6 +74,12 @@ declare namespace Component {
 
   interface Input {
     [key: string]: (this: ComponentInstance, event: KeyboardEvent) => void,
+    /**
+     * Catch all input function
+     *
+     * Will be invoked when there is no dedicated function for a certain key
+     */
+    'any'?: (this: ComponentInstance, event: KeyboardEvent) => void,
   }
 
   interface Log {
