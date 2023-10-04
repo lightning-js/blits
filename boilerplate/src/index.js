@@ -1,4 +1,5 @@
 import Blits from '@lightningjs/blits'
+// @ts-ignore
 import fontLoader from './fontloader.js?importChunkUrl'
 
 import App from './App.js'
