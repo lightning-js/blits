@@ -37,9 +37,10 @@ const reactiveProxy = (target) => {
       track(target, key)
 
       if (
-        target[key] !== null &&
-        typeof target[key] === 'object' &&
-        Object.getPrototypeOf(target[key]) === Object.prototype
+        (target[key] !== null &&
+          typeof target[key] === 'object' &&
+          Object.getPrototypeOf(target[key]) === Object.prototype) ||
+        Array.isArray(target[key])
       ) {
         return reactiveProxy(target[key])
       }
