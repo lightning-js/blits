@@ -123,7 +123,7 @@ const transformations = {
     }
   },
   effects(props) {
-    props.shader = renderer.makeShader('DynamicShader', {
+    props.shader = renderer.createShader('DynamicShader', {
       effects: props.effects.map((eff) => {
         if (eff.props && eff.props.color) {
           eff.props.color = colors.normalize(eff.props.color)
