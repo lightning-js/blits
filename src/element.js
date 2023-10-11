@@ -54,9 +54,12 @@ const transformations = {
     'z' in props && (props.zIndex = props.z)
     delete props.z
   },
-  parentId(props) {
-    props.parent = props.parentId === 'root' ? renderer.root : renderer.getNodeById(props.parentId)
-    delete props.parentId
+  parent(props) {
+    if (props.parent === 'root') {
+      props.parent = renderer.root
+    } else {
+      props.parent = props.parent.node
+    }
   },
   color(props) {
     if (
