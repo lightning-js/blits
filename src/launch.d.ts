@@ -78,7 +78,7 @@ export interface Settings {
   /**
    * Debug level for console log messages
    */
-  debugLevel?: DebugLevel | LogType[]
+  debugLevel?: DebugLevel | LogTypes[]
   /**
    * Font loader file
    */
