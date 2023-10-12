@@ -786,7 +786,7 @@ test('Parse template with inline text between tags', (assert) => {
             x: '40',
             y: '40',
             color: '#fb923c',
-            _innerText: 'Lorem ipsum',
+            content: 'Lorem ipsum',
           },
         ],
       },
@@ -825,25 +825,25 @@ test('Parse template with multiple inline texts between different tags', (assert
             x: '40',
             y: '40',
             color: '#fb923c',
-            _innerText: 'Lorem ipsum',
+            content: 'Lorem ipsum',
           },
           {
             type: 'Element',
-            _innerText: 'dolor sit amet',
+            content: 'dolor sit amet',
           },
           {
             type: 'Element',
             children: [
               {
                 type: 'Text',
-                _innerText: 'consectetur adipiscing elit',
+                content: 'consectetur adipiscing elit',
               },
               {
                 type: 'Element',
                 children: [
                   {
                     type: 'Text',
-                    _innerText: 'sed do eiusmod tempor',
+                    content: 'sed do eiusmod tempor',
                   },
                 ],
               },
