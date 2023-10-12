@@ -22,6 +22,10 @@ const normalize = (str) => {
   return str.replace(/[\n\s\t]/gi, '')
 }
 
+const componentConfigObject = {
+  components: {},
+}
+
 test('Type', (assert) => {
   const expected = 'function'
   const actual = typeof generator
@@ -31,7 +35,7 @@ test('Type', (assert) => {
 })
 
 test('Returns an object with a render function and a context object', (assert) => {
-  const result = generator()
+  const result = generator.call(componentConfigObject)
   const expected = 'object'
   const actual = typeof result
 
@@ -43,7 +47,7 @@ test('Returns an object with a render function and a context object', (assert) =
 })
 
 test('The render key is a function', (assert) => {
-  const result = generator()
+  const result = generator(componentConfigObject)
   const expected = 'function'
   const actual = typeof result.render
 

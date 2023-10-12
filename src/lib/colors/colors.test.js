@@ -28,42 +28,42 @@ test('Object', (assert) => {
 
 test('6 character hex', (assert) => {
   const input = ['#ffffff', '#000000', '#c0ffee', '#7dd3fc', '#0c4a6e']
-  const expected = ['0xffffffff', '0xff000000', '0xffeeffc0', '0xfffcd37d', '0xff6e4a0c']
+  const expected = ['0xffffffff', '0x000000ff', '0xc0ffeeff', '0x7dd3fcff', '0x0c4a6eff']
 
   const actual = input.map(colors.normalize)
 
   assert.deepEqual(
     actual,
     expected,
-    'A 6 character hex code should return the correct color in abgr format'
+    'A 6 character hex code should return the correct color in rgba format'
   )
   assert.end()
 })
 
 test('3 character hex', (assert) => {
   const input = ['#fff', '#000', '#c8c']
-  const expected = ['0xffffffff', '0xff000000', '0xffcc88cc']
+  const expected = ['0xffffffff', '0x000000ff', '0xcc88ccff']
 
   const actual = input.map(colors.normalize)
 
   assert.deepEqual(
     actual,
     expected,
-    'A 3 character hex code should return the correct color in abgr format'
+    'A 3 character hex code should return the correct color in rgba format'
   )
   assert.end()
 })
 
 test('8 character hex (rgba)', (assert) => {
   const input = ['#ffffffff', '#000000ff', '#c0ffee80', '#7dd3fc10', '#0c4a6eff']
-  const expected = ['0xffffffff', '0xff000000', '0x80eeffc0', '0x10fcd37d', '0xff6e4a0c']
+  const expected = ['0xffffffff', '0x000000ff', '0xc0ffee80', '0x7dd3fc10', '0x0c4a6eff']
 
   const actual = input.map(colors.normalize)
 
   assert.deepEqual(
     actual,
     expected,
-    'A 8 character hex (rgba) code should return the correct color in abgr format'
+    'A 8 character hex (rgba) code should return the correct color in rgba format'
   )
   assert.end()
 })
@@ -76,14 +76,14 @@ test('RGB colors', (assert) => {
     'rgb(125, 211, 252)',
     'rgb(12, 74, 110)',
   ]
-  const expected = ['0xffffffff', '0xff000000', '0xffeeffc0', '0xfffcd37d', '0xff6e4a0c']
+  const expected = ['0xffffffff', '0x000000ff', '0xc0ffeeff', '0x7dd3fcff', '0x0c4a6eff']
 
   const actual = input.map(colors.normalize)
 
   assert.deepEqual(
     actual,
     expected,
-    'RGB codes prefixed with # should return the correct color in abgr format'
+    'RGB codes prefixed with # should return the correct color in rgba format'
   )
   assert.end()
 })
@@ -100,12 +100,12 @@ test('RGBA colors', (assert) => {
   ]
   const expected = [
     '0xffffffff',
-    '0xff000000',
-    '0x80eeffc0',
-    '0x1afcd37d',
-    '0x006e4a0c',
-    '0x006e4a0c',
-    '0xff6e4a0c',
+    '0x000000ff',
+    '0xc0ffee80',
+    '0x7dd3fc1a',
+    '0x0c4a6e00',
+    '0x0c4a6e00',
+    '0x0c4a6eff',
   ]
 
   const actual = input.map(colors.normalize)
@@ -113,7 +113,7 @@ test('RGBA colors', (assert) => {
   assert.deepEqual(
     actual,
     expected,
-    'RGB codes prefixed with # should return the correct color in abgr format'
+    'RGB codes prefixed with # should return the correct color in rgba format'
   )
   assert.end()
 })
@@ -130,12 +130,12 @@ test('RGBA colors', (assert) => {
   ]
   const expected = [
     '0xffffffff',
-    '0xff000000',
-    '0x80eeffc0',
-    '0x1afcd37d',
-    '0x006e4a0c',
-    '0x006e4a0c',
-    '0xff6e4a0c',
+    '0x000000ff',
+    '0xc0ffee80',
+    '0x7dd3fc1a',
+    '0x0c4a6e00',
+    '0x0c4a6e00',
+    '0x0c4a6eff',
   ]
 
   const actual = input.map(colors.normalize)
@@ -143,19 +143,19 @@ test('RGBA colors', (assert) => {
   assert.deepEqual(
     actual,
     expected,
-    'RGB codes prefixed with # should return the correct color in abgr format'
+    'RGB codes prefixed with # should return the correct color in rgba format'
   )
   assert.end()
 })
 
 test('HTML colors', (assert) => {
-  const input = ['blanchedalmond', 'aqua', 'tomato', 'saddlebrown', 'red']
+  const input = ['blanchedalmond', 'salmon', 'tomato', 'saddlebrown', 'red']
 
   const expected = [
-    parseInt('0xffcdebff', 16),
-    parseInt('0xffffff00', 16),
-    parseInt('0xff4763ff', 16),
-    parseInt('0xff13458b', 16),
+    parseInt('0xffebcdff', 16),
+    parseInt('0xfa8072ff', 16),
+    parseInt('0xff6347ff', 16),
+    parseInt('0x8b4513ff', 16),
     parseInt('0xff0000ff', 16),
   ]
 
@@ -164,7 +164,7 @@ test('HTML colors', (assert) => {
   assert.deepEqual(
     actual,
     expected,
-    'RGB codes prefixed with # should return the correct color in abgr format'
+    'RGB codes prefixed with # should return the correct color in rgba format'
   )
   assert.end()
 })
@@ -181,7 +181,7 @@ test('HTML colors', (assert) => {
 
 //   const actual = input.map(colors.normalize)
 
-//   assert.deepEqual(actual, expected, 'A hsl code should return the correct color in abgr format')
+//   assert.deepEqual(actual, expected, 'A hsl code should return the correct color in rgba format')
 //   assert.end()
 // })
 

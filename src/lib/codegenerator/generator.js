@@ -241,19 +241,20 @@ const generateForLoopCode = function (templateObject, parent) {
 }
 
 const generateCode = function (templateObject, parent = false) {
-  templateObject.children.forEach((childTemplateObject) => {
-    counter++
+  templateObject.children &&
+    templateObject.children.forEach((childTemplateObject) => {
+      counter++
 
-    if (Object.keys(childTemplateObject).indexOf(':for') > -1) {
-      generateForLoopCode.call(this, childTemplateObject, parent)
-    } else {
-      if (childTemplateObject.type !== 'Element') {
-        generateComponentCode.call(this, childTemplateObject, parent)
+      if (Object.keys(childTemplateObject).indexOf(':for') > -1) {
+        generateForLoopCode.call(this, childTemplateObject, parent)
       } else {
-        generateElementCode.call(this, childTemplateObject, parent)
+        if (childTemplateObject.type !== 'Element') {
+          generateComponentCode.call(this, childTemplateObject, parent)
+        } else {
+          generateElementCode.call(this, childTemplateObject, parent)
+        }
       }
-    }
-  })
+    })
 }
 
 const interpolate = (val, component = 'component.') => {

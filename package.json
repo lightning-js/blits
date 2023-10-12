@@ -9,7 +9,8 @@
     "./fontloader": "./src/fontLoader.js"
   },
   "scripts": {
-    "test": "tape '{,!(node_modules)/**/}*.test.js' | tap-diff",
+    "test": "c8 npm run test:run",
+    "test:run": "tape '{,!(node_modules)/**/}*.test.js' | tap-diff",
     "lint": "eslint '**/*.js'",
     "lint:fix": "eslint '**/*.js' --fix"
   },
@@ -28,6 +29,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "babel-eslint": "^10.1.0",
+    "c8": "^8.0.1",
     "eslint": "^8.8.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
