@@ -80,6 +80,21 @@ const transformations = {
       props.color = colors.normalize(props.color)
     }
   },
+  percentage(props, prop) {
+    const map = {
+      w: 'width',
+      width: 'width',
+      x: 'width',
+      h: 'height',
+      height: 'height',
+      y: 'height',
+    }
+
+    const base = map[prop]
+    if (base) {
+      props[prop] = this.node._parent[base] * (parseFloat(props[prop]) / 100)
+    }
+  },
   mount(props) {
     if (
       typeof props.mount === 'object' ||
@@ -203,6 +218,9 @@ const Element = {
       }
 
       Object.keys(props).forEach((prop) => {
+        if (typeof props[prop] === 'string' && props[prop].endsWith('%')) {
+          transformations.percentage.call(this, props, prop)
+        }
         this.node[prop] = props[prop]
       })
     }
@@ -230,6 +248,10 @@ const Element = {
 
     // works for now
     prop = Object.keys(props).pop()
+
+    if (typeof value === 'string' && props[prop].endsWith('%')) {
+      transformations.percentage.call(this, props, prop)
+    }
 
     if (this.node[prop] !== props[prop]) {
       const f = this.node.animate(props, {

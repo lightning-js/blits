@@ -139,7 +139,7 @@ const generateComponentCode = function (
     if (key === 'type') return
     if (isReactiveKey(key)) {
       this.effectsCode.push(`
-          ${elm}.___props['${key.substring(1)}'] = ${interpolate(
+        ${elm}.___props['${key.substring(1)}'] = ${interpolate(
         templateObject[key],
         options.component
       )}`)
@@ -286,9 +286,22 @@ const interpolate = (val, component = 'component.') => {
 const cast = (val = '', key = false, component = 'component.') => {
   let castedValue
 
-  // numeric
   if (key !== 'color' && !isNaN(parseFloat(val))) {
     castedValue = parseFloat(val)
+    if (val.endsWith('%')) {
+      const map = {
+        w: 'width',
+        width: 'width',
+        x: 'width',
+        h: 'height',
+        height: 'height',
+        y: 'height',
+      }
+      const base = map[key]
+      if (base) {
+        castedValue = `parent.node.${base} * (${castedValue} / 100)`
+      }
+    }
   }
   // boolean true
   else if (val.toLowerCase() === 'true') {
