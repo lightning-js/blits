@@ -17,6 +17,9 @@
 
 import test from 'tape'
 import propsFn from './props.js'
+import { initLog } from '../log.js'
+
+initLog()
 
 test('Type props function', (assert) => {
   const expected = 'function'
@@ -87,14 +90,14 @@ test('Get value of props', (assert) => {
 test('Passing props as an object', (assert) => {
 
   const component = new Function()
-  const props = [{key: 'index', key: 'img', key: 'url'}]
+  const props = [{key: 'index'}, {key: 'img'}, {key: 'url'}]
   propsFn(component, props)
 
   assert.equal(props.length, component.___propKeys.length, 'All passed props should be stored on ___propKeys')
-  assert.equal(props.length, props.map(prop => component.___propKeys.indexOf(prop.key) > -1).filter(prop => prop === true).length, 'All passed props should be stored on ___propKeys')
+  assert.equal(props.length, props.map(prop => component.___propKeys.indexOf(typeof prop === 'object' ? prop.key : prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on ___propKeys')
 
   props.forEach((prop) => {
-    assert.true(typeof Object.getOwnPropertyDescriptor(component.prototype, prop.key).get === 'function', `A getter should have been created for property ${prop}`)
+    assert.true(typeof Object.getOwnPropertyDescriptor(component.prototype, typeof prop === 'object' ? prop.key : prop).get === 'function', `A getter should have been created for property ${prop}`)
   })
 
   assert.end()
