@@ -36,7 +36,7 @@ export default () =>
             : this.map[this.frame]
 
         if (this.spriteTexture && options) {
-          return this.___renderer.makeTexture('SubTexture', {
+          return this.___renderer.createTexture('SubTexture', {
             texture: this.spriteTexture,
             x: options.x,
             y: options.y,
@@ -48,7 +48,7 @@ export default () =>
     },
     hooks: {
       ready() {
-        this.spriteTexture = this.___renderer.makeTexture('ImageTexture', {
+        this.spriteTexture = this.___renderer.createTexture('ImageTexture', {
           src: `${window.location.protocol}//${window.location.host}/${this.image}`,
         })
       },

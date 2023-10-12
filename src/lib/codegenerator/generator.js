@@ -56,7 +56,7 @@ const generateElementCode = function (
 
   renderCode.push(`
     if(!${elm}) {
-      ${elm} = this.element({componentId: component.___id, parentId: parent && parent.nodeId || 'root'})
+      ${elm} = this.element({componentId: component.___id, parent: parent || 'root'})
     }
     const elementConfig${counter} = {}
   `)

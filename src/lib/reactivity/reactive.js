@@ -28,7 +28,15 @@ const arrayMethods = [
   'splice',
   'unshift',
 ]
+
+const proxyMap = new WeakMap()
+
 const reactiveProxy = (target) => {
+  const isProxy = proxyMap.get(target)
+  if (isProxy) {
+    return isProxy
+  }
+
   const handler = {
     get(target, key, receiver) {
       if (Array.isArray(target) && arrayMethods.includes(key)) {
@@ -36,10 +44,7 @@ const reactiveProxy = (target) => {
       }
       track(target, key)
 
-      if (
-        typeof target[key] === 'object' &&
-        Object.getPrototypeOf(target[key]) === Object.prototype
-      ) {
+      if (target[key] !== null && typeof target[key] === 'object') {
         return reactiveProxy(target[key])
       }
 
@@ -64,7 +69,10 @@ const reactiveProxy = (target) => {
       return result
     },
   }
-  return new Proxy(target, handler)
+
+  const proxy = new Proxy(target, handler)
+  proxyMap.set(target, proxy)
+  return proxy
 }
 
 const reactiveDefineProperty = (target) => {
@@ -72,6 +80,7 @@ const reactiveDefineProperty = (target) => {
     let internalValue = target[key]
 
     if (
+      target[key] !== null &&
       typeof target[key] === 'object' &&
       Object.getPrototypeOf(target[key]) === Object.prototype
     ) {

@@ -54,9 +54,12 @@ const transformations = {
     'z' in props && (props.zIndex = props.z)
     delete props.z
   },
-  parentId(props) {
-    props.parent = props.parentId === 'root' ? renderer.root : renderer.getNodeById(props.parentId)
-    delete props.parentId
+  parent(props) {
+    if (props.parent === 'root') {
+      props.parent = renderer.root
+    } else {
+      props.parent = props.parent.node
+    }
   },
   color(props) {
     if (
@@ -123,7 +126,7 @@ const transformations = {
     }
   },
   effects(props) {
-    props.shader = renderer.makeShader('DynamicShader', {
+    props.shader = renderer.createShader('DynamicShader', {
       effects: props.effects.map((eff) => {
         if (eff.props && eff.props.color) {
           eff.props.color = colors.normalize(eff.props.color)

@@ -32,6 +32,7 @@ export default () =>
         stretch="$stretch"
         contain="$_contain"
         :w="$w"
+        :h="$h"
         :textAlign="$align"
         @loaded="$@loaded"
         @error="$@error"
@@ -54,13 +55,14 @@ export default () =>
       'stretch',
       'align',
       'w',
+      'h',
       'contain',
       '@loaded',
       '@error',
     ],
     computed: {
       _contain() {
-        return this.contain || (this.align ? 'width' : null)
+        return this.contain || (this.w && this.h ? 'both' : this.w ? 'width' : 'none')
       },
     },
   })
