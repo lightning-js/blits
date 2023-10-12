@@ -122,10 +122,9 @@ export default (template = '') => {
       // parsing content in between tags
       // rule: < char cannot be used in between tags even in escaped form
       if (currentTag.__type === 'opening') {
-        // fixme: we should discuss the name of this property
         const tagContent = template.slice(cursor, template.indexOf('<', cursor))
         if (tagContent) {
-          currentTag._innerText = tagContent
+          currentTag.content = tagContent
           cursor += tagContent.length
         }
       }
