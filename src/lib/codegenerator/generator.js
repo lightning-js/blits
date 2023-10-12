@@ -288,23 +288,15 @@ const cast = (val = '', key = false, component = 'component.') => {
   // inline content
   if (key === 'content') {
     castedValue = val
-    const regex = /\{\{\s*(\$\S+)\s*\}\}/g
+    const dynamicArgs = /\{\{\s*(\$\S+)\s*\}\}/g
+    const elements = [...castedValue.matchAll(dynamicArgs)]
 
-    const matches = [...castedValue.matchAll(regex)].reverse()
-
-    if (matches) {
-      // todo: optimize this ugly code ;)
-      matches.forEach((match) => {
-        castedValue =
-          castedValue.substring(0, match.index) +
-          "' + " +
-          `${component}${match[1].replace('$', '')}` +
-          " + '" +
-          castedValue.substring(match.index + match[0].length)
-      })
-
-      castedValue = "'" + castedValue + "'"
+    if (elements.length) {
+      for (let [match, arg] of elements) {
+        castedValue = castedValue.replace(match, `${arg.replace('$', `'+${component}`)}+'`)
+      }
     }
+    castedValue = `'${castedValue}'`
   }
   // numeric
   else if (key !== 'color' && !isNaN(parseFloat(val))) {
