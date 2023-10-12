@@ -25,6 +25,18 @@ All positioning and dimension related attributes, when not specified, default to
 </Element>
 ```
 
+#### Using percentages
+
+Besides using values in pixels (i.e. `w="100" h="300"`), you can also specify _percentages_ for the positioning and dimensions attributes.
+
+```xml
+<Element w="400" h="100" x="800" y="900" color="#0284c7">
+  <Element w="42%" h="30%" y="5%" x="1%" color="#075985" />
+</Element>
+```
+The percentage specified in `w` and `x` will be calculated as the percentage of the _width_ (`w`) of the parent element.
+And the percentage specified in `h` and `y` will use the _height_ (`h`) of the parent element as the base of the percentage calculation.
+
 ### Colors
 
 By default Elements have a transparent background color. The `color` attribute can be used to give an Element a color.
