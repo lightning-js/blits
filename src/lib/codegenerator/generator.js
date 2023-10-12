@@ -287,16 +287,11 @@ const cast = (val = '', key = false, component = 'component.') => {
 
   // inline content
   if (key === 'content') {
-    castedValue = val
-    const dynamicArgs = /\{\{\s*(\$\S+)\s*\}\}/g
-    const elements = [...castedValue.matchAll(dynamicArgs)]
-
-    if (elements.length) {
-      for (let [match, arg] of elements) {
-        castedValue = castedValue.replace(match, `${arg.replace('$', `'+${component}`)}+'`)
-      }
+    if (val.startsWith('$')) {
+      castedValue = `${component}${val.replace('$', '')}`
+    } else {
+      castedValue = `'${parseInlineContent(val, component)}'`
     }
-    castedValue = `'${castedValue}'`
   }
   // numeric
   else if (key !== 'color' && !isNaN(parseFloat(val))) {
@@ -328,3 +323,15 @@ const cast = (val = '', key = false, component = 'component.') => {
 }
 
 const isReactiveKey = (str) => str.startsWith(':')
+
+const parseInlineContent = (val, component) => {
+  const dynamicParts = /\{\{\s*(\$\S+)\s*\}\}/g
+  const matches = [...val.matchAll(dynamicParts)]
+
+  if (matches.length) {
+    for (let [match, arg] of matches) {
+      val = val.replace(match, `${arg.replace('$', `'+${component}`)}+'`)
+    }
+  }
+  return val
+}
