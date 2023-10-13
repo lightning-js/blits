@@ -12,8 +12,14 @@ The Blits framework uses a **readable** XML-style template syntax and comes with
 
 You may be wondering where the name Blits comes from?
 
-Firstly, it short, memorable and has a nice ring to it. The name is derived from the word "Blitz", which means Lightning in German. Additionally, "Blits" is a Dutch term (a significant portion of the Lightning Open Source teams is based in the Netherlands) used to showcase something great or simply refer to things that are cool.
+Firstly, it's short, memorable and just has a nice ring to it.
+
+"Blits" is a Dutch word (a significant portion of the Lightning Open Source teams is based in the Netherlands). It means _flashy_ and it's often used to for things that are _great_ or _cool_.
 
 Finally it's a nerdy reference to the computer term "Bit Blits" commonly used in graphics processing, for rapidly moving a block of data into memory - quite similar to what Lightning is doing 🙂
 
 Check out the [documentation](https://lightning-js.github.io/blits) to learn more.
+
+## Changelog
+
+The full Changelog can be found [here](./CHANGELOG.md)
