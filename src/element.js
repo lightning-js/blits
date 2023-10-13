@@ -174,6 +174,10 @@ const Element = {
     }
     this.initData = data
 
+    if (props.slot) {
+      this.slot = true
+    }
+
     transformations.remap(props)
     Object.keys(props).forEach((prop) => {
       if (transformations[prop]) {
