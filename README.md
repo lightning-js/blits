@@ -1,3 +1,5 @@
+![Blits banner](banner.png)
+
 # Blits - Lightning 3 App Development Framework
 
 With Blits (formaly know as Bolt), the App Development Framework for Lightning 3, it becomes a breeze to build great Lightning 3 applications.
