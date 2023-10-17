@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.13
+
+_17 oct 2023_
+
+- Added support for `borderTop`, `borderBottom`, `borderLeft`, `borderRight` and `grayScale` effects
+
 ## v0.3.12
 
 _17 oct 2023_

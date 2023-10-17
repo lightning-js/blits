@@ -31,6 +31,10 @@ const shaders = {
   rounded: 'radius',
   border: 'border',
   borderTop: 'borderTop',
+  borderBottom: 'borderBottom',
+  borderLeft: 'borderLeft',
+  borderRight: 'borderRight',
+  grayScale: 'grayscale',
   glitch: 'glitch',
 }
 
