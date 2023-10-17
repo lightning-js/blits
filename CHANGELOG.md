@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.12
+
+_17 oct 2023_
+
+- Fixed path to logo on readme
 
 ## v0.3.11
 

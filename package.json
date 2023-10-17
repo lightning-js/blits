@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.cjs",
   "exports": {
@@ -41,7 +41,6 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "^0.3.6",
     "@lightningjs/vite-plugin-import-chunk-url": "^0.3.0"
   }
 }

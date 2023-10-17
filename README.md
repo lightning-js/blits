@@ -1,4 +1,4 @@
-![Blits banner](banner.png)
+![Blits banner](https://raw.githubusercontent.com/lightning-js/blits/master/banner.png)
 
 # Blits - Lightning 3 App Development Framework
 
