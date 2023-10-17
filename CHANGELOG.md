@@ -1,6 +1,15 @@
 # Changelog
 
 
+## v0.3.11
+
+_17 oct 2023_
+
+- Added support for using [percentages](https://lightning-js.github.io/blits/#/element_attributes?id=using-percentages) in dimensions (`w` / `h`) and positioning (`x` / `y`)
+- Refactored template parser to be more robust and throw errors when the template contains a syntax mistake
+- Re-enabled tests (still depends on renderer version bump though)
+- Added the new official Blits logo to the readme!
+
 ## v0.3.10
 
 _9 oct 2023_
