@@ -10,7 +10,7 @@ export default class FontLoader extends CoreExtension {
           new SdfTrFontFace(font.family, {}, font.type, stage, font.png, font.json)
         )
       } else if (font.type === 'web') {
-        new WebTrFontFace(font.family, {}, font.file)
+        stage.fontManager.addFontFace(new WebTrFontFace(font.family, {}, font.file))
       }
     })
   }
