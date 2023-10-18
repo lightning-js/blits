@@ -13,8 +13,8 @@ In order to position and set the dimensions of an Element, the following attribu
   - `x` - the x position of the Element in pixels, relative to it's parent - allows negative values and decimals
   - `y` - the y position of the Element in pixels, relative to it's parent - allows negative values and decimals
   - `z` - the z index of the element (optionally `zIndex` can be used as an alias)
-  - `w` - the width of the element in pixels (optionaly `width` can be used as an alias)
-  - `h` - the height of the element in pixels (optionaly `height` can be used as an alias)
+  - `w` - the width of the element in pixels (optionally `width` can be used as an alias)
+  - `h` - the height of the element in pixels (optionally `height` can be used as an alias)
 
 All positioning and dimension related attributes, when not specified, default to `0`.
 
@@ -111,7 +111,7 @@ Similar to rotation, scale is also applied recursively to children down the tree
 
 ### Mounting point
 
-For advanced positioning the `mount` attribute can come in handy. By default when you set the `x` and `y` position of an Element, the _top-left_ corner will be set to that position. But in some cases you may want to align the position starting at a different corner, or even any arbitray point in between.
+For advanced positioning the `mount` attribute can come in handy. By default when you set the `x` and `y` position of an Element, the _top-left_ corner will be set to that position. But in some cases you may want to align the position starting at a different corner, or even any arbitrary point in between.
 
 The `mount` attribute accepts an _object literal_ that allows you to precisely control the mount position on the _x-axis_ and the mount position on the _y-axis_. The default value is `{x: 0, y: 0}`, which refers to the _top-left_ corner.
 
