@@ -286,7 +286,16 @@ const interpolate = (val, component = 'component.') => {
 const cast = (val = '', key = false, component = 'component.') => {
   let castedValue
 
-  if (key !== 'color' && !isNaN(parseFloat(val))) {
+  // inline content
+  if (key === 'content') {
+    if (val.startsWith('$')) {
+      castedValue = `${component}${val.replace('$', '')}`
+    } else {
+      castedValue = `'${parseInlineContent(val, component)}'`
+    }
+  }
+  // numeric
+  else if (key !== 'color' && !isNaN(parseFloat(val))) {
     castedValue = parseFloat(val)
     if (val.endsWith('%')) {
       const map = {
@@ -329,3 +338,15 @@ const cast = (val = '', key = false, component = 'component.') => {
 }
 
 const isReactiveKey = (str) => str.startsWith(':')
+
+const parseInlineContent = (val, component) => {
+  const dynamicParts = /\{\{\s*(\$\S+)\s*\}\}/g
+  const matches = [...val.matchAll(dynamicParts)]
+
+  if (matches.length) {
+    for (let [match, arg] of matches) {
+      val = val.replace(match, `${arg.replace('$', `'+${component}`)}+'`)
+    }
+  }
+  return val
+}

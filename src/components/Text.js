@@ -22,7 +22,7 @@ export default () =>
     template: `
       <Element
         __textnode="true"
-        :text="$text"
+        :text="$content"
         fontFamily="$font"
         :fontSize="$size"
         :color="$color"
@@ -61,9 +61,6 @@ export default () =>
       '@error',
     ],
     computed: {
-      text() {
-        return this.slotcontent || this.content || ''
-      },
       _contain() {
         return this.contain || (this.w && this.h ? 'both' : this.w ? 'width' : 'none')
       },
