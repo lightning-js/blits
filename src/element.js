@@ -189,14 +189,14 @@ const Element = {
 
     if (props['@loaded']) {
       const event = props.__textnode ? 'textLoaded' : 'txLoaded'
-      this.node.once(event, (el, { width: w, height: h }) => {
+      this.node.on(event, (el, { width: w, height: h }) => {
         props['@loaded']({ w, h }, this)
       })
     }
 
     if (props['@error']) {
       const event = props.__textnode ? 'textFailed' : 'txFailed'
-      this.node.once(event, (el, error) => {
+      this.node.on(event, (el, error) => {
         props['@error'](error, this)
       })
     }
