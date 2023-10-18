@@ -2,9 +2,12 @@
 
 ## v0.3.13
 
-_17 oct 2023_
+_18 oct 2023_
 
 - Added support for `borderTop`, `borderBottom`, `borderLeft`, `borderRight` and `grayScale` effects
+- Fixed `@loaded` and `@error` events on `<Text/>` componenent only firing once (and not for each change)
+- Fixed loading of web canvas2d fonts
+- Firex error when using `this`-reference in component state
 
 ## v0.3.12
 
