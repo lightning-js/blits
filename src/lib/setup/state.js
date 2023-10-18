@@ -20,7 +20,7 @@ import { Log } from '../log.js'
 export default (component, state) => {
   component.___stateKeys = []
 
-  state = state.apply(component)
+  state = state.apply(component.prototype)
   Object.keys(state).forEach((key) => {
     if (component.___propKeys && component.___propKeys.indexOf(key) > -1) {
       Log.error(`State ${key} already exists as a prop`)
