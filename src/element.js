@@ -133,7 +133,7 @@ const transformations = {
     props.rotation = props.rotation * (Math.PI / 180)
   },
   text(props) {
-    props.text = props.text.toString()
+    props.text = props.text?.toString()
   },
   textureColor(props) {
     if (!('color' in props)) {
