@@ -7,7 +7,8 @@ _18 oct 2023_
 - Added support for `borderTop`, `borderBottom`, `borderLeft`, `borderRight` and `grayScale` effects
 - Fixed `@loaded` and `@error` events on `<Text/>` componenent only firing once (and not for each change)
 - Fixed loading of web canvas2d fonts
-- Firex error when using `this`-reference in component state
+- Fixed error when using `this`-reference in component state
+- Added basic support for inline text (i.e. `<Text>My text with a {{$dynamic}} value</Text>`)
 
 ## v0.3.12
 
