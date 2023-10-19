@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.3.14
+
+_19 oct 2023_
+
+- Fixed error when `<Text />`-component doesn't have any content
+- Removed generic escape key handler that closed the App
+- Introduced `quit()`-method on the root Application component
+- Updated to v0.4.0 of the renderer
+
 ## v0.3.13
 
 _18 oct 2023_
