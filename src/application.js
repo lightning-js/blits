@@ -16,12 +16,11 @@
  */
 
 import Component from './component.js'
-
 import Focus from './focus.js'
+import Settings from './settings.js'
 
 const Application = (config) => {
-  // make configurable?
-  const mapping = {
+  const defaultKeyMap = {
     ArrowLeft: 'left',
     ArrowRight: 'right',
     ArrowUp: 'up',
@@ -30,22 +29,36 @@ const Application = (config) => {
     ' ': 'space',
     Backspace: 'back',
     Escape: 'escape',
+    37: 'left',
+    39: 'right',
+    38: 'up',
+    40: 'down',
+    13: 'enter',
+    32: 'space',
+    8: 'back',
+    27: 'escape',
   }
-
-  const handler = (e) => {
-    const key = mapping[e.key] || e.key
-    Focus.input(key, e)
-  }
-
-  document.addEventListener('keydown', handler)
 
   config.hooks = config.hooks || {}
   config.hooks.___init = function () {
     Focus.set(this)
   }
 
+  let handler
+
   config.hooks.___destroy = function () {
     document.removeEventListener('keydown', handler)
+  }
+
+  config.hooks.___init = function () {
+    const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
+
+    handler = (e) => {
+      const key = keyMap[e.key] || keyMap[e.keyCode] || e.key || e.keyCode
+      Focus.input(key, e)
+    }
+
+    document.addEventListener('keydown', handler)
   }
 
   const App = Component('App', config)

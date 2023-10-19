@@ -86,7 +86,11 @@ export interface Settings {
   /**
    * Fonts to be used in the Application
    */
-  fonts?: Font[]
+  fonts?: Font[],
+  /**
+   * Custom keymapping
+   */
+  keymap?: object
 }
 
 /**
