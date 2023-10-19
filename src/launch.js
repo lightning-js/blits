@@ -18,7 +18,7 @@
 import { MainRenderDriver, RendererMain, ThreadXRenderDriver } from '@lightningjs/renderer'
 // import RendererWorker from '@lightningjs/renderer/workers/renderer?worker'
 import Settings from './settings.js'
-import { initLog } from './lib/log.js'
+import { initLog, Log } from './lib/log.js'
 
 // import coreExtensionModule from './fontLoader.js?importChunkUrl'
 
@@ -46,18 +46,15 @@ export default (App, target, settings) => {
     driver
   )
 
-  let app
-
-  const handler = (e) => {
-    if (e.key === 'Escape') {
-      document.removeEventListener('keydown', handler)
+  const initApp = () => {
+    let app = App()
+    app.quit = () => {
+      Log.info('Closing App')
       app.destroy()
       app = null
       renderer = null
     }
   }
 
-  document.addEventListener('keydown', handler)
-
-  renderer.init().then(() => (app = App()))
+  renderer.init().then(() => initApp())
 }

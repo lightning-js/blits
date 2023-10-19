@@ -29,6 +29,7 @@ const Application = (config) => {
     Enter: 'enter',
     ' ': 'space',
     Backspace: 'back',
+    Escape: 'escape',
   }
 
   const handler = (e) => {
