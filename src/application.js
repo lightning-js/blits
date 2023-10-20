@@ -40,9 +40,6 @@ const Application = (config) => {
   }
 
   config.hooks = config.hooks || {}
-  config.hooks.___init = function () {
-    Focus.set(this)
-  }
 
   let handler
 
@@ -59,6 +56,8 @@ const Application = (config) => {
     }
 
     document.addEventListener('keydown', handler)
+
+    Focus.set(this)
   }
 
   const App = Component('App', config)
