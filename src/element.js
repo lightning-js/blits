@@ -174,8 +174,8 @@ const Element = {
     }
     this.initData = data
 
-    if (props.slot) {
-      this.slot = true
+    if (props.___isSlot) {
+      this.___isSlot = true
     }
 
     transformations.remap(props)

@@ -67,9 +67,15 @@ const generateElementCode = function (
   Object.keys(templateObject).forEach((key) => {
     if (key === 'type') {
       if (templateObject[key] === 'Slot') {
-        renderCode.push(`elementConfig${counter}['slot'] = true`)
+        renderCode.push(`elementConfig${counter}['___isSlot'] = true`)
       }
       return
+    }
+
+    if (key === 'slot') {
+      renderCode.push(`
+        elementConfig${counter}['parent'] = component.___slots.filter(slot => slot.ref === '${templateObject.slot}').shift() || component.___slots[0] || parent
+      `)
     }
 
     if (isReactiveKey(key)) {
@@ -166,7 +172,12 @@ const generateComponentCode = function (
   renderCode.push(`
     if(!${elm}) {
       ${elm} = (context.components && context.components['${templateObject.type}'] || component.___components['${templateObject.type}'] || (() => { console.log('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, ${parent}, component)
-      parent = ${elm}.___slots[0] || ${elm}.___children[0]
+      if (${elm}.___slots[0]) {
+        parent = ${elm}.___slots[0]
+        component = ${elm}
+      } else {
+        parent = ${elm}.___children[0]
+      }
     }
   `)
 
