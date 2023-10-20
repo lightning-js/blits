@@ -15,10 +15,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import symbols from '../symbols'
+
 export default (component, routes) => {
-  component.prototype.___routes = []
+  component.prototype[symbols.routes] = []
   Object.keys(routes).forEach((key) => {
     // todo: validate routes[key] for expected format etc.
-    component.prototype.___routes[key] = routes[key]
+    component.prototype[symbols.routes][key] = routes[key]
   })
 }

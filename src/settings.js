@@ -15,10 +15,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import symbols from './lib/symbols'
+
 const settings = {
-  ___settings: {},
+  [symbols.settings]: {},
   get(key, defaultValue = null) {
-    return (key in this.___settings && this.___settings[key]) || defaultValue
+    return (key in this[symbols.settings] && this[symbols.settings][key]) || defaultValue
   },
   set(key, value) {
     if (typeof key === 'object') {
@@ -26,7 +28,7 @@ const settings = {
         this.set(k, key[k])
       })
     } else {
-      this.___settings[key] = value
+      this[symbols.settings][key] = value
     }
   },
 }

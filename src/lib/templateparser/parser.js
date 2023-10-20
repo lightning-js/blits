@@ -15,6 +15,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import symbols from '../symbols'
+
 class TemplateParseError extends Error {
   constructor(name, context) {
     super('TemplateParseError')
@@ -76,7 +78,7 @@ export default (template = '') => {
   const parseEmptyTagStart = () => {
     const match = moveCursorOnMatch(emptyTagStartRegex)
     if (match) {
-      tags.push({ type: null, __type: 'opening', __level: currentLevel })
+      tags.push({ type: null, [symbols.type]: 'opening', [symbols.level]: currentLevel })
       currentLevel++
       parseLoop(parseEmptyTagStart)
     } else {
@@ -88,7 +90,7 @@ export default (template = '') => {
     const match = moveCursorOnMatch(emptyTagEndRegex)
     if (match) {
       currentLevel--
-      tags.push({ type: null, __type: 'closing', __level: currentLevel })
+      tags.push({ type: null, [symbols.type]: 'closing', [symbols.level]: currentLevel })
       parseLoop(parseEmptyTagStart)
     } else {
       parseLoop(parseTag)
@@ -100,9 +102,9 @@ export default (template = '') => {
     if (match) {
       if (match[0].startsWith('</')) {
         currentLevel--
-        currentTag = { type: match[1], __type: 'closing', __level: currentLevel }
+        currentTag = { type: match[1], [symbols.type]: 'closing', [symbols.level]: currentLevel }
       } else {
-        currentTag = { type: match[1], __type: 'opening', __level: currentLevel }
+        currentTag = { type: match[1], [symbols.type]: 'opening', [symbols.level]: currentLevel }
         currentLevel++
       }
       parseLoop(parseTagEnd)
@@ -115,13 +117,13 @@ export default (template = '') => {
     const match = moveCursorOnMatch(tagEndRegex)
     if (match) {
       if (match[1] === '/>') {
-        currentTag.__type = 'self-closing'
+        currentTag[symbols.type] = 'self-closing'
         currentLevel-- // because it was parsed as opening tag before
       }
 
       // parsing content in between tags
       // rule: < char cannot be used in between tags even in escaped form
-      if (currentTag.__type === 'opening') {
+      if (currentTag[symbols.type] === 'opening') {
         const tagContent = template.slice(cursor, template.indexOf('<', cursor))
         if (tagContent) {
           currentTag.content = tagContent
@@ -172,12 +174,12 @@ export default (template = '') => {
     let output = { children: [] }
 
     for (const item of data) {
-      const { type, __type, __level } = item
+      const { type, [symbols.type]: __type, [symbols.level]: __level } = item
 
       // Check for unclosed tags
-      while (stack.length && stack[stack.length - 1].__level >= __level) {
+      while (stack.length && stack[stack.length - 1][symbols.level] >= __level) {
         const popped = stack.pop()
-        if (popped.__type === 'opening') {
+        if (popped[symbols.type] === 'opening') {
           throw new TemplateParseError('MismatchedClosingTag', `tag: ${popped.type || 'null'}`)
         }
       }
@@ -200,8 +202,8 @@ export default (template = '') => {
 
       // Create a new item, copying properties but deleting __type and __level
       const newItem = { ...item }
-      delete newItem.__type
-      delete newItem.__level
+      delete newItem[symbols.type]
+      delete newItem[symbols.level]
 
       if (__type === 'opening') {
         newItem.children = []

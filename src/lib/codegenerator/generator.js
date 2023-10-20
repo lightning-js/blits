@@ -56,7 +56,7 @@ const generateElementCode = function (
 
   renderCode.push(`
     if(!${elm}) {
-      ${elm} = this.element({componentId: component.___id, parent: parent || 'root'})
+      ${elm} = this.element({componentId: component[Symbol.for('id')], parent: parent || 'root'})
     }
     const elementConfig${counter} = {}
   `)
@@ -109,7 +109,7 @@ const generateComponentCode = function (
   renderCode.push(`
     const cmp${counter} =
       (context.components && context.components['${templateObject.type}']) ||
-      component.___components['${templateObject.type}']
+      component[Symbol.for('components')]['${templateObject.type}']
   `)
 
   if ('key' in templateObject) {
@@ -139,7 +139,7 @@ const generateComponentCode = function (
     if (key === 'type') return
     if (isReactiveKey(key)) {
       this.effectsCode.push(`
-        ${elm}.___props['${key.substring(1)}'] = ${interpolate(
+        ${elm}[Symbol.for('props')]['${key.substring(1)}'] = ${interpolate(
         templateObject[key],
         options.component
       )}`)
@@ -158,7 +158,7 @@ const generateComponentCode = function (
 
   renderCode.push(`
     if(!${elm}) {
-      ${elm} = (context.components && context.components['${templateObject.type}'] || component.___components['${templateObject.type}'] || (() => { console.log('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, ${parent}, component)
+      ${elm} = (context.components && context.components['${templateObject.type}'] || component[Symbol.for('components')]['${templateObject.type}'] || (() => { console.log('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, ${parent}, component)
     }
   `)
 }

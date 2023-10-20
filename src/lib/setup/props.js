@@ -17,6 +17,8 @@
 
 import { Log } from '../log.js'
 
+import symbols from '../symbols.js'
+
 const baseProp = {
   cast: (v) => v,
   required: false,
@@ -26,15 +28,15 @@ export default (component, props = []) => {
   if (props.indexOf('ref') === -1) {
     props.push('ref')
   }
-  component.___propKeys = []
+  component[symbols.propKeys] = []
   props.forEach((prop) => {
     prop = { ...baseProp, ...(typeof prop === 'object' ? prop : { key: prop }) }
-    component.___propKeys.push(prop.key)
+    component[symbols.propKeys].push(prop.key)
     Object.defineProperty(component.prototype, prop.key, {
       get() {
         const value = prop.cast(
-          this.___props && prop.key in this.___props
-            ? this.___props[prop.key]
+          this[symbols.props] && prop.key in this[symbols.props]
+            ? this[symbols.props][prop.key]
             : prop.default || undefined
         )
 
@@ -46,7 +48,7 @@ export default (component, props = []) => {
       },
       set(v) {
         Log.warn(`Warning! Avoid mutating props directly (${prop.key})`)
-        this.___props[prop.key] = v
+        this[symbols.props][prop.key] = v
       },
     })
   })

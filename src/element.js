@@ -20,6 +20,8 @@ import colors from './lib/colors/colors.js'
 
 import { Log } from './lib/log.js'
 
+import symbols from './lib/symbols.js'
+
 const isTransition = (value) => {
   return typeof value === 'object' && 'transition' in value
 }
@@ -185,17 +187,17 @@ const Element = {
 
     transformations.textureColor(props, this.setProperties)
 
-    this.node = props.__textnode ? renderer.createTextNode(props) : renderer.createNode(props)
+    this.node = props.__textNode ? renderer.createTextNode(props) : renderer.createNode(props)
 
     if (props['@loaded']) {
-      const event = props.__textnode ? 'textLoaded' : 'txLoaded'
+      const event = props.__textNode ? 'textLoaded' : 'txLoaded'
       this.node.on(event, (el, { width: w, height: h }) => {
         props['@loaded']({ w, h }, this)
       })
     }
 
     if (props['@error']) {
-      const event = props.__textnode ? 'textFailed' : 'txFailed'
+      const event = props.__textNode ? 'textFailed' : 'txFailed'
       this.node.on(event, (el, error) => {
         props['@error'](error, this)
       })

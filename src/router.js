@@ -17,6 +17,8 @@
 
 import { Log } from './lib/log.js'
 
+import symbols from './lib/symbols.js'
+
 export const getHash = () => {
   return (document.location.hash || '/').replace(/^#/, '')
 }
@@ -31,26 +33,29 @@ export const matchHash = (path, routes = []) => {
 }
 
 export const navigate = function () {
-  if (this.parent.___routes) {
+  if (this.parent[symbols.routes]) {
     const hash = getHash()
-    const route = matchHash(hash, this.parent.___routes)
+    const route = matchHash(hash, this.parent[symbols.routes])
     if (route) {
-      if (this.__currentView) {
-        for (let i = 0; i < this.__currentView.___children.length - 1; i++) {
-          if (this.__currentView.___children[i] && this.__currentView.___children[i].destroy) {
-            this.__currentView.___children[i].destroy()
-            this.__currentView.___children[i] = null
+      if (this[symbols.currentView]) {
+        for (let i = 0; i < this[symbols.currentView][symbols.children].length - 1; i++) {
+          if (
+            this[symbols.currentView][symbols.children][i] &&
+            this[symbols.currentView][symbols.children][i].destroy
+          ) {
+            this[symbols.currentView][symbols.children][i].destroy()
+            this[symbols.currentView][symbols.children][i] = null
           }
         }
-        this.__currentView.destroy()
-        this.__currentView = null
+        this[symbols.currentView].destroy()
+        this[symbols.currentView] = null
       }
-      this.___children[1] = this.__currentView = route.component(
-        this.___props,
-        this.___children[0],
+      this[symbols.children][1] = this[symbols.currentView] = route.component(
+        this[symbols.props],
+        this[symbols.children][0],
         this
       )
-      this.__currentView.focus()
+      this[symbols.currentView].focus()
     } else {
       Log.error(`Route ${hash} not found`)
     }

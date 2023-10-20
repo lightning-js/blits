@@ -19,6 +19,8 @@ import Component from './component.js'
 
 import Focus from './focus.js'
 
+import symbols from './lib/symbols.js'
+
 const Application = (config) => {
   // make configurable?
   const mapping = {
@@ -40,11 +42,11 @@ const Application = (config) => {
   document.addEventListener('keydown', handler)
 
   config.hooks = config.hooks || {}
-  config.hooks.___init = function () {
+  config.hooks[symbols.init] = function () {
     Focus.set(this)
   }
 
-  config.hooks.___destroy = function () {
+  config.hooks[symbols.destroy] = function () {
     document.removeEventListener('keydown', handler)
   }
 
