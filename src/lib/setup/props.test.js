@@ -31,16 +31,12 @@ test('Type props function', (assert) => {
   assert.end()
 })
 
-test('Create a ___propkeys on component', (assert) => {
+test('Has correct symbols', (assert) => {
   const component = new Function()
-
+  const props = ['index', 'img', 'url']
+  propsFn(component, props)
   /* eslint-disable */
-  assert.false(component.hasOwnProperty('___propKeys'), 'Component should not have a ___propKeys key')
-
-  propsFn(component)
-
-  /* eslint-disable */
-  assert.true(component.hasOwnProperty('___propKeys'), 'Component should have a ___propKeys key')
+  assert.true(component[symbols.propKeys], 'Component should have a propKey symbol')
   assert.end()
 })
 
@@ -49,8 +45,8 @@ test('Pass props as an array', (assert) => {
   const props = ['index', 'img', 'url']
   propsFn(component, props)
 
-  assert.equal(props.length, component[symbols.propsKeys].length, 'All passed props should be stored on ___propKeys')
-  assert.equal(props.length, props.map(prop => component[symbols.propsKeys].indexOf(prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on ___propKeys')
+  assert.equal(props.length, component[symbols.propKeys].length, 'All passed props should be stored on propKeys')
+  assert.equal(props.length, props.map(prop => component[symbols.propKeys].indexOf(prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on propKeys')
 
   props.forEach((prop) => {
     assert.true(typeof Object.getOwnPropertyDescriptor(component.prototype, prop).get === 'function', `A getter should have been created for property ${prop}`)
@@ -95,8 +91,8 @@ test('Passing props as an object', (assert) => {
   const props = [{key: 'index'}, {key: 'img'}, {key: 'url'}]
   propsFn(component, props)
 
-  assert.equal(props.length, component[symbols.propsKeys].length, 'All passed props should be stored on ___propKeys')
-  assert.equal(props.length, props.map(prop => component[symbols.propsKeys].indexOf(typeof prop === 'object' ? prop.key : prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on ___propKeys')
+  assert.equal(props.length, component[symbols.propKeys].length, 'All passed props should be stored on propKeys')
+  assert.equal(props.length, props.map(prop => component[symbols.propKeys].indexOf(typeof prop === 'object' ? prop.key : prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on propKeys')
 
   props.forEach((prop) => {
     assert.true(typeof Object.getOwnPropertyDescriptor(component.prototype, typeof prop === 'object' ? prop.key : prop).get === 'function', `A getter should have been created for property ${prop}`)
@@ -111,8 +107,8 @@ test('Passing props as an object mixed with single keys', (assert) => {
   const props = [{key: 'index'}, 'img', {key: 'url'}]
   propsFn(component, props)
 
-  assert.equal(props.length, component[symbols.propsKeys].length, 'All passed props should be stored on ___propKeys')
-  assert.equal(props.length, props.map(prop => component[symbols.propsKeys].indexOf(typeof prop === 'object' ? prop.key : prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on ___propKeys')
+  assert.equal(props.length, component[symbols.propKeys].length, 'All passed props should be stored on propKeys')
+  assert.equal(props.length, props.map(prop => component[symbols.propKeys].indexOf(typeof prop === 'object' ? prop.key : prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on propKeys')
 
   props.forEach((prop) => {
     assert.true(typeof Object.getOwnPropertyDescriptor(component.prototype, typeof prop === 'object' ? prop.key : prop).get === 'function', `A getter should have been created for property ${prop}`)

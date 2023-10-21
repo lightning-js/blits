@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import symbols from '../symbols'
+import symbols from '../symbols.js'
 
 export default (component, routes) => {
   component.prototype[symbols.routes] = []
