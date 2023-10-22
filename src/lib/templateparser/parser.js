@@ -16,8 +16,8 @@
  */
 
 class TemplateParseError extends Error {
-  constructor(name, context) {
-    super('TemplateParseError')
+  constructor(message, name, context) {
+    super(`TemplateParseError ${message}`)
     this.name = name
     this.context = context
   }
@@ -44,7 +44,13 @@ export default (template = '') => {
     try {
       return format(tags)
     } catch (error) {
-      console.error('Error:', error.message)
+      if (error instanceof TemplateParseError) {
+        console.error(`${error.message} | ${error.name}`)
+      } else {
+        console.error(error)
+      }
+      // return errors gracefully
+      return null
     }
   }
 
