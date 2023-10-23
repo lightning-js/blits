@@ -65,7 +65,18 @@ const generateElementCode = function (
   delete templateObject['children']
 
   Object.keys(templateObject).forEach((key) => {
-    if (key === 'type') return
+    if (key === 'type') {
+      if (templateObject[key] === 'Slot') {
+        renderCode.push(`elementConfig${counter}['___isSlot'] = true`)
+      }
+      return
+    }
+
+    if (key === 'slot') {
+      renderCode.push(`
+        elementConfig${counter}['parent'] = component.___slots.filter(slot => slot.ref === '${templateObject.slot}').shift() || component.___slots[0] || parent
+      `)
+    }
 
     if (isReactiveKey(key)) {
       this.effectsCode.push(
@@ -116,6 +127,8 @@ const generateComponentCode = function (
     options.key = interpolate(templateObject.key, options.component)
   }
 
+  const children = templateObject.children
+  delete templateObject.children
   generateElementCode.call(this, templateObject, parent, { ...options, ...{ holder: true } })
 
   parent = options.key ? `elms[${counter}][${options.key}]` : `elms[${counter}]`
@@ -159,8 +172,17 @@ const generateComponentCode = function (
   renderCode.push(`
     if(!${elm}) {
       ${elm} = (context.components && context.components['${templateObject.type}'] || component.___components['${templateObject.type}'] || (() => { console.log('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, ${parent}, component)
+      if (${elm}.___slots[0]) {
+        parent = ${elm}.___slots[0]
+        component = ${elm}
+      } else {
+        parent = ${elm}.___children[0]
+      }
     }
   `)
+
+  counter++
+  generateElementCode.call(this, { children }, false, { ...options })
 }
 
 const generateForLoopCode = function (templateObject, parent) {
@@ -210,14 +232,14 @@ const generateForLoopCode = function (templateObject, parent) {
     `)
   }
 
-  if (templateObject.type !== 'Element') {
-    generateComponentCode.call(ctx, templateObject, false, {
+  if (templateObject.type === 'Element' || templateObject.type === 'Slot') {
+    generateElementCode.call(ctx, templateObject, parent, {
       key: 'scope.key',
       component: 'scope.',
       forceEffect: false,
     })
   } else {
-    generateElementCode.call(ctx, templateObject, parent, {
+    generateComponentCode.call(ctx, templateObject, false, {
       key: 'scope.key',
       component: 'scope.',
       forceEffect: false,
@@ -248,10 +270,10 @@ const generateCode = function (templateObject, parent = false) {
       if (Object.keys(childTemplateObject).indexOf(':for') > -1) {
         generateForLoopCode.call(this, childTemplateObject, parent)
       } else {
-        if (childTemplateObject.type !== 'Element') {
-          generateComponentCode.call(this, childTemplateObject, parent)
-        } else {
+        if (childTemplateObject.type === 'Element' || childTemplateObject.type === 'Slot') {
           generateElementCode.call(this, childTemplateObject, parent)
+        } else {
+          generateComponentCode.call(this, childTemplateObject, parent)
         }
       }
     })

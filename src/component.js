@@ -120,6 +120,12 @@ const Component = (name = required('name'), config = required('config')) => {
     this.parent = parentComponent
 
     Object.defineProperties(this, {
+      type: {
+        value: name,
+        writable: false,
+        enumerable: true,
+        configurable: false,
+      },
       componentId: {
         value: createHumanReadableId(name),
         writable: false,
@@ -153,6 +159,13 @@ const Component = (name = required('name'), config = required('config')) => {
 
     Object.defineProperty(this, '___children', {
       value: code.render.apply(stage, [parentEl, this, code.context]),
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    })
+
+    Object.defineProperty(this, '___slots', {
+      value: this.___children.filter((child) => child.___isSlot),
       writable: false,
       enumerable: false,
       configurable: false,
