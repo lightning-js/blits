@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.15
+
+_23 oct 2023_
+
+- Added support for slots
+- Added support for defining custom keymapping
+- Improved error handling of the template parser
+
 ## v0.3.14
 
 _19 oct 2023_
