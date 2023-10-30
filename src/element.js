@@ -253,7 +253,7 @@ const Element = {
     // works for now
     prop = Object.keys(props).pop()
 
-    if (typeof value === 'string' && props[prop].endsWith('%')) {
+    if (typeof props[prop] === 'string' && props[prop].endsWith('%')) {
       transformations.percentage.call(this, props, prop)
     }
 
