@@ -19,7 +19,66 @@ import {default as Component, ComponentInstance} from './component'
 
 declare namespace Application {
 
-  interface Route {
+  interface Transition {
+    /**
+     * Name of the prop to transition (i.e. 'x', 'y', 'alpha', 'color')
+     */
+    prop: string,
+    /**
+     * Value the prop should transition to (i.e. 0, 100, '#223388')
+     */
+    value: any,
+    /**
+     * Duration of the transition in milliseconds, defaults to 300
+     */
+    duration?: number,
+    /**
+     * Easing function to apply to the transition
+     */
+    function?: string,
+    /**
+     * Delay before the transition starts in milliseconds
+     */
+    delay?: number
+  }
+
+  interface Before {
+    /**
+    * Name of the prop to set before the transition starts
+    */
+    prop: string,
+    /**
+     * Value the prop to set before the transition starts
+     */
+    value: any,
+  }
+
+  interface RouteTransition {
+    /**
+     * Setting or Array of Settings before new view enters into the router view
+     */
+    before: Before | Before[],
+    /**
+     * Transition or Array of Transitions for new view to enters into the router view
+     */
+    in: Transition | Transition[],
+    /**
+     * Transition or Array of Transitions for old view to leave the router view
+     */
+    out: Transition | Transition[],
+  }
+
+  type RouteTransitionFunction = (previousRoute: Route, currentRoute: Route) => RequireAtLeastOne<RouteTransition>
+
+  function Application(
+    config: Application.ApplicationConfig
+  ) : Application.ApplicationInstance
+
+  type RequireAtLeastOne<T> = {
+    [K in keyof T]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<keyof T, K>>>
+  }[keyof T]
+
+  type Route = {
     /**
      * URI path for the route
      */
@@ -27,7 +86,11 @@ declare namespace Application {
     /**
      * Component to load when activating the route
      */
-    component: typeof ComponentInstance
+    component: typeof ComponentInstance,
+    /**
+     * Transition configuration for the route
+     */
+    transition?: RequireAtLeastOne<RouteTransition> | RouteTransitionFunction
   }
 
   export interface ApplicationInstance extends ComponentInstance {}
@@ -46,7 +109,7 @@ declare namespace Application {
      * ]
      * ```
      */
-    routes: Route[]
+    routes?: Route[]
   }
 }
 
