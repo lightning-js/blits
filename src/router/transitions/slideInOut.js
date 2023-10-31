@@ -27,7 +27,7 @@ export default {
   },
   out: {
     prop: 'x',
-    value: 1920,
+    value: '100%',
     duration: 200,
   },
 }
