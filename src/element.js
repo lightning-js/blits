@@ -263,8 +263,11 @@ const Element = {
         easing:
           typeof value === 'object' ? ('function' in value ? value.function : 'ease') : 'ease',
       })
-
-      value.delay ? setTimeout(() => f.start(), value.delay) : f.start()
+      return new Promise((resolve) => {
+        value.delay
+          ? setTimeout(() => f.start().waitUntilStopped().then(resolve), value.delay)
+          : f.start().waitUntilStopped().then(resolve)
+      })
     }
   },
 }

@@ -15,29 +15,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import Component from '../component.js'
-import Router from '../router/router.js'
-
-let handler
-
-export default () =>
-  Component('RouterView', {
-    template: `
-      <Element w="100%" height="100%"></Element>
-    `,
-    hooks: {
-      ready() {
-        handler = () => Router.navigate.apply(this)
-        Router.navigate.apply(this)
-        window.addEventListener('hashchange', handler)
-      },
-      destroy() {
-        window.removeEventListener('hashchange', handler, false)
-      },
-    },
-    input: {
-      any(e) {
-        if (!this.navigating) this.parent.focus(e)
-      },
-    },
-  })
+export default {
+  before: {
+    prop: 'x',
+    value: '-100%',
+  },
+  in: {
+    prop: 'x',
+    value: 0,
+    duration: 200,
+  },
+  out: {
+    prop: 'x',
+    value: '100%',
+    duration: 200,
+  },
+}
