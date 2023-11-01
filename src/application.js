@@ -56,7 +56,9 @@ const Application = (config) => {
     }
 
     document.addEventListener('keydown', handler)
+  }
 
+  config.hooks.___ready = function () {
     Focus.set(this)
   }
 
