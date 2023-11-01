@@ -114,7 +114,7 @@ export const navigate = async function () {
 }
 
 const removeView = async (view, transition) => {
-  // apply tout transition
+  // apply out transition
   if (transition) {
     if (Array.isArray(transition)) {
       for (let i = 0; i < transition.length; i++) {
