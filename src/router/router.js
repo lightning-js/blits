@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { default as fadeInFadeOutTransition } from './transitions/fadeIn.js'
+import { default as fadeInFadeOutTransition } from './transitions/fadeInOut.js'
 
 let currentRoute
 
