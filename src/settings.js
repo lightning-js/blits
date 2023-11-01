@@ -18,7 +18,11 @@
 const settings = {
   ___settings: {},
   get(key, defaultValue = null) {
-    return (key in this.___settings && this.___settings[key]) || defaultValue
+    if (key in this.___settings) {
+      return this.___settings[key]
+    } else {
+      return defaultValue
+    }
   },
   set(key, value) {
     if (typeof key === 'object') {
