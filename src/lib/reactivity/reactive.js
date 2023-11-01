@@ -107,9 +107,8 @@ const reactiveDefineProperty = (target) => {
   return target
 }
 
-// maybe an options object?
-export const reactive = (target, type = 'proxy') => {
-  return type === 'proxy' ? reactiveProxy(target) : reactiveDefineProperty(target)
+export const reactive = (target, mode = 'Proxy') => {
+  return mode === 'defineProperty' ? reactiveDefineProperty(target) : reactiveProxy(target)
 }
 
 export const memo = (raw) => {

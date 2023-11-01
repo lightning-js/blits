@@ -35,6 +35,8 @@ import setupWatch from './lib/setup/watch.js'
 import { effect } from './lib/reactivity/effect.js'
 import { Log } from './lib/log.js'
 
+import Settings from './settings.js'
+
 const stage = {
   element,
 }
@@ -140,7 +142,7 @@ const Component = (name = required('name'), config = required('config')) => {
         configurable: false,
       },
       ___props: {
-        value: reactive(opts.props || {}),
+        value: reactive(opts.props || {}, Settings.get('reactivityMode')),
         writable: false,
         enumerable: false,
         configurable: false,
@@ -149,7 +151,8 @@ const Component = (name = required('name'), config = required('config')) => {
 
     Object.defineProperty(this, '___state', {
       value: reactive(
-        (config.state && typeof config.state === 'function' && config.state.apply(this)) || {}
+        (config.state && typeof config.state === 'function' && config.state.apply(this)) || {},
+        Settings.get('reactivityMode')
       ),
       writable: false,
       enumerable: false,
