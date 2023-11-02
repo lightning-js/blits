@@ -167,8 +167,8 @@ const Component = (name = required('name'), config = required('config')) => {
       configurable: false,
     })
 
-    Object.defineProperty(this, '___slots', {
-      value: this.___children.filter((child) => child.___isSlot),
+    Object.defineProperty(this, symbols.slots, {
+      value: this[symbols.children].filter((child) => child[symbols.isSlot]),
       writable: false,
       enumerable: false,
       configurable: false,

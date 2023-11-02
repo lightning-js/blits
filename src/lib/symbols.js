@@ -1,5 +1,4 @@
 export default {
-  children: Symbol('children'),
   currentView: Symbol('currentView'),
   computedKeys: Symbol('computedKeys'),
   destroy: Symbol('destroy'),
@@ -11,6 +10,7 @@ export default {
   level: Symbol('level'),
   methodKeys: Symbol('methodKeys'),
   propKeys: Symbol('propKeys'),
+  ready: Symbol('ready'),
   renderer: Symbol('renderer'),
   settings: Symbol('settings'),
   state: Symbol('state'),
@@ -22,14 +22,20 @@ export default {
   watchers: Symbol('watchers'),
   watchKeys: Symbol('watchKeys'),
 
-  /* following use global Symbol registry */
+  /* Utilizing the global Symbol registry for the following purposes */
 
-  // used in generated code
-  props: Symbol.for('props'),
-  // routes access in: https://github.com/lightning-js/blits-example-app/blob/1b4a89ae28c6e23a7a828cad3471bec8b61be704/src/App.js#L104
-  routes: Symbol.for('routes'),
-  // used in generated code
-  id: Symbol.for('id'),
-  // used in generated code
+  // Symbol 'children' utilized within generated code
+  children: Symbol.for('children'),
+  // Symbol 'components' utilized within generated code
   components: Symbol.for('components'),
+  // Symbol 'id' utilized within generated code
+  id: Symbol.for('id'),
+  // Symbol 'isSlot' utilized within generated code
+  isSlot: Symbol.for('isSlot'),
+  // Symbol 'props' utilized within generated code
+  props: Symbol.for('props'),
+  // Symbol 'routes' utilized in blits example app: https://github.com/lightning-js/blits-example-app/blob/master/src/App.js
+  routes: Symbol.for('routes'),
+  // Symbol 'slots' utilized within generated code
+  slots: Symbol.for('slots'),
 }

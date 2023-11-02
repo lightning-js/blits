@@ -19,6 +19,7 @@ import { renderer } from './launch.js'
 import colors from './lib/colors/colors.js'
 
 import { Log } from './lib/log.js'
+import symbols from './lib/symbols.js'
 
 const isTransition = (value) => {
   return typeof value === 'object' && 'transition' in value
@@ -174,8 +175,8 @@ const Element = {
     }
     this.initData = data
 
-    if (props.___isSlot) {
-      this.___isSlot = true
+    if (props[symbols.isSlot]) {
+      this[symbols.isSlot] = true
     }
 
     transformations.remap(props)

@@ -49,7 +49,7 @@ const Application = (config) => {
     document.removeEventListener('keydown', handler)
   }
 
-  config.hooks.___init = function () {
+  config.hooks[symbols.init] = function () {
     const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
 
     handler = (e) => {
@@ -60,7 +60,7 @@ const Application = (config) => {
     document.addEventListener('keydown', handler)
   }
 
-  config.hooks.___ready = function () {
+  config.hooks[symbols.ready] = function () {
     Focus.set(this)
   }
 
