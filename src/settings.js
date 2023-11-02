@@ -20,7 +20,11 @@ import symbols from './lib/symbols.js'
 const settings = {
   [symbols.settings]: {},
   get(key, defaultValue = null) {
-    return (key in this[symbols.settings] && this[symbols.settings][key]) || defaultValue
+    if (key in this.___settings) {
+      return this.___settings[key]
+    } else {
+      return defaultValue
+    }
   },
   set(key, value) {
     if (typeof key === 'object') {

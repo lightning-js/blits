@@ -174,6 +174,10 @@ const Element = {
     }
     this.initData = data
 
+    if (props.___isSlot) {
+      this.___isSlot = true
+    }
+
     transformations.remap(props)
     Object.keys(props).forEach((prop) => {
       if (transformations[prop]) {
@@ -249,7 +253,7 @@ const Element = {
     // works for now
     prop = Object.keys(props).pop()
 
-    if (typeof value === 'string' && props[prop].endsWith('%')) {
+    if (typeof props[prop] === 'string' && props[prop].endsWith('%')) {
       transformations.percentage.call(this, props, prop)
     }
 
@@ -259,8 +263,11 @@ const Element = {
         easing:
           typeof value === 'object' ? ('function' in value ? value.function : 'ease') : 'ease',
       })
-
-      value.delay ? setTimeout(() => f.start(), value.delay) : f.start()
+      return new Promise((resolve) => {
+        value.delay
+          ? setTimeout(() => f.start().waitUntilStopped().then(resolve), value.delay)
+          : f.start().waitUntilStopped().then(resolve)
+      })
     }
   },
 }

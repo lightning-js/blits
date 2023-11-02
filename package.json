@@ -1,12 +1,13 @@
 {
   "name": "@lightningjs/blits",
-  "version": "0.3.14",
+  "version": "0.3.15",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.cjs",
   "exports": {
     ".": "./index.js",
     "./vite": "./vite/index.js",
-    "./fontloader": "./src/fontLoader.js"
+    "./fontloader": "./src/fontLoader.js",
+    "./transitions": "./src/router/transitions/index.js"
   },
   "scripts": {
     "test": "c8 npm run test:run",
