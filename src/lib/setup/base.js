@@ -17,7 +17,7 @@
 
 import { renderer } from '../../launch.js'
 import Focus from '../../focus.js'
-import { to } from '../../router/router.js'
+import { to, currentRoute } from '../../router/router.js'
 import Image from '../../components/Image.js'
 import Circle from '../../components/Circle.js'
 import RouterView from '../../components/RouterView.js'
@@ -115,6 +115,9 @@ export default (component) => {
     $router: {
       value: {
         to,
+        get currentRoute() {
+          return currentRoute
+        },
       },
       writable: false,
       enumerable: true,

@@ -19,7 +19,11 @@ import { default as fadeInFadeOutTransition } from './transitions/fadeInOut.js'
 
 import symbols from '../lib/symbols.js'
 
-let currentRoute
+export let currentRoute
+
+export const getCurrentRoute = () => {
+  return currentRoute
+}
 
 import { Log } from '../lib/log.js'
 import Element from '../element.js'
@@ -34,18 +38,16 @@ export const matchHash = (path, routes = []) => {
       return r.path === path
     })
     .pop()
+  currentRoute = route
   return route
 }
 
 export const navigate = async function () {
   this.navigating = true
-
   if (this.parent[symbols.routes]) {
+    const previousRoute = currentRoute
     const hash = getHash()
     const route = matchHash(hash, this.parent[symbols.routes])
-
-    const previousRoute = currentRoute
-    currentRoute = route
 
     if (route) {
       // apply default transition if none specified
