@@ -15,11 +15,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import symbols from './lib/symbols.js'
+
 const settings = {
-  ___settings: {},
+  [symbols.settings]: {},
   get(key, defaultValue = null) {
-    if (key in this.___settings) {
-      return this.___settings[key]
+    if (key in this[symbols.settings]) {
+      return this[symbols.settings][key]
     } else {
       return defaultValue
     }
@@ -30,7 +32,7 @@ const settings = {
         this.set(k, key[k])
       })
     } else {
-      this.___settings[key] = value
+      this[symbols.settings][key] = value
     }
   },
 }

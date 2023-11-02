@@ -15,15 +15,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import symbols from './symbols.js'
+
 const cbs = {}
 
 export const emit = (hook, name, scope) => {
   cbs[name] && cbs[name][hook] && cbs[name][hook].apply(scope)
 }
 
+export const privateEmit = (hook, name, scope) => {
+  const symHook = symbols[hook]
+  cbs[name] && cbs[name][symHook] && cbs[name][symHook].apply(scope)
+}
+
 export const registerHooks = (hooks = {}, name) => {
   cbs[name] = {}
-  Object.keys(hooks).forEach((hook) => {
+  // Combines enumerable keys and symbol properties of the 'hooks' object
+  const hookKeys = [...Object.keys(hooks), ...Object.getOwnPropertySymbols(hooks)]
+  hookKeys.forEach((hook) => {
     if (typeof hooks[hook] === 'function') cbs[name][hook] = hooks[hook]
   })
 }

@@ -17,6 +17,8 @@
 
 import { default as fadeInFadeOutTransition } from './transitions/fadeInOut.js'
 
+import symbols from '../lib/symbols.js'
+
 let currentRoute
 
 import { Log } from '../lib/log.js'
@@ -38,9 +40,9 @@ export const matchHash = (path, routes = []) => {
 export const navigate = async function () {
   this.navigating = true
 
-  if (this.parent.___routes) {
+  if (this.parent[symbols.routes]) {
     const hash = getHash()
-    const route = matchHash(hash, this.parent.___routes)
+    const route = matchHash(hash, this.parent[symbols.routes])
 
     const previousRoute = currentRoute
     currentRoute = route
@@ -60,13 +62,13 @@ export const navigate = async function () {
       this.focus()
 
       // create a holder element for the new view
-      const holder = Element({ parent: this.___children[0] })
+      const holder = Element({ parent: this[symbols.children][0] })
       holder.populate({})
       holder.set('w', '100%')
       holder.set('h', '100%')
 
-      const view = route.component(this.___props, holder, this)
-      this.___children.push(view)
+      const view = route.component(this[symbols.props], holder, this)
+      this[symbols.children].push(view)
 
       // apply before settings to holder element
       if (route.transition.before) {
@@ -85,7 +87,7 @@ export const navigate = async function () {
       if (previousRoute) {
         // only animate when there is a previous route
         shouldAnimate = true
-        const oldView = this.___children.splice(1, 1).pop()
+        const oldView = this[symbols.children].splice(1, 1).pop()
         if (oldView) {
           removeView(oldView, route.transition.out)
         }
@@ -128,10 +130,10 @@ const removeView = async (view, transition) => {
   }
 
   // remove and cleanup
-  for (let i = 0; i < view.___children.length - 1; i++) {
-    if (view.___children[i] && view.___children[i].destroy) {
-      view.___children[i].destroy()
-      view.___children[i] = null
+  for (let i = 0; i < view[symbols.children].length - 1; i++) {
+    if (view[symbols.children][i] && view[symbols.children][i].destroy) {
+      view[symbols.children][i].destroy()
+      view[symbols.children][i] = null
     }
   }
   view.destroy()

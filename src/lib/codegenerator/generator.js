@@ -56,7 +56,7 @@ const generateElementCode = function (
 
   renderCode.push(`
     if(!${elm}) {
-      ${elm} = this.element({componentId: component.___id, parent: parent || 'root'})
+      ${elm} = this.element({componentId: component[Symbol.for('id')], parent: parent || 'root'})
     }
     const elementConfig${counter} = {}
   `)
@@ -67,14 +67,14 @@ const generateElementCode = function (
   Object.keys(templateObject).forEach((key) => {
     if (key === 'type') {
       if (templateObject[key] === 'Slot') {
-        renderCode.push(`elementConfig${counter}['___isSlot'] = true`)
+        renderCode.push(`elementConfig${counter}[Symbol.for('isSlot')] = true`)
       }
       return
     }
 
     if (key === 'slot') {
       renderCode.push(`
-        elementConfig${counter}['parent'] = component.___slots.filter(slot => slot.ref === '${templateObject.slot}').shift() || component.___slots[0] || parent
+        elementConfig${counter}['parent'] = component[Symbol.for('slots')].filter(slot => slot.ref === '${templateObject.slot}').shift() || component[Symbol.for('slots')][0] || parent
       `)
     }
 
@@ -120,7 +120,7 @@ const generateComponentCode = function (
   renderCode.push(`
     const cmp${counter} =
       (context.components && context.components['${templateObject.type}']) ||
-      component.___components['${templateObject.type}']
+      component[Symbol.for('components')]['${templateObject.type}']
   `)
 
   if ('key' in templateObject) {
@@ -152,7 +152,7 @@ const generateComponentCode = function (
     if (key === 'type') return
     if (isReactiveKey(key)) {
       this.effectsCode.push(`
-        ${elm}.___props['${key.substring(1)}'] = ${interpolate(
+        ${elm}[Symbol.for('props')]['${key.substring(1)}'] = ${interpolate(
         templateObject[key],
         options.component
       )}`)
@@ -171,12 +171,12 @@ const generateComponentCode = function (
 
   renderCode.push(`
     if(!${elm}) {
-      ${elm} = (context.components && context.components['${templateObject.type}'] || component.___components['${templateObject.type}'] || (() => { console.log('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, ${parent}, component)
-      if (${elm}.___slots[0]) {
-        parent = ${elm}.___slots[0]
+      ${elm} = (context.components && context.components['${templateObject.type}'] || component[Symbol.for('components')]['${templateObject.type}'] || (() => { console.log('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, ${parent}, component)
+      if (${elm}[Symbol.for('slots')][0]) {
+        parent = ${elm}[Symbol.for('slots')][0]
         component = ${elm}
       } else {
-        parent = ${elm}.___children[0]
+        parent = ${elm}[Symbol.for('children')][0]
       }
     }
   `)

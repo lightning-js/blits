@@ -15,6 +15,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import symbols from './lib/symbols.js'
+
 let focusedComponent = null
 
 export default {
@@ -42,10 +44,10 @@ export default {
         focusChain.reverse().forEach((component) => component.unfocus())
         componentWithInputEvent.focus()
       }
-      if (componentWithInputEvent.___inputEvents[key]) {
-        componentWithInputEvent.___inputEvents[key].call(componentWithInputEvent, event)
-      } else if (componentWithInputEvent.___inputEvents.any) {
-        componentWithInputEvent.___inputEvents.any.call(componentWithInputEvent, event)
+      if (componentWithInputEvent[symbols.inputEvents][key]) {
+        componentWithInputEvent[symbols.inputEvents][key].call(componentWithInputEvent, event)
+      } else if (componentWithInputEvent[symbols.inputEvents].any) {
+        componentWithInputEvent[symbols.inputEvents].any.call(componentWithInputEvent, event)
       }
     }
   },
@@ -53,9 +55,9 @@ export default {
 
 const walkChain = (components, key) => {
   if (
-    components[0].___inputEvents &&
-    (typeof components[0].___inputEvents[key] === 'function' ||
-      typeof components[0].___inputEvents.any === 'function')
+    components[0][symbols.inputEvents] &&
+    (typeof components[0][symbols.inputEvents][key] === 'function' ||
+      typeof components[0][symbols.inputEvents].any === 'function')
   ) {
     return components
   } else if (components[0].parent) {
