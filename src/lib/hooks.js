@@ -30,7 +30,9 @@ export const privateEmit = (hook, name, scope) => {
 
 export const registerHooks = (hooks = {}, name) => {
   cbs[name] = {}
-  Object.keys(hooks).forEach((hook) => {
+  // Combines enumerable keys and symbol properties of the 'hooks' object
+  const hookKeys = [...Object.keys(hooks), ...Object.getOwnPropertySymbols(hooks)]
+  hookKeys.forEach((hook) => {
     if (typeof hooks[hook] === 'function') cbs[name][hook] = hooks[hook]
   })
 }
