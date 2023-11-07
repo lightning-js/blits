@@ -118,6 +118,9 @@ export default (component) => {
         get currentRoute() {
           return currentRoute
         },
+        get routes() {
+          return component.prototype[Symbol.for('routes')]
+        },
       },
       writable: false,
       enumerable: true,

@@ -35,9 +35,4 @@ export default () =>
         window.removeEventListener('hashchange', handler, false)
       },
     },
-    input: {
-      any(e) {
-        if (!this.navigating) this.parent.focus(e)
-      },
-    },
   })
