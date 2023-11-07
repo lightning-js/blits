@@ -1,5 +1,6 @@
 {
-  "name": "l3-app",
+  "name": "{$appName}",
+  "package": "{$appPackage}",
   "version": "0.1.0",
   "description": "Lightning 3 App",
   "main": "index.js",
@@ -31,6 +32,6 @@
     "vite": "^4.0.4"
   },
   "dependencies": {
-    "@lightningjs/blits": "^0.3.15"
+    "@lightningjs/blits": "{$sdkVersion}"
   }
 }
