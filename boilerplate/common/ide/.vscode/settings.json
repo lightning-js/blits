@@ -1,10 +1,10 @@
 {
-  "editor.formatOnSave": true,
-  "editor.formatOnPaste": true,
+  "editor.formatOnSave": false,
   "eslint.validate": [
-    "javascript",
+    "javascript"
   ],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
-  }
+  },
+  "js/ts.implicitProjectConfig.checkJs": true
 }
