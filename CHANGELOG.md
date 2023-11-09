@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.4.0
+
+_9 nov 2023_
+
+- Fixed bug related to animating percentage based values
+- Added (customizable) navigation transitions to the router
+- Renamed `.eslintrc.js` to `.eslintrc.cjs` in boilerplate code to make linting work on new projects
+- Fixed issue in Settings when the default value was set to `false`
+- Replace underscored keys for private properties with Symbols
+- Added `keepAlive` option to the router (i.e. keeping a page in memory when navigating to a new page)
+- Introduced a `this.$trigger` function to force a reevaluation of a reactive value (without changing the value)
+- Exposed `currentRoute`, `routes` and `navigating` on the `this.$router` object
+- Upgraded to lates version of `@lightningjs/renderer` (v0.5.0)
+
 ## v0.3.15
 
 _23 oct 2023_
