@@ -15,7 +15,7 @@ console.log(defaultBanner)
 const fixturesBase = path.join(
   __dirname,
   '../boilerplate')
-console.log("Fixures base is", fixturesBase)
+
 /**
  * Prompt the user for input and capture their response using the prompts library.
  *
@@ -110,35 +110,6 @@ const validatePackageName = appPackageName => {
 }
 
 /**
- * Initialize an empty Git repository in the specified directory and copy a .gitignore file.
- *
- * @param {string} cwd - The current working directory where the Git repository will be created.
- * @param {string} fixturesBase - The base directory for fixtures.
- * @returns {Promise} A Promise that resolves when the Git initialization and file copying are completed successfully
- */
-const gitInit = (cwd, fixturesBase) => {
-  spinnerMsg.start('Initializing empty GIT repository')
-  let msg
-  return execa('git', ['init'], { cwd })
-    .then(({ stdout }) => (msg = stdout))
-    .then(() => {
-      return fs.copyFileSync(path.join(fixturesBase, 'common/git/.gitignore'), path.join(cwd, '.gitignore'))
-    })
-    .then(() => spinnerMsg.succeed(msg))
-    .catch(e => spinnerMsg.fail(`Error occurred while creating git repository\n\n${e}`))
-}
-
-/**
- * Display an error message and exit the program with an error status.
- *
- * @param {string} msg - The error message to display before exiting the program.
- */
-const exit = msg => {
-  spinnerMsg.fail(msg)
-  process.exit()
-}
-
-/**
  * Validate the specified folder path for correctness and existence.
  *
  * @param {string} folder - The folder path to validate.
@@ -201,6 +172,34 @@ const askESlint = () =>
 const askGitInit = () =>
   ask('toggle', 'configType', 'Enable gitInit', 'true', 'Yes', 'No').then(value => value)
 
+/**
+ * Initialize an empty Git repository in the specified directory and copy a .gitignore file.
+ *
+ * @param {string} cwd - The current working directory where the Git repository will be created.
+ * @param {string} fixturesBase - The base directory for fixtures.
+ * @returns {Promise} A Promise that resolves when the Git initialization and file copying are completed successfully
+ */
+const gitInit = (cwd, fixturesBase) => {
+  spinnerMsg.start('Initializing empty GIT repository')
+  let msg
+  return execa('git', ['init'], { cwd })
+    .then(({ stdout }) => (msg = stdout))
+    .then(() => {
+      return fs.copyFileSync(path.join(fixturesBase, 'common/git/.gitignore'), path.join(cwd, '.gitignore'))
+    })
+    .then(() => spinnerMsg.succeed(msg))
+    .catch(e => spinnerMsg.fail(`Error occurred while creating git repository\n\n${e}`))
+}
+
+/**
+ * Display an error message and exit the program with an error status.
+ *
+ * @param {string} msg - The error message to display before exiting the program.
+ */
+const exit = msg => {
+  spinnerMsg.fail(msg)
+  process.exit()
+}
 
 /**
  * This function execute sequence of steps to collect the input form the user
@@ -212,13 +211,11 @@ const askConfig = async () => {
     () => askAppName().then(appName => (config.appName = appName)),
     () => askPackageName(config.appName).then(appPackageName => (config.appPackageName = appPackageName)),
     () => askAppFolder(config.appName.appName).then(folder => (config.appFolder = folder)),
-    () =>
-      askTypeScript().then(
-        projectType =>
-          config.projectType = projectType.tsProject ? 'ts' : 'js'
-
-
-      ),
+    // () =>
+    //   askTypeScript().then(
+    //     projectType =>
+    //       config.projectType = projectType.tsProject ? 'ts' : 'js'
+    //   ),
     () => askESlint().then(eslint => (config.eslint = eslint)),
     () => askGitInit().then(gitInit => config.gitInit=gitInit),
     () => config
@@ -305,6 +302,27 @@ const addESlint = config => {
   // Copy IDE stuff from fixture base
   fs.copySync(path.join(config.fixturesBase, 'common/ide'), path.join(config.targetDir))
 
+// Copy and merge fixture specific package.json
+  const origPackageJson = JSON.parse(fs.readFileSync(path.join(config.targetDir, 'package.json')))
+  const eslintPackageJson = JSON.parse(
+    fs.readFileSync(path.join(config.fixturesBase, 'common/eslint/package.json'))
+  )
+  fs.writeFileSync(
+    path.join(config.targetDir, 'package.json'),
+    JSON.stringify(
+      {
+        ...origPackageJson,
+        ...eslintPackageJson,
+        devDependencies: {
+          ...(origPackageJson.devDependencies || {}),
+          ...(eslintPackageJson.devDependencies || {}),
+        },
+      },
+      null,
+      2
+    )
+  )
+
   return true
 }
 
@@ -312,7 +330,6 @@ const addESlint = config => {
  * This function Creates a L3 application
  */
 const createApp = config => {
-  console.log("Config inside createApp is", config)
   spinnerMsg.start('Creating Lightning App ' + config.appName.appName)
   return sequence([
     () => copyLightningFixtures(config).then(targetDir => (config.targetDir = targetDir)),
@@ -343,12 +360,14 @@ const copyLightningFixtures = config => {
     if (config.appFolder && fs.pathExistsSync(targetDir)) {
       exit('The target directory ' + targetDir + ' already exists')
     }
-    console.log("Project type is-------", config.projectType)
-    if (config.projectType === 'ts') {
-      fs.copySync(path.join(path.join(config.fixturesBase, 'ts'), 'default'), targetDir)
-    } else {
-      fs.copySync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir)
-    }
+    //this will be removed once ts support is added
+    fs.copySync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir)
+    //
+    // if (config.projectType === 'ts') {
+    //   fs.copySync(path.join(path.join(config.fixturesBase, 'ts'), 'default'), targetDir)
+    // } else {
+    //   fs.copySync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir)
+    // }
 
     resolve(targetDir)
   })
