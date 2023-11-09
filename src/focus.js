@@ -16,6 +16,7 @@
  */
 
 import symbols from './lib/symbols.js'
+import { navigating } from './router/router.js'
 
 let focusedComponent = null
 
@@ -36,6 +37,7 @@ export default {
     }
   },
   input(key, event) {
+    if (navigating === true) return
     const focusChain = walkChain([focusedComponent], key)
     const componentWithInputEvent = focusChain.shift()
 

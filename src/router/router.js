@@ -18,11 +18,14 @@
 import { default as fadeInFadeOutTransition } from './transitions/fadeInOut.js'
 
 import symbols from '../lib/symbols.js'
-
-let currentRoute
-
 import { Log } from '../lib/log.js'
 import Element from '../element.js'
+import Focus from '../focus.js'
+
+export let currentRoute
+export let navigating = false
+
+const cacheMap = new WeakMap()
 
 export const getHash = () => {
   return (document.location.hash || '/').replace(/^#/, '')
@@ -34,18 +37,16 @@ export const matchHash = (path, routes = []) => {
       return r.path === path
     })
     .pop()
+  if (route) currentRoute = route
   return route
 }
 
 export const navigate = async function () {
-  this.navigating = true
-
+  navigating = true
   if (this.parent[symbols.routes]) {
+    const previousRoute = currentRoute
     const hash = getHash()
     const route = matchHash(hash, this.parent[symbols.routes])
-
-    const previousRoute = currentRoute
-    currentRoute = route
 
     if (route) {
       // apply default transition if none specified
@@ -58,16 +59,20 @@ export const navigate = async function () {
         route.transition = route.transition(previousRoute, route)
       }
 
-      // set focus to te router view (that captures all input and prevents any user interaction during transition)
-      this.focus()
+      let holder
+      let { view, focus } = cacheMap.get(route) || {}
 
-      // create a holder element for the new view
-      const holder = Element({ parent: this[symbols.children][0] })
-      holder.populate({})
-      holder.set('w', '100%')
-      holder.set('h', '100%')
+      if (!view) {
+        // create a holder element for the new view
+        holder = Element({ parent: this[symbols.children][0] })
+        holder.populate({})
+        holder.set('w', '100%')
+        holder.set('h', '100%')
+        view = route.component(this[symbols.props], holder, this)
+      } else {
+        holder = view.wrapper
+      }
 
-      const view = route.component(this[symbols.props], holder, this)
       this[symbols.children].push(view)
 
       // apply before settings to holder element
@@ -89,7 +94,7 @@ export const navigate = async function () {
         shouldAnimate = true
         const oldView = this[symbols.children].splice(1, 1).pop()
         if (oldView) {
-          removeView(oldView, route.transition.out)
+          removeView(previousRoute, oldView, route.transition.out)
         }
       }
 
@@ -107,15 +112,15 @@ export const navigate = async function () {
       }
 
       // focus the new view
-      view.focus()
+      focus ? Focus.set(focus) : view.focus()
     } else {
       Log.error(`Route ${hash} not found`)
     }
   }
-  this.navigating = false
+  navigating = false
 }
 
-const removeView = async (view, transition) => {
+const removeView = async (route, view, transition) => {
   // apply out transition
   if (transition) {
     if (Array.isArray(transition)) {
@@ -129,15 +134,20 @@ const removeView = async (view, transition) => {
     }
   }
 
-  // remove and cleanup
-  for (let i = 0; i < view[symbols.children].length - 1; i++) {
-    if (view[symbols.children][i] && view[symbols.children][i].destroy) {
-      view[symbols.children][i].destroy()
-      view[symbols.children][i] = null
+  // cache the page when it's as 'keepAlive' instead of destroying
+  if (route.options && route.options.keepAlive === true) {
+    cacheMap.set(route, { view: view, focus: Focus.get() })
+  } else {
+    // remove and cleanup
+    for (let i = 0; i < view[symbols.children].length - 1; i++) {
+      if (view[symbols.children][i] && view[symbols.children][i].destroy) {
+        view[symbols.children][i].destroy()
+        view[symbols.children][i] = null
+      }
     }
+    view.destroy()
+    view = null
   }
-  view.destroy()
-  view = null
 }
 
 const setOrAnimate = (node, transition, shouldAnimate = true) => {

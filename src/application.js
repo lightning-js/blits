@@ -58,10 +58,9 @@ const Application = (config) => {
     }
 
     document.addEventListener('keydown', handler)
-  }
 
-  config.hooks[symbols.ready] = function () {
-    Focus.set(this)
+    // next tick
+    setTimeout(() => Focus.set(this))
   }
 
   const App = Component('App', config)

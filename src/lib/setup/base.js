@@ -17,7 +17,7 @@
 
 import { renderer } from '../../launch.js'
 import Focus from '../../focus.js'
-import { to } from '../../router/router.js'
+import { to, currentRoute, navigating } from '../../router/router.js'
 import Image from '../../components/Image.js'
 import Circle from '../../components/Circle.js'
 import RouterView from '../../components/RouterView.js'
@@ -26,6 +26,8 @@ import Text from '../../components/Text.js'
 import eventListeners from '../eventListeners.js'
 import { default as log, Log } from '../log.js'
 import symbols from '../symbols.js'
+
+import { trigger } from '../reactivity/effect.js'
 
 const shaders = {
   radius: 'radius',
@@ -115,6 +117,15 @@ export default (component) => {
     $router: {
       value: {
         to,
+        get currentRoute() {
+          return currentRoute
+        },
+        get routes() {
+          return component.prototype[symbols.routes]
+        },
+        get navigating() {
+          return navigating
+        },
       },
       writable: false,
       enumerable: true,
@@ -202,6 +213,15 @@ export default (component) => {
     },
     $log: {
       value: log('App'),
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    },
+    $trigger: {
+      value: function (key) {
+        // trigger with force set to true
+        trigger(this[symbols.originalState], key, true)
+      },
       writable: false,
       enumerable: false,
       configurable: false,
