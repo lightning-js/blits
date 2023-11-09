@@ -149,10 +149,15 @@ const Component = (name = required('name'), config = required('config')) => {
       },
     })
 
+    Object.defineProperty(this, symbols.originalState, {
+      value: (config.state && typeof config.state === 'function' && config.state.apply(this)) || {},
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    })
+
     Object.defineProperty(this, symbols.state, {
-      value: reactive(
-        (config.state && typeof config.state === 'function' && config.state.apply(this)) || {}
-      ),
+      value: reactive(this[symbols.originalState]),
       writable: false,
       enumerable: false,
       configurable: false,
@@ -183,8 +188,8 @@ const Component = (name = required('name'), config = required('config')) => {
     if (this[symbols.watchers]) {
       Object.keys(this[symbols.watchers]).forEach((watchKey) => {
         let old = this[watchKey]
-        effect(() => {
-          if (old !== this[watchKey]) {
+        effect((force = false) => {
+          if (old !== this[watchKey] || force === true) {
             this[symbols.watchers][watchKey].apply(this, [this[watchKey], old])
             old = this[watchKey]
           }

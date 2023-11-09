@@ -20,9 +20,10 @@ import { default as fadeInFadeOutTransition } from './transitions/fadeInOut.js'
 import symbols from '../lib/symbols.js'
 import { Log } from '../lib/log.js'
 import Element from '../element.js'
+import Focus from '../focus.js'
 
 export let currentRoute
-export let navigating
+export let navigating = false
 
 const cacheMap = new WeakMap()
 
@@ -58,11 +59,8 @@ export const navigate = async function () {
         route.transition = route.transition(previousRoute, route)
       }
 
-      // set focus to te router view (that captures all input and prevents any user interaction during transition)
-      this.focus()
-
       let holder
-      let view = cacheMap.get(route)
+      let { view, focus } = cacheMap.get(route) || {}
 
       if (!view) {
         // create a holder element for the new view
@@ -114,7 +112,7 @@ export const navigate = async function () {
       }
 
       // focus the new view
-      view.focus()
+      focus ? Focus.set(focus) : view.focus()
     } else {
       Log.error(`Route ${hash} not found`)
     }
@@ -138,9 +136,7 @@ const removeView = async (route, view, transition) => {
 
   // cache the page when it's as 'keepAlive' instead of destroying
   if (route.options && route.options.keepAlive === true) {
-    if (!cacheMap.get(route)) {
-      cacheMap.set(route, view)
-    }
+    cacheMap.set(route, { view: view, focus: Focus.get() })
   } else {
     // remove and cleanup
     for (let i = 0; i < view[symbols.children].length - 1; i++) {

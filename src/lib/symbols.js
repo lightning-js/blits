@@ -9,9 +9,11 @@ export default {
   _intervals: Symbol('_intervals'),
   level: Symbol('level'),
   methodKeys: Symbol('methodKeys'),
+  originalState: Symbol('originalState'),
   propKeys: Symbol('propKeys'),
   ready: Symbol('ready'),
   renderer: Symbol('renderer'),
+  routes: Symbol('routes'),
   settings: Symbol('settings'),
   state: Symbol('state'),
   stateKeys: Symbol('stateKeys'),
@@ -34,8 +36,6 @@ export default {
   isSlot: Symbol.for('isSlot'),
   // Symbol 'props' utilized within generated code
   props: Symbol.for('props'),
-  // Symbol 'routes' utilized in blits example app: https://github.com/lightning-js/blits-example-app/blob/master/src/App.js
-  routes: Symbol.for('routes'),
   // Symbol 'slots' utilized within generated code
   slots: Symbol.for('slots'),
 }
