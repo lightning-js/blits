@@ -193,15 +193,13 @@ const Element = {
     this.node = props.__textnode ? renderer.createTextNode(props) : renderer.createNode(props)
 
     if (props['@loaded']) {
-      const event = props.__textnode ? 'textLoaded' : 'txLoaded'
-      this.node.on(event, (el, { width: w, height: h }) => {
-        props['@loaded']({ w, h }, this)
+      this.node.on('loaded', (el, { type, dimensions }) => {
+        props['@loaded']({ w: dimensions.width, h: dimensions.height, type }, this)
       })
     }
 
     if (props['@error']) {
-      const event = props.__textnode ? 'textFailed' : 'txFailed'
-      this.node.on(event, (el, error) => {
+      this.node.on('failed', (el, error) => {
         props['@error'](error, this)
       })
     }
