@@ -68,7 +68,14 @@ export const navigate = async function () {
         holder.populate({})
         holder.set('w', '100%')
         holder.set('h', '100%')
-        view = route.component(this[symbols.props], holder, this)
+        view = await route.component(this[symbols.props], holder, this)
+        if (view[Symbol.toStringTag] === 'Module') {
+          if (view.default && typeof view.default === 'function') {
+            view = view.default(this[symbols.props], holder, this)
+          } else {
+            Log.error("Dynamic import doesn't have a default export or default is not a function")
+          }
+        }
       } else {
         holder = view.wrapper
       }
