@@ -20,7 +20,13 @@ Firstly, it's short, memorable and just has a nice ring to it.
 
 Finally it's a nerdy reference to the computer term "Bit Blits" commonly used in graphics processing, for rapidly moving a block of data into memory - quite similar to what Lightning is doing 🙂
 
+## Documentation
+
 Check out the [documentation](https://lightning-js.github.io/blits) to learn more.
+
+## Examples
+
+Check out the open source [Demo/Example app](https://github.com/lightning-js/blits-example-app) to see what Blits and Lightning are capable of and learn how to use Blits by example.
 
 ## Changelog
 
