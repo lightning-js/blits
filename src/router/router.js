@@ -76,6 +76,9 @@ export const navigate = async function () {
             Log.error("Dynamic import doesn't have a default export or default is not a function")
           }
         }
+        if (typeof view === 'function') {
+          view = view(this[symbols.props], holder, this)
+        }
       } else {
         holder = view.wrapper
       }
