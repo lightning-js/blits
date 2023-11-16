@@ -16,10 +16,10 @@
  */
 
 import { renderer } from './launch.js'
-import colors from './lib/colors/colors.js'
+import colors from '../../lib/colors/colors.js'
 
-import { Log } from './lib/log.js'
-import symbols from './lib/symbols.js'
+import { Log } from '../../lib/log.js'
+import symbols from '../../lib/symbols.js'
 
 const isTransition = (value) => {
   return typeof value === 'object' && 'transition' in value

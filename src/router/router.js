@@ -19,7 +19,7 @@ import { default as fadeInFadeOutTransition } from './transitions/fadeInOut.js'
 
 import symbols from '../lib/symbols.js'
 import { Log } from '../lib/log.js'
-import Element from '../element.js'
+import { stage } from '../launch.js'
 import Focus from '../focus.js'
 
 export let currentRoute
@@ -64,7 +64,7 @@ export const navigate = async function () {
 
       if (!view) {
         // create a holder element for the new view
-        holder = Element({ parent: this[symbols.children][0] })
+        holder = stage.element({ parent: this[symbols.children][0] })
         holder.populate({})
         holder.set('w', '100%')
         holder.set('h', '100%')

@@ -18,7 +18,7 @@
 import parser from './lib/templateparser/parser.js'
 import codegenerator from './lib/codegenerator/generator.js'
 
-import element from './element.js'
+import { stage } from './launch.js'
 
 import { createHumanReadableId, createInternalId } from './lib/componentId.js'
 import { registerHooks, emit, privateEmit } from './lib/hooks.js'
@@ -36,10 +36,6 @@ import { effect } from './lib/reactivity/effect.js'
 import { Log } from './lib/log.js'
 
 import symbols from './lib/symbols.js'
-
-const stage = {
-  element,
-}
 
 const required = (name) => {
   throw new Error(`Parameter ${name} is required`)

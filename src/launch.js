@@ -15,46 +15,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { MainRenderDriver, RendererMain, ThreadXRenderDriver } from '@lightningjs/renderer'
-// import RendererWorker from '@lightningjs/renderer/workers/renderer?worker'
 import Settings from './settings.js'
-import { initLog, Log } from './lib/log.js'
-
-// import coreExtensionModule from './fontLoader.js?importChunkUrl'
+import { initLog } from './lib/log.js'
+import { L3 } from './engines'
 
 export let renderer
+export const stage = {}
 
 export default (App, target, settings) => {
   Settings.set(settings)
 
   initLog()
 
-  const driver = new MainRenderDriver()
-  // settings.multithreaded === true
-  //   ? new ThreadXRenderDriver({
-  //       RendererWorker,
-  //     })
-  //   : new MainRenderDriver()
+  stage.element = L3.Element
 
-  renderer = new RendererMain(
-    {
-      appWidth: settings.w || 1920,
-      appHeight: settings.h || 1080,
-      coreExtensionModule: settings.fontLoader,
-    },
-    target,
-    driver
-  )
-
-  const initApp = () => {
-    let app = App()
-    app.quit = () => {
-      Log.info('Closing App')
-      app.destroy()
-      app = null
-      renderer = null
-    }
-  }
-
-  renderer.init().then(() => initApp())
+  renderer = L3.Launch(App, target, settings)
 }
