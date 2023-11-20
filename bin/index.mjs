@@ -1,16 +1,21 @@
 #!/usr/bin/env node
+import { green, bold } from 'kolorist';
+import path from 'path'
+import { dirname } from 'path'
+import { execa } from 'execa'
+import fs from 'fs-extra'
+import replaceInFile from 'replace-in-file'
+import prompts from 'prompts'
+import ora from 'ora'
+import { fileURLToPath } from 'url'
 
-const { green, bold } = require('kolorist')
-const prompts = require('prompts');
-const path = require('path')
-const execa = require('execa')
-const fs = require('fs-extra')
-const replaceInFile = require('replace-in-file')
-const spinner = require('ora')()
-
+const spinner = ora()
 const defaultBanner = 'Welcome to L3 App development'
 
 console.log(defaultBanner)
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const fixturesBase = path.join(
   __dirname,
@@ -38,7 +43,7 @@ const ask = (type, name, question, defaultAnswer = null, active = null, inactive
     active: active,
     inactive: inactive,
   })
-    .then(answers => answers);
+    .then(answers => answers)
 }
 
 /**
@@ -378,7 +383,7 @@ const copyLightningFixtures = config => {
  * after the creation of a L3 application is successfully completed.
  * @param {Object} config - The configuration object containing relevant details of the created application.
  */
-const done = (config) =>{
+const done = (config) => {
   console.log(
     '================================== ⚡️⚡️⚡️⚡️ ================================== '
   )
@@ -391,13 +396,15 @@ const done = (config) =>{
     '================================== ⚡️⚡️⚡️⚡️ ================================== ')
 }
 
+const createL3App = () => {
+  return new Promise(resolve => {
+    sequence([
+      askConfig,
+      config => createApp(config),
+      config => done(config),
+      config => resolve(config),
+    ])
+  })
+}
 
-return new Promise(resolve => {
-  sequence([
-
-    askConfig,
-    config => createApp(config),
-    config => done(config),
-    config => resolve(config),
-  ])
-})
+createL3App()
