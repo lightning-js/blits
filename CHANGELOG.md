@@ -1,5 +1,12 @@
 # Changelog
 
+# v0.4.1
+
+_13 nov 2023_
+
+- Added support for using dynamic import of components in routes
+- Added support for returning components in an async function / Promise in routes
+
 ## v0.4.0
 
 _9 nov 2023_
