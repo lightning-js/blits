@@ -25,7 +25,7 @@ The watcher function receives two arguments: the new value and the old value of 
       alpha: 0.2
     }
   },
-  watchers: {
+  watch: {
     alpha(value, oldValue) {
       if(value > oldValue) {
         // Execute some logic when the 'alpha' value increases
