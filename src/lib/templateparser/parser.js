@@ -19,7 +19,7 @@ import symbols from '../symbols.js'
 
 class TemplateParseError extends Error {
   constructor(message, name, context) {
-    super(`TemplateParseError ${message}`)
+    super(`TemplateParseError: ${message}`)
     this.name = name
     this.context = context
   }
@@ -41,9 +41,8 @@ export default (template = '') => {
   // main functions
   const parse = () => {
     template = clean(template)
-    parseLoop(parseEmptyTagStart)
-
     try {
+      parseLoop(parseEmptyTagStart)
       return format(tags)
     } catch (error) {
       if (error instanceof TemplateParseError) {
@@ -123,6 +122,10 @@ export default (template = '') => {
     const match = moveCursorOnMatch(tagEndRegex)
     if (match) {
       if (match[1] === '/>') {
+        if (currentTag[symbols.type] === 'closing') {
+          // 10 is arbitrary, just to show some context by moving the cursor back a bit
+          throw new TemplateParseError('InvalidClosingTag', template.slice(cursor - 10))
+        }
         currentTag[symbols.type] = 'self-closing'
         currentLevel-- // because it was parsed as opening tag before
       }
@@ -174,83 +177,94 @@ export default (template = '') => {
     return { name, value }
   }
 
-  // formatter
-  function format(data) {
+  // formating and validation
+
+  /*
+  validation rules:
+    #1: Every opening tag must have a corresponding closing tag at the same level. If a closing tag is encountered without
+        a preceding opening tag at the same level, or if an opening tag is not followed by a corresponding closing tag at
+        the same level, an error should be thrown.
+    #2: There must be exactly one top-level element (an element at level 0). This element may either be a self-closing
+        element or an opening tag followed by a closing tag. If more than one top-level element is encountered, an error
+        should be thrown.
+  */
+  const format = (parsedData) => {
     let stack = []
+    let rootElementDefined = false
     let output = { children: [] }
+    let currentParent = output
 
-    for (const item of data) {
-      const { type, [symbols.type]: __type, [symbols.level]: __level } = item
+    for (let i = 0; i < parsedData.length; i++) {
+      let element = parsedData[i]
 
-      // Check for unclosed tags
-      while (stack.length && stack[stack.length - 1][symbols.level] >= __level) {
-        const popped = stack.pop()
-        if (popped[symbols.type] === 'opening') {
-          throw new TemplateParseError('MismatchedClosingTag', `tag: ${popped.type || 'null'}`)
+      // Rule #1
+      if (element[symbols.level] === 0 && element[symbols.type] !== 'closing') {
+        if (rootElementDefined) {
+          throw new TemplateParseError('MultipleTopLevelTags', formatErrorContext(element))
         }
+        rootElementDefined = true
       }
 
-      // For closing tags, just pop the opening tag from stack and continue
-      if (__type === 'closing') {
-        let lastStackType = stack[stack.length - 1] ? stack[stack.length - 1].type : null
-
-        if (
-          stack.length === 0 ||
-          (type
-            ? lastStackType && lastStackType.toLowerCase() !== type.toLowerCase()
-            : lastStackType !== null)
-        ) {
-          throw new TemplateParseError('MismatchedClosingTag', `tag: ${type || 'null'}`)
+      // Rule #2
+      if (element[symbols.type] === 'opening') {
+        stack.push({
+          [symbols.level]: element[symbols.level],
+          [symbols.type]: element[symbols.type],
+          type: element.type,
+          parent: currentParent, // helps getting the previous parent when closing tag is encountered
+        })
+      } else if (element[symbols.type] === 'closing') {
+        const isStackEmpty = stack.length === 0
+        let isLevelMismatch = false
+        let isTagMismatch = false
+        if (!isStackEmpty) {
+          isLevelMismatch = stack[stack.length - 1][symbols.level] !== element[symbols.level]
+          isTagMismatch = stack[stack.length - 1].type !== element.type
         }
-        stack.pop()
-        continue
+
+        if (isStackEmpty || isLevelMismatch || isTagMismatch) {
+          throw new TemplateParseError('MismatchedClosingTag', formatErrorContext(element))
+        }
+
+        // when we remove the closing element from the stack, we should set
+        // the current parent to the parent of the closing element
+        const lastTag = stack.pop()
+        currentParent = lastTag.parent
       }
 
-      // Create a new item, copying properties but deleting __type and __level
-      const newItem = { ...item }
+      const newItem = { ...element }
       delete newItem[symbols.type]
       delete newItem[symbols.level]
 
-      if (__type === 'opening') {
-        newItem.children = []
-      }
-
-      // Find out where to insert this new item
-      let current = output.children
-      for (const stackItem of stack) {
-        if (stackItem.children) {
-          current = stackItem.children
+      // if it is an opening tag, add children[] to it and update current parent
+      if (element[symbols.type] === 'opening') {
+        // make sure the current opening tag has really a child element
+        if (i + 1 < parsedData.length && parsedData[i + 1][symbols.type] !== 'closing') {
+          newItem.children = []
         }
-      }
-
-      // Insert the item and push it to the stack
-      current.push(newItem)
-      stack.push(newItem)
-
-      // If this is a self-closing tag, immediately pop it off the stack
-      if (__type === 'self-closing') {
-        stack.pop()
+        currentParent.children.push(newItem)
+        currentParent = newItem
+      } else if (element[symbols.type] === 'self-closing') {
+        currentParent.children.push(newItem)
       }
     }
 
-    // Check for any remaining unclosed tags
-    for (const item of stack) {
-      if (item.__type === 'opening') {
-        throw new TemplateParseError('MismatchedClosingTag', `tag: ${item.type || 'null'}`)
-      }
+    // Check if all tags are closed (so stack should be empty)[Rule #1]
+    if (stack.length > 0) {
+      const unclosedTags = stack
+        .map((item) => {
+          return formatErrorContext(item)
+        })
+        .join(', ')
+      throw new TemplateParseError('UnclosedTags', unclosedTags)
     }
 
-    // Remove empty 'children' arrays
-    function removeEmptyChildren(obj, level = 0) {
-      if (Array.isArray(obj.children) && obj.children.length === 0 && level > 0) {
-        delete obj.children
-      }
-      if (obj.children) {
-        obj.children.forEach((child) => removeEmptyChildren(child, level + 1))
-      }
+    function formatErrorContext(element) {
+      return `${element.type || 'empty-tag'}[${element[symbols.type]}] at level ${
+        element[symbols.level]
+      }`
     }
 
-    removeEmptyChildren(output)
     return output
   }
 
