@@ -41,6 +41,10 @@ const shaders = {
   glitch: 'glitch',
 }
 
+const remap = {
+  rounded: 'radius',
+}
+
 export default (component) => {
   Object.defineProperties(component.prototype, {
     focus: {
@@ -101,9 +105,12 @@ export default (component) => {
     },
     shader: {
       value: function (type, args) {
-        if (type in shaders) {
+        const target = remap[type] || type
+        const shaders = renderer.driver.stage.shManager.getRegisteredEffects()
+
+        if (target in shaders) {
           return {
-            type: shaders[type],
+            type: target,
             props: args,
           }
         } else {
