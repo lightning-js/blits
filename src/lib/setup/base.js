@@ -29,19 +29,7 @@ import symbols from '../symbols.js'
 
 import { trigger } from '../reactivity/effect.js'
 
-const shaders = {
-  radius: 'radius',
-  rounded: 'radius',
-  border: 'border',
-  borderTop: 'borderTop',
-  borderBottom: 'borderBottom',
-  borderLeft: 'borderLeft',
-  borderRight: 'borderRight',
-  grayScale: 'grayscale',
-  glitch: 'glitch',
-}
-
-const remap = {
+const shaderAlias = {
   rounded: 'radius',
 }
 
@@ -105,7 +93,7 @@ export default (component) => {
     },
     shader: {
       value: function (type, args) {
-        const target = remap[type] || type
+        const target = shaderAlias[type] || type
         const shaders = renderer.driver.stage.shManager.getRegisteredEffects()
 
         if (target in shaders) {
