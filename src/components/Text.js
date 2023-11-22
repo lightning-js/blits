@@ -31,7 +31,7 @@ export default () =>
         letterSpacing="$letterspacing"
         stretch="$stretch"
         contain="$_contain"
-        :w="$w"
+        :wordWrap="$wordwrap"
         :h="$h"
         :textAlign="$align"
         @loaded="$@loaded"
@@ -54,7 +54,7 @@ export default () =>
       'letterspacing',
       'stretch',
       'align',
-      'w',
+      'wordwrap',
       'h',
       'contain',
       '@loaded',
@@ -62,7 +62,7 @@ export default () =>
     ],
     computed: {
       _contain() {
-        return this.contain || (this.w && this.h ? 'both' : this.w ? 'width' : 'none')
+        return this.contain || (this.wordwrap && this.h ? 'both' : this.wordwrap ? 'width' : 'none')
       },
     },
   })

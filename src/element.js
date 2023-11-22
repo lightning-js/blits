@@ -54,6 +54,8 @@ const transformations = {
     delete props.h
     'z' in props && (props.zIndex = props.z)
     delete props.z
+    'wordWrap' in props && (props.width = props.wordWrap)
+    delete props.wordWrap
   },
   parent(props) {
     if (props.parent === 'root') {
