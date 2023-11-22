@@ -32,7 +32,7 @@ export default () =>
         stretch="$stretch"
         contain="$_contain"
         :wordWrap="$wordwrap"
-        :h="$h"
+        :maxLines="$maxlines"
         :textAlign="$align"
         @loaded="$@loaded"
         @error="$@error"
@@ -55,14 +55,17 @@ export default () =>
       'stretch',
       'align',
       'wordwrap',
-      'h',
+      'maxlines',
       'contain',
       '@loaded',
       '@error',
     ],
     computed: {
       _contain() {
-        return this.contain || (this.wordwrap && this.h ? 'both' : this.wordwrap ? 'width' : 'none')
+        return (
+          this.contain ||
+          (this.wordwrap && this.maxlines ? 'both' : this.wordwrap ? 'width' : 'none')
+        )
       },
     },
   })

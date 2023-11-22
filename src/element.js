@@ -163,6 +163,12 @@ const transformations = {
   texture(props, setProperties) {
     this.src(props, setProperties)
   },
+  maxLines(props, setProperties, element) {
+    if (props.maxLines) {
+      props.height = props.maxLines * element.node.fontSize
+    }
+    delete props.maxLines
+  },
 }
 
 const Element = {
@@ -219,7 +225,7 @@ const Element = {
 
       transformations.remap(props)
       if (transformations[prop]) {
-        transformations[prop](props, this.setProperties)
+        transformations[prop](props, this.setProperties, this)
       }
 
       Object.keys(props).forEach((prop) => {
