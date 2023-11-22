@@ -947,3 +947,102 @@ test('Parse template with attribute values with delimited either single or doubl
   assert.deepEqual(actual, expected, 'Parser should return object representation of template')
   assert.end()
 })
+
+test('Parse template with multiple top level elements and parsing should fail', (assert) => {
+  const template = `
+  <Component>
+    <Element
+      w='160' h="160" x='40' y='40' color="#fb923c"
+      :effects='[$shader(
+        "radius",
+        {radius: 44}
+      )]'
+    />
+  </Component>
+  <Component>
+    <Element
+      w='120' h="120"
+      x='100' y="100"
+      :effects="[
+        $shader(
+          'radius',
+          {
+            radius: 45
+          }
+        )
+      ]"
+    />
+  </Component>`
+
+  const actual = parser(template)
+  assert.equal(actual, null, 'Parser should throw an error')
+
+  assert.end()
+})
+
+test('Parse template with unclosed tag and parsing should fail', (assert) => {
+  const template = `
+  <Component>
+    <Element>
+  </Component>
+  `
+
+  const actual = parser(template)
+  assert.equal(actual, null, 'Parser should throw an error')
+  assert.end()
+})
+
+test('Parse template with multiple unclosed tags and parsing should fail', (assert) => {
+  const template = `
+  <Component>
+    <Element>
+      <Button />
+      <Text>Lorem Ipsum</Text>
+      <Element>
+        <Button />
+        <Text>Lorem Ipsum</Text>
+  </Component>
+  `
+
+  const actual = parser(template)
+  assert.equal(actual, null, 'Parser should throw an error')
+  assert.end()
+})
+
+test('Parse template with an invalid closing tag and parsing should fail', (assert) => {
+  const template = `
+  <Component>
+    <Element>
+    </Element/>
+  </Component>
+  `
+
+  const actual = parser(template)
+  assert.equal(actual, null, 'Parser should throw an error')
+
+  assert.end()
+})
+
+test('Parse template with multiple self-closing tags at the top level and parsing should fail', (assert) => {
+  const template = `
+  <Component/>
+  <Element/>
+  `
+
+  const actual = parser(template)
+  assert.equal(actual, null, 'Parser should throw an error')
+  assert.end()
+})
+
+test('Parse template with a closing tag at the beginning and parsing should fail', (assert) => {
+  const template = `
+  </Element>
+  <Component>
+    <Element/>
+  </Component>
+  `
+
+  const actual = parser(template)
+  assert.equal(actual, null, 'Parser should throw an error')
+  assert.end()
+})
