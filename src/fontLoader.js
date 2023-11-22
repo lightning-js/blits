@@ -1,3 +1,3 @@
-import { L3 as engine } from './engines'
+import engine from './engine.js'
 
 export default engine.fontLoader

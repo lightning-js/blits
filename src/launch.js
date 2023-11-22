@@ -17,7 +17,7 @@
 
 import Settings from './settings.js'
 import { initLog } from './lib/log.js'
-import { L3 as engine } from './engines'
+import engine from './engine.js'
 
 export let renderer
 export const stage = {}
