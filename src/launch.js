@@ -17,7 +17,7 @@
 
 import Settings from './settings.js'
 import { initLog } from './lib/log.js'
-import { L3 } from './engines'
+import { L3 as engine } from './engines'
 
 export let renderer
 export const stage = {}
@@ -27,7 +27,7 @@ export default (App, target, settings) => {
 
   initLog()
 
-  stage.element = L3.Element
+  stage.element = engine.Element
 
-  renderer = L3.Launch(App, target, settings)
+  renderer = engine.Launch(App, target, settings)
 }

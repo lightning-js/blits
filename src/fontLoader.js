@@ -1,3 +1,3 @@
-import { L3 } from './engines'
+import { L3 as engine } from './engines'
 
-export default L3.fontLoader
+export default engine.fontLoader
