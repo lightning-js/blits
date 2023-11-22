@@ -1,5 +1,12 @@
 # Changelog
 
+# v0.4.2
+
+_22 nov 2023_
+
+- Improved parser and added more template validation (i.e. one single root element in a template)
+- Fixed typo in documentation
+
 # v0.4.1
 
 _13 nov 2023_
