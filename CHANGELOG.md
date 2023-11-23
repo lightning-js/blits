@@ -1,5 +1,11 @@
 # Changelog
 
+# v0.5.0
+
+_23 nov 2023_
+
+- Introduced `wordwrap` and `maxlines` attributes on the Text-component, replacing the previous `w` and `h` attributes (breaking change!)
+
 # v0.4.2
 
 _22 nov 2023_
