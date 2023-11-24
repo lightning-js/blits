@@ -1,5 +1,11 @@
-# Blits - Lightning 3 App Development Framework
-
+---
+prev:
+  text: Handling user input
+  link: user_input
+next:
+  text: Watching for changes
+  link: watchers
+---
 ## Computed properties
 
 So far we've learned how to utilize internal state variables and props passed by a parent in (the template of) our component.

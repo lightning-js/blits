@@ -1,12 +1,19 @@
-# Blits - Lightning 3 App Development Framework
+---
+prev:
+  text: Component state
+  link: component_state
+next:
+  text: Props
+  link: props
+---
 
-## Hooking into Lifecycle Events
+# Hooking into Lifecycle Events
 
 In Blits, components follow a defined flow of lifecycle events. Developers can integrate their logic into these events by specifying them in the `hooks` key of the Component configuration object.
 
 For each available lifecycle event, you can define a function with the same name as the event itself. This function will execute each time the event is triggered for your component's instance. It's essential to use a regular function instead of an arrow function if you intend to access the `this` scope of your component instance.
 
-### Lifecycle Events
+## Lifecycle Events
 
 - **init()**: This event fires when the component is instantiated, just before it sends its render instructions to the Lightning renderer. At this point, the elements of your template won't be available yet.
 
@@ -18,7 +25,7 @@ For each available lifecycle event, you can define a function with the same name
 
 - **destroy()**: The `destroy` event fires when the component is being destroyed and removed. This event provides an opportunity to perform any custom cleanup operations before the component is removed.
 
-### Example
+## Example
 
 ```javascript
 {

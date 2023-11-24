@@ -1,6 +1,13 @@
-# Blits - Lightning 3 App Development Framework
+---
+prev:
+  text: Components
+  link: components
+next:
+  text: Component State
+  link: component_state
+---
 
-## Template structure
+# Template structure
 
 Blits uses an easy-to-read XML-style template syntax. The syntax is inspired by frameworks like VueJS, so developers familiar with Vue will recognize certain concepts.
 

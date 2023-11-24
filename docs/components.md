@@ -1,13 +1,20 @@
-# Blits - Lightning 3 App Development Framework
+---
+prev:
+  text: Getting Started
+  link: getting_started
+next:
+  text: Template syntax
+  link: template_syntax
+---
 
-## Building Your First Component
+# Building Your First Component
 
 Components in Blits follow a clearly defined structure, which helps keep your code clean and guides you to quickly build your components.
 
 This universal structure is also valuable for the interoperability of components.
 
 
-### Creating a new Component
+## Creating a new Component
 
 Let's see how to create a new component and explore the basic anatomy of a component.
 

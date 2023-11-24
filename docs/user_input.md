@@ -1,12 +1,19 @@
-# Blits - Lightning 3 App Development Framework
+---
+prev:
+  text: Props
+  link: props
+next:
+  text: Computed properties
+  link: computed_properties
+---
 
-## Handling User Input
+# Handling User Input
 
 You don't want your Lightning 3 App to be completely static, instead users should be able to navigate and interact with the app, often using devices like a remote control.
 
 Blits offers a straightforward interface to handle user input for each component.
 
-### Configuring Input Handling
+## Configuring Input Handling
 
 Within the Component configuration object, the `input` key is utilized to define how the component should react to specific key presses when it has focus. It should contain an object of functions that specify the actions to take based on key presses.
 
@@ -28,7 +35,7 @@ Each function should correspond to a key name, such as `up`, `down`, `enter`, `s
 }
 ```
 
-### Event Handling Chain
+## Event Handling Chain
 
 If the currently focused component does not handle a key press, the framework will traverse up the component hierarchy, checking if any parent components have defined functions for that key press in their `input`-object. This event handling chain continues until it reaches the root Application.
 
