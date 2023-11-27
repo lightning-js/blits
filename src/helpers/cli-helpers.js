@@ -6,10 +6,6 @@ import replaceInFile from 'replace-in-file'
 import ora from 'ora'
 const spinner = ora()
 
-const defaultBanner = 'Welcome to L3 App development'
-
-console.log(defaultBanner)
-
 /**
  * This function copies Lightning fixtures to the target directory for creating a L3 application.
  */

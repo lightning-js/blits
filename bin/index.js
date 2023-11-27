@@ -48,14 +48,14 @@ const questions = [
     message: 'Specify the location for the app to be created',
     initial: prev => prev
   },
-  {
-    type: 'toggle',
-    name: 'tsProject',
-    message: 'Do you want to create typescript project',
-    initial: '',
-    active: 'Yes',
-    inactive: 'No'
-  },
+  // {
+  //   type: 'toggle',
+  //   name: 'tsProject',
+  //   message: 'Do you want to create typescript project',
+  //   initial: '',
+  //   active: 'Yes',
+  //   inactive: 'No'
+  // },
   {
     type: 'toggle',
     name: 'esLint',
@@ -92,7 +92,7 @@ const createL3App = () => {
         config = await prompts(questions)
         config.fixturesBase = fixturesBase
       },
-      ()=> copyLightningFixtures(config).then(targetDir => (config.targetDir = targetDir)),
+      () => copyLightningFixtures(config).then(targetDir => (config.targetDir = targetDir)),
       () => setAppData(config),
       () => setBlitsVersion(config),
       () => config.esLint && addESlint(config),
