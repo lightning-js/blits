@@ -248,6 +248,12 @@ const Element = {
     return this.initData.ref || null
   },
   animate(prop, value) {
+    // if (prop in this.scheduledTransitions) {
+    if (this.scheduledTransitions[prop]) {
+      this.scheduledTransitions[prop].f.stop()
+      clearTimeout(this.scheduledTransitions[prop].timeout)
+    }
+
     const props = {}
     props[prop] = transformations.unpackTransition(value)
 
@@ -271,9 +277,15 @@ const Element = {
           typeof value === 'object' ? ('function' in value ? value.function : 'ease') : 'ease',
       })
       return new Promise((resolve) => {
-        value.delay
-          ? setTimeout(() => f.start().waitUntilStopped().then(resolve), value.delay)
-          : f.start().waitUntilStopped().then(resolve)
+        this.scheduledTransitions[prop] = {
+          f,
+          timeout: setTimeout(() => {
+            f.start()
+              .waitUntilStopped()
+              .then(() => delete this.scheduledTransitions[prop])
+              .then(resolve)
+          }, value.delay || 0),
+        }
       })
     }
   },
@@ -283,6 +295,7 @@ export default (config) =>
   Object.assign(Object.create(Element), {
     node: null,
     setProperties: [],
+    scheduledTransitions: {},
     initData: {},
     config,
   })
