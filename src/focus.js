@@ -20,22 +20,37 @@ import { navigating } from './router/router.js'
 
 let focusedComponent = null
 let focusChain = []
+let setFocusTimeout
 
 export default {
+  _hold: false,
+  set hold(v) {
+    this._hold = v
+  },
+  get hold() {
+    return this._hold
+  },
   get() {
     return focusedComponent
   },
   set(component, event) {
+    clearTimeout(setFocusTimeout)
+    focusedComponent && focusedComponent.unfocus()
+    focusChain.reverse().forEach((cmp) => cmp.unfocus())
     if (component !== focusedComponent) {
-      focusedComponent && focusedComponent.unfocus()
-      focusChain.reverse().forEach((cmp) => cmp.unfocus())
-      focusedComponent = component
-      focusedComponent.lifecycle.state = 'focus'
-      if (event instanceof KeyboardEvent) {
-        document.dispatchEvent(new KeyboardEvent('keydown', event))
-      } else {
-        focusChain = []
-      }
+      setFocusTimeout = setTimeout(
+        () => {
+          focusedComponent = component
+          focusedComponent.lifecycle.state = 'focus'
+          if (event instanceof KeyboardEvent) {
+            document.dispatchEvent(new KeyboardEvent('keydown', event))
+          } else {
+            focusChain = []
+          }
+        },
+        // todo: make the hold timeout configurable?
+        this.hold ? 50 : 0
+      )
     }
   },
   input(key, event) {
