@@ -10,7 +10,7 @@ import {
   setAppData,
   setBlitsVersion,
   gitInit,
-  done
+  done, spinnerMsg
 } from '../src/helpers/cli-helpers.js'
 
 let config
@@ -72,16 +72,16 @@ const questions = [
     active: 'Yes',
     inactive: 'No',
   },
-  {
-    type: 'select',
-    name: 'config',
-    message: 'Select config',
-    choices: [
-      { title: 'EsLint', value: 'eslintPrettier' },
-      // { title: 'EsLint+Prettier', value: 'eslintPrettier' }
-      // { title: 'Eslint+Airbnb', value: 'eslintAirbnb' },
-    ],
-  }
+  // {
+  //   type: 'select',
+  //   name: 'config',
+  //   message: 'Select config',
+  //   choices: [
+  //     { title: 'EsLint', value: 'eslintPrettier' },
+  //     // { title: 'EsLint+Prettier', value: 'eslintPrettier' }
+  //     // { title: 'Eslint+Airbnb', value: 'eslintAirbnb' },
+  //   ],
+  // }
 ]
 
 
@@ -92,7 +92,10 @@ const createL3App = () => {
         config = await prompts(questions)
         config.fixturesBase = fixturesBase
       },
-      () => copyLightningFixtures(config).then(targetDir => (config.targetDir = targetDir)),
+      () => {
+        spinnerMsg.start(`Creating Lightning 3 application with name ${config.appName}`)
+        return copyLightningFixtures(config).then(targetDir => (config.targetDir = targetDir))
+      },
       () => setAppData(config),
       () => setBlitsVersion(config),
       () => config.esLint && addESlint(config),
