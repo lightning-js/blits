@@ -248,10 +248,13 @@ const Element = {
     return this.initData.ref || null
   },
   animate(prop, value) {
-    // if (prop in this.scheduledTransitions) {
     if (this.scheduledTransitions[prop]) {
-      this.scheduledTransitions[prop].f.stop()
       clearTimeout(this.scheduledTransitions[prop].timeout)
+      if (this.scheduledTransitions[prop].f.state === 'running') {
+        this.scheduledTransitions[prop].f.pause()
+        // fastforward to final value
+        this.node[prop] = this.scheduledTransitions[prop].v
+      }
     }
 
     const props = {}
@@ -278,6 +281,7 @@ const Element = {
       })
       return new Promise((resolve) => {
         this.scheduledTransitions[prop] = {
+          v: props[prop],
           f,
           timeout: setTimeout(() => {
             f.start()
