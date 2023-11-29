@@ -1,5 +1,13 @@
 # Changelog
 
+# v0.5.1
+
+_29 nov 2023_
+
+- Fixed issue with unexpected unfocus
+- Added fastforward of transitions on the same property
+- Added functionality to skip focus change on key hold
+
 # v0.5.0
 
 _23 nov 2023_
