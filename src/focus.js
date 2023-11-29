@@ -19,33 +19,46 @@ import symbols from './lib/symbols.js'
 import { navigating } from './router/router.js'
 
 let focusedComponent = null
+let focusChain = []
+let setFocusTimeout
 
 export default {
+  _hold: false,
+  set hold(v) {
+    this._hold = v
+  },
+  get hold() {
+    return this._hold
+  },
   get() {
     return focusedComponent
   },
   set(component, event) {
+    clearTimeout(setFocusTimeout)
+    focusedComponent && focusedComponent.unfocus()
+    focusChain.reverse().forEach((cmp) => cmp.unfocus())
     if (component !== focusedComponent) {
-      if (focusedComponent && focusedComponent !== component.parent) {
-        focusedComponent.unfocus()
-      }
-      focusedComponent = component
-      focusedComponent.lifecycle.state = 'focus'
-      if (event instanceof KeyboardEvent) {
-        document.dispatchEvent(new KeyboardEvent('keydown', event))
-      }
+      setFocusTimeout = setTimeout(
+        () => {
+          focusedComponent = component
+          focusedComponent.lifecycle.state = 'focus'
+          if (event instanceof KeyboardEvent) {
+            document.dispatchEvent(new KeyboardEvent('keydown', event))
+          } else {
+            focusChain = []
+          }
+        },
+        // todo: make the hold timeout configurable?
+        this.hold ? 50 : 0
+      )
     }
   },
   input(key, event) {
     if (navigating === true) return
-    const focusChain = walkChain([focusedComponent], key)
+    focusChain = walkChain([focusedComponent], key)
     const componentWithInputEvent = focusChain.shift()
 
     if (componentWithInputEvent) {
-      if (componentWithInputEvent !== focusedComponent) {
-        focusChain.reverse().forEach((component) => component.unfocus())
-        componentWithInputEvent.focus()
-      }
       if (componentWithInputEvent[symbols.inputEvents][key]) {
         componentWithInputEvent[symbols.inputEvents][key].call(componentWithInputEvent, event)
       } else if (componentWithInputEvent[symbols.inputEvents].any) {

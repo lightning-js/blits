@@ -1,5 +1,26 @@
 # Changelog
 
+# v0.5.1
+
+_29 nov 2023_
+
+- Fixed issue with unexpected unfocus
+- Added fastforward of transitions on the same property
+- Added functionality to skip focus change on key hold
+
+# v0.5.0
+
+_23 nov 2023_
+
+- Introduced `wordwrap` and `maxlines` attributes on the Text-component, replacing the previous `w` and `h` attributes (breaking change!)
+
+# v0.4.2
+
+_22 nov 2023_
+
+- Improved parser and added more template validation (i.e. one single root element in a template)
+- Fixed typo in documentation
+
 # v0.4.1
 
 _13 nov 2023_
