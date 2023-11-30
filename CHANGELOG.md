@@ -1,4 +1,10 @@
 # Changelog
+# v0.5.2
+
+_30 nov 2023_
+
+- Fixed issue in code generator leading to creation unnecessary child nodes
+- Added focus handler to router view (that passes focus to the current active page)
 
 # v0.5.1
 
