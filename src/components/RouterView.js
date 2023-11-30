@@ -25,6 +25,11 @@ export default () =>
     template: `
       <Element w="100%" height="100%"></Element>
     `,
+    state() {
+      return {
+        activeView: null,
+      }
+    },
     hooks: {
       ready() {
         handler = () => Router.navigate.apply(this)
@@ -33,6 +38,9 @@ export default () =>
       },
       destroy() {
         window.removeEventListener('hashchange', handler, false)
+      },
+      focus() {
+        this.activeView && this.activeView.focus()
       },
     },
   })
