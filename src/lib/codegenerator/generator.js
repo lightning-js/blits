@@ -182,7 +182,9 @@ const generateComponentCode = function (
   `)
 
   counter++
-  generateElementCode.call(this, { children }, false, { ...options })
+  if (children) {
+    generateElementCode.call(this, { children }, false, { ...options })
+  }
 }
 
 const generateForLoopCode = function (templateObject, parent) {
