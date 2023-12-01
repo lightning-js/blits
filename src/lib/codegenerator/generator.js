@@ -181,7 +181,7 @@ const generateComponentCode = function (
     }
   `)
 
-  counter++
+  // counter++
   if (children) {
     generateElementCode.call(this, { children }, false, { ...options })
   }
