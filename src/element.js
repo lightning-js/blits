@@ -284,9 +284,17 @@ const Element = {
           v: props[prop],
           f,
           timeout: setTimeout(() => {
+            value.start &&
+              typeof value.start === 'function' &&
+              value.start.call(this.component, this, prop, props[prop])
             f.start()
               .waitUntilStopped()
               .then(() => delete this.scheduledTransitions[prop])
+              .then(() => {
+                value.end &&
+                  typeof value.end === 'function' &&
+                  value.end.call(this.component, this, prop, props[prop])
+              })
               .then(resolve)
           }, value.delay || 0),
         }
@@ -295,11 +303,12 @@ const Element = {
   },
 }
 
-export default (config) =>
+export default (config, component) =>
   Object.assign(Object.create(Element), {
     node: null,
     setProperties: [],
     scheduledTransitions: {},
     initData: {},
     config,
+    component,
   })

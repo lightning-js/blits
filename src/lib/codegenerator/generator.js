@@ -56,7 +56,7 @@ const generateElementCode = function (
 
   renderCode.push(`
     if(!${elm}) {
-      ${elm} = this.element({componentId: component[Symbol.for('id')], parent: parent || 'root'})
+      ${elm} = this.element({componentId: component[Symbol.for('id')], parent: parent || 'root'}, component)
     }
     const elementConfig${counter} = {}
   `)
