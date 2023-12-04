@@ -51,7 +51,6 @@ export const navigate = async function () {
 
     if (route) {
       if (history[history.length - 1] !== hash) history.push(hash)
-      console.log(history)
       // apply default transition if none specified
       if (!('transition' in route)) {
         route.transition = fadeInFadeOutTransition
