@@ -216,6 +216,7 @@ const generateForLoopCode = function (templateObject, parent) {
     const keys = []
     for(let __index = 0; __index < collection.length; __index++) {
       parent = ${parent}
+      if(!component.key) keys.length = 0
       const scope = Object.assign(component, {
         key: Math.random(),
         ${index}: __index,
