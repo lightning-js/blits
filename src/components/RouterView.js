@@ -43,4 +43,9 @@ export default () =>
         this.activeView && this.activeView.focus()
       },
     },
+    input: {
+      back(e) {
+        if (!Router.back()) this.parent.focus(e)
+      },
+    },
   })
