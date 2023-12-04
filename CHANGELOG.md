@@ -1,4 +1,11 @@
 # Changelog
+
+# v0.5.3
+
+_4 dec 2023_
+
+- Added transition `start` and tranition `end` callbacks
+
 # v0.5.2
 
 _30 nov 2023_
