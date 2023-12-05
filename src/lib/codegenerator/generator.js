@@ -93,7 +93,7 @@ const generateElementCode = function (
     renderCode.push(`
     if(typeof cmp${counter} !== 'undefined') {
       for(key in cmp${counter}.config.props) {
-        delete  elementConfig${counter}[cmp${counter}.config.props[key]]
+        delete elementConfig${counter}[cmp${counter}.config.props[key]]
       }
     }
     `)
