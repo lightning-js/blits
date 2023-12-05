@@ -1,5 +1,11 @@
 # Changelog
 
+# v0.5.5
+
+_5 dec 2023_
+
+- Fixed regression in Slots functionality caused by forloop cleanup fix in 0.5.4
+
 # v0.5.4
 
 _5 dec 2023_
