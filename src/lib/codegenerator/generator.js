@@ -182,6 +182,7 @@ const generateComponentCode = function (
   `)
 
   if (children) {
+    counter++
     generateElementCode.call(this, { children }, false, { ...options })
   }
 }
