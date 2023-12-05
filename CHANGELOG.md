@@ -1,5 +1,12 @@
 # Changelog
 
+# v0.5.4
+
+_5 dec 2023_
+
+- Fixed issue with Components and Elements not always being cleaned up in forloop
+- Added support for nested children inside a forloop on an Element
+
 # v0.5.3
 
 _4 dec 2023_

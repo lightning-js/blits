@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.cjs",
   "exports": {
