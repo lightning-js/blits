@@ -11,7 +11,7 @@ import {
   setBlitsVersion,
   gitInit,
   done, spinnerMsg
-} from '../src/helpers/cli-helpers.js'
+} from './helpers.js'
 
 let config
 const defaultBanner = 'Welcome to L3 App development'

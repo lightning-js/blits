@@ -18,6 +18,11 @@ export const copyLightningFixtures = config => {
         }
         //this will be removed once ts support is added
         fs.copySync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir)
+        fs.copySync(
+          path.join(config.fixturesBase, 'common/public'),
+          path.join(targetDir, 'public')
+        )
+
         //
         // if (config.projectType === 'ts') {
         //   fs.copySync(path.join(path.join(config.fixturesBase, 'ts'), 'default'), targetDir)
