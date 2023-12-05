@@ -1,5 +1,33 @@
 # Changelog
 
+# v0.5.4
+
+_5 dec 2023_
+
+- Fixed issue with Components and Elements not always being cleaned up in forloop
+- Added support for nested children inside a forloop on an Element
+
+# v0.5.3
+
+_4 dec 2023_
+
+- Added transition `start` and tranition `end` callbacks
+
+# v0.5.2
+
+_30 nov 2023_
+
+- Fixed issue in code generator leading to creation unnecessary child nodes
+- Added focus handler to router view (that passes focus to the current active page)
+
+# v0.5.1
+
+_29 nov 2023_
+
+- Fixed issue with unexpected unfocus
+- Added fastforward of transitions on the same property
+- Added functionality to skip focus change on key hold
+
 # v0.5.0
 
 _23 nov 2023_

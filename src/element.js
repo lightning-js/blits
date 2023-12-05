@@ -248,6 +248,15 @@ const Element = {
     return this.initData.ref || null
   },
   animate(prop, value) {
+    if (this.scheduledTransitions[prop]) {
+      clearTimeout(this.scheduledTransitions[prop].timeout)
+      if (this.scheduledTransitions[prop].f.state === 'running') {
+        this.scheduledTransitions[prop].f.pause()
+        // fastforward to final value
+        this.node[prop] = this.scheduledTransitions[prop].v
+      }
+    }
+
     const props = {}
     props[prop] = transformations.unpackTransition(value)
 
@@ -271,18 +280,35 @@ const Element = {
           typeof value === 'object' ? ('function' in value ? value.function : 'ease') : 'ease',
       })
       return new Promise((resolve) => {
-        value.delay
-          ? setTimeout(() => f.start().waitUntilStopped().then(resolve), value.delay)
-          : f.start().waitUntilStopped().then(resolve)
+        this.scheduledTransitions[prop] = {
+          v: props[prop],
+          f,
+          timeout: setTimeout(() => {
+            value.start &&
+              typeof value.start === 'function' &&
+              value.start.call(this.component, this, prop, props[prop])
+            f.start()
+              .waitUntilStopped()
+              .then(() => delete this.scheduledTransitions[prop])
+              .then(() => {
+                value.end &&
+                  typeof value.end === 'function' &&
+                  value.end.call(this.component, this, prop, props[prop])
+              })
+              .then(resolve)
+          }, value.delay || 0),
+        }
       })
     }
   },
 }
 
-export default (config) =>
+export default (config, component) =>
   Object.assign(Object.create(Element), {
     node: null,
     setProperties: [],
+    scheduledTransitions: {},
     initData: {},
     config,
+    component,
   })

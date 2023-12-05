@@ -123,6 +123,7 @@ export const navigate = async function () {
 
       // focus the new view
       focus ? Focus.set(focus) : view.focus()
+      this.activeView = this[symbols.children][this[symbols.children].length - 1]
     } else {
       Log.error(`Route ${hash} not found`)
     }
