@@ -3,14 +3,16 @@ import path from 'path'
 import { dirname } from 'path'
 import prompts from 'prompts'
 import { fileURLToPath } from 'url'
+import { red, bold } from 'kolorist'
 import sequence from "../src/helpers/sequence.js"
+import validatePackage from 'validate-npm-package-name'
 import {
   addESlint,
   copyLightningFixtures,
   setAppData,
   setBlitsVersion,
   gitInit,
-  done, spinnerMsg
+  done, spinnerMsg, isValidPath
 } from './helpers.js'
 
 let config
@@ -30,17 +32,25 @@ const questions = [
     type: 'text',
     name: 'appName',
     message:  'Application Name',
+    format: val => {
+      if(!val.trim()){
+        spinnerMsg.fail(red(bold("Application name should not be empty!")))
+        return process.exit(1)
+      } else return val
+    },
     initial : 'my_lightning3_app',
   },
   {
-    type: prev => {
-      if(!prev.trim()){
-        return process.exit(1)
-      } else return 'text'
-    },
+    type: 'text',
     name: 'appPackage',
     message: 'Package Name',
-    initial: prev =>`${prev.replace(/_/g, '-')}`
+    format: val => {
+      if(!validatePackage(val).validForNewPackages) {
+        spinnerMsg.fail(red(bold("Package name is invalid!")))
+        return process.exit(1)
+      } else return val
+    },
+    initial: prev => `${prev.replace(/_/g, '-')}`
   },
   {
     type: 'text',

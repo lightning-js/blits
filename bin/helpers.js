@@ -1,4 +1,4 @@
-import { green, bold } from 'kolorist';
+import { green, bold } from 'kolorist'
 import path from 'path'
 import { execa } from 'execa'
 import fs from 'fs-extra'
@@ -192,6 +192,22 @@ export const gitInit = (cwd, fixturesBase) => {
         })
         .then(() => spinnerMsg.succeed(msg))
         .catch(e => spinnerMsg.fail(`Error occurred while creating git repository\n\n${e}`))
+}
+
+/**
+ * Checks whether the give path is valid
+ * @param path
+ * @returns {boolean}
+ */
+export const isValidPath = path => {
+  try {
+    // Check if the path exists
+    fs.accessSync(path, fs.constants.F_OK)
+    return true
+  } catch (err) {
+    // The path does not exist or is not accessible
+    return false
+  }
 }
 
 
