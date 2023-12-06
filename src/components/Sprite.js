@@ -17,6 +17,8 @@
 
 import Component from '../component.js'
 
+import symbols from '../lib/symbols.js'
+
 export default () =>
   Component('Sprite', {
     template: `
@@ -36,7 +38,7 @@ export default () =>
             : this.map[this.frame]
 
         if (this.spriteTexture && options) {
-          return this.___renderer.createTexture('SubTexture', {
+          return this[symbols.renderer].createTexture('SubTexture', {
             texture: this.spriteTexture,
             x: options.x,
             y: options.y,
@@ -48,7 +50,7 @@ export default () =>
     },
     hooks: {
       ready() {
-        this.spriteTexture = this.___renderer.createTexture('ImageTexture', {
+        this.spriteTexture = this[symbols.renderer].createTexture('ImageTexture', {
           src: `${window.location.protocol}//${window.location.host}/${this.image}`,
         })
       },

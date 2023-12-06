@@ -90,7 +90,11 @@ declare namespace Application {
     /**
      * Transition configuration for the route
      */
-    transition?: RequireAtLeastOne<RouteTransition> | RouteTransitionFunction
+    transition?: RequireAtLeastOne<RouteTransition> | RouteTransitionFunction,
+    /**
+     * Extra route options
+     */
+    options?: object // todo: specify which options are available
   }
 
   export interface ApplicationInstance extends ComponentInstance {}

@@ -21,7 +21,7 @@ import codegenerator from './lib/codegenerator/generator.js'
 import element from './element.js'
 
 import { createHumanReadableId, createInternalId } from './lib/componentId.js'
-import { registerHooks, emit } from './lib/hooks.js'
+import { registerHooks, emit, privateEmit } from './lib/hooks.js'
 
 import { reactive } from './lib/reactivity/reactive.js'
 import setupBase from './lib/setup/base.js'
@@ -36,6 +36,7 @@ import { effect } from './lib/reactivity/effect.js'
 import { Log } from './lib/log.js'
 
 import Settings from './settings.js'
+import symbols from './lib/symbols.js'
 
 const stage = {
   element,
@@ -103,7 +104,7 @@ const Component = (name = required('name'), config = required('config')) => {
           )
           this.previous = this.current
           // emit 'private' hook
-          emit(`___${v}`, name, scope)
+          privateEmit(v, name, scope)
           // emit 'public' hook
           emit(v, name, scope)
           this.current = v
@@ -135,13 +136,13 @@ const Component = (name = required('name'), config = required('config')) => {
         enumerable: true,
         configurable: false,
       },
-      ___id: {
+      [symbols.id]: {
         value: createInternalId(),
         writable: false,
         enumerable: false,
         configurable: false,
       },
-      ___props: {
+      [symbols.props]: {
         value: reactive(opts.props || {}, Settings.get('reactivityMode')),
         writable: false,
         enumerable: false,
@@ -149,11 +150,15 @@ const Component = (name = required('name'), config = required('config')) => {
       },
     })
 
-    Object.defineProperty(this, '___state', {
-      value: reactive(
-        (config.state && typeof config.state === 'function' && config.state.apply(this)) || {},
-        Settings.get('reactivityMode')
-      ),
+    Object.defineProperty(this, symbols.originalState, {
+      value: (config.state && typeof config.state === 'function' && config.state.apply(this)) || {},
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    })
+
+    Object.defineProperty(this, symbols.state, {
+      value: reactive(this[symbols.originalState], Settings.get('reactivityMode')),
       writable: false,
       enumerable: false,
       configurable: false,
@@ -161,15 +166,15 @@ const Component = (name = required('name'), config = required('config')) => {
 
     this.lifecycle.state = 'init'
 
-    Object.defineProperty(this, '___children', {
+    Object.defineProperty(this, symbols.children, {
       value: code.render.apply(stage, [parentEl, this, code.context]),
       writable: false,
       enumerable: false,
       configurable: false,
     })
 
-    Object.defineProperty(this, '___slots', {
-      value: this.___children.filter((child) => child.___isSlot),
+    Object.defineProperty(this, symbols.slots, {
+      value: this[symbols.children].filter((child) => child[symbols.isSlot]),
       writable: false,
       enumerable: false,
       configurable: false,
@@ -177,16 +182,16 @@ const Component = (name = required('name'), config = required('config')) => {
 
     code.effects.forEach((eff) => {
       effect(() => {
-        eff.apply(stage, [this, this.___children, code.context])
+        eff.apply(stage, [this, this[symbols.children], code.context])
       })
     })
 
-    if (this.___watchers) {
-      Object.keys(this.___watchers).forEach((watchKey) => {
+    if (this[symbols.watchers]) {
+      Object.keys(this[symbols.watchers]).forEach((watchKey) => {
         let old = this[watchKey]
-        effect(() => {
-          if (old !== this[watchKey]) {
-            this.___watchers[watchKey].apply(this, [this[watchKey], old])
+        effect((force = false) => {
+          if (old !== this[watchKey] || force === true) {
+            this[symbols.watchers][watchKey].apply(this, [this[watchKey], old])
             old = this[watchKey]
           }
         })

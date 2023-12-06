@@ -19,6 +19,8 @@ import Component from './component.js'
 import Focus from './focus.js'
 import Settings from './settings.js'
 
+import symbols from './lib/symbols.js'
+
 const Application = (config) => {
   const defaultKeyMap = {
     ArrowLeft: 'left',
@@ -41,25 +43,37 @@ const Application = (config) => {
 
   config.hooks = config.hooks || {}
 
-  let handler
+  let keyDownHandler
+  let keyUpHandler
+  let holdTimeout
 
-  config.hooks.___destroy = function () {
-    document.removeEventListener('keydown', handler)
+  config.hooks[symbols.destroy] = function () {
+    document.removeEventListener('keydown', keyDownHandler)
+    document.removeEventListener('keyup', keyUpHandler)
   }
 
-  config.hooks.___init = function () {
+  config.hooks[symbols.init] = function () {
     const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
 
-    handler = (e) => {
+    keyDownHandler = (e) => {
       const key = keyMap[e.key] || keyMap[e.keyCode] || e.key || e.keyCode
       Focus.input(key, e)
+      clearTimeout(holdTimeout)
+      holdTimeout = setTimeout(() => {
+        Focus.hold = true
+      }, 50)
     }
 
-    document.addEventListener('keydown', handler)
-  }
+    keyUpHandler = () => {
+      clearTimeout(holdTimeout)
+      Focus.hold = false
+    }
 
-  config.hooks.___ready = function () {
-    Focus.set(this)
+    document.addEventListener('keydown', keyDownHandler)
+    document.addEventListener('keyup', keyUpHandler)
+
+    // next tick
+    setTimeout(() => Focus.set(this))
   }
 
   const App = Component('App', config)

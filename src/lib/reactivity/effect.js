@@ -34,7 +34,7 @@ export const track = (target, key) => {
   }
 }
 
-export const trigger = (target, key) => {
+export const trigger = (target, key, force = false) => {
   const effectsMap = objectMap.get(target)
   if (!effectsMap) {
     return
@@ -42,7 +42,7 @@ export const trigger = (target, key) => {
   const effects = effectsMap.get(key)
   if (effects) {
     effects.forEach((effect) => {
-      effect()
+      effect(force)
     })
   }
 }

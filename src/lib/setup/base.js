@@ -17,7 +17,7 @@
 
 import { renderer } from '../../launch.js'
 import Focus from '../../focus.js'
-import { to } from '../../router/router.js'
+import { to, currentRoute, navigating } from '../../router/router.js'
 import Image from '../../components/Image.js'
 import Circle from '../../components/Circle.js'
 import RouterView from '../../components/RouterView.js'
@@ -25,6 +25,9 @@ import Sprite from '../../components/Sprite.js'
 import Text from '../../components/Text.js'
 import eventListeners from '../eventListeners.js'
 import { default as log, Log } from '../log.js'
+import symbols from '../symbols.js'
+
+import { trigger } from '../reactivity/effect.js'
 
 const shaders = {
   radius: 'radius',
@@ -59,14 +62,14 @@ export default (component) => {
     destroy: {
       value: function () {
         this.lifecycle.state = 'destroy'
-        for (let i = 0; i < this.___timeouts.length; i++) {
-          clearTimeout(this.___timeouts[i])
+        for (let i = 0; i < this[symbols.timeouts].length; i++) {
+          clearTimeout(this[symbols.timeouts][i])
         }
-        for (let i = 0; i < this.___intervals.length; i++) {
-          clearInterval(this.___intervals[i])
+        for (let i = 0; i < this[symbols.intervals].length; i++) {
+          clearInterval(this[symbols.intervals][i])
         }
         eventListeners.removeListeners(this)
-        deleteChildren(this.___children)
+        deleteChildren(this[symbols.children])
         Log.debug(`Destroyed component ${this.componentId}`)
       },
       writable: false,
@@ -76,7 +79,7 @@ export default (component) => {
     select: {
       value: function (ref) {
         let selected = null
-        this.___children.forEach((child) => {
+        this[symbols.children].forEach((child) => {
           if (Array.isArray(child)) {
             child.forEach((c) => {
               if (c['ref'] === ref) selected = c
@@ -114,12 +117,21 @@ export default (component) => {
     $router: {
       value: {
         to,
+        get currentRoute() {
+          return currentRoute
+        },
+        get routes() {
+          return component.prototype[symbols.routes]
+        },
+        get navigating() {
+          return navigating
+        },
       },
       writable: false,
       enumerable: true,
       configurable: false,
     },
-    ___components: {
+    [symbols.components]: {
       value: {
         Image: Image(),
         Circle: Circle(),
@@ -131,7 +143,7 @@ export default (component) => {
       enumerable: false,
       configurable: false,
     },
-    ___timeouts: {
+    [symbols.timeouts]: {
       value: [],
       writable: false,
       enumerable: false,
@@ -141,20 +153,20 @@ export default (component) => {
       value: function (fn, ms, ...params) {
         const timeoutId = setTimeout(
           () => {
-            this.____timeouts = this.___timeouts.filter((id) => id !== timeoutId)
+            this[symbols._timeouts] = this[symbols.timeouts].filter((id) => id !== timeoutId)
             fn.apply(null, params)
           },
           ms,
           params
         )
-        this.___timeouts.push(timeoutId)
+        this[symbols.timeouts].push(timeoutId)
         return timeoutId
       },
       writable: false,
       enumerable: true,
       configurable: false,
     },
-    ___intervals: {
+    [symbols.intervals]: {
       value: [],
       writable: false,
       enumerable: false,
@@ -164,13 +176,13 @@ export default (component) => {
       value: function (fn, ms, ...params) {
         const intervalId = setInterval(
           () => {
-            this.____intervals = this.___intervals.filter((id) => id !== intervalId)
+            this[symbols._intervals] = this[symbols.intervals].filter((id) => id !== intervalId)
             fn.apply(null, params)
           },
           ms,
           params
         )
-        this.___intervals.push(intervalId)
+        this[symbols.intervals].push(intervalId)
         return intervalId
       },
       writable: false,
@@ -193,7 +205,7 @@ export default (component) => {
       enumerable: true,
       configurable: false,
     },
-    ___renderer: {
+    [symbols.renderer]: {
       value: renderer,
       writable: false,
       enumerable: false,
@@ -201,6 +213,15 @@ export default (component) => {
     },
     $log: {
       value: log('App'),
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    },
+    $trigger: {
+      value: function (key) {
+        // trigger with force set to true
+        trigger(this[symbols.originalState], key, true)
+      },
       writable: false,
       enumerable: false,
       configurable: false,

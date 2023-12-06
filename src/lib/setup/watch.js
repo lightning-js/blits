@@ -15,18 +15,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import symbols from '../symbols.js'
+
 export default (component, watchers) => {
-  component.prototype.___watchKeys = []
-  component.prototype.___watchers = {}
+  component.prototype[symbols.watchKeys] = []
+  component.prototype[symbols.watchers] = {}
 
   for (let watch in watchers) {
     if (typeof watchers[watch] !== 'function') {
       console.warn(`${watch} is not a function`)
     }
 
-    component.prototype.___watchKeys.push(watch)
+    component.prototype[symbols.watchKeys].push(watch)
 
-    component.prototype.___watchers[watch] = function (v, old) {
+    component.prototype[symbols.watchers][watch] = function (v, old) {
       watchers[watch].call(this, v, old)
     }
   }

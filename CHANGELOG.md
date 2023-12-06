@@ -1,5 +1,73 @@
 # Changelog
 
+# v0.5.5
+
+_5 dec 2023_
+
+- Fixed regression in Slots functionality caused by forloop cleanup fix in 0.5.4
+
+# v0.5.4
+
+_5 dec 2023_
+
+- Fixed issue with Components and Elements not always being cleaned up in forloop
+- Added support for nested children inside a forloop on an Element
+
+# v0.5.3
+
+_4 dec 2023_
+
+- Added transition `start` and tranition `end` callbacks
+
+# v0.5.2
+
+_30 nov 2023_
+
+- Fixed issue in code generator leading to creation unnecessary child nodes
+- Added focus handler to router view (that passes focus to the current active page)
+
+# v0.5.1
+
+_29 nov 2023_
+
+- Fixed issue with unexpected unfocus
+- Added fastforward of transitions on the same property
+- Added functionality to skip focus change on key hold
+
+# v0.5.0
+
+_23 nov 2023_
+
+- Introduced `wordwrap` and `maxlines` attributes on the Text-component, replacing the previous `w` and `h` attributes (breaking change!)
+
+# v0.4.2
+
+_22 nov 2023_
+
+- Improved parser and added more template validation (i.e. one single root element in a template)
+- Fixed typo in documentation
+
+# v0.4.1
+
+_13 nov 2023_
+
+- Added support for using dynamic import of components in routes
+- Added support for returning components in an async function / Promise in routes
+
+## v0.4.0
+
+_9 nov 2023_
+
+- Fixed bug related to animating percentage based values
+- Added (customizable) navigation transitions to the router
+- Renamed `.eslintrc.js` to `.eslintrc.cjs` in boilerplate code to make linting work on new projects
+- Fixed issue in Settings when the default value was set to `false`
+- Replace underscored keys for private properties with Symbols
+- Added `keepAlive` option to the router (i.e. keeping a page in memory when navigating to a new page)
+- Introduced a `this.$trigger` function to force a reevaluation of a reactive value (without changing the value)
+- Exposed `currentRoute`, `routes` and `navigating` on the `this.$router` object
+- Upgraded to lates version of `@lightningjs/renderer` (v0.5.0)
+
 ## v0.3.15
 
 _23 oct 2023_

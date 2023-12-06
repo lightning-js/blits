@@ -19,6 +19,7 @@ import { renderer } from './launch.js'
 import colors from './lib/colors/colors.js'
 
 import { Log } from './lib/log.js'
+import symbols from './lib/symbols.js'
 
 const isTransition = (value) => {
   return typeof value === 'object' && 'transition' in value
@@ -53,6 +54,8 @@ const transformations = {
     delete props.h
     'z' in props && (props.zIndex = props.z)
     delete props.z
+    'wordWrap' in props && (props.width = props.wordWrap)
+    delete props.wordWrap
   },
   parent(props) {
     if (props.parent === 'root') {
@@ -75,7 +78,7 @@ const transformations = {
       Object.entries(props.color).forEach((color) => {
         props[map[color[0]]] = colors.normalize(color[1])
       })
-      delete props.mount
+      delete props.color
     } else {
       props.color = colors.normalize(props.color)
     }
@@ -160,6 +163,12 @@ const transformations = {
   texture(props, setProperties) {
     this.src(props, setProperties)
   },
+  maxLines(props, setProperties, element) {
+    if (props.maxLines) {
+      props.height = props.maxLines * element.node.fontSize
+    }
+    delete props.maxLines
+  },
 }
 
 const Element = {
@@ -174,8 +183,8 @@ const Element = {
     }
     this.initData = data
 
-    if (props.___isSlot) {
-      this.___isSlot = true
+    if (props[symbols.isSlot]) {
+      this[symbols.isSlot] = true
     }
 
     transformations.remap(props)
@@ -192,15 +201,13 @@ const Element = {
     this.node = props.__textnode ? renderer.createTextNode(props) : renderer.createNode(props)
 
     if (props['@loaded']) {
-      const event = props.__textnode ? 'textLoaded' : 'txLoaded'
-      this.node.on(event, (el, { width: w, height: h }) => {
-        props['@loaded']({ w, h }, this)
+      this.node.on('loaded', (el, { type, dimensions }) => {
+        props['@loaded']({ w: dimensions.width, h: dimensions.height, type }, this)
       })
     }
 
     if (props['@error']) {
-      const event = props.__textnode ? 'textFailed' : 'txFailed'
-      this.node.on(event, (el, error) => {
+      this.node.on('failed', (el, error) => {
         props['@error'](error, this)
       })
     }
@@ -218,7 +225,7 @@ const Element = {
 
       transformations.remap(props)
       if (transformations[prop]) {
-        transformations[prop](props, this.setProperties)
+        transformations[prop](props, this.setProperties, this)
       }
 
       Object.keys(props).forEach((prop) => {
@@ -241,6 +248,15 @@ const Element = {
     return this.initData.ref || null
   },
   animate(prop, value) {
+    if (this.scheduledTransitions[prop]) {
+      clearTimeout(this.scheduledTransitions[prop].timeout)
+      if (this.scheduledTransitions[prop].f.state === 'running') {
+        this.scheduledTransitions[prop].f.pause()
+        // fastforward to final value
+        this.node[prop] = this.scheduledTransitions[prop].v
+      }
+    }
+
     const props = {}
     props[prop] = transformations.unpackTransition(value)
 
@@ -264,18 +280,35 @@ const Element = {
           typeof value === 'object' ? ('function' in value ? value.function : 'ease') : 'ease',
       })
       return new Promise((resolve) => {
-        value.delay
-          ? setTimeout(() => f.start().waitUntilStopped().then(resolve), value.delay)
-          : f.start().waitUntilStopped().then(resolve)
+        this.scheduledTransitions[prop] = {
+          v: props[prop],
+          f,
+          timeout: setTimeout(() => {
+            value.start &&
+              typeof value.start === 'function' &&
+              value.start.call(this.component, this, prop, props[prop])
+            f.start()
+              .waitUntilStopped()
+              .then(() => delete this.scheduledTransitions[prop])
+              .then(() => {
+                value.end &&
+                  typeof value.end === 'function' &&
+                  value.end.call(this.component, this, prop, props[prop])
+              })
+              .then(resolve)
+          }, value.delay || 0),
+        }
       })
     }
   },
 }
 
-export default (config) =>
+export default (config, component) =>
   Object.assign(Object.create(Element), {
     node: null,
     setProperties: [],
+    scheduledTransitions: {},
     initData: {},
     config,
+    component,
   })

@@ -15,37 +15,54 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import symbols from './lib/symbols.js'
+import { navigating } from './router/router.js'
+
 let focusedComponent = null
+let focusChain = []
+let setFocusTimeout
 
 export default {
+  _hold: false,
+  set hold(v) {
+    this._hold = v
+  },
+  get hold() {
+    return this._hold
+  },
   get() {
     return focusedComponent
   },
   set(component, event) {
+    clearTimeout(setFocusTimeout)
+    focusedComponent && focusedComponent.unfocus()
+    focusChain.reverse().forEach((cmp) => cmp.unfocus())
     if (component !== focusedComponent) {
-      if (focusedComponent && focusedComponent !== component.parent) {
-        focusedComponent.unfocus()
-      }
-      focusedComponent = component
-      focusedComponent.lifecycle.state = 'focus'
-      if (event instanceof KeyboardEvent) {
-        document.dispatchEvent(new KeyboardEvent('keydown', event))
-      }
+      setFocusTimeout = setTimeout(
+        () => {
+          focusedComponent = component
+          focusedComponent.lifecycle.state = 'focus'
+          if (event instanceof KeyboardEvent) {
+            document.dispatchEvent(new KeyboardEvent('keydown', event))
+          } else {
+            focusChain = []
+          }
+        },
+        // todo: make the hold timeout configurable?
+        this.hold ? 50 : 0
+      )
     }
   },
   input(key, event) {
-    const focusChain = walkChain([focusedComponent], key)
+    if (navigating === true) return
+    focusChain = walkChain([focusedComponent], key)
     const componentWithInputEvent = focusChain.shift()
 
     if (componentWithInputEvent) {
-      if (componentWithInputEvent !== focusedComponent) {
-        focusChain.reverse().forEach((component) => component.unfocus())
-        componentWithInputEvent.focus()
-      }
-      if (componentWithInputEvent.___inputEvents[key]) {
-        componentWithInputEvent.___inputEvents[key].call(componentWithInputEvent, event)
-      } else if (componentWithInputEvent.___inputEvents.any) {
-        componentWithInputEvent.___inputEvents.any.call(componentWithInputEvent, event)
+      if (componentWithInputEvent[symbols.inputEvents][key]) {
+        componentWithInputEvent[symbols.inputEvents][key].call(componentWithInputEvent, event)
+      } else if (componentWithInputEvent[symbols.inputEvents].any) {
+        componentWithInputEvent[symbols.inputEvents].any.call(componentWithInputEvent, event)
       }
     }
   },
@@ -53,9 +70,9 @@ export default {
 
 const walkChain = (components, key) => {
   if (
-    components[0].___inputEvents &&
-    (typeof components[0].___inputEvents[key] === 'function' ||
-      typeof components[0].___inputEvents.any === 'function')
+    components[0][symbols.inputEvents] &&
+    (typeof components[0][symbols.inputEvents][key] === 'function' ||
+      typeof components[0][symbols.inputEvents].any === 'function')
   ) {
     return components
   } else if (components[0].parent) {

@@ -9,7 +9,7 @@
     "lint": "eslint '**/*.js'",
     "lint:fix": "eslint '**/*.js' --fix",
     "build": "vite build",
-    "dev": "vite dev"
+    "dev": "vite dev --host"
   },
   "lint-staged": {
     "*.js": [
@@ -31,6 +31,6 @@
     "vite": "^4.0.4"
   },
   "dependencies": {
-    "@lightningjs/blits": "^0.3.15"
+    "@lightningjs/blits": "^0.5.5"
   }
 }

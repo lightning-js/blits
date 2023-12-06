@@ -17,25 +17,27 @@
 
 import { Log } from '../log.js'
 
+import symbols from '../symbols.js'
+
 export default (component, state) => {
-  component.___stateKeys = []
+  component[symbols.stateKeys] = []
 
   state = state.apply(component.prototype)
   Object.keys(state).forEach((key) => {
-    if (component.___propKeys && component.___propKeys.indexOf(key) > -1) {
+    if (component[symbols.propKeys] && component[symbols.propKeys].indexOf(key) > -1) {
       Log.error(`State ${key} already exists as a prop`)
     }
-    if (component.___methodKeys && component.___methodKeys.indexOf(key) > -1) {
+    if (component[symbols.methodKeys] && component[symbols.methodKeys].indexOf(key) > -1) {
       Log.error(`State ${key} already exists as a method`)
     }
-    component.___stateKeys.push(key)
+    component[symbols.stateKeys].push(key)
     try {
       Object.defineProperty(component.prototype, key, {
         get() {
-          return this.___state && key in this.___state && this.___state[key]
+          return this[symbols.state] && key in this[symbols.state] && this[symbols.state][key]
         },
         set(v) {
-          if (this.___state) this.___state[key] = v
+          if (this[symbols.state]) this[symbols.state][key] = v
         },
       })
     } catch (e) {
