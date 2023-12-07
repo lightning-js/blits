@@ -78,7 +78,7 @@ const transformations = {
       Object.entries(props.color).forEach((color) => {
         props[map[color[0]]] = colors.normalize(color[1])
       })
-      delete props.mount
+      delete props.color
     } else {
       props.color = colors.normalize(props.color)
     }
