@@ -1,5 +1,11 @@
 # Changelog
 
+# v0.5.6
+
+_11 dec 2023_
+
+- Upgraded to version 0.6.0 of the Lightning 3 renderer
+
 # v0.5.5
 
 _5 dec 2023_
