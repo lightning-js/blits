@@ -1,5 +1,13 @@
 # Changelog
 
+# v0.5.7
+
+_13 dec 2023_
+
+- Added history and backhandling to the router
+- Linked effects directly to the available shaders exposed by the L3 renderer (starting 0.6.0)
+- Added setting `reactivityMode` to control whether `Proxy` (default) or `defineProperty` is used to trigger reactive side effects
+
 # v0.5.6
 
 _11 dec 2023_
