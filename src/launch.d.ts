@@ -55,6 +55,7 @@ type Font = WebFont | SdfFont
 
 export type DebugLevel = 0 | 1 | 2
 export type LogTypes = 'info' | 'warn' | 'error' | 'debug'
+export type ReactivityModes = 'Proxy' | 'defineProperty'
 
 /**
  * Settings
@@ -90,7 +91,11 @@ export interface Settings {
   /**
    * Custom keymapping
    */
-  keymap?: object
+  keymap?: object,
+  /**
+   * Mode of reactivity (`Proxy` or `defineProperty`)
+   */
+  reactivityMode?: ReactivityModes
 }
 
 /**
