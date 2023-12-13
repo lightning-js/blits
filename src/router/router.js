@@ -26,6 +26,7 @@ export let currentRoute
 export let navigating = false
 
 const cacheMap = new WeakMap()
+const history = []
 
 export const getHash = () => {
   return (document.location.hash || '/').replace(/^#/, '')
@@ -49,6 +50,7 @@ export const navigate = async function () {
     const route = matchHash(hash, this.parent[symbols.routes])
 
     if (route) {
+      if (history[history.length - 1] !== hash) history.push(hash)
       // apply default transition if none specified
       if (!('transition' in route)) {
         route.transition = fadeInFadeOutTransition
@@ -171,7 +173,18 @@ export const to = (location) => {
   window.location.hash = `#${location}`
 }
 
+export const back = () => {
+  if (history.length > 1) {
+    to(history[history.length - 2])
+    history.splice(-2, 2)
+    return true
+  } else {
+    return false
+  }
+}
+
 export default {
   navigate,
   to,
+  back,
 }
