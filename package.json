@@ -2,7 +2,7 @@
   "name": "@lightningjs/blits",
   "version": "0.5.6",
   "description": "Blits: The Lightning 3 App Development Framework",
-  "bin": "bin/index.cjs",
+  "bin": "bin/index.js",
   "exports": {
     ".": "./index.js",
     "./vite": "./vite/index.js",
