@@ -270,7 +270,7 @@ const Element = {
     if (this.node[prop] === value) return
     // check if a transition is already schedule or running on the same prop
     if (this.scheduledTransitions[prop]) {
-      clearTimeout(this.scheduledTransitions[prop].timeout)
+      // clearTimeout(this.scheduledTransitions[prop].timeout)
       if (this.scheduledTransitions[prop].f.state === 'running') {
         this.scheduledTransitions[prop].f.pause()
         // fastforward to final value
@@ -321,6 +321,9 @@ const Element = {
   },
   delete() {
     Log.debug('Deleting  Node', this.nodeId)
+    Object.values(this.scheduledTransitions).forEach((scheduledTransition) => {
+      clearTimeout(scheduledTransition.timeout)
+    })
     this.node.parent = null
   },
   get nodeId() {
