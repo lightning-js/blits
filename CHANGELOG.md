@@ -1,5 +1,45 @@
 # Changelog
 
+# v0.5.7
+
+_13 dec 2023_
+
+- Added history and backhandling to the router
+- Linked effects directly to the available shaders exposed by the L3 renderer (starting 0.6.0)
+- Added setting `reactivityMode` to control whether `Proxy` (default) or `defineProperty` is used to trigger reactive side effects
+
+# v0.5.6
+
+_11 dec 2023_
+
+- Upgraded to version 0.6.0 of the Lightning 3 renderer
+
+# v0.5.5
+
+_5 dec 2023_
+
+- Fixed regression in Slots functionality caused by forloop cleanup fix in 0.5.4
+
+# v0.5.4
+
+_5 dec 2023_
+
+- Fixed issue with Components and Elements not always being cleaned up in forloop
+- Added support for nested children inside a forloop on an Element
+
+# v0.5.3
+
+_4 dec 2023_
+
+- Added transition `start` and tranition `end` callbacks
+
+# v0.5.2
+
+_30 nov 2023_
+
+- Fixed issue in code generator leading to creation unnecessary child nodes
+- Added focus handler to router view (that passes focus to the current active page)
+
 # v0.5.1
 
 _29 nov 2023_

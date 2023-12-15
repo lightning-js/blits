@@ -56,7 +56,7 @@ const generateElementCode = function (
 
   renderCode.push(`
     if(!${elm}) {
-      ${elm} = this.element({componentId: component[Symbol.for('id')], parent: parent || 'root'})
+      ${elm} = this.element({componentId: component[Symbol.for('id')], parent: parent || 'root'}, component)
     }
     const elementConfig${counter} = {}
   `)
@@ -93,7 +93,7 @@ const generateElementCode = function (
     renderCode.push(`
     if(typeof cmp${counter} !== 'undefined') {
       for(key in cmp${counter}.config.props) {
-        delete  elementConfig${counter}[cmp${counter}.config.props[key]]
+        delete elementConfig${counter}[cmp${counter}.config.props[key]]
       }
     }
     `)
@@ -106,7 +106,7 @@ const generateElementCode = function (
   `)
 
   if (children) {
-    generateCode.call(this, { children }, `elms[${counter}]`)
+    generateCode.call(this, { children }, `${elm}`, options)
   }
 }
 
@@ -181,8 +181,10 @@ const generateComponentCode = function (
     }
   `)
 
-  counter++
-  generateElementCode.call(this, { children }, false, { ...options })
+  if (children) {
+    counter++
+    generateElementCode.call(this, { children }, false, { ...options })
+  }
 }
 
 const generateForLoopCode = function (templateObject, parent) {
@@ -215,6 +217,7 @@ const generateForLoopCode = function (templateObject, parent) {
     const keys = []
     for(let __index = 0; __index < collection.length; __index++) {
       parent = ${parent}
+      if(!component.key) keys.length = 0
       const scope = Object.assign(component, {
         key: Math.random(),
         ${index}: __index,
@@ -262,7 +265,7 @@ const generateForLoopCode = function (templateObject, parent) {
   this.effectsCode.push(ctx.renderCode.join('\n'))
 }
 
-const generateCode = function (templateObject, parent = false) {
+const generateCode = function (templateObject, parent = false, options = {}) {
   templateObject.children &&
     templateObject.children.forEach((childTemplateObject) => {
       counter++
@@ -271,9 +274,9 @@ const generateCode = function (templateObject, parent = false) {
         generateForLoopCode.call(this, childTemplateObject, parent)
       } else {
         if (childTemplateObject.type === 'Element' || childTemplateObject.type === 'Slot') {
-          generateElementCode.call(this, childTemplateObject, parent)
+          generateElementCode.call(this, childTemplateObject, parent, options)
         } else {
-          generateComponentCode.call(this, childTemplateObject, parent)
+          generateComponentCode.call(this, childTemplateObject, parent, options)
         }
       }
     })

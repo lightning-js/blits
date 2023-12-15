@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { MainRenderDriver, RendererMain } from '@lightningjs/renderer'
+import { MainCoreDriver, RendererMain } from '@lightningjs/renderer'
 // import RendererWorker from '@lightningjs/renderer/workers/renderer?worker'
 import { Log } from '../../lib/log.js'
 // import coreExtensionModule from './fontLoader.js?importChunkUrl'
@@ -23,7 +23,7 @@ import { Log } from '../../lib/log.js'
 export let renderer
 
 export default (App, target, settings) => {
-  const driver = new MainRenderDriver()
+  const driver = new MainCoreDriver()
   // settings.multithreaded === true
   //   ? new ThreadXRenderDriver({
   //       RendererWorker,
