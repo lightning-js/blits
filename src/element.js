@@ -303,18 +303,26 @@ const Element = {
         v: props[prop],
         f,
         timeout: setTimeout(() => {
+          // fire transition start callback if specified
           transition.start &&
             typeof transition.start === 'function' &&
             transition.start.call(this.component, this, prop, props[prop])
-          f.start()
-            .waitUntilStopped()
-            .then(() => delete this.scheduledTransitions[prop])
-            .then(() => {
-              transition.end &&
-                typeof transition.end === 'function' &&
-                transition.end.call(this.component, this, prop, props[prop])
-            })
-            .then(resolve)
+
+          // start the animation
+          try {
+            f.start()
+              .waitUntilStopped()
+              .then(() => delete this.scheduledTransitions[prop])
+              .then(() => {
+                // fire transition end callback if specified
+                transition.end &&
+                  typeof transition.end === 'function' &&
+                  transition.end.call(this.component, this, prop, props[prop])
+              })
+              .then(resolve)
+          } catch (e) {
+            Log.error(e)
+          }
         }, transition.delay || 0),
       }
     })
