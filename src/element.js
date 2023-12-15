@@ -41,17 +41,14 @@ const parsePercentage = function (v, base) {
 }
 
 const unpackTransition = (obj) => {
-  if (typeof obj === 'object' && obj.constructor.name === 'Object') {
+  if (typeof obj === 'object' && obj.constructor === Object) {
     if ('value' in obj) {
       return obj.value
     } else if ('transition' in obj) {
       return unpackTransition(obj.transition)
-    } else {
-      return obj
     }
-  } else {
-    return obj
   }
+  return obj
 }
 
 const Props = {
