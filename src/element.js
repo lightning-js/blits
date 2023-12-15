@@ -260,14 +260,14 @@ const Element = {
 
     for (const [p, v] of Object.entries(this.props._props)) {
       if (isTransition(value) && propsSet.has(p)) {
-        this.animate(p, v, value.transition)
+        return this.animate(p, v, value.transition)
       } else {
         this.node[p] = v
       }
     }
   },
   animate(prop, value, transition) {
-    if (this.node[prop] === value) return
+    if (this.node[prop] === value) return Promise.resolve()
     // check if a transition is already schedule or running on the same prop
     if (this.scheduledTransitions[prop]) {
       // clearTimeout(this.scheduledTransitions[prop].timeout)
