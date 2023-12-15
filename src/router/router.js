@@ -165,7 +165,7 @@ const removeView = async (route, view, transition) => {
 
 const setOrAnimate = (node, transition, shouldAnimate = true) => {
   return shouldAnimate
-    ? node.animate(transition.prop, transition)
+    ? node.animate(transition.prop, transition.value, transition)
     : node.set(transition.prop, transition.value)
 }
 
