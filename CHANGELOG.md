@@ -1,5 +1,11 @@
 # Changelog
 
+# v0.5.8
+
+_15 dec 2023_
+
+- Internal refactor of the `Element`
+
 # v0.5.7
 
 _13 dec 2023_
