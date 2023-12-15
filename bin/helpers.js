@@ -1,4 +1,4 @@
-import { green, bold } from 'kolorist'
+import { green, bold, red } from 'kolorist'
 import path from 'path'
 import { execa } from 'execa'
 import fs from 'fs-extra'
@@ -12,9 +12,9 @@ const spinner = ora()
 
 export const copyLightningFixtures = config => {
     return new Promise(resolve => {
-        const targetDir = path.join(process.cwd(), config.appFolder || '')
+        const targetDir = config.appFolder || ''
         if (config.appFolder && fs.pathExistsSync(targetDir)) {
-            exit('The target directory ' + targetDir + ' already exists')
+            exit(red(bold('The target directory ' + targetDir + ' already exists')))
         }
         //this will be removed once ts support is added
         fs.copySync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir)
@@ -113,7 +113,7 @@ export const setBlitsVersion = config => {
                 resolve()
             })
             .catch(e => {
-                spinnerMsg.fail(`Error occurred while setting sdk version\n\n${e}`)
+                spinnerMsg.fail(`Error occurred while setting blits version\n\n${e}`)
                 reject()
             })
     })
@@ -154,12 +154,6 @@ export const setAppData = config => {
     replaceInFile.sync({
         files: config.targetDir + '/*',
         from: /\{\$appName\}/g,
-        to: config.appName,
-    })
-
-    replaceInFile.sync({
-        files: config.targetDir + '/*',
-        from: /\{\$appPackage\}/g,
         to: config.appPackage,
     })
 }

@@ -3,6 +3,7 @@ import path from 'path'
 import { dirname } from 'path'
 import prompts from 'prompts'
 import { fileURLToPath } from 'url'
+import fs from 'fs-extra'
 import { red, bold } from 'kolorist'
 import sequence from "../src/helpers/sequence.js"
 import validatePackage from 'validate-npm-package-name'
@@ -15,7 +16,6 @@ import {
   done, spinnerMsg, isValidPath
 } from './helpers.js'
 
-let config
 const defaultBanner = 'Welcome to L3 App development'
 
 console.log(defaultBanner)
@@ -56,6 +56,27 @@ const questions = [
     type: 'text',
     name: 'appFolder',
     message: 'Specify the location for the app to be created',
+    format: (val, prev) => {
+      // Regular expression to validate whether the path is Unix/Windows-based
+      const pathRegex = /^(?:(?:[a-zA-Z]:|\\\\[a-zA-Z0-9_.$-]+\\[a-zA-Z0-9_.$-]+)|(?:\/|\/(?:[^\/]+\/)*[^\/]+))$/
+      // Check if the provided path matches the defined regex
+      if (pathRegex.test(val)) {
+        try {
+          // Check if the path exists
+          if (fs.statSync(val)) {
+            return `${path.join(val, prev.appPackage)}`;
+          }
+        } catch (e) {
+          // Handle case where an error occurred during file system interaction
+          if (e.code === 'ENOENT') {
+            spinnerMsg.fail(red(bold("Entered directory path is invalid, please enter a valid directory!")));
+            process.exit()
+          }
+        }
+      } else if (val === prev.appPackage) {
+        return `${path.join(process.cwd(), prev.appPackage)}`;
+      }
+    },
     initial: prev => prev
   },
   // {
@@ -97,10 +118,12 @@ const questions = [
 
 const createL3App = () => {
   return new Promise(resolve => {
+    let config
     sequence([
       async () => {
         config = await prompts(questions)
         config.fixturesBase = fixturesBase
+        return config
       },
       () => {
         spinnerMsg.start(`Creating Lightning 3 application with name ${config.appName}`)
