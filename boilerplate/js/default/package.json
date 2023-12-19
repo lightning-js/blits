@@ -1,6 +1,5 @@
 {
   "name": "{$appName}",
-  "package": "{$appPackage}",
   "version": "0.1.0",
   "description": "Lightning 3 App",
   "main": "index.js",
