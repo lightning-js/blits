@@ -317,7 +317,7 @@ const Element = {
                 // fire transition end callback if specified
                 transition.end &&
                   typeof transition.end === 'function' &&
-                  transition.end.call(this.component, this, prop, props[prop])
+                  transition.end.call(this.component, this, prop, this.node[prop])
               })
               .then(resolve)
           } catch (e) {
