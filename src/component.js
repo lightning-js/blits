@@ -121,7 +121,7 @@ const Component = (name = required('name'), config = required('config')) => {
     }
 
     this.parent = parentComponent
-    this.wrapper = parentEl
+    this[symbols.wrapper] = parentEl
 
     Object.defineProperties(this, {
       type: {

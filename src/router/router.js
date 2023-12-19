@@ -82,7 +82,7 @@ export const navigate = async function () {
           view = view(this[symbols.props], holder, this)
         }
       } else {
-        holder = view.wrapper
+        holder = view[symbols.wrapper]
       }
 
       this[symbols.children].push(view)
@@ -139,11 +139,11 @@ const removeView = async (route, view, transition) => {
     if (Array.isArray(transition)) {
       for (let i = 0; i < transition.length; i++) {
         i === transition.length - 1
-          ? await setOrAnimate(view.wrapper, transition[i])
-          : setOrAnimate(view.wrapper, transition[i])
+          ? await setOrAnimate(view[symbols.wrapper], transition[i])
+          : setOrAnimate(view[symbols.wrapper], transition[i])
       }
     } else {
-      await setOrAnimate(view.wrapper, transition)
+      await setOrAnimate(view[symbols.wrapper], transition)
     }
   }
 
