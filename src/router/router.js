@@ -50,7 +50,9 @@ export const navigate = async function () {
     const route = matchHash(hash, this.parent[symbols.routes])
 
     if (route) {
-      if (history[history.length - 1] !== hash) history.push(hash)
+      if (route.options.inHistory === true && history[history.length - 1] !== hash) {
+        history.push(hash)
+      }
       // apply default transition if none specified
       if (!('transition' in route)) {
         route.transition = fadeInFadeOutTransition
@@ -169,7 +171,7 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
     : node.set(transition.prop, transition.value)
 }
 
-export const to = (location) => {
+export const to = (location, options) => {
   window.location.hash = `#${location}`
 }
 
