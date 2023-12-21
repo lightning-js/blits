@@ -2,6 +2,17 @@
 
 # v0.5.8
 
+_21 dec 2023_
+
+- Changed transition-end callback to receive real prop value from node
+- Implemented symbol for `wrapper` on Component (freeing up the name wrapper to be used in Component state)
+- Added functionality to prevent a route ending up in the history stack (route option: `inHistory: false`)
+- Improved router backtracking logic
+- Added functionality to override route options during navigation
+- Upgraded to latest version of the renderer (0.6.1) which contains a fix for animations not finishing correctly
+
+# v0.5.8
+
 _15 dec 2023_
 
 - Internal refactor of the `Element`
