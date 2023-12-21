@@ -27,6 +27,8 @@ export let navigating = false
 
 const cacheMap = new WeakMap()
 const history = []
+let overrideOptions = {}
+let navigatingBack = false
 
 export const getHash = () => {
   return (document.location.hash || '/').replace(/^#/, '')
@@ -38,7 +40,10 @@ export const matchHash = (path, routes = []) => {
       return r.path === path
     })
     .pop()
-  if (route) currentRoute = route
+  if (route) {
+    route.options = { ...route.options, ...overrideOptions }
+    currentRoute = route
+  }
   return route
 }
 
@@ -50,8 +55,10 @@ export const navigate = async function () {
     const route = matchHash(hash, this.parent[symbols.routes])
 
     if (route) {
-      if (route.options.inHistory === true && history[history.length - 1] !== hash) {
-        history.push(hash)
+      // add the previous route (tecnhically still the current route at this point)
+      // into the history stack, unless navigating back or inHistory flag of route is false
+      if (navigatingBack === false && previousRoute && previousRoute.options.inHistory === true) {
+        history.push(previousRoute)
       }
       // apply default transition if none specified
       if (!('transition' in route)) {
@@ -132,6 +139,9 @@ export const navigate = async function () {
       Log.error(`Route ${hash} not found`)
     }
   }
+
+  // reset navigating indicators
+  navigatingBack = false
   navigating = false
 }
 
@@ -171,14 +181,17 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
     : node.set(transition.prop, transition.value)
 }
 
-export const to = (location, options) => {
+export const to = (location, options = {}) => {
+  overrideOptions = options
   window.location.hash = `#${location}`
 }
 
 export const back = () => {
-  if (history.length > 1) {
-    to(history[history.length - 2])
-    history.splice(-2, 2)
+  const route = history.pop()
+  if (route) {
+    // set indicator that we are navigating back (to prevent adding page to history stack)
+    navigatingBack = true
+    to(route.path)
     return true
   } else {
     return false
