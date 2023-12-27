@@ -19,7 +19,7 @@ import { MainCoreDriver, RendererMain } from '@lightningjs/renderer'
 // import RendererWorker from '@lightningjs/renderer/workers/renderer?worker'
 import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
-
+import { screenResolutions } from './lib/utils.js'
 // import coreExtensionModule from './fontLoader.js?importChunkUrl'
 
 export let renderer
@@ -41,6 +41,11 @@ export default (App, target, settings) => {
       appWidth: settings.w || 1920,
       appHeight: settings.h || 1080,
       coreExtensionModule: settings.fontLoader,
+      deviceLogicalPixelRatio:
+        settings.pixelRatio ||
+        screenResolutions[settings.screenResolution] ||
+        screenResolutions[window.innerHeight] ||
+        1,
     },
     target,
     driver
