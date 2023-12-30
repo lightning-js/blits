@@ -163,7 +163,7 @@ const Props = {
     this._set.add('scale')
   },
   set show(v) {
-    this.alpha = v ? 1 : 0
+    this._props.alpha = v ? 1 : 0
   },
   set alpha(v) {
     this._props.alpha = v
