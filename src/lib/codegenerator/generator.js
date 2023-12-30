@@ -92,8 +92,8 @@ const generateElementCode = function (
   if (options.holder === true) {
     renderCode.push(`
     if(typeof cmp${counter} !== 'undefined') {
-      for(key in cmp${counter}.config.props) {
-        delete elementConfig${counter}[cmp${counter}.config.props[key]]
+      for(let key in cmp${counter}.config.props) {
+        delete  elementConfig${counter}[cmp${counter}.config.props[key]]
       }
     }
     `)
@@ -171,7 +171,7 @@ const generateComponentCode = function (
 
   renderCode.push(`
     if(!${elm}) {
-      ${elm} = (context.components && context.components['${templateObject.type}'] || component[Symbol.for('components')]['${templateObject.type}'] || (() => { console.log('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, ${parent}, component)
+      ${elm} = (context.components && context.components['${templateObject.type}'] || component[Symbol.for('components')]['${templateObject.type}'] || (() => { console.error('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, ${parent}, component)
       if (${elm}[Symbol.for('slots')][0]) {
         parent = ${elm}[Symbol.for('slots')][0]
         component = ${elm}
