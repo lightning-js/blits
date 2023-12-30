@@ -47,13 +47,11 @@ const required = (name) => {
 }
 
 const Component = (name = required('name'), config = required('config')) => {
-  let code = null
-
   const setupComponent = (lifecycle) => {
     // code generation
-    if (!code) {
+    if (!config.code) {
       Log.debug(`Generating code for ${name} component`)
-      code = codegenerator.call(config, parser(config.template))
+      config.code = codegenerator.call(config, parser(config.template))
     }
 
     setupBase(component)
@@ -167,7 +165,7 @@ const Component = (name = required('name'), config = required('config')) => {
     this.lifecycle.state = 'init'
 
     Object.defineProperty(this, symbols.children, {
-      value: code.render.apply(stage, [parentEl, this, code.context]),
+      value: config.code.render.apply(stage, [parentEl, this, config]),
       writable: false,
       enumerable: false,
       configurable: false,
@@ -180,9 +178,9 @@ const Component = (name = required('name'), config = required('config')) => {
       configurable: false,
     })
 
-    code.effects.forEach((eff) => {
+    config.code.effects.forEach((eff) => {
       effect(() => {
-        eff.apply(stage, [this, this[symbols.children], code.context])
+        eff.apply(stage, [this, this[symbols.children], config])
       })
     })
 
