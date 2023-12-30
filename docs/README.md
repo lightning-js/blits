@@ -30,11 +30,12 @@ Finally it's a nerdy reference to the computer term "Bit Blits" commonly used in
 - [Computed properties](computed_properties.md)
 - [Watching for changes](watchers.md)
 - [Styling and positioning Elements](element_attributes.md)
+- [Displaying images](displaying_images.md)
+
 <!---
 - More complex logic in methods
 - Transitions
 - Implementing Custom components
 - Handling Text
-- Handling Images
 - Routing
 -->
