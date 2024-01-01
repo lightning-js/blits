@@ -25,9 +25,11 @@ For more advanced usage, you can define props using an array of objects for each
 - Mark the prop as _required_.
 - Apply a `cast` function to modify the value passed as a prop.
 
-```javascript
-{
+```js
+export default Blits.Component('MyComponent', {
+  // ...
   props: [
+    'color',
     {
       key: 'alpha',
       default: 0.5,
@@ -38,7 +40,7 @@ For more advanced usage, you can define props using an array of objects for each
       cast: Number
     }
   ]
-}
+})
 ```
 
 You can mix and match the simple string notation with the more advanced object notation within the same `props` array.
