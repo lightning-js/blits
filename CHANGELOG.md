@@ -1,6 +1,13 @@
 # Changelog
 
-# v0.5.8
+# v0.5.10
+
+_3 jan 2024_
+
+- Updated and improved documentation
+- Added `screenResolution` and `pixelRatio` options to settings
+
+# v0.5.9
 
 _21 dec 2023_
 
