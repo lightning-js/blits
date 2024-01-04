@@ -2,9 +2,14 @@ import parser from '../src/lib/templateparser/parser.js'
 import generator from '../src/lib/codegenerator/generator.js'
 
 export default function () {
+  let config
   return {
     name: 'preCompiler',
+    configResolved(resolvedConfig) {
+      config = resolvedConfig
+    },
     transform(source) {
+      if (config.blits && config.blits.precompile === false) return source
       if (source.indexOf('Blits.Component(') > -1 || source.indexOf('Blits.Application(') > -1) {
         // get the start of the template key in de component configuration object
         const templateKeyRegex = /template:\s*([`"'])*/g
