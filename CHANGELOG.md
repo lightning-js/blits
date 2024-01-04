@@ -1,5 +1,12 @@
 # Changelog
 
+# v0.6.0
+
+_4 jan 2024_
+
+- Added pre-compilation functionality to improve performance. Requires an update to the `vite.config.js` to enable. Read more details in this [blog post](https://lightningjs.io/blogs/blitsPreCompilation.html)
+- Added `defaultFont` to the Launch settings
+
 # v0.5.10
 
 _3 jan 2024_
