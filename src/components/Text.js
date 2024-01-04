@@ -16,6 +16,7 @@
  */
 
 import Component from '../component.js'
+import Settings from '../settings.js'
 
 export default () =>
   Component('Text', {
@@ -41,7 +42,7 @@ export default () =>
       'content',
       {
         key: 'font',
-        default: 'lato',
+        default: Settings.get('defaultFont', 'lato'),
       },
       {
         key: 'size',

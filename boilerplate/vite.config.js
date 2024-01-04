@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite'
-import { importChunkUrl } from '@lightningjs/blits/vite'
+import blitsVitePlugins from '@lightningjs/blits/vite'
 
 export default defineConfig(({ command, mode, ssrBuild }) => {
   return {
-    plugins: [importChunkUrl()],
+    plugins: [...blitsVitePlugins],
     resolve: {
       mainFields: ['browser', 'module', 'jsnext:main', 'jsnext'],
     },

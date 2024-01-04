@@ -35,6 +35,7 @@ import setupWatch from './lib/setup/watch.js'
 import { effect } from './lib/reactivity/effect.js'
 import { Log } from './lib/log.js'
 
+import Settings from './settings.js'
 import symbols from './lib/symbols.js'
 
 const stage = {
@@ -46,13 +47,11 @@ const required = (name) => {
 }
 
 const Component = (name = required('name'), config = required('config')) => {
-  let code = null
-
   const setupComponent = (lifecycle) => {
     // code generation
-    if (!code) {
+    if (!config.code) {
       Log.debug(`Generating code for ${name} component`)
-      code = codegenerator.call(config, parser(config.template))
+      config.code = codegenerator.call(config, parser(config.template))
     }
 
     setupBase(component)
@@ -120,7 +119,7 @@ const Component = (name = required('name'), config = required('config')) => {
     }
 
     this.parent = parentComponent
-    this.wrapper = parentEl
+    this[symbols.wrapper] = parentEl
 
     Object.defineProperties(this, {
       type: {
@@ -142,7 +141,7 @@ const Component = (name = required('name'), config = required('config')) => {
         configurable: false,
       },
       [symbols.props]: {
-        value: reactive(opts.props || {}),
+        value: reactive(opts.props || {}, Settings.get('reactivityMode')),
         writable: false,
         enumerable: false,
         configurable: false,
@@ -157,7 +156,7 @@ const Component = (name = required('name'), config = required('config')) => {
     })
 
     Object.defineProperty(this, symbols.state, {
-      value: reactive(this[symbols.originalState]),
+      value: reactive(this[symbols.originalState], Settings.get('reactivityMode')),
       writable: false,
       enumerable: false,
       configurable: false,
@@ -166,7 +165,7 @@ const Component = (name = required('name'), config = required('config')) => {
     this.lifecycle.state = 'init'
 
     Object.defineProperty(this, symbols.children, {
-      value: code.render.apply(stage, [parentEl, this, code.context]),
+      value: config.code.render.apply(stage, [parentEl, this, config]),
       writable: false,
       enumerable: false,
       configurable: false,
@@ -179,9 +178,9 @@ const Component = (name = required('name'), config = required('config')) => {
       configurable: false,
     })
 
-    code.effects.forEach((eff) => {
+    config.code.effects.forEach((eff) => {
       effect(() => {
-        eff.apply(stage, [this, this[symbols.children], code.context])
+        eff.apply(stage, [this, this[symbols.children], config])
       })
     })
 

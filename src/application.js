@@ -43,21 +43,34 @@ const Application = (config) => {
 
   config.hooks = config.hooks || {}
 
-  let handler
+  let keyDownHandler
+  let keyUpHandler
+  let holdTimeout
 
   config.hooks[symbols.destroy] = function () {
-    document.removeEventListener('keydown', handler)
+    document.removeEventListener('keydown', keyDownHandler)
+    document.removeEventListener('keyup', keyUpHandler)
   }
 
   config.hooks[symbols.init] = function () {
     const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
 
-    handler = (e) => {
+    keyDownHandler = (e) => {
       const key = keyMap[e.key] || keyMap[e.keyCode] || e.key || e.keyCode
       Focus.input(key, e)
+      clearTimeout(holdTimeout)
+      holdTimeout = setTimeout(() => {
+        Focus.hold = true
+      }, 50)
     }
 
-    document.addEventListener('keydown', handler)
+    keyUpHandler = () => {
+      clearTimeout(holdTimeout)
+      Focus.hold = false
+    }
+
+    document.addEventListener('keydown', keyDownHandler)
+    document.addEventListener('keyup', keyUpHandler)
 
     // next tick
     setTimeout(() => Focus.set(this))

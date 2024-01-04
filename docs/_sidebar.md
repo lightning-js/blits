@@ -8,4 +8,5 @@
 - [Computed properties](computed_properties.md)
 - [Watching for changes](watchers.md)
 - [Styling and positioning Elements](element_attributes.md)
+- [Displaying images](displaying_images.md)
 

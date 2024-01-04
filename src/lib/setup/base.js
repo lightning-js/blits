@@ -17,7 +17,7 @@
 
 import { renderer } from '../../launch.js'
 import Focus from '../../focus.js'
-import { to, currentRoute, navigating } from '../../router/router.js'
+import { to, currentRoute, navigating, back } from '../../router/router.js'
 import Image from '../../components/Image.js'
 import Circle from '../../components/Circle.js'
 import RouterView from '../../components/RouterView.js'
@@ -29,16 +29,8 @@ import symbols from '../symbols.js'
 
 import { trigger } from '../reactivity/effect.js'
 
-const shaders = {
-  radius: 'radius',
+const shaderAlias = {
   rounded: 'radius',
-  border: 'border',
-  borderTop: 'borderTop',
-  borderBottom: 'borderBottom',
-  borderLeft: 'borderLeft',
-  borderRight: 'borderRight',
-  grayScale: 'grayscale',
-  glitch: 'glitch',
 }
 
 export default (component) => {
@@ -101,9 +93,12 @@ export default (component) => {
     },
     shader: {
       value: function (type, args) {
-        if (type in shaders) {
+        const target = shaderAlias[type] || type
+        const shaders = renderer.driver.stage.shManager.getRegisteredEffects()
+
+        if (target in shaders) {
           return {
-            type: shaders[type],
+            type: target,
             props: args,
           }
         } else {
@@ -117,6 +112,7 @@ export default (component) => {
     $router: {
       value: {
         to,
+        back,
         get currentRoute() {
           return currentRoute
         },

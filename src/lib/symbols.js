@@ -23,6 +23,7 @@ export default {
   type: Symbol('type'),
   watchers: Symbol('watchers'),
   watchKeys: Symbol('watchKeys'),
+  wrapper: Symbol('wrapper'),
 
   /* Utilizing the global Symbol registry for the following purposes */
 

@@ -9,7 +9,7 @@ next:
 
 # Hooking into Lifecycle Events
 
-In Blits, components follow a defined flow of lifecycle events. Developers can integrate their logic into these events by specifying them in the `hooks` key of the Component configuration object.
+Blits components follow a defined flow of lifecycle events. You can integrate specific logic into these events by specifying them in the `hooks` key of the Component configuration object.
 
 For each available lifecycle event, you can define a function with the same name as the event itself. This function will execute each time the event is triggered for your component's instance. It's essential to use a regular function instead of an arrow function if you intend to access the `this` scope of your component instance.
 
@@ -25,11 +25,9 @@ For each available lifecycle event, you can define a function with the same name
 
 - **destroy()**: The `destroy` event fires when the component is being destroyed and removed. This event provides an opportunity to perform any custom cleanup operations before the component is removed.
 
-## Example
-
-```javascript
-{
-  // Other component configurations...
+```js
+export default Blits.Component('MyComponent', {
+  // ...
   hooks: {
     init() {
       // Logic to execute on init event
@@ -47,7 +45,5 @@ For each available lifecycle event, you can define a function with the same name
       // Logic to execute on destroy event
     },
   },
-};
+})
 ```
-
-In the provided example, each function within the `hooks` object corresponds to a specific lifecycle event, allowing developers to inject custom logic at different stages of the component's lifecycle.

@@ -27,7 +27,11 @@ const arrayMethods = [
   'shift',
   'splice',
   'unshift',
+  'sort',
+  'reverse',
 ]
+
+const arrayPatchMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse']
 
 const proxyMap = new WeakMap()
 
@@ -79,17 +83,22 @@ const reactiveDefineProperty = (target) => {
   Object.keys(target).forEach((key) => {
     let internalValue = target[key]
 
-    if (
-      target[key] !== null &&
-      typeof target[key] === 'object' &&
-      Object.getPrototypeOf(target[key]) === Object.prototype
-    ) {
-      return reactiveDefineProperty(target[key])
+    if (target[key] !== null && typeof target[key] === 'object') {
+      if (Object.getPrototypeOf(target[key]) === Object.prototype) {
+        return reactiveDefineProperty(target[key])
+      } else if (Array.isArray(target[key])) {
+        for (let i = 0; i < arrayPatchMethods.length - 1; i++) {
+          target[key][arrayPatchMethods[i]] = function (v) {
+            Array.prototype[arrayPatchMethods[i]].call(this, v)
+            trigger(target, key)
+          }
+        }
+      }
     }
 
     Object.defineProperty(target, key, {
-      enumerable: true, // ?
-      configurable: true, // ?
+      enumerable: true,
+      configurable: true,
       get() {
         track(target, key)
         return internalValue
@@ -107,9 +116,8 @@ const reactiveDefineProperty = (target) => {
   return target
 }
 
-// maybe an options object?
-export const reactive = (target, type = 'proxy') => {
-  return type === 'proxy' ? reactiveProxy(target) : reactiveDefineProperty(target)
+export const reactive = (target, mode = 'Proxy') => {
+  return mode === 'defineProperty' ? reactiveDefineProperty(target) : reactiveProxy(target)
 }
 
 export const memo = (raw) => {
