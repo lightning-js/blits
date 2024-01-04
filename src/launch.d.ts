@@ -91,6 +91,15 @@ export interface Settings {
    */
   fonts?: Font[],
   /**
+   * Default font family to use in the Application when no font attribute is specified
+   * on a Text-component
+   *
+   * The default font must be registered in the `fonts` array in the settings.
+   *
+   * Defaults to `lato` font family
+   */
+  defaultFont?: string,
+  /**
    * Custom keymapping
    */
   keymap?: object,
