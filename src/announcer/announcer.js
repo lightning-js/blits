@@ -20,7 +20,7 @@ import speechSynthesis from './speechSynthesis.js'
 const entryPoliteness = {
   assertive: 0,
   off: 1,
-  politeness: 2,
+  polite: 2,
 }
 
 let entries = []
@@ -31,11 +31,10 @@ const clearEntries = () => {
 }
 
 const playFirstEntry = () => {
-  currentEntry = entries[0]
+  currentEntry = entries.shift()
   speechSynthesis.speak({ value: currentEntry.message })
 
   speechSynthesis.onend = () => {
-    entries.pop()
     if (entries.length > 0) {
       playFirstEntry()
     }
@@ -46,7 +45,7 @@ const playFirstEntry = () => {
 const speak = (message, politeness = 'off') => {
   if (currentEntry && currentEntry.politeness !== 'assertive') {
     speechSynthesis.cancel()
-    entries.pop()
+    entries.shift()
   }
   entries.push({ message, politeness })
   entries = entries.sort((a, b) => entryPoliteness[a.politeness] - entryPoliteness[b.politeness])
@@ -64,6 +63,9 @@ const assertive = (message) => speak(message, 'assertive')
 
 const stop = () => {
   speechSynthesis.cancel()
+}
+
+const clear = () => {
   clearEntries()
 }
 
@@ -72,4 +74,5 @@ export default {
   polite,
   assertive,
   stop,
+  clear,
 }
