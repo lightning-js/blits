@@ -17,43 +17,17 @@
 
 import speechSynthesis from './speechSynthesis.js'
 
-const entryPoliteness = {
-  assertive: 0,
-  off: 1,
-  polite: 2,
-}
-
-let entries = []
-let currentEntry = null
-
-const clearEntries = () => {
-  entries.length = 0
-}
-
-const playFirstEntry = () => {
-  currentEntry = entries.shift()
-  speechSynthesis.speak({ value: currentEntry.message })
-
-  speechSynthesis.onend = () => {
-    if (entries.length > 0) {
-      playFirstEntry()
-    }
-  }
-  speechSynthesis.onerror = speechSynthesis.onend
-}
+let debounce
 
 const speak = (message, politeness = 'off') => {
-  if (currentEntry && politeness === 'assertive' && currentEntry.politeness !== 'assertive') {
-    speechSynthesis.cancel()
-    entries.shift()
-  }
-  entries.push({ message, politeness })
-  entries = entries.sort((a, b) => entryPoliteness[a.politeness] - entryPoliteness[b.politeness])
+  clearTimeout(debounce)
+  // assertive messages get spoken immediately
   if (politeness === 'assertive') {
-    entries = entries.filter((a) => entryPoliteness[a.politeness] < 2)
-  }
-  if (!speechSynthesis.hasEntry()) {
-    playFirstEntry()
+    speechSynthesis.speak({ value: message })
+  } else {
+    debounce = setTimeout(() => {
+      speechSynthesis.speak({ value: message })
+    }, 200)
   }
 }
 
@@ -65,14 +39,9 @@ const stop = () => {
   speechSynthesis.cancel()
 }
 
-const clear = () => {
-  clearEntries()
-}
-
 export default {
   speak,
   polite,
   assertive,
   stop,
-  clear,
 }

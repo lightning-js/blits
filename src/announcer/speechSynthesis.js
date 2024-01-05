@@ -75,7 +75,6 @@ const utterance = (scope, e) => {
     scope.onpause()
   }
   utter.onend = () => {
-    clear()
     hasEntry = false
     scope.onend()
   }
@@ -91,7 +90,7 @@ const utterance = (scope, e) => {
 
 export default {
   speak(e) {
-    this.cancel()
+    syn.cancel()
     utterance(this, e)
   },
   resume() {
