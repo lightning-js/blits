@@ -43,7 +43,7 @@ const playFirstEntry = () => {
 }
 
 const speak = (message, politeness = 'off') => {
-  if (currentEntry && currentEntry.politeness !== 'assertive') {
+  if (currentEntry && politeness === 'assertive' && currentEntry.politeness !== 'assertive') {
     speechSynthesis.cancel()
     entries.shift()
   }
