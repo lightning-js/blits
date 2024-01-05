@@ -28,6 +28,7 @@ import { default as log, Log } from '../log.js'
 import symbols from '../symbols.js'
 
 import { trigger } from '../reactivity/effect.js'
+import Announcer from '../../announcer/announcer.js'
 
 const shaderAlias = {
   rounded: 'radius',
@@ -218,6 +219,12 @@ export default (component) => {
         // trigger with force set to true
         trigger(this[symbols.originalState], key, true)
       },
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    },
+    $announcer: {
+      value: Announcer,
       writable: false,
       enumerable: false,
       configurable: false,

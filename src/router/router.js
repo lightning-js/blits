@@ -21,6 +21,7 @@ import symbols from '../lib/symbols.js'
 import { Log } from '../lib/log.js'
 import Element from '../element.js'
 import Focus from '../focus.js'
+import Announcer from '../announcer/announcer.js'
 
 export let currentRoute
 export let navigating = false
@@ -55,7 +56,7 @@ export const navigate = async function () {
     const route = matchHash(hash, this.parent[symbols.routes])
 
     if (route) {
-      // add the previous route (tecnhically still the current route at this point)
+      // add the previous route (technically still the current route at this point)
       // into the history stack, unless navigating back or inHistory flag of route is false
       if (navigatingBack === false && previousRoute && previousRoute.options.inHistory === true) {
         history.push(previousRoute)
@@ -130,6 +131,16 @@ export const navigate = async function () {
         } else {
           await setOrAnimate(holder, route.transition.in, shouldAnimate)
         }
+      }
+
+      // Announce route change if a message has been specified for this route
+      if (route.announce) {
+        if (typeof route.announce === 'string') {
+          route.announce = {
+            message: route.announce,
+          }
+        }
+        Announcer.speak(route.announce.message, route.announce.politeness)
       }
 
       // focus the new view
