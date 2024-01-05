@@ -20,7 +20,6 @@ const syn = window.speechSynthesis
 const getUA = () => (window.navigator || {}).userAgent || ''
 const isAndroid = () => /android/i.test(getUA())
 
-let hasEntry = false
 let initialized = false
 let infinityTimer = null
 const clear = () => infinityTimer && clearTimeout(infinityTimer)
@@ -47,7 +46,7 @@ const utterProps = {
 }
 
 const initialize = () => {
-  utterProps.voice = syn.getVoices()[1]
+  utterProps.voice = syn.getVoices()[0]
   initialized = true
 }
 
@@ -80,16 +79,12 @@ const utterance = (scope, e) => {
     scope.onpause()
   }
   utter.onend = () => {
-    hasEntry = false
     scope.onend()
   }
   utter.onerror = () => {
     clear()
-    hasEntry = false
     scope.onerror()
   }
-
-  hasEntry = true
   syn.speak(utter)
 }
 
@@ -110,10 +105,6 @@ export default {
   cancel() {
     syn.cancel()
     clear()
-    hasEntry = false
-  },
-  hasEntry() {
-    return hasEntry
   },
   getVoices() {
     return syn.getVoices()
