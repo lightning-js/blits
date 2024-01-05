@@ -21,6 +21,7 @@ let debounce
 
 const speak = (message, politeness = 'off') => {
   clearTimeout(debounce)
+  stop()
   // assertive messages get spoken immediately
   if (politeness === 'assertive') {
     speechSynthesis.speak({ value: message })

@@ -21,7 +21,7 @@ const getUA = () => (window.navigator || {}).userAgent || ''
 const isAndroid = () => /android/i.test(getUA())
 
 let hasEntry = false
-
+let initialized = false
 let infinityTimer = null
 const clear = () => infinityTimer && clearTimeout(infinityTimer)
 
@@ -44,6 +44,11 @@ const utterProps = {
   rate: 1,
   voice: null,
   volume: 1,
+}
+
+const initialize = () => {
+  utterProps.voice = syn.getVoices()[1]
+  initialized = true
 }
 
 const utterance = (scope, e) => {
@@ -90,7 +95,10 @@ const utterance = (scope, e) => {
 
 export default {
   speak(e) {
-    syn.cancel()
+    if (!initialized) {
+      initialize()
+    }
+    this.cancel()
     utterance(this, e)
   },
   resume() {
