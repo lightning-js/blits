@@ -42,7 +42,7 @@ const utterProps = {
   lang: 'en-US',
   pitch: 1,
   rate: 1,
-  voice: syn.getVoices()[0],
+  voice: null,
   volume: 1,
 }
 
@@ -72,7 +72,6 @@ const utterance = (scope, e) => {
   }
 
   utter.onpause = () => {
-    clear()
     scope.onpause()
   }
   utter.onend = () => {
@@ -100,7 +99,6 @@ export default {
   },
   pause() {
     syn.pause()
-    clear()
   },
   cancel() {
     syn.cancel()
