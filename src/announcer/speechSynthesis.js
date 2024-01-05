@@ -15,12 +15,117 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+const syn = window.speechSynthesis
+
+const getUA = () => (window.navigator || {}).userAgent || ''
+const isAndroid = () => /android/i.test(getUA())
+
+let hasEntry = false
+
+let infinityTimer = null
+const clear = () => infinityTimer && clearTimeout(infinityTimer)
+
+const resumeInfinity = (target) => {
+  if (!target || infinityTimer) {
+    return clear()
+  }
+
+  syn.pause()
+  syn.resume()
+
+  infinityTimer = setTimeout(() => {
+    resumeInfinity(target)
+  }, 5000)
+}
+
+const utterProps = {
+  lang: 'en-US',
+  pitch: 1,
+  rate: 1,
+  voice: syn.getVoices()[0],
+  volume: 1,
+}
+
+const utterance = (scope, e) => {
+  const utter = new SpeechSynthesisUtterance(e.value)
+
+  // utter props
+  utter.lang = e.lang || utterProps.lang
+  utter.pitch = e.pitch || utterProps.pitch
+  utter.rate = e.rate || utterProps.rate
+  utter.voice = e.voice || utterProps.voice
+  utter.volume = e.volume || utterProps.volume
+
+  // utter events
+  utter.onstart = () => {
+    if (!isAndroid()) {
+      resumeInfinity(utter)
+    }
+    scope.onstart()
+  }
+
+  utter.onresume = () => {
+    if (!isAndroid()) {
+      resumeInfinity(utter)
+    }
+    scope.onresume()
+  }
+
+  utter.onpause = () => {
+    clear()
+    scope.onpause()
+  }
+  utter.onend = () => {
+    clear()
+    hasEntry = false
+    scope.onend()
+  }
+  utter.onerror = () => {
+    clear()
+    hasEntry = false
+    scope.onerror()
+  }
+
+  hasEntry = true
+  syn.speak(utter)
+}
+
 export default {
-  speak(message, politeness) {
-    console.log('Speach', message, politeness)
+  speak(e) {
+    this.cancel()
+    utterance(this, e)
+  },
+  resume() {
+    syn.resume()
+  },
+  pause() {
+    syn.pause()
+    clear()
   },
   cancel() {
-    //
+    syn.cancel()
+    clear()
+    hasEntry = false
   },
-  // etc.
+  hasEntry() {
+    return hasEntry
+  },
+  getVoices() {
+    return syn.getVoices()
+  },
+  onend() {
+    //event placeholder
+  },
+  onerror() {
+    //event placeholder
+  },
+  onstart() {
+    //event placeholder
+  },
+  onresume() {
+    //event placeholder
+  },
+  onpause() {
+    //eventplaceholder
+  },
 }
