@@ -316,7 +316,8 @@ const cast = (val = '', key = false, component = 'component.') => {
     if (val.startsWith('$')) {
       castedValue = `${component}${val.replace('$', '')}`
     } else {
-      castedValue = `'${parseInlineContent(val, component)}'`
+      // unescaped single quotes must be escaped
+      castedValue = `'${parseInlineContent(val.replace(/(?<!\\)'/g, "\\'"), component)}'`
     }
   }
   // numeric
