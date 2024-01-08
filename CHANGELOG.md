@@ -1,5 +1,12 @@
 # Changelog
 
+# v0.6.1
+
+_8 jan 2024_
+
+- Fixed issue with using single quotes as Text content
+- Added first Text-to-Speech / Announcer functionality
+
 # v0.6.0
 
 _4 jan 2024_
