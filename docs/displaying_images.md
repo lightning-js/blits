@@ -1,9 +1,4 @@
----
-prev:
-  text: Styling and positioning Elements
-  link: element_attributes
-next: false
----
+# Blits - Lightning 3 App Development Framework
 
 ## Displaying Images
 
