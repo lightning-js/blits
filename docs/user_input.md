@@ -1,6 +1,13 @@
-# Blits - Lightning 3 App Development Framework
+---
+prev:
+  text: Props
+  link: props
+next:
+  text: Computed properties
+  link: computed_properties
+---
 
-## Handling User Input
+# Handling User Input
 
 When building an App you probably want users to interact with it as well, for example to enable them to navigate through your App. In other words, you will want to handle _user input_. In the context of a Blits / Lightning App this often will be key input via a remote control.
 
@@ -12,7 +19,7 @@ Before diving into the specifics of key handling, it is important to understand 
 
 The component that currently has focus, is the one that is responsible for handling the user input at that moment. For example, when a user clicks the _right_ or _left_ button while a _Poster Component_ has focus, it is that instance of the Poster Component that will initially _receive_ the key press event.
 
-### Configuring Input Handling
+## Configuring Input Handling
 
 Within the Component configuration object, the `input` key is used to define how the component should react to specific key presses when it has focus. The `input` key should be an `object literal` of `functions` for each input event that the component wants to handle.
 
@@ -35,7 +42,7 @@ export default Blits.Component('MyComponent', {
 }
 ```
 
-### Event Handling Chain
+## Event Handling Chain
 
 If the currently focused component does not handle a key press, Blits will traverse up the component hierarchy, checking for any _parent_ component that does have a function defined for that key press in the `input`-key. This input event handling chain continues until it reaches the root App component.
 

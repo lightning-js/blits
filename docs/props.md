@@ -1,6 +1,13 @@
-# Blits - Lightning 3 App Development Framework
+---
+prev:
+  text: Hooking into lifecycle events
+  link: lifecycle_events
+next:
+  text: Handling user input
+  link: user_input
+---
 
-## Props
+# Props
 
 Components in Blits have their own internal state and logic. However, as each component is part of the larger app's scope, they may need to display different behaviors or appearances based on the rest of the app. To achieve this, components can receive `props` from their parent component.
 

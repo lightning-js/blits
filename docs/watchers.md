@@ -1,6 +1,13 @@
-# Blits - Lightning 3 App Development Framework
+---
+prev:
+  text: Computed properties
+  link: computed_properties
+next:
+  text: Styling and positioning Elements
+  link: element_attributes
+---
 
-## Watching for Changes
+# Watching for Changes
 
 In some cases, you may want to execute specific actions whenever the value of a state variable, a prop, or a computed property changes. These actions could involve dispatching an event or updating another state variable.
 
@@ -8,7 +15,7 @@ You might be tempted to handle this functionality inside a computed property, bu
 
 Instead, Blits allows you to specify **watchers**.
 
-### Using Watchers
+## Using Watchers
 
 Within the `watch` key of the Component configuration object, you can define an object of _watcher functions_.
 
@@ -16,7 +23,7 @@ The name of each function should correspond to the name of the internal state va
 
 The watcher function receives two arguments: the new value and the old value of the observed property. This allows you to perform specific actions based on the changes.
 
-### Example:
+## Example:
 
 ```javascript
 {
