@@ -28,7 +28,7 @@ const speak = (message, politeness = 'off') => {
   } else {
     debounce = setTimeout(() => {
       speechSynthesis.speak({ value: message })
-    }, 200)
+    }, 400)
   }
 }
 
