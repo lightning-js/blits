@@ -1,5 +1,12 @@
 # Changelog
 
+# v0.6.3
+
+_12 jan 2024_
+
+- Removed prepending protocol and host from sprite image
+
+
 # v0.6.2
 
 _12 jan 2024_
