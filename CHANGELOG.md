@@ -1,5 +1,11 @@
 # Changelog
 
+# v0.6.2
+
+_12 jan 2024_
+
+- Fixed issue with Sprites not working correctly due to missing background color
+
 # v0.6.1
 
 _8 jan 2024_
