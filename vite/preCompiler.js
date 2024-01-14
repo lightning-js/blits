@@ -1,5 +1,6 @@
 import parser from '../src/lib/templateparser/parser.js'
 import generator from '../src/lib/codegenerator/generator.js'
+import path from 'path'
 
 export default function () {
   let config
@@ -8,7 +9,7 @@ export default function () {
     configResolved(resolvedConfig) {
       config = resolvedConfig
     },
-    transform(source) {
+    transform(source, filePath) {
       if (config.blits && config.blits.precompile === false) return source
       if (source.indexOf('Blits.Component(') > -1 || source.indexOf('Blits.Application(') > -1) {
         // get the start of the template key in de component configuration object
@@ -27,7 +28,12 @@ export default function () {
           templateStartIndex + templateContentResult.index + templateContentResult[0].length
 
         // Parse the template
-        const parsed = parser(templateContentResult[1])
+        let resourceName = 'Blits.Application'
+        if (source.indexOf('Blits.Component(') > -1) {
+          resourceName = source.match(/Blits\.Component\(['"](.*)['"]\s*,/)[1]
+        }
+        const componentPath = path.relative(process.cwd(), filePath)
+        const parsed = parser(templateContentResult[1], resourceName, null, componentPath)
 
         // Generate the code
         const code = generator.call({ components: {} }, parsed)
