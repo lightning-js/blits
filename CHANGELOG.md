@@ -1,5 +1,11 @@
 # Changelog
 
+# v0.6.4
+
+_15 jan 2024_
+
+- Added fix for sprites not working on certain devices
+
 # v0.6.3
 
 _12 jan 2024_
