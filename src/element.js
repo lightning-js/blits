@@ -119,6 +119,9 @@ const Props = {
   },
   set texture(v) {
     this._props.texture = v
+    if (!this._set.has('color')) {
+      this._props.color = 0xffffffff
+    }
     this._set.add('texture')
   },
   set mount(v) {
@@ -263,6 +266,7 @@ const Element = {
         return this.animate(p, v, value.transition)
       } else {
         this.node[p] = v
+        console.log('set it', this.node[p], v)
       }
     }
   },
