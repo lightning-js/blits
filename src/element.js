@@ -266,7 +266,6 @@ const Element = {
         return this.animate(p, v, value.transition)
       } else {
         this.node[p] = v
-        console.log('set it', this.node[p], v)
       }
     }
   },
