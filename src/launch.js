@@ -20,6 +20,7 @@ import { MainCoreDriver, RendererMain } from '@lightningjs/renderer'
 import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import { screenResolutions } from './lib/utils.js'
+import Announcer from './announcer/announcer.js'
 // import coreExtensionModule from './fontLoader.js?importChunkUrl'
 
 export let renderer
@@ -53,8 +54,10 @@ export default (App, target, settings) => {
 
   const initApp = () => {
     let app = App()
+    Announcer.initialize(settings.announcer || null)
     app.quit = () => {
       Log.info('Closing App')
+      Announcer.stop()
       app.destroy()
       app = null
       renderer = null

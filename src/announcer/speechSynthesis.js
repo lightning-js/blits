@@ -45,11 +45,6 @@ const utterProps = {
   volume: 1,
 }
 
-const initialize = () => {
-  utterProps.voice = syn.getVoices()[0]
-  initialized = true
-}
-
 const utterance = (scope, e) => {
   const utter = new SpeechSynthesisUtterance(e.value)
 
@@ -89,9 +84,21 @@ const utterance = (scope, e) => {
 }
 
 export default {
+  initialize(uProps) {
+    if (uProps) {
+      this.setUtterProps(uProps)
+    }
+    if (!utterProps.voice) {
+      const voices = syn.getVoices()
+      if (voices && voices.length > 0) {
+        utterProps.voice = syn.getVoices()[0]
+      }
+    }
+    initialized = true
+  },
   speak(e) {
     if (!initialized) {
-      initialize()
+      this.initialize()
     }
     this.cancel()
     utterance(this, e)
@@ -105,6 +112,14 @@ export default {
   cancel() {
     syn.cancel()
     clear()
+  },
+  setUtterProps(settings) {
+    for (const key in settings) {
+      utterProps[key] = settings[key]
+    }
+  },
+  getUtterProps() {
+    return utterProps
   },
   getVoices() {
     return syn.getVoices()

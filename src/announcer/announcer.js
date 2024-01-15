@@ -19,9 +19,18 @@ import speechSynthesis from './speechSynthesis.js'
 
 let debounce
 
+const clearDebounce = () => {
+  if (debounce) {
+    clearTimeout(debounce)
+  }
+}
+
+const initialize = (utterProps) => {
+  speechSynthesis.initialize(utterProps)
+}
+
 const speak = (message, politeness = 'off') => {
-  clearTimeout(debounce)
-  speechSynthesis.cancel()
+  stop()
   // assertive messages get spoken immediately
   if (politeness === 'assertive') {
     speechSynthesis.speak({ value: message })
@@ -37,6 +46,7 @@ const polite = (message) => speak(message, 'polite')
 const assertive = (message) => speak(message, 'assertive')
 
 const stop = () => {
+  clearDebounce()
   speechSynthesis.cancel()
 }
 
@@ -45,4 +55,5 @@ export default {
   polite,
   assertive,
   stop,
+  initialize,
 }
