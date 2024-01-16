@@ -27,7 +27,7 @@ export let renderer
 
 export default (App, target, settings) => {
   Settings.set(settings)
-
+  Announcer.initialize(settings.announcer || null)
   initLog()
 
   const driver = new MainCoreDriver()
@@ -54,7 +54,6 @@ export default (App, target, settings) => {
 
   const initApp = () => {
     let app = App()
-    Announcer.initialize(settings.announcer || null)
     app.quit = () => {
       Log.info('Closing App')
       Announcer.stop()

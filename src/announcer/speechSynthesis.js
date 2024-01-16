@@ -91,7 +91,7 @@ export default {
     if (!utterProps.voice) {
       const voices = syn.getVoices()
       if (voices && voices.length > 0) {
-        utterProps.voice = syn.getVoices()[0]
+        utterProps.voice = voices[0]
       }
     }
     initialized = true
