@@ -1,0 +1,64 @@
+[
+  {
+    "text": "Getting Started",
+    "items": [
+      {
+        "text": "Introduction",
+        "link": "/blits/getting_started"
+      }
+    ]
+  },
+  {
+    "text": "Basics",
+    "items": [
+      {
+        "text": "Components",
+        "link": "/blits/components"
+      },
+      {
+        "text": "Template Syntax",
+        "link": "/blits/template_syntax"
+      },
+      {
+        "text": "Component State",
+        "link": "/blits/template_syntax"
+      },
+      {
+        "text": "Hooks",
+        "link": "/blits/lifecycle_events"
+      },
+      {
+        "text": "Props",
+        "link": "/blits/props"
+      },
+      {
+        "text": "User Input",
+        "link": "/blits/user_input"
+      },
+      {
+        "text": "Computed Props",
+        "link": "/blits/computed_properties"
+      },
+      {
+        "text": "Watchers",
+        "link": "/blits/watchers"
+      },
+      {
+        "text": "Watchers",
+        "link": "/blits/watchers"
+      },
+      {
+        "text": "Styling",
+        "link": "/blits/element_attributes"
+      },
+      {
+        "text": "Images",
+        "link": "/blits/displaying_images"
+      },
+      {
+        "text": "Text-to-Speech",
+        "link": "/blits/text-to-speech-announcer"
+      }
+    ]
+  }
+]
