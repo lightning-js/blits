@@ -8,7 +8,7 @@ The _template_ key in the Componentn configuration object holds a string with an
 
 You can use different tags in your templates. And similar to HTML you can use arguments and nested tags. Self-closing tags and HTML-style comments are also supported.
 
-The default tag within a template is the `<Element>` tag, which corresponds to a node in the Lightning 3 renderer. For each element, you can define a set of predefined render properties, such as `x`, `y`, `w`, `color`, and more. Detailed information regarding the attributes supported by the <Element> tag can be found [here](./element_attributes.md).
+The default tag within a template is the `<Element>` tag, which corresponds to a node in the Lightning 3 renderer. For each element, you can define a set of predefined render properties, such as `x`, `y`, `w`, `color`, and more. Detailed information regarding the attributes supported by the `<Element>` tag can be found [here](./element_attributes.md).
 
 Consider the following template example:
 

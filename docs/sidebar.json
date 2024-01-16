@@ -21,7 +21,7 @@
       },
       {
         "text": "Component State",
-        "link": "/docs/blits/template_syntax"
+        "link": "/docs/blits/component_state"
       },
       {
         "text": "Hooks",
@@ -38,10 +38,6 @@
       {
         "text": "Computed Props",
         "link": "/docs/blits/computed_properties"
-      },
-      {
-        "text": "Watchers",
-        "link": "/docs/blits/watchers"
       },
       {
         "text": "Watchers",
