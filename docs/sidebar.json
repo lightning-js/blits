@@ -4,6 +4,10 @@
     "items": [
       {
         "text": "Introduction",
+        "link": "/docs/blits/introduction"
+      },
+      {
+        "text": "Setup",
         "link": "/docs/blits/getting_started"
       }
     ]
