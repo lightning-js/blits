@@ -4,7 +4,7 @@
     "items": [
       {
         "text": "Introduction",
-        "link": "/blits/getting_started"
+        "link": "/docs/blits/getting_started"
       }
     ]
   },
@@ -13,51 +13,51 @@
     "items": [
       {
         "text": "Components",
-        "link": "/blits/components"
+        "link": "/docs/blits/components"
       },
       {
         "text": "Template Syntax",
-        "link": "/blits/template_syntax"
+        "link": "/docs/blits/template_syntax"
       },
       {
         "text": "Component State",
-        "link": "/blits/template_syntax"
+        "link": "/docs/blits/template_syntax"
       },
       {
         "text": "Hooks",
-        "link": "/blits/lifecycle_events"
+        "link": "/docs/blits/lifecycle_events"
       },
       {
         "text": "Props",
-        "link": "/blits/props"
+        "link": "/docs/blits/props"
       },
       {
         "text": "User Input",
-        "link": "/blits/user_input"
+        "link": "/docs/blits/user_input"
       },
       {
         "text": "Computed Props",
-        "link": "/blits/computed_properties"
+        "link": "/docs/blits/computed_properties"
       },
       {
         "text": "Watchers",
-        "link": "/blits/watchers"
+        "link": "/docs/blits/watchers"
       },
       {
         "text": "Watchers",
-        "link": "/blits/watchers"
+        "link": "/docs/blits/watchers"
       },
       {
         "text": "Styling",
-        "link": "/blits/element_attributes"
+        "link": "/docs/blits/element_attributes"
       },
       {
         "text": "Images",
-        "link": "/blits/displaying_images"
+        "link": "/docs/blits/displaying_images"
       },
       {
         "text": "Text-to-Speech",
-        "link": "/blits/text-to-speech-announcer"
+        "link": "/docs/blits/text-to-speech-announcer"
       }
     ]
   }
