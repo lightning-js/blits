@@ -51,6 +51,29 @@ interface SdfFont {
   png: string
 }
 
+interface Announcer {
+  /**
+   * Language of the Announcer will speak with
+   */
+  lang: string,
+  /**
+   * Pitch at which the Announcer will speak with.
+   */
+  pitch: number,
+  /**
+   * Rate / Speed at which the Announcer will speak with.
+   */
+  rate: 1,
+  /**
+   * Voice at which the Announcer will speak with.
+   */
+  voice: SpeechSynthesisVoice,
+  /**
+   * Volume at which the Announcer will speak with.
+   */
+  volume: 1
+}
+
 type ScreenResolutions = 'hd' | '720p' | 720 | 'fhd' | 'fullhd' | '1080p' | 1080 | '4k' | '2160p' | 2160
 
 type Font = WebFont | SdfFont
@@ -82,6 +105,10 @@ export interface Settings {
    * Debug level for console log messages
    */
   debugLevel?: DebugLevel | LogTypes[]
+  /**
+   * Announcer settings to use as default
+   */
+  announcer?: Announcer
   /**
    * Font loader file
    */
