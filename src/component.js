@@ -51,6 +51,9 @@ const Component = (name = required('name'), config = required('config')) => {
     // code generation
     if (!config.code) {
       Log.debug(`Generating code for ${name} component`)
+      if (typeof config.template === 'function') {
+        config.template = config.template.toString()
+      }
       config.code = codegenerator.call(config, parser(config.template, name, parentComponent))
     }
 
