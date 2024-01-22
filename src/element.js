@@ -128,11 +128,11 @@ const Props = {
   },
   set mount(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if (v.x) {
+      if (v.hasOwnProperty('x')) {
         this._props.mountX = v.x
         this._set.add('mountX')
       }
-      if (v.y) {
+      if (v.hasOwnProperty('y')) {
         this._props.mountY = v.y
         this._set.add('mountY')
       }
@@ -144,11 +144,11 @@ const Props = {
   },
   set pivot(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if (v.x) {
+      if (v.hasOwnProperty('x')) {
         this._set.add('pivotX')
         this._props.pivotX = v.x
       }
-      if (v.y) {
+      if (v.hasOwnProperty('y')) {
         this._set.add('pivotY')
         this._props.pivotY = v.y
       }
@@ -160,8 +160,8 @@ const Props = {
   },
   set scale(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if (v.x) this._props.scaleX = v.x
-      if (v.y) this._props.scaleY = v.y
+      if (v.hasOwnProperty('x')) this._props.scaleX = v.x
+      if (v.hasOwnProperty('y')) this._props.scaleY = v.y
     } else {
       this._props.scale = v
     }
