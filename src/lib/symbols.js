@@ -1,5 +1,6 @@
 export default {
   currentView: Symbol('currentView'),
+  cursorTagStart: Symbol('cursorTagStart'),
   computedKeys: Symbol('computedKeys'),
   destroy: Symbol('destroy'),
   index: Symbol('index'),

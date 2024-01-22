@@ -47,11 +47,11 @@ const required = (name) => {
 }
 
 const Component = (name = required('name'), config = required('config')) => {
-  const setupComponent = (lifecycle) => {
+  const setupComponent = (lifecycle, parentComponent) => {
     // code generation
     if (!config.code) {
       Log.debug(`Generating code for ${name} component`)
-      config.code = codegenerator.call(config, parser(config.template))
+      config.code = codegenerator.call(config, parser(config.template, name, parentComponent))
     }
 
     setupBase(component)
@@ -115,7 +115,7 @@ const Component = (name = required('name'), config = required('config')) => {
     this.lifecycle = createLifecycle(this)
 
     if (!component.setup) {
-      setupComponent(this.lifecycle)
+      setupComponent(this.lifecycle, parentComponent)
     }
 
     this.parent = parentComponent

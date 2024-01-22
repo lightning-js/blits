@@ -594,43 +594,6 @@ test('Parse template with a nameless tag', (assert) => {
   assert.end()
 })
 
-// test('Parse template with a nameless tag but with arguments', (assert) => {
-//   const template = `
-//     <x="100" y="200">
-//       <x="50" y="20">
-//         <Component w="100" h="20" />
-//       </>
-//     </>`
-
-//   const expected = {
-//     children: [
-//       {
-//         type: null,
-//         x: '100',
-//         y: '200',
-//         children: [
-//           {
-//             type: null,
-//             x: '50',
-//             y: '20',
-//             children: [
-//               {
-//                 type: 'Component',
-//                 w: '100',
-//                 h: '20',
-//               },
-//             ],
-//           },
-//         ],
-//       },
-//     ],
-//   }
-//   const actual = parser(template)
-
-//   assert.deepEqual(actual, expected, 'Parser should return object representation of template')
-//   assert.end()
-// })
-
 test('Parse template with a transition argument (single value)', (assert) => {
   const template = `
     <Element x.transition="$offset" y="200">
@@ -974,8 +937,16 @@ test('Parse template with multiple top level elements and parsing should fail', 
     />
   </Component>`
 
-  const actual = parser(template)
-  assert.equal(actual, null, 'Parser should throw an error')
+  try {
+    parser(template)
+    assert.fail('Parser should throw TemplateStructureError:MultipleTopLevelTags')
+  } catch (error) {
+    assert.equal(error.name, 'TemplateStructureError', 'Parser should throw TemplateStructureError')
+    assert.ok(
+      error.message.startsWith('MultipleTopLevelTags'),
+      'Parser should throw TemplateStructureError:MultipleTopLevelTags'
+    )
+  }
 
   assert.end()
 })
@@ -987,8 +958,16 @@ test('Parse template with unclosed tag and parsing should fail', (assert) => {
   </Component>
   `
 
-  const actual = parser(template)
-  assert.equal(actual, null, 'Parser should throw an error')
+  try {
+    parser(template)
+    assert.fail('Parser should throw TemplateStructureError:MismatchedClosingTag')
+  } catch (error) {
+    assert.equal(error.name, 'TemplateStructureError', 'Parser should throw TemplateStructureError')
+    assert.ok(
+      error.message.startsWith('MismatchedClosingTag'),
+      'Parser should throw TemplateStructureError:MismatchedClosingTag'
+    )
+  }
   assert.end()
 })
 
@@ -1004,8 +983,16 @@ test('Parse template with multiple unclosed tags and parsing should fail', (asse
   </Component>
   `
 
-  const actual = parser(template)
-  assert.equal(actual, null, 'Parser should throw an error')
+  try {
+    parser(template)
+    assert.fail('Parser should throw TemplateStructureError:MismatchedClosingTag')
+  } catch (error) {
+    assert.equal(error.name, 'TemplateStructureError', 'Parser should throw TemplateStructureError')
+    assert.ok(
+      error.message.startsWith('MismatchedClosingTag'),
+      'Parser should throw TemplateStructureError:MismatchedClosingTag'
+    )
+  }
   assert.end()
 })
 
@@ -1017,8 +1004,16 @@ test('Parse template with an invalid closing tag and parsing should fail', (asse
   </Component>
   `
 
-  const actual = parser(template)
-  assert.equal(actual, null, 'Parser should throw an error')
+  try {
+    parser(template)
+    assert.fail('Parser should throw TemplateParseError:InvalidClosingTag')
+  } catch (error) {
+    assert.equal(error.name, 'TemplateParseError', 'Parser should throw TemplateParseError')
+    assert.ok(
+      error.message.startsWith('InvalidClosingTag'),
+      'Parser should throw TemplateParseError:InvalidClosingTag'
+    )
+  }
 
   assert.end()
 })
@@ -1029,8 +1024,17 @@ test('Parse template with multiple self-closing tags at the top level and parsin
   <Element/>
   `
 
-  const actual = parser(template)
-  assert.equal(actual, null, 'Parser should throw an error')
+  try {
+    parser(template)
+    assert.fail('Parser should throw TemplateStructureError:MultipleTopLevelTags')
+  } catch (error) {
+    assert.equal(error.name, 'TemplateStructureError', 'Parser should throw TemplateStructureError')
+    assert.ok(
+      error.message.startsWith('MultipleTopLevelTags'),
+      'Parser should throw TemplateStructureError:MultipleTopLevelTags'
+    )
+  }
+
   assert.end()
 })
 
@@ -1042,7 +1046,38 @@ test('Parse template with a closing tag at the beginning and parsing should fail
   </Component>
   `
 
-  const actual = parser(template)
-  assert.equal(actual, null, 'Parser should throw an error')
+  try {
+    parser(template)
+    assert.fail('Parser should throw TemplateStructureError:MismatchedClosingTag')
+  } catch (error) {
+    assert.equal(error.name, 'TemplateStructureError', 'Parser should throw TemplateStructureError')
+    assert.ok(
+      error.message.startsWith('MismatchedClosingTag'),
+      'Parser should throw TemplateStructureError:MismatchedClosingTag'
+    )
+  }
+
+  assert.end()
+})
+
+test('Parse template with a closing tag that has attributes and parsing should fail', (assert) => {
+  const template = `
+  <Component>
+    <Text>Lorem ipsum dolor sit amet</Text>
+    <Element></Element x="200">
+  </Component>
+  `
+
+  try {
+    parser(template)
+    assert.fail('Parser should throw TemplateParseError:AttributesInClosingTag')
+  } catch (error) {
+    assert.equal(error.name, 'TemplateParseError', 'Parser should throw TemplateParseError')
+    assert.ok(
+      error.message.startsWith('AttributesInClosingTag'),
+      'Parser should throw TemplateParseError:AttributesInClosingTag'
+    )
+  }
+
   assert.end()
 })

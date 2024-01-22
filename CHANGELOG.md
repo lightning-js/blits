@@ -1,5 +1,18 @@
 # Changelog
 
+# v0.6.5
+
+_16 jan 2024_
+
+- Added `path` to boilerplate vite.config.js for deployments in a sub folder
+- Improved error handling in the template parser, with more contextual error messages
+
+# v0.6.4
+
+_15 jan 2024_
+
+- Added fix for sprites not working on certain devices
+
 # v0.6.3
 
 _12 jan 2024_

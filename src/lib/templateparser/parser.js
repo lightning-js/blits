@@ -17,16 +17,9 @@
 
 import symbols from '../symbols.js'
 
-class TemplateParseError extends Error {
-  constructor(message, name, context) {
-    super(`TemplateParseError: ${message}`)
-    this.name = name
-    this.context = context
-  }
-}
-
-export default (template = '') => {
+export default (template = '', componentName, parentComponent, filePath = null) => {
   let cursor = 0
+  let prevCursor = 0
   let tags = []
   let currentTag = null
   let currentLevel = 0
@@ -45,13 +38,10 @@ export default (template = '') => {
       parseLoop(parseEmptyTagStart)
       return format(tags)
     } catch (error) {
-      if (error instanceof TemplateParseError) {
-        console.error(`${error.message} | ${error.name}`)
-      } else {
-        console.error(error)
+      if (error.name == 'TemplateParseError' || error.name == 'TemplateStructureError') {
+        error.message = `${error.message}\n${error.context}`
       }
-      // return errors gracefully
-      return null
+      throw error
     }
   }
 
@@ -63,9 +53,9 @@ export default (template = '') => {
   }
 
   // utils
-  const clean = (template) => {
+  const clean = (templateText) => {
     // remove all unnecessary new lines and comments
-    return template
+    return templateText
       .replace(/<!--.*?-->/gms, '') // remove comments
       .replace(/\r?\n\s*\r\n/gm, ' ') // remove empty lines
       .replace(/\r?\n\s*(\S)/gm, ' $1') // remove line endings & spacing
@@ -75,7 +65,10 @@ export default (template = '') => {
 
   const moveCursorOnMatch = (regex) => {
     const match = template.slice(cursor).match(regex)
-    if (match) cursor += match[0].length
+    if (match) {
+      prevCursor = cursor
+      cursor += match[0].length
+    }
     return match
   }
 
@@ -83,7 +76,12 @@ export default (template = '') => {
   const parseEmptyTagStart = () => {
     const match = moveCursorOnMatch(emptyTagStartRegex)
     if (match) {
-      tags.push({ type: null, [symbols.type]: 'opening', [symbols.level]: currentLevel })
+      tags.push({
+        type: null,
+        [symbols.type]: 'opening',
+        [symbols.level]: currentLevel,
+        [symbols.cursorTagStart]: prevCursor,
+      })
       currentLevel++
       parseLoop(parseEmptyTagStart)
     } else {
@@ -95,7 +93,11 @@ export default (template = '') => {
     const match = moveCursorOnMatch(emptyTagEndRegex)
     if (match) {
       currentLevel--
-      tags.push({ type: null, [symbols.type]: 'closing', [symbols.level]: currentLevel })
+      tags.push({
+        type: null,
+        [symbols.type]: 'closing',
+        [symbols.level]: currentLevel,
+      })
       parseLoop(parseEmptyTagStart)
     } else {
       parseLoop(parseTag)
@@ -105,16 +107,22 @@ export default (template = '') => {
   const parseTag = () => {
     const match = moveCursorOnMatch(tagStartRegex)
     if (match) {
+      currentTag = {
+        type: match[1],
+        [symbols.level]: currentLevel,
+        [symbols.cursorTagStart]: prevCursor,
+      }
       if (match[0].startsWith('</')) {
         currentLevel--
-        currentTag = { type: match[1], [symbols.type]: 'closing', [symbols.level]: currentLevel }
+        currentTag[symbols.type] = 'closing'
+        currentTag[symbols.level] = currentLevel
       } else {
-        currentTag = { type: match[1], [symbols.type]: 'opening', [symbols.level]: currentLevel }
+        currentTag[symbols.type] = 'opening'
         currentLevel++
       }
       parseLoop(parseTagEnd)
     } else {
-      throw new TemplateParseError('InvalidTag', template.slice(cursor))
+      throw TemplateParseError('InvalidTag')
     }
   }
 
@@ -123,8 +131,7 @@ export default (template = '') => {
     if (match) {
       if (match[1] === '/>') {
         if (currentTag[symbols.type] === 'closing') {
-          // 10 is arbitrary, just to show some context by moving the cursor back a bit
-          throw new TemplateParseError('InvalidClosingTag', template.slice(cursor - 10))
+          throw TemplateParseError('InvalidClosingTag')
         }
         currentTag[symbols.type] = 'self-closing'
         currentLevel-- // because it was parsed as opening tag before
@@ -147,9 +154,14 @@ export default (template = '') => {
     }
   }
 
+  //fixme: closing tags cannot have attributes
   const parseAttributes = () => {
     const attrNameMatch = moveCursorOnMatch(attrNameRegex)
     if (attrNameMatch) {
+      if (currentTag[symbols.type] === 'closing') {
+        throw TemplateParseError('AttributesInClosingTag')
+      }
+
       const delimiter = attrNameMatch[2]
       const attrValueRegex = new RegExp(`^(.*?)${delimiter}\\s*`)
       const attrValueMatch = moveCursorOnMatch(attrValueRegex)
@@ -160,10 +172,10 @@ export default (template = '') => {
         currentTag[attr.name] = attr.value
         parseLoop(parseTagEnd)
       } else {
-        throw new TemplateParseError('MissingOrInvalidAttributeValue', template.slice(cursor))
+        throw TemplateParseError('MissingOrInvalidAttributeValue')
       }
     } else {
-      throw new TemplateParseError('InvalidAttribute', template.slice(cursor))
+      throw TemplateParseError('InvalidAttribute')
     }
   }
 
@@ -177,10 +189,8 @@ export default (template = '') => {
     return { name, value }
   }
 
-  // formating and validation
-
   /*
-  validation rules:
+  Formatting & validation rules:
     #1: Every opening tag must have a corresponding closing tag at the same level. If a closing tag is encountered without
         a preceding opening tag at the same level, or if an opening tag is not followed by a corresponding closing tag at
         the same level, an error should be thrown.
@@ -200,7 +210,7 @@ export default (template = '') => {
       // Rule #1
       if (element[symbols.level] === 0 && element[symbols.type] !== 'closing') {
         if (rootElementDefined) {
-          throw new TemplateParseError('MultipleTopLevelTags', formatErrorContext(element))
+          throw TemplateStructureError('MultipleTopLevelTags', element)
         }
         rootElementDefined = true
       }
@@ -210,6 +220,7 @@ export default (template = '') => {
         stack.push({
           [symbols.level]: element[symbols.level],
           [symbols.type]: element[symbols.type],
+          [symbols.cursorTagStart]: element[symbols.cursorTagStart],
           type: element.type,
           parent: currentParent, // helps getting the previous parent when closing tag is encountered
         })
@@ -223,7 +234,7 @@ export default (template = '') => {
         }
 
         if (isStackEmpty || isLevelMismatch || isTagMismatch) {
-          throw new TemplateParseError('MismatchedClosingTag', formatErrorContext(element))
+          throw TemplateStructureError('MismatchedClosingTag', element)
         }
 
         // when we remove the closing element from the stack, we should set
@@ -235,6 +246,7 @@ export default (template = '') => {
       const newItem = { ...element }
       delete newItem[symbols.type]
       delete newItem[symbols.level]
+      delete newItem[symbols.cursorTagStart]
 
       // if it is an opening tag, add children[] to it and update current parent
       if (element[symbols.type] === 'opening') {
@@ -251,21 +263,78 @@ export default (template = '') => {
 
     // Check if all tags are closed (so stack should be empty)[Rule #1]
     if (stack.length > 0) {
-      const unclosedTags = stack
-        .map((item) => {
-          return formatErrorContext(item)
-        })
-        .join(', ')
-      throw new TemplateParseError('UnclosedTags', unclosedTags)
-    }
-
-    function formatErrorContext(element) {
-      return `${element.type || 'empty-tag'}[${element[symbols.type]}] at level ${
-        element[symbols.level]
-      }`
+      throw TemplateStructureError('UnclosedTags', stack)
     }
 
     return output
+  }
+
+  // error reporting
+  const contextPaddingBefore = 10 // number of characters to show before the error location
+  const contextPaddingAfter = 50 // number of characters to show after the error location
+
+  const TemplateParseError = (message, context) => {
+    const location = getErrorLocation()
+    message = `${message} in ${location}`
+
+    const error = new Error(message)
+    error.name = 'TemplateParseError'
+
+    // generate context if the error is related to parsing
+    if (!context) {
+      const start = Math.max(0, prevCursor - contextPaddingBefore)
+      const end = Math.min(template.length, cursor + contextPaddingAfter)
+      const contextText = template.slice(start, end)
+
+      // add ^ caret to show where the error is
+      const caretPosition = cursor - start
+      error.context = insertContextCaret(caretPosition, contextText)
+    } else {
+      error.context = context
+    }
+    return error
+  }
+
+  const TemplateStructureError = (message, context) => {
+    const location = getErrorLocation()
+    message = `${message} in ${location}`
+
+    const error = new Error(message)
+    error.name = 'TemplateStructureError'
+
+    // check if context is an array
+    if (Array.isArray(context)) {
+      error.context = context.map((tag) => generateContext(tag)).join('\n')
+    } else {
+      error.context = generateContext(context)
+    }
+
+    function generateContext(element) {
+      const start = Math.max(0, element[symbols.cursorTagStart] - contextPaddingBefore)
+      const contextText = template.slice(start, start + contextPaddingAfter)
+      // add ^ caret to show where the error is
+      return insertContextCaret(contextPaddingBefore, contextText)
+    }
+    return error
+  }
+
+  const insertContextCaret = (position, contextText) => {
+    const caret = ' '.repeat(position) + '^'
+    return `\n${contextText}\n${caret}\n`
+  }
+
+  const getErrorLocation = () => {
+    if (parentComponent) {
+      let hierarchy = componentName || ''
+      let currentParent = parentComponent
+
+      while (currentParent) {
+        hierarchy = `${currentParent.type}/${hierarchy}`
+        currentParent = currentParent.parent
+      }
+      return hierarchy
+    }
+    return filePath ? filePath : 'Blits.Application'
   }
 
   return parse()

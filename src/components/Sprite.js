@@ -22,7 +22,7 @@ import symbols from '../lib/symbols.js'
 export default () =>
   Component('Sprite', {
     template: `
-      <Element w="$w" h="$h" color="#fff" :texture="$texture" />
+      <Element w="$w" h="$h" :texture="$texture" />
     `,
     props: ['image', 'map', 'frame', 'w', 'h'],
     state() {
@@ -34,7 +34,7 @@ export default () =>
       texture() {
         const options =
           'frames' in this.map
-            ? { ...(this.map.defaults || {}), ...this.map.frames[this.frame] }
+            ? Object.assign({}, this.map.defaults || {}, this.map.frames[this.frame])
             : this.map[this.frame]
 
         if (this.spriteTexture && options) {
