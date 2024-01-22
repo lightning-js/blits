@@ -21,7 +21,6 @@ import { Log } from '../lib/log.js'
 let debounce
 let settings = {
   enabled: false,
-  debug: false,
 }
 
 const clearDebounce = () => {
@@ -33,7 +32,6 @@ const clearDebounce = () => {
 const initialize = (initSettings) => {
   settings = {
     enabled: initSettings.enabled || false,
-    debug: initSettings.debug || false,
   }
   speechSynthesis.initialize(initSettings)
 }
@@ -53,9 +51,7 @@ const speak = (message, politeness = 'off') => {
 }
 
 const executeSpeak = (message) => {
-  if (settings.debug) {
-    Log.info(`Announcer: ${message}`)
-  }
+  Log.debug(`Announcer: ${message}`)
   speechSynthesis.speak({ value: message })
 }
 

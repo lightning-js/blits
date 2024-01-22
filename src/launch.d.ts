@@ -57,10 +57,6 @@ interface Announcer {
    */
   enabled: boolean,
   /**
-   * Debug the Announcer
-   */
-  debug: boolean,
-  /**
    * Language of the Announcer will speak with
    */
   lang: string,
