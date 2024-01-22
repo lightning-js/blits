@@ -53,6 +53,14 @@ interface SdfFont {
 
 interface Announcer {
   /**
+   * Enables the Announcer
+   */
+  enabled: boolean,
+  /**
+   * Debug the Announcer
+   */
+  debug: boolean,
+  /**
    * Language of the Announcer will speak with
    */
   lang: string,
@@ -63,7 +71,7 @@ interface Announcer {
   /**
    * Rate / Speed at which the Announcer will speak with.
    */
-  rate: 1,
+  rate: number,
   /**
    * Voice at which the Announcer will speak with.
    */
@@ -71,7 +79,7 @@ interface Announcer {
   /**
    * Volume at which the Announcer will speak with.
    */
-  volume: 1
+  volume: number
 }
 
 type ScreenResolutions = 'hd' | '720p' | 720 | 'fhd' | 'fullhd' | '1080p' | 1080 | '4k' | '2160p' | 2160

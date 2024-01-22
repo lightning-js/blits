@@ -16,8 +16,13 @@
  */
 
 import speechSynthesis from './speechSynthesis.js'
+import { Log } from '../lib/log.js'
 
 let debounce
+let settings = {
+  enabled: false,
+  debug: false,
+}
 
 const clearDebounce = () => {
   if (debounce) {
@@ -25,20 +30,33 @@ const clearDebounce = () => {
   }
 }
 
-const initialize = (utterProps) => {
-  speechSynthesis.initialize(utterProps)
+const initialize = (initSettings) => {
+  settings = {
+    enabled: initSettings.enabled || false,
+    debug: initSettings.debug || false,
+  }
+  speechSynthesis.initialize(initSettings)
 }
 
 const speak = (message, politeness = 'off') => {
   stop()
+  // stop announcer from speaking if not enabled
+  if (!settings.enabled) return
   // assertive messages get spoken immediately
   if (politeness === 'assertive') {
-    speechSynthesis.speak({ value: message })
+    executeSpeak(message)
   } else {
     debounce = setTimeout(() => {
-      speechSynthesis.speak({ value: message })
+      executeSpeak(message)
     }, 400)
   }
+}
+
+const executeSpeak = (message) => {
+  if (settings.debug) {
+    Log.info(`Announcer: ${message}`)
+  }
+  speechSynthesis.speak({ value: message })
 }
 
 const polite = (message) => speak(message, 'polite')
@@ -50,10 +68,16 @@ const stop = () => {
   speechSynthesis.cancel()
 }
 
+const destroy = () => {
+  stop()
+  //will need destroy function later when we can watch app settings
+}
+
 export default {
   speak,
   polite,
   assertive,
   stop,
   initialize,
+  destroy,
 }

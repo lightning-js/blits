@@ -56,7 +56,7 @@ export default (App, target, settings) => {
     let app = App()
     app.quit = () => {
       Log.info('Closing App')
-      Announcer.stop()
+      Announcer.destroy()
       app.destroy()
       app = null
       renderer = null
