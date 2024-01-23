@@ -32,8 +32,6 @@ export default {
   children: Symbol.for('children'),
   // Symbol 'components' utilized within generated code
   components: Symbol.for('components'),
-  // Symbol 'id' utilized within generated code
-  id: Symbol.for('id'),
   // Symbol 'isSlot' utilized within generated code
   isSlot: Symbol.for('isSlot'),
   // Symbol 'props' utilized within generated code
