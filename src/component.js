@@ -148,6 +148,9 @@ const Component = (name = required('name'), config = required('config')) => {
       },
     })
 
+    this[symbols.timeouts] = []
+    this[symbols.intervals] = []
+
     Object.defineProperty(this, symbols.originalState, {
       value: (config.state && typeof config.state === 'function' && config.state.apply(this)) || {},
       writable: false,
