@@ -92,7 +92,9 @@ The value of alpha is also being applied recursively to the children of the Elem
 
 ### Rotation and scaling
 
-If you want to rotate an Element, you can use the `rotation` attribute. The rotation attribute in Blits accepts values in degrees. The rotation of an Element is also automatically applied to any children down the tree.
+If you want to rotate an Element, you can use the `rotation` attribute. The rotation attribute in Blits accepts values in _degrees_.
+
+The rotation of an Element is also automatically applied to any children down the tree.
 
 ```xml
 <Element w="200" h="200" color="blue" rotation="90">
@@ -100,13 +102,20 @@ If you want to rotate an Element, you can use the `rotation` attribute. The rota
 </Element>
 ```
 
-For scaling an Element the `scale` attribute is used. This attribute can be any numeric value starting at `0`. The default value is `1`, which means no scaling. Any value below `1` will scale down the element and values greater than `1` will scale the element up.
+For scaling an Element the `scale` attribute is used.
+
+This attribute either accepts a single numeric value for scaling evenly accross width and height. Or an _object literal_, if you want to apply a different scaling for the `x` and the `y` axis.
+
+The value should start at `0` and the default value is `1`, which means no scaling.
+
+Any value below `1` will scale _down_ the element and values greater than `1` will scale the element _up_.
 
 Similar to rotation, scale is also applied recursively to children down the tree of the Element that has it's `scale` attribute set.
 
 ```xml
 <Element w="200" h="200" color="blue" scale="0.5" />
 <Element w="200" h="200" color="#000" scale="2.3" />
+<Element w="200" h="200" color="#000" scale="{x: 1, y: 3.14}" />
 ```
 
 ### Mounting point
@@ -119,20 +128,27 @@ In order to align the position starting at the _bottom-right_ corner, we would s
 
 If you omit either the `x` or the `y` key from the _object literal_, it's value will default to `0`.
 
+In the case where the `x` and `y` values are the same (i.e. centering with `{x: 0.5, y: 0.5}`), you can also just supply a single value (`mount="0.5"`) instead of the object literal notation.
+
 ```xml
 <Element w="200" h="200" x="20" y="100" color="#333" mount="{x: 0.5, y: 0.8}" />
 <Element w="200" h="200" x="800" y="400" color="#333" mount="{y: 1}" />
+<Element w="200" h="200" x="800" y="700" color="#333" mount="0.5" />
 ```
 
 ### Pivot point
 
-The pivot point of an Element comes into play when it's rotated or scaled. The pivot point defaults to the center of the Element, which means that when setting `rotation` it rotates around the middle. And when the Element is scaled it scales from the center out.
+The pivot point of an Element comes into play when it's rotated or scaled. The pivot point defaults to the _center_ of the Element, which means that when setting `rotation` it rotates around the middle. And when the Element is scaled it scales from the center out.
 
 But sometimes you may want rotate around the left corner, or scale from the right side out. This can be controlled by adding the `pivot` attribute to the Element and, similar to the `mount` attribute, specify an _object literal_ with a `x` and a `y` key.
 
 Both `y` and `x` values should be anything between `0` and `1`, where `{x: 0, y: 0}` sets the pivot point to the _top-left_ corner and `{x: 1, y: 1}` refers to the _bottom-right_ corner. The default pivot value is `{x: 0.5, y: 0.5}` (i.e. the center) and if you omit `x` or `y` in your pivot object, it will default to `0.5`.
 
+In the case where the `x` and `y` values are the same, you can also just supply a single value (`pivot="0.9"`) instead of the object literal notation.
+
+
 ```xml
 <Element w="200" h="200" x="20" y="100" pivot="{x: 0.5, y: 0.8}" rotation="69" />
 <Element w="200" h="200" x="800" y="400" pivot="{y: 1}" scale="3" />
+<Element w="200" h="200" x="800" y="700" pivot="0.9" rotation="42" />
 ```

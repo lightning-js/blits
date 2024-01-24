@@ -1,5 +1,63 @@
 # Changelog
 
+# v0.6.5
+
+_16 jan 2024_
+
+- Added `path` to boilerplate vite.config.js for deployments in a sub folder
+- Improved error handling in the template parser, with more contextual error messages
+
+# v0.6.4
+
+_15 jan 2024_
+
+- Added fix for sprites not working on certain devices
+
+# v0.6.3
+
+_12 jan 2024_
+
+- Removed prepending protocol and host from sprite image
+
+
+# v0.6.2
+
+_12 jan 2024_
+
+- Fixed issue with Sprites not working correctly due to missing background color
+
+# v0.6.1
+
+_8 jan 2024_
+
+- Fixed issue with using single quotes as Text content
+- Added first Text-to-Speech / Announcer functionality
+
+# v0.6.0
+
+_4 jan 2024_
+
+- Added pre-compilation functionality to improve performance. Requires an update to the `vite.config.js` to enable. Read more details in this [blog post](https://lightningjs.io/blogs/blitsPreCompilation.html)
+- Added `defaultFont` to the Launch settings
+
+# v0.5.10
+
+_3 jan 2024_
+
+- Updated and improved documentation
+- Added `screenResolution` and `pixelRatio` options to settings
+
+# v0.5.9
+
+_21 dec 2023_
+
+- Changed transition-end callback to receive real prop value from node
+- Implemented symbol for `wrapper` on Component (freeing up the name wrapper to be used in Component state)
+- Added functionality to prevent a route ending up in the history stack (route option: `inHistory: false`)
+- Improved router backtracking logic
+- Added functionality to override route options during navigation
+- Upgraded to latest version of the renderer (0.6.1) which contains a fix for animations not finishing correctly
+
 # v0.5.8
 
 _15 dec 2023_

@@ -51,6 +51,8 @@ const unpackTransition = (obj) => {
   return obj
 }
 
+let firstNode = false
+
 const Props = {
   set parent(v) {
     this._props.parent = v === 'root' ? renderer.root : v.node
@@ -119,15 +121,18 @@ const Props = {
   },
   set texture(v) {
     this._props.texture = v
+    if (!this._set.has('color')) {
+      this._props.color = 0xffffffff
+    }
     this._set.add('texture')
   },
   set mount(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if (v.x) {
+      if ('x' in v) {
         this._props.mountX = v.x
         this._set.add('mountX')
       }
-      if (v.y) {
+      if ('y' in v) {
         this._props.mountY = v.y
         this._set.add('mountY')
       }
@@ -139,11 +144,11 @@ const Props = {
   },
   set pivot(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if (v.x) {
+      if ('x' in v) {
         this._set.add('pivotX')
         this._props.pivotX = v.x
       }
-      if (v.y) {
+      if ('y' in v) {
         this._set.add('pivotY')
         this._props.pivotY = v.y
       }
@@ -155,15 +160,15 @@ const Props = {
   },
   set scale(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if (v.x) this._props.scaleX = v.x
-      if (v.y) this._props.scaleY = v.y
+      if ('x' in v) this._props.scaleX = v.x
+      if ('y' in v) this._props.scaleY = v.y
     } else {
       this._props.scale = v
     }
     this._set.add('scale')
   },
   set show(v) {
-    this.alpha = v ? 1 : 0
+    this._props.alpha = v ? 1 : 0
   },
   set alpha(v) {
     this._props.alpha = v
@@ -234,6 +239,13 @@ const Element = {
     if (!this.props._set.has('color')) {
       this.props._props.color =
         this.props._set.has('src') || this.props._set.has('texture') ? 0xffffffff : 0
+    }
+
+    // temporary workaround for renderer issue https://github.com/lightning-js/renderer/issues/123
+    if (!firstNode) {
+      this.props._props.src =
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII='
+      firstNode = true
     }
 
     this.node = props.__textnode
@@ -317,7 +329,7 @@ const Element = {
                 // fire transition end callback if specified
                 transition.end &&
                   typeof transition.end === 'function' &&
-                  transition.end.call(this.component, this, prop, props[prop])
+                  transition.end.call(this.component, this, prop, this.node[prop])
               })
               .then(resolve)
           } catch (e) {

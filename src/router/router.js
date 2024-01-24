@@ -21,12 +21,15 @@ import symbols from '../lib/symbols.js'
 import { Log } from '../lib/log.js'
 import Element from '../element.js'
 import Focus from '../focus.js'
+import Announcer from '../announcer/announcer.js'
 
 export let currentRoute
 export let navigating = false
 
 const cacheMap = new WeakMap()
 const history = []
+let overrideOptions = {}
+let navigatingBack = false
 
 export const getHash = () => {
   return (document.location.hash || '/').replace(/^#/, '')
@@ -38,7 +41,10 @@ export const matchHash = (path, routes = []) => {
       return r.path === path
     })
     .pop()
-  if (route) currentRoute = route
+  if (route) {
+    route.options = { ...route.options, ...overrideOptions }
+    currentRoute = route
+  }
   return route
 }
 
@@ -50,7 +56,11 @@ export const navigate = async function () {
     const route = matchHash(hash, this.parent[symbols.routes])
 
     if (route) {
-      if (history[history.length - 1] !== hash) history.push(hash)
+      // add the previous route (technically still the current route at this point)
+      // into the history stack, unless navigating back or inHistory flag of route is false
+      if (navigatingBack === false && previousRoute && previousRoute.options.inHistory === true) {
+        history.push(previousRoute)
+      }
       // apply default transition if none specified
       if (!('transition' in route)) {
         route.transition = fadeInFadeOutTransition
@@ -82,7 +92,7 @@ export const navigate = async function () {
           view = view(this[symbols.props], holder, this)
         }
       } else {
-        holder = view.wrapper
+        holder = view[symbols.wrapper]
       }
 
       this[symbols.children].push(view)
@@ -123,6 +133,16 @@ export const navigate = async function () {
         }
       }
 
+      // Announce route change if a message has been specified for this route
+      if (route.announce) {
+        if (typeof route.announce === 'string') {
+          route.announce = {
+            message: route.announce,
+          }
+        }
+        Announcer.speak(route.announce.message, route.announce.politeness)
+      }
+
       // focus the new view
       focus ? Focus.set(focus) : view.focus()
       this.activeView = this[symbols.children][this[symbols.children].length - 1]
@@ -130,6 +150,9 @@ export const navigate = async function () {
       Log.error(`Route ${hash} not found`)
     }
   }
+
+  // reset navigating indicators
+  navigatingBack = false
   navigating = false
 }
 
@@ -139,11 +162,11 @@ const removeView = async (route, view, transition) => {
     if (Array.isArray(transition)) {
       for (let i = 0; i < transition.length; i++) {
         i === transition.length - 1
-          ? await setOrAnimate(view.wrapper, transition[i])
-          : setOrAnimate(view.wrapper, transition[i])
+          ? await setOrAnimate(view[symbols.wrapper], transition[i])
+          : setOrAnimate(view[symbols.wrapper], transition[i])
       }
     } else {
-      await setOrAnimate(view.wrapper, transition)
+      await setOrAnimate(view[symbols.wrapper], transition)
     }
   }
 
@@ -169,14 +192,17 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
     : node.set(transition.prop, transition.value)
 }
 
-export const to = (location) => {
+export const to = (location, options = {}) => {
+  overrideOptions = options
   window.location.hash = `#${location}`
 }
 
 export const back = () => {
-  if (history.length > 1) {
-    to(history[history.length - 2])
-    history.splice(-2, 2)
+  const route = history.pop()
+  if (route) {
+    // set indicator that we are navigating back (to prevent adding page to history stack)
+    navigatingBack = true
+    to(route.path)
     return true
   } else {
     return false

@@ -1,5 +1,6 @@
 export default {
   currentView: Symbol('currentView'),
+  cursorTagStart: Symbol('cursorTagStart'),
   computedKeys: Symbol('computedKeys'),
   destroy: Symbol('destroy'),
   index: Symbol('index'),
@@ -23,6 +24,7 @@ export default {
   type: Symbol('type'),
   watchers: Symbol('watchers'),
   watchKeys: Symbol('watchKeys'),
+  wrapper: Symbol('wrapper'),
 
   /* Utilizing the global Symbol registry for the following purposes */
 
@@ -30,8 +32,6 @@ export default {
   children: Symbol.for('children'),
   // Symbol 'components' utilized within generated code
   components: Symbol.for('components'),
-  // Symbol 'id' utilized within generated code
-  id: Symbol.for('id'),
   // Symbol 'isSlot' utilized within generated code
   isSlot: Symbol.for('isSlot'),
   // Symbol 'props' utilized within generated code

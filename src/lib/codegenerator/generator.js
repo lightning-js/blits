@@ -56,7 +56,7 @@ const generateElementCode = function (
 
   renderCode.push(`
     if(!${elm}) {
-      ${elm} = this.element({componentId: component[Symbol.for('id')], parent: parent || 'root'}, component)
+      ${elm} = this.element({parent: parent || 'root'}, component)
     }
     const elementConfig${counter} = {}
   `)
@@ -92,8 +92,8 @@ const generateElementCode = function (
   if (options.holder === true) {
     renderCode.push(`
     if(typeof cmp${counter} !== 'undefined') {
-      for(key in cmp${counter}.config.props) {
-        delete elementConfig${counter}[cmp${counter}.config.props[key]]
+      for(let key in cmp${counter}.config.props) {
+        delete  elementConfig${counter}[cmp${counter}.config.props[key]]
       }
     }
     `)
@@ -171,7 +171,7 @@ const generateComponentCode = function (
 
   renderCode.push(`
     if(!${elm}) {
-      ${elm} = (context.components && context.components['${templateObject.type}'] || component[Symbol.for('components')]['${templateObject.type}'] || (() => { console.log('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, ${parent}, component)
+      ${elm} = (context.components && context.components['${templateObject.type}'] || component[Symbol.for('components')]['${templateObject.type}'] || (() => { console.error('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, ${parent}, component)
       if (${elm}[Symbol.for('slots')][0]) {
         parent = ${elm}[Symbol.for('slots')][0]
         component = ${elm}
@@ -221,9 +221,19 @@ const generateForLoopCode = function (templateObject, parent) {
       const scope = Object.assign(component, {
         key: Math.random(),
         ${index}: __index,
-        ${item}: collection[__index]
-      })
+        ${item}: collection[__index],
     `)
+
+  if ('ref' in templateObject && templateObject.ref.indexOf('$') === -1) {
+    // automatically map the ref for each item in the loop based on the given ref key
+    ctx.renderCode.push(`
+      __ref: '${templateObject.ref}' + __index
+    `)
+    templateObject.ref = '$__ref'
+  }
+  ctx.renderCode.push(`
+      })
+  `)
 
   if ('key' in templateObject) {
     ctx.renderCode.push(`
@@ -316,7 +326,8 @@ const cast = (val = '', key = false, component = 'component.') => {
     if (val.startsWith('$')) {
       castedValue = `${component}${val.replace('$', '')}`
     } else {
-      castedValue = `'${parseInlineContent(val, component)}'`
+      // unescaped single quotes must be escaped
+      castedValue = `'${parseInlineContent(val.replace(/(?<!\\)'/g, "\\'"), component)}'`
     }
   }
   // numeric

@@ -34,7 +34,7 @@ export default () =>
       texture() {
         const options =
           'frames' in this.map
-            ? { ...(this.map.defaults || {}), ...this.map.frames[this.frame] }
+            ? Object.assign({}, this.map.defaults || {}, this.map.frames[this.frame])
             : this.map[this.frame]
 
         if (this.spriteTexture && options) {
@@ -51,7 +51,7 @@ export default () =>
     hooks: {
       ready() {
         this.spriteTexture = this[symbols.renderer].createTexture('ImageTexture', {
-          src: `${window.location.protocol}//${window.location.host}/${this.image}`,
+          src: this.image,
         })
       },
     },

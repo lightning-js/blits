@@ -51,6 +51,8 @@ interface SdfFont {
   png: string
 }
 
+type ScreenResolutions = 'hd' | '720p' | 720 | 'fhd' | 'fullhd' | '1080p' | 1080 | '4k' | '2160p' | 2160
+
 type Font = WebFont | SdfFont
 
 export type DebugLevel = 0 | 1 | 2
@@ -89,13 +91,60 @@ export interface Settings {
    */
   fonts?: Font[],
   /**
+   * Default font family to use in the Application when no font attribute is specified
+   * on a Text-component
+   *
+   * The default font must be registered in the `fonts` array in the settings.
+   *
+   * Defaults to `lato` font family
+   */
+  defaultFont?: string,
+  /**
    * Custom keymapping
    */
   keymap?: object,
   /**
    * Mode of reactivity (`Proxy` or `defineProperty`)
    */
-  reactivityMode?: ReactivityModes
+  reactivityMode?: ReactivityModes,
+  /**
+  * Screen resolution of the device, defining the pixelRatio used to convert dimensions
+  * and positions in the App code to the actual device logical coordinates
+  *
+  * If not supplied, Blits will try to autodetect the device screen resolution. Otherwise
+  * the exact dimensions and positions used the app code are used.
+  *
+  * Note: If the option `pixelRatio` is specified in the Settings object, this value will take presedence
+  * over the screen resolution setting.
+  *
+  * Currently 3 screen resolutions are supported, which can be defined with different alias values:
+  *
+  * For 720x1080 (1px = 0.66666667px)
+  * - hd
+  * - 720p
+  * - 720
+  *
+  * For 1080x1920 (1px = 1px)
+  * - fhd
+  * - fullhd
+  * - 1080p
+  * - 1080
+  *
+  * For 2160x3840 (1px = 2px)
+  * - 4k
+  * - 2160p
+  * - 2160
+  */
+  screenResolution?: ScreenResolutions,
+  /**
+  * Custom pixel ratio of the device used to convert dimensions
+  * and positions in the App code to the actual device logical coordinates
+  *
+  * Takes presedence over the `screenResolution` setting
+  *
+  * Defaults to 1 if not specified
+  */
+  pixelRatio?: number
 }
 
 /**

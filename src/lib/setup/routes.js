@@ -21,6 +21,17 @@ export default (component, routes) => {
   component.prototype[symbols.routes] = []
   Object.keys(routes).forEach((key) => {
     // todo: validate routes[key] for expected format etc.
-    component.prototype[symbols.routes][key] = routes[key]
+    component.prototype[symbols.routes][key] = {
+      ...routes[key],
+      ...{
+        // merge default route options with route specific options
+        options: {
+          ...{
+            inHistory: true,
+          },
+          ...routes[key].options,
+        },
+      },
+    }
   })
 }
