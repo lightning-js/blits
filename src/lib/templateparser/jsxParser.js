@@ -20,15 +20,49 @@ export default (template = '', componentName, parentComponent, filePath = null) 
     // Match class constructor
     [/jsx\.component\(([A-Z][\w$]*),/gi, 'jsx.component("$1",'],
     // Match instance members
-    [/([\w$]+):\s(?:this|\(void 0\))\.(.+?)(,|\s})/g, ' \':$1\':"$$$2" $3'],
+    [/([\w$]+):\s(?:this|\(void 0\))\.(.+?)(,|\s})/g, ' \'$1\':"$$$2" $3'],
   ].reduce((value, [matcher, replacer]) => {
     return value.replace(matcher, replacer)
   }, template)
 
   return new Function(
     `
+      const isPropReactive = (propVal) => {
+        // Check if propVal is an object
+        if (typeof propVal === 'object' && propVal !== null) {
+          // Iterate over the object's properties
+          for (let key in propVal) {
+            if (typeof propVal[key] === 'object') {
+              if (isPropReactive(propVal[key])) {
+                return true
+              }
+            } else {
+              if (/^\\$/.test(propVal[key])) {
+                return true
+              }
+            }
+          }
+        } else {
+          if (/^\\$/.test(propVal)) {
+            return true
+          }
+        }
+
+        return false
+      }
+
       const jsx = {
         component(c, props = {}, ...children) {
+
+          if (typeof props === 'object' && props !== null) {
+            Object.keys(props).forEach(key => {
+              if (isPropReactive(props[key])) {
+                props[':' + key] = props[key]
+                delete props[key]
+              }
+            })
+          }
+
           return {
             type: c,
             ...props,
