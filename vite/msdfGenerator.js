@@ -1,9 +1,8 @@
 import { resolve as pathResolve } from 'path'
 import * as fs from 'fs'
 
-import sequence from '../src/helpers/sequence.js'
-
 import generateBMFont from 'msdf-bmfont-xml'
+
 let config
 
 export default function () {
@@ -12,61 +11,32 @@ export default function () {
     configResolved(resolvedConfig) {
       config = resolvedConfig
     },
+    configureServer(server) {
+      server.middlewares.use('/', (req, res, next) => {
+        const file = req.url.substring(req.url.lastIndexOf('/') + 1)
+        const fontDir = pathResolve(getConfig('path', 'public/fonts'))
 
-    buildStart() {
-      if (getConfig('enabled', true) === false) return
-
-      const fileRegex = /(.*)\.(ttf)$/
-      const fontDir = pathResolve(getConfig('path', 'public/fonts'))
-      const fontFiles = fs.readdirSync(fontDir)
-
-      const ttfFonts = fontFiles.filter((file) => fileRegex.test(file))
-
-      return sequence(
-        ttfFonts.map((font) => {
-          return () =>
-            new Promise((resolve, reject) => {
-              const matches = fileRegex.exec(font)
-              const fontName = matches[1]
-              if (
-                fontFiles.indexOf(`${fontName}.msdf.json`) === -1 ||
-                fontFiles.indexOf(`${fontName}.msdf.png`) === -1
-              ) {
-                console.log('Generating MSDF font for ', fontName)
-                generateBMFont(
-                  pathResolve(fontDir, font),
-                  {
-                    outputType: 'json',
-                  },
-                  (err, textures, font) => {
-                    if (err) {
-                      return reject(err)
-                    } else {
-                      textures.forEach((texture) => {
-                        try {
-                          fs.writeFileSync(
-                            pathResolve(fontDir, `${fontName}.msdf.png`),
-                            texture.texture
-                          )
-                        } catch (e) {
-                          return reject(e)
-                        }
-                      })
-                      try {
-                        fs.writeFileSync(pathResolve(fontDir, `${fontName}.msdf.json`), font.data)
-                      } catch (e) {
-                        return reject(e)
-                      }
-                      resolve()
-                    }
-                  }
-                )
-              } else {
-                resolve()
-              }
-            })
-        })
-      )
+        const match = file.match(/(.+)\.msdf\.(json|png)/)
+        if (match) {
+          if (fs.existsSync(pathResolve(fontDir, file))) {
+            next()
+          } else {
+            const fontName = match[1]
+            const ext = match[2]
+            const fontFile = `${fontDir}/${fontName}.ttf`
+            if (fs.existsSync(fontFile)) {
+              generateFont(fontFile, '.tmp', fontName, () => {
+                req.url = pathResolve(`.tmp/${fontName}.${ext}`)
+                next()
+              })
+            } else {
+              next()
+            }
+          }
+        } else {
+          next()
+        }
+      })
     },
   }
 }
@@ -76,4 +46,35 @@ const getConfig = (key, defaultValue) => {
   else {
     return key in config.blits.fonts ? config.blits.fonts[key] : defaultValue
   }
+}
+
+const generateFont = (fontFile, fontDir, fontName, cb) => {
+  if (!fs.existsSync(fontDir)) {
+    fs.mkdirSync(fontDir, { recursive: true })
+  }
+  generateBMFont(
+    fontFile,
+    {
+      outputType: 'json',
+    },
+    (err, textures, font) => {
+      if (err) {
+        console.error(err)
+      } else {
+        textures.forEach((texture) => {
+          try {
+            fs.writeFileSync(pathResolve(fontDir, `${fontName}.msdf.png`), texture.texture)
+          } catch (e) {
+            console.error(e)
+          }
+        })
+        try {
+          fs.writeFileSync(pathResolve(fontDir, `${fontName}.msdf.json`), font.data)
+        } catch (e) {
+          console.error(err)
+        }
+        cb()
+      }
+    }
+  )
 }
