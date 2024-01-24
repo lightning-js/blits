@@ -59,7 +59,6 @@ export default function () {
 }
 
 const getConfig = (key, defaultValue) => {
-  console.log('getConfig', key, defaultValue)
   if (!config.blits || !config.blits.fonts) return defaultValue
   else {
     return key in config.blits.fonts ? config.blits.fonts[key] : defaultValue
