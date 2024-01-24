@@ -32,15 +32,14 @@ interface WebFont {
   file: string
 }
 
-interface SdfFont {
+interface SdfFontWithFile {
   /**
-  * Name of the font family
-  */
-  family: string,
-  /**
-  * Type of font (msdf or sdf)
-  */
-  type: 'msdf' | 'sdf',
+    * Location of the font file (i.e. `/fonts/OpenSans-Medium.ttf`)
+    */
+  file: string
+}
+
+interface SdfFontWithPngJson {
   /**
   * Location of the font map (i.e. `'/fonts/Lato-Regular.msdf.json'`)
   */
@@ -50,6 +49,18 @@ interface SdfFont {
   */
   png: string
 }
+
+type SdfFont = {
+  /**
+  * Name of the font family
+  */
+  family: string,
+  /**
+  * Type of font (msdf or sdf)
+  */
+  type: 'msdf' | 'sdf',
+} & (SdfFontWithFile | SdfFontWithPngJson)
+
 
 type ScreenResolutions = 'hd' | '720p' | 720 | 'fhd' | 'fullhd' | '1080p' | 1080 | '4k' | '2160p' | 2160
 
