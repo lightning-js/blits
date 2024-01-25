@@ -13,7 +13,8 @@
     "test": "c8 npm run test:run",
     "test:run": "tape '{,!(node_modules)/**/}*.test.js' | tap-diff",
     "lint": "eslint '**/*.js'",
-    "lint:fix": "eslint '**/*.js' --fix"
+    "lint:fix": "eslint '**/*.js' --fix",
+    "prepublishOnly": "node scripts/prepublishOnly.js"
   },
   "lint-staged": {
     "*.js": [
