@@ -157,11 +157,33 @@ export default (component) => {
       enumerable: true,
       configurable: false,
     },
+    $clearTimeout: {
+      value: function (timeoutId) {
+        if (this[symbols.timeouts].indexOf(timeoutId) > -1) {
+          this[symbols.timeouts] = this[symbols.timeouts].filter((id) => id !== timeoutId)
+          clearTimeout(timeoutId)
+        }
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
     $setInterval: {
       value: function (fn, ms, ...params) {
         const intervalId = setInterval(() => fn.apply(null, params), ms, params)
         this[symbols.intervals].push(intervalId)
         return intervalId
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    $clearInterval: {
+      value: function (intervalId) {
+        if (this[symbols.intervals].indexOf(intervalId) > -1) {
+          this[symbols.intervals] = this[symbols.intervals].filter((id) => id !== intervalId)
+          clearInterval(intervalId)
+        }
       },
       writable: false,
       enumerable: true,
