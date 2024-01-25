@@ -140,12 +140,6 @@ export default (component) => {
       enumerable: false,
       configurable: false,
     },
-    [symbols.timeouts]: {
-      value: [],
-      writable: true,
-      enumerable: false,
-      configurable: false,
-    },
     $setTimeout: {
       value: function (fn, ms, ...params) {
         const timeoutId = setTimeout(
@@ -163,10 +157,15 @@ export default (component) => {
       enumerable: true,
       configurable: false,
     },
-    [symbols.intervals]: {
-      value: [],
-      writable: true,
-      enumerable: false,
+    $clearTimeout: {
+      value: function (timeoutId) {
+        if (this[symbols.timeouts].indexOf(timeoutId) > -1) {
+          this[symbols.timeouts] = this[symbols.timeouts].filter((id) => id !== timeoutId)
+          clearTimeout(timeoutId)
+        }
+      },
+      writable: false,
+      enumerable: true,
       configurable: false,
     },
     $setInterval: {
@@ -174,6 +173,17 @@ export default (component) => {
         const intervalId = setInterval(() => fn.apply(null, params), ms, params)
         this[symbols.intervals].push(intervalId)
         return intervalId
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    $clearInterval: {
+      value: function (intervalId) {
+        if (this[symbols.intervals].indexOf(intervalId) > -1) {
+          this[symbols.intervals] = this[symbols.intervals].filter((id) => id !== intervalId)
+          clearInterval(intervalId)
+        }
       },
       writable: false,
       enumerable: true,
