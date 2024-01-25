@@ -140,12 +140,6 @@ export default (component) => {
       enumerable: false,
       configurable: false,
     },
-    [symbols.timeouts]: {
-      value: [],
-      writable: true,
-      enumerable: false,
-      configurable: false,
-    },
     $setTimeout: {
       value: function (fn, ms, ...params) {
         const timeoutId = setTimeout(
@@ -161,12 +155,6 @@ export default (component) => {
       },
       writable: false,
       enumerable: true,
-      configurable: false,
-    },
-    [symbols.intervals]: {
-      value: [],
-      writable: true,
-      enumerable: false,
       configurable: false,
     },
     $setInterval: {

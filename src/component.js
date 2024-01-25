@@ -146,10 +146,19 @@ const Component = (name = required('name'), config = required('config')) => {
         enumerable: false,
         configurable: false,
       },
+      [symbols.timeouts]: {
+        value: [],
+        writable: true,
+        enumerable: false,
+        configurable: false,
+      },
+      [symbols.intervals]: {
+        value: [],
+        writable: true,
+        enumerable: false,
+        configurable: false,
+      },
     })
-
-    this[symbols.timeouts] = []
-    this[symbols.intervals] = []
 
     Object.defineProperty(this, symbols.originalState, {
       value: (config.state && typeof config.state === 'function' && config.state.apply(this)) || {},
