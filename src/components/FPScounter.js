@@ -19,47 +19,46 @@ import Component from '../component.js'
 
 export default () =>
   Component('FPSCounter', {
-    props: ['x'],
     template: `
-    <Element x="$x">
-      <Element y="15" x="20">
-        <Element>
-          <Sprite image="assets/fps_sprite.png" w="43" h="25" map="$sprite" frame="fps" />
-          <Element x="58" y="2">
-            <Sprite image="assets/fps_sprite.png" x="0" h="20" w="20" map="$sprite" :frame="$fps[0]" />
-            <Sprite image="assets/fps_sprite.png" x="18" h="20" w="20" map="$sprite" :frame="$fps[1]" />
-            <Sprite image="assets/fps_sprite.png" x="36" h="20" w="20" map="$sprite" :frame="$fps[2]" />
+      <Element>
+        <Element y="15" x="20">
+          <Element>
+            <Sprite image="assets/fps_sprite.png" w="43" h="25" map="$sprite" frame="fps" />
+            <Element x="58" y="2">
+              <Sprite image="assets/fps_sprite.png" x="0" h="20" w="20" map="$sprite" :frame="$fps[0]" />
+              <Sprite image="assets/fps_sprite.png" x="18" h="20" w="20" map="$sprite" :frame="$fps[1]" />
+              <Sprite image="assets/fps_sprite.png" x="36" h="20" w="20" map="$sprite" :frame="$fps[2]" />
+            </Element>
           </Element>
-        </Element>
 
-        <Element x="150">
-          <Sprite image="assets/fps_sprite.png" y="2" w="48" h="25" map="$sprite" frame="avg" />
-          <Element x="63" y="2">
-            <Sprite image="assets/fps_sprite.png" x="0" h="20" w="20" map="$sprite" :frame="$avgFps[0]" />
-            <Sprite image="assets/fps_sprite.png" x="18" h="20" w="20" map="$sprite" :frame="$avgFps[1]" />
-            <Sprite image="assets/fps_sprite.png" x="36" h="20" w="20" map="$sprite" :frame="$avgFps[2]" />
+          <Element x="150">
+            <Sprite image="assets/fps_sprite.png" y="2" w="48" h="25" map="$sprite" frame="avg" />
+            <Element x="63" y="2">
+              <Sprite image="assets/fps_sprite.png" x="0" h="20" w="20" map="$sprite" :frame="$avgFps[0]" />
+              <Sprite image="assets/fps_sprite.png" x="18" h="20" w="20" map="$sprite" :frame="$avgFps[1]" />
+              <Sprite image="assets/fps_sprite.png" x="36" h="20" w="20" map="$sprite" :frame="$avgFps[2]" />
+            </Element>
           </Element>
-        </Element>
 
-        <Element x="0" y="40" >
-          <Sprite image="assets/fps_sprite.png" x="-2" w="47" h="25" map="$sprite" frame="min" />
-          <Element x="58" y="2">
-            <Sprite image="assets/fps_sprite.png" x="0" h="20" w="20" map="$sprite" :frame="$minFps[0]" />
-            <Sprite image="assets/fps_sprite.png" x="18" h="20" w="20" map="$sprite" :frame="$minFps[1]" />
-            <Sprite image="assets/fps_sprite.png" x="36" h="20" w="20" map="$sprite" :frame="$minFps[2]" />
+          <Element x="0" y="40" >
+            <Sprite image="assets/fps_sprite.png" x="-2" w="47" h="25" map="$sprite" frame="min" />
+            <Element x="58" y="2">
+              <Sprite image="assets/fps_sprite.png" x="0" h="20" w="20" map="$sprite" :frame="$minFps[0]" />
+              <Sprite image="assets/fps_sprite.png" x="18" h="20" w="20" map="$sprite" :frame="$minFps[1]" />
+              <Sprite image="assets/fps_sprite.png" x="36" h="20" w="20" map="$sprite" :frame="$minFps[2]" />
+            </Element>
           </Element>
-        </Element>
 
-        <Element x="150" y="40">
-          <Sprite image="assets/fps_sprite.png" w="53" h="25" map="$sprite" frame="max" />
-          <Element x="63" y="2">
-            <Sprite image="assets/fps_sprite.png" x="0" h="20" w="20" map="$sprite" :frame="$maxFps[0]" />
-            <Sprite image="assets/fps_sprite.png" x="18" h="20" w="20" map="$sprite" :frame="$maxFps[1]" />
-            <Sprite image="assets/fps_sprite.png" x="36" h="20" w="20" map="$sprite" :frame="$maxFps[2]" />
+          <Element x="150" y="40">
+            <Sprite image="assets/fps_sprite.png" w="53" h="25" map="$sprite" frame="max" />
+            <Element x="63" y="2">
+              <Sprite image="assets/fps_sprite.png" x="0" h="20" w="20" map="$sprite" :frame="$maxFps[0]" />
+              <Sprite image="assets/fps_sprite.png" x="18" h="20" w="20" map="$sprite" :frame="$maxFps[1]" />
+              <Sprite image="assets/fps_sprite.png" x="36" h="20" w="20" map="$sprite" :frame="$maxFps[2]" />
+            </Element>
           </Element>
         </Element>
       </Element>
-    </Element>
     `,
     state() {
       return {
