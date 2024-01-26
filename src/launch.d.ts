@@ -144,7 +144,15 @@ export interface Settings {
   *
   * Defaults to 1 if not specified
   */
-  pixelRatio?: number
+  pixelRatio?: number,
+  /**
+  * Maximum number of web workers to spin up simultaneously for offloading functionality such
+  * as image loading to separate threads (when supported by the browser)
+  *
+  * If not specified defaults to the number of logical processers available as reported by
+  * `navigator.hardwareConcurrency` (or 2 if `navigator.hardwareConcurrency` is not supported)
+  */
+  webWorkersLimit?: number
 }
 
 /**

@@ -30,11 +30,13 @@ export default () =>
         :style="$style"
         :weight="$weight"
         letterSpacing="$letterspacing"
+        lineHeight="$_lineheight"
         stretch="$stretch"
         contain="$_contain"
         :wordWrap="$wordwrap"
         :maxLines="$maxlines"
         :textAlign="$align"
+        :overflowSuffix="$textoverflow"
         @loaded="$@loaded"
         @error="$@error"
       />`,
@@ -57,9 +59,11 @@ export default () =>
       'align',
       'wordwrap',
       'maxlines',
+      'lineheight',
       'contain',
       '@loaded',
       '@error',
+      'textoverflow',
     ],
     computed: {
       _contain() {
@@ -67,6 +71,9 @@ export default () =>
           this.contain ||
           (this.wordwrap && this.maxlines ? 'both' : this.wordwrap ? 'width' : 'none')
         )
+      },
+      _lineheight() {
+        return this.lineheight !== undefined ? this.lineheight : this.size
       },
     },
   })
