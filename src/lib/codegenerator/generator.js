@@ -326,8 +326,12 @@ const cast = (val = '', key = false, component = 'component.') => {
     if (val.startsWith('$')) {
       castedValue = `${component}${val.replace('$', '')}`
     } else {
-      // unescaped single quotes must be escaped
-      castedValue = `'${parseInlineContent(val.replace(/(?<!\\)'/g, "\\'"), component)}'`
+      // unescaped single quotes must be escaped while preserving escaped backslashes
+      const escapedVal = val
+        .replace(/\\\\/g, '__DOUBLE_BACKSLASH__')
+        .replace(/(^|[^\\])'/g, "$1\\'")
+        .replace(/__DOUBLE_BACKSLASH__/g, '\\\\')
+      castedValue = `'${parseInlineContent(escapedVal, component)}'`
     }
   }
   // numeric
