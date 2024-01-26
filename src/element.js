@@ -201,7 +201,10 @@ const Props = {
     this._props.contain = v
   },
   set maxLines(v) {
-    this.height = v * this.element.node.fontSize
+    this.height = v * this.element.node.lineHeight
+  },
+  set overflowSuffix(v) {
+    this._props.overflowSuffix = v
   },
   set letterSpacing(v) {
     this._props.letterSpacing = v

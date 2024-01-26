@@ -36,6 +36,7 @@ export default () =>
         :wordWrap="$wordwrap"
         :maxLines="$maxlines"
         :textAlign="$align"
+        :overflowSuffix="$textoverflow"
         @loaded="$@loaded"
         @error="$@error"
       />`,
@@ -62,6 +63,7 @@ export default () =>
       'contain',
       '@loaded',
       '@error',
+      'textoverflow',
     ],
     computed: {
       _contain() {
