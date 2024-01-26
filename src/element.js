@@ -206,6 +206,9 @@ const Props = {
   set letterSpacing(v) {
     this._props.letterSpacing = v
   },
+  set lineHeight(v) {
+    this._props.lineHeight = v
+  },
   set textAlign(v) {
     this._props.textAlign = v
   },

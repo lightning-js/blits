@@ -30,6 +30,7 @@ export default () =>
         :style="$style"
         :weight="$weight"
         letterSpacing="$letterspacing"
+        lineHeight="$_lineheight"
         stretch="$stretch"
         contain="$_contain"
         :wordWrap="$wordwrap"
@@ -57,6 +58,7 @@ export default () =>
       'align',
       'wordwrap',
       'maxlines',
+      'lineheight',
       'contain',
       '@loaded',
       '@error',
@@ -67,6 +69,9 @@ export default () =>
           this.contain ||
           (this.wordwrap && this.maxlines ? 'both' : this.wordwrap ? 'width' : 'none')
         )
+      },
+      _lineheight() {
+        return this.lineheight !== undefined ? this.lineheight : this.size
       },
     },
   })
