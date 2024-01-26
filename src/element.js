@@ -204,7 +204,7 @@ const Props = {
     this.height = v * this.element.node.lineHeight
   },
   set overflowSuffix(v) {
-    this._props.overflowSuffix = v
+    this._props.overflowSuffix = v === false ? ' ' : v === true ? undefined : v
   },
   set letterSpacing(v) {
     this._props.letterSpacing = v
