@@ -1,5 +1,15 @@
 # Changelog
 
+# v0.6.7
+
+_26 jan 2024_
+
+- Added `this.$clearInterval` and `this.$clearTimeout` helper functions to Component
+- Updated Lightning renderer to version _0.7.0_
+- Added `lineheight` and `textoverflow` attributes to `<Text />`-component
+- Added setting for specifying maximum number of web workers to spawn (`webWorkersLimit`)
+- Added fix for issue with setting up reactivity for (initially) empty for-loops
+
 # v0.6.6
 
 _24 jan 2024_
