@@ -10,113 +10,108 @@ const spinner = ora()
  * This function copies Lightning fixtures to the target directory for creating a L3 application.
  */
 
-export const copyLightningFixtures = config => {
-    return new Promise(resolve => {
-        const targetDir = config.appFolder || ''
-        if (config.appFolder && fs.pathExistsSync(targetDir)) {
-            exit(red(bold('The target directory ' + targetDir + ' already exists')))
-        }
-        //this will be removed once ts support is added
-        fs.copySync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir)
-        fs.copySync(
-          path.join(config.fixturesBase, 'common/public'),
-          path.join(targetDir, 'public')
-        )
+export const copyLightningFixtures = (config) => {
+  return new Promise((resolve) => {
+    const targetDir = config.appFolder || ''
+    if (config.appFolder && fs.pathExistsSync(targetDir)) {
+      exit(red(bold('The target directory ' + targetDir + ' already exists')))
+    }
+    //this will be removed once ts support is added
+    fs.copySync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir)
+    fs.copySync(path.join(config.fixturesBase, 'common/public'), path.join(targetDir, 'public'))
 
-        //
-        // if (config.projectType === 'ts') {
-        //   fs.copySync(path.join(path.join(config.fixturesBase, 'ts'), 'default'), targetDir)
-        // } else {
-        //   fs.copySync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir)
-        // }
+    //
+    // if (config.projectType === 'ts') {
+    //   fs.copySync(path.join(path.join(config.fixturesBase, 'ts'), 'default'), targetDir)
+    // } else {
+    //   fs.copySync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir)
+    // }
 
-        resolve(targetDir)
-    })
+    resolve(targetDir)
+  })
 }
-
 
 /**
  * This function adds eslint related configuration to the project folder to be created
  * @param config
  * @returns {boolean}
  */
-export const addESlint = config => {
-    // Make husky dir
-    fs.mkdirSync(path.join(config.targetDir, '.husky'), { recursive: true })
+export const addESlint = (config) => {
+  // Make husky dir
+  fs.mkdirSync(path.join(config.targetDir, '.husky'), { recursive: true })
 
-    // Copy husky hook
-    fs.copyFileSync(
-        path.join(config.fixturesBase, 'common/eslint/husky/pre-commit'),
-        path.join(config.targetDir, '.husky/pre-commit')
+  // Copy husky hook
+  fs.copyFileSync(
+    path.join(config.fixturesBase, 'common/eslint/husky/pre-commit'),
+    path.join(config.targetDir, '.husky/pre-commit')
+  )
+
+  // Copy editor config from common
+  fs.copyFileSync(
+    path.join(config.fixturesBase, 'common/eslint/.editorconfig'),
+    path.join(config.targetDir, '.editorconfig')
+  )
+
+  // Copy eslintignore from common
+  fs.copyFileSync(
+    path.join(config.fixturesBase, 'common/eslint/.eslintignore'),
+    path.join(config.targetDir, '.eslintignore')
+  )
+
+  // Copy eslintrc.js from fixtured specfic directory
+  fs.copyFileSync(
+    path.join(config.fixturesBase, 'common/eslint/.eslintrc.cjs'),
+    path.join(config.targetDir, '.eslintrc.cjs')
+  )
+
+  // Copy IDE stuff from fixture base
+  fs.copySync(path.join(config.fixturesBase, 'common/ide'), path.join(config.targetDir))
+
+  // Copy and merge fixture specific package.json
+  const origPackageJson = JSON.parse(fs.readFileSync(path.join(config.targetDir, 'package.json')))
+  const eslintPackageJson = JSON.parse(
+    fs.readFileSync(path.join(config.fixturesBase, 'common/eslint/package.json'))
+  )
+  fs.writeFileSync(
+    path.join(config.targetDir, 'package.json'),
+    JSON.stringify(
+      {
+        ...origPackageJson,
+        ...eslintPackageJson,
+        devDependencies: {
+          ...(origPackageJson.devDependencies || {}),
+          ...(eslintPackageJson.devDependencies || {}),
+        },
+      },
+      null,
+      2
     )
+  )
 
-    // Copy editor config from common
-    fs.copyFileSync(
-        path.join(config.fixturesBase, 'common/eslint/.editorconfig'),
-        path.join(config.targetDir, '.editorconfig')
-    )
-
-    // Copy eslintignore from common
-    fs.copyFileSync(
-        path.join(config.fixturesBase, 'common/eslint/.eslintignore'),
-        path.join(config.targetDir, '.eslintignore')
-    )
-
-    // Copy eslintrc.js from fixtured specfic directory
-    fs.copyFileSync(
-        path.join(config.fixturesBase, 'common/eslint/.eslintrc.cjs'),
-        path.join(config.targetDir, '.eslintrc.cjs')
-    )
-
-    // Copy IDE stuff from fixture base
-    fs.copySync(path.join(config.fixturesBase, 'common/ide'), path.join(config.targetDir))
-
-// Copy and merge fixture specific package.json
-    const origPackageJson = JSON.parse(fs.readFileSync(path.join(config.targetDir, 'package.json')))
-    const eslintPackageJson = JSON.parse(
-        fs.readFileSync(path.join(config.fixturesBase, 'common/eslint/package.json'))
-    )
-    fs.writeFileSync(
-        path.join(config.targetDir, 'package.json'),
-        JSON.stringify(
-            {
-                ...origPackageJson,
-                ...eslintPackageJson,
-                devDependencies: {
-                    ...(origPackageJson.devDependencies || {}),
-                    ...(eslintPackageJson.devDependencies || {}),
-                },
-            },
-            null,
-            2
-        )
-    )
-
-    return true
+  return true
 }
-
 
 /**
  * This function sets the version by fetching the latest blits version
  * @param config
  * @returns {Promise<unknown>}
  */
-export const setBlitsVersion = config => {
-    return new Promise((resolve, reject) => {
-        execa('npm', ['view', '@lightningjs/blits', 'version'])
-            .then(({ stdout }) => {
-                replaceInFile.sync({
-                    files: config.targetDir + '/*',
-                    from: /\{\$sdkVersion\}/g,
-                    to: '^' + stdout,
-                })
-                resolve()
-            })
-            .catch(e => {
-                spinnerMsg.fail(`Error occurred while setting blits version\n\n${e}`)
-                reject()
-            })
-    })
+export const setBlitsVersion = (config) => {
+  return new Promise((resolve, reject) => {
+    execa('npm', ['view', '@lightningjs/blits', 'version'])
+      .then(({ stdout }) => {
+        replaceInFile.sync({
+          files: config.targetDir + '/*',
+          from: /\{\$sdkVersion\}/g,
+          to: '^' + stdout,
+        })
+        resolve()
+      })
+      .catch((e) => {
+        spinnerMsg.fail(`Error occurred while setting blits version\n\n${e}`)
+        reject()
+      })
+  })
 }
 
 /**
@@ -125,23 +120,23 @@ export const setBlitsVersion = config => {
  * @param {string} msg - The message to display while starting the spinner.
  */
 export const spinnerMsg = {
-    start(msg) {
-        console.log(' ')
-        spinner.start(msg)
-    },
-    stop() {
-        spinner.stop()
-    },
-    succeed(msg) {
-        spinner.succeed(msg)
-    },
-    fail(msg) {
-        spinner.fail(msg)
-        console.log(' ')
-    },
-    warn(msg) {
-        spinner.warn(msg)
-    },
+  start(msg) {
+    console.log(' ')
+    spinner.start(msg)
+  },
+  stop() {
+    spinner.stop()
+  },
+  succeed(msg) {
+    spinner.succeed(msg)
+  },
+  fail(msg) {
+    spinner.fail(msg)
+    console.log(' ')
+  },
+  warn(msg) {
+    spinner.warn(msg)
+  },
 }
 
 /**
@@ -150,23 +145,22 @@ export const spinnerMsg = {
  *
  * @param {Object} config - The configuration object containing application data.
  */
-export const setAppData = config => {
-    replaceInFile.sync({
-        files: config.targetDir + '/*',
-        from: /\{\$appName\}/g,
-        to: config.appPackage,
-    })
+export const setAppData = (config) => {
+  replaceInFile.sync({
+    files: config.targetDir + '/*',
+    from: /\{\$appName\}/g,
+    to: config.appPackage,
+  })
 }
-
 
 /**
  * Display an error message and exit the program with an error status.
  *
  * @param {string} msg - The error message to display before exiting the program.
  */
-export const exit = msg => {
-    spinnerMsg.fail(msg)
-    process.exit()
+export const exit = (msg) => {
+  spinnerMsg.fail(msg)
+  process.exit()
 }
 
 /**
@@ -177,15 +171,18 @@ export const exit = msg => {
  * @returns {Promise} A Promise that resolves when the Git initialization and file copying are completed successfully
  */
 export const gitInit = (cwd, fixturesBase) => {
-    spinnerMsg.start('Initializing empty GIT repository')
-    let msg
-    return execa('git', ['init'], { cwd })
-        .then(({ stdout }) => (msg = stdout))
-        .then(() => {
-            return fs.copyFileSync(path.join(fixturesBase, 'common/git/.gitignore'), path.join(cwd, '.gitignore'))
-        })
-        .then(() => spinnerMsg.succeed(msg))
-        .catch(e => spinnerMsg.fail(`Error occurred while creating git repository\n\n${e}`))
+  spinnerMsg.start('Initializing empty GIT repository')
+  let msg
+  return execa('git', ['init'], { cwd })
+    .then(({ stdout }) => (msg = stdout))
+    .then(() => {
+      return fs.copyFileSync(
+        path.join(fixturesBase, 'common/git/.gitignore'),
+        path.join(cwd, '.gitignore')
+      )
+    })
+    .then(() => spinnerMsg.succeed(msg))
+    .catch((e) => spinnerMsg.fail(`Error occurred while creating git repository\n\n${e}`))
 }
 
 /**
@@ -193,7 +190,7 @@ export const gitInit = (cwd, fixturesBase) => {
  * @param path
  * @returns {boolean}
  */
-export const isValidPath = path => {
+export const isValidPath = (path) => {
   try {
     // Check if the path exists
     fs.accessSync(path, fs.constants.F_OK)
@@ -204,16 +201,12 @@ export const isValidPath = path => {
   }
 }
 
-
 export const done = (config) => {
-    console.log(
-        '================================== ⚡️⚡️⚡️⚡️ ================================== '
-    )
-    console.log('Your new boilerplate Lightning 3 App has been created!')
-    console.log('')
-    console.log(`    ${green(bold(`cd ${config.appFolder}`))}`)
-    console.log(`    ${green(bold('npm install'))}`)
-    console.log(`    ${green(bold('npm run dev'))}`)
-    console.log(
-        '================================== ⚡️⚡️⚡️⚡️ ================================== ')
+  console.log('================================== ⚡️⚡️⚡️⚡️ ================================== ')
+  console.log('Your new boilerplate Lightning 3 App has been created!')
+  console.log('')
+  console.log(`    ${green(bold(`cd ${config.appFolder}`))}`)
+  console.log(`    ${green(bold('npm install'))}`)
+  console.log(`    ${green(bold('npm run dev'))}`)
+  console.log('================================== ⚡️⚡️⚡️⚡️ ================================== ')
 }

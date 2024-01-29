@@ -16,7 +16,14 @@ import {
   done, spinnerMsg
 } from './helpers.js'
 
-const defaultBanner = 'Welcome to L3 App development'
+const defaultBanner = `
+------------------------------------------------------------------
+ Welcome to Blits - The App development framework for Lightning 3
+------------------------------------------------------------------
+
+
+Answer the questions below to set up a new App
+`
 
 console.log(defaultBanner)
 
@@ -31,17 +38,17 @@ const questions = [
   {
     type: 'text',
     name: 'appName',
-    message: 'Application Name',
+    message: 'App name',
     format: val => {
       // Check if the provided application name is empty
       if (!val.trim()) {
-        spinnerMsg.fail(red(bold("Application name should not be empty!")))
+        spinnerMsg.fail(red(bold("Please provide a name for the App")))
         return process.exit(1)
       } else {
         return val
       }
     },
-    initial: 'my_lightning3_app', // Default value for the application name
+    initial: 'My Blits App', // Default value for the application name
   },
   {
     type: 'text',
@@ -50,7 +57,7 @@ const questions = [
     format: val => {
       // Validate the package name using validate-npm-package-name
       if (!validatePackage(val).validForNewPackages) {
-        spinnerMsg.fail(red(bold("Package name is invalid!")))
+        spinnerMsg.fail(red(bold("Please provide a valid package name")))
         return process.exit(1)
       } else {
         return val
@@ -123,7 +130,7 @@ const questions = [
 ]
 
 
-const createL3App = () => {
+const createApp = () => {
   return new Promise(resolve => {
     let config
     sequence([
@@ -133,7 +140,7 @@ const createL3App = () => {
         return config
       },
       () => {
-        spinnerMsg.start(`Creating Lightning 3 application with name ${config.appName}`)
+        spinnerMsg.start(`Creating Blits Lightning 3 App ${config.appName}`)
         return copyLightningFixtures(config).then(targetDir => (config.targetDir = targetDir))
       },
       () => setAppData(config),
@@ -145,4 +152,4 @@ const createL3App = () => {
   })
 }
 
-createL3App()
+createApp()
