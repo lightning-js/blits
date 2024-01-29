@@ -1,5 +1,11 @@
 # Changelog
 
+# v0.6.8
+
+_29 jan 2024_
+
+- Reverted fix (initially) empty for-loops
+
 # v0.6.7
 
 _26 jan 2024_
