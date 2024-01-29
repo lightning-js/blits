@@ -215,10 +215,6 @@ const generateForLoopCode = function (templateObject, parent) {
   ctx.renderCode.push(`
     const collection = ${cast(result[2], ':for')}
     const keys = []
-    // if array is empty push an empty object to properly set up reactivity
-    if(collection.length === 0) {
-      collection.push({})
-    }
     for(let __index = 0; __index < collection.length; __index++) {
       parent = ${parent}
       if(!component.key) keys.length = 0
