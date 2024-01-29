@@ -44,5 +44,9 @@
   "dependencies": {
     "@lightningjs/renderer": "^0.7.0",
     "@lightningjs/vite-plugin-import-chunk-url": "^0.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lightning-js/blits.git"
   }
 }
