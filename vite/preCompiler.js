@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import compiler from '../scripts/compiler.js'
+import compiler from '../src/lib/precompiler/precompiler.js'
 
 export default function () {
   let config

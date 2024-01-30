@@ -15,8 +15,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import parser from '../src/lib/templateparser/parser.js'
-import generator from '../src/lib/codegenerator/generator.js'
+import parser from '../templateparser/parser.js'
+import generator from '../codegenerator/generator.js'
 import path from 'path'
 
 export default (source, filePath) => {
