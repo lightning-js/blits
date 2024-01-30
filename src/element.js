@@ -201,10 +201,16 @@ const Props = {
     this._props.contain = v
   },
   set maxLines(v) {
-    this.height = v * this.element.node.fontSize
+    this.height = v * this.element.node.lineHeight
+  },
+  set overflowSuffix(v) {
+    this._props.overflowSuffix = v === false ? ' ' : v === true ? undefined : v
   },
   set letterSpacing(v) {
     this._props.letterSpacing = v
+  },
+  set lineHeight(v) {
+    this._props.lineHeight = v
   },
   set textAlign(v) {
     this._props.textAlign = v

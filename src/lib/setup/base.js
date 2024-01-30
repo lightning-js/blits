@@ -140,17 +140,11 @@ export default (component) => {
       enumerable: false,
       configurable: false,
     },
-    [symbols.timeouts]: {
-      value: [],
-      writable: false,
-      enumerable: false,
-      configurable: false,
-    },
     $setTimeout: {
       value: function (fn, ms, ...params) {
         const timeoutId = setTimeout(
           () => {
-            this[symbols._timeouts] = this[symbols.timeouts].filter((id) => id !== timeoutId)
+            this[symbols.timeouts] = this[symbols.timeouts].filter((id) => id !== timeoutId)
             fn.apply(null, params)
           },
           ms,
@@ -163,24 +157,33 @@ export default (component) => {
       enumerable: true,
       configurable: false,
     },
-    [symbols.intervals]: {
-      value: [],
+    $clearTimeout: {
+      value: function (timeoutId) {
+        if (this[symbols.timeouts].indexOf(timeoutId) > -1) {
+          this[symbols.timeouts] = this[symbols.timeouts].filter((id) => id !== timeoutId)
+          clearTimeout(timeoutId)
+        }
+      },
       writable: false,
-      enumerable: false,
+      enumerable: true,
       configurable: false,
     },
     $setInterval: {
       value: function (fn, ms, ...params) {
-        const intervalId = setInterval(
-          () => {
-            this[symbols._intervals] = this[symbols.intervals].filter((id) => id !== intervalId)
-            fn.apply(null, params)
-          },
-          ms,
-          params
-        )
+        const intervalId = setInterval(() => fn.apply(null, params), ms, params)
         this[symbols.intervals].push(intervalId)
         return intervalId
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    $clearInterval: {
+      value: function (intervalId) {
+        if (this[symbols.intervals].indexOf(intervalId) > -1) {
+          this[symbols.intervals] = this[symbols.intervals].filter((id) => id !== intervalId)
+          clearInterval(intervalId)
+        }
       },
       writable: false,
       enumerable: true,
