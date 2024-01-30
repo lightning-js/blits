@@ -3,7 +3,7 @@ import path from 'path'
 import { dirname } from 'path'
 import prompts from 'prompts'
 import { fileURLToPath } from 'url'
-import fs from 'fs-extra'
+import fs from 'fs'
 import { red, bold } from 'kolorist'
 import sequence from '../src/helpers/sequence.js'
 import validatePackage from 'validate-npm-package-name'
@@ -63,7 +63,7 @@ const questions = [
         return val
       }
     },
-    initial: prev => `${prev.replace(/_/g, '-')}`,
+    initial: prev => `${prev.replace(/[\sA-Z]/g, str => str === ' ' ? '-' : str.toLowerCase())}`,
   },
   {
     type: 'text',
@@ -78,7 +78,7 @@ const questions = [
           // Check if the path exists
           if (fs.statSync(val)) {
             // Return the resolved file path using path.join
-            return `${path.join(val, prev.appName)}`
+            return `${path.join(val, prev.appPackage)}`
           }
         } catch (e) {
           // Handle case where an error occurred during file system interaction
@@ -87,11 +87,11 @@ const questions = [
             process.exit()
           }
         }
-      } else if (val === prev.appName) {
-        return path.join(process.cwd(), prev.appName)
+      } else if (val === prev.appPackage) {
+        return path.join(process.cwd(), prev.appPackage)
       }
     },
-    initial: (prev, val) => val.appName,
+    initial: (prev, val) => val.appPackage,
   },
   // {
   //   type: 'toggle',
@@ -128,6 +128,7 @@ const questions = [
   //   ],
   // }
 ]
+
 
 
 const createApp = () => {

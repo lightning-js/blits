@@ -1,7 +1,7 @@
 import { green, bold, red } from 'kolorist'
 import path from 'path'
 import { execa } from 'execa'
-import fs from 'fs-extra'
+import fs from 'fs'
 import replaceInFile from 'replace-in-file'
 import ora from 'ora'
 const spinner = ora()
@@ -13,12 +13,12 @@ const spinner = ora()
 export const copyLightningFixtures = (config) => {
   return new Promise((resolve) => {
     const targetDir = config.appFolder || ''
-    if (config.appFolder && fs.pathExistsSync(targetDir)) {
+    if (config.appFolder && fs.existsSync(targetDir)) {
       exit(red(bold('The target directory ' + targetDir + ' already exists')))
     }
     //this will be removed once ts support is added
-    fs.copySync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir)
-    fs.copySync(path.join(config.fixturesBase, 'common/public'), path.join(targetDir, 'public'))
+    fs.cpSync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir, {recursive: true})
+    fs.cpSync(path.join(config.fixturesBase, 'common/public'), path.join(targetDir, 'public'), {recursive: true})
 
     //
     // if (config.projectType === 'ts') {
@@ -65,7 +65,7 @@ export const addESlint = (config) => {
   )
 
   // Copy IDE stuff from fixture base
-  fs.copySync(path.join(config.fixturesBase, 'common/ide'), path.join(config.targetDir))
+  fs.cpSync(path.join(config.fixturesBase, 'common/ide'), path.join(config.targetDir), {recursive: true})
 
   // Copy and merge fixture specific package.json
   const origPackageJson = JSON.parse(fs.readFileSync(path.join(config.targetDir, 'package.json')))
@@ -102,7 +102,7 @@ export const setBlitsVersion = (config) => {
       .then(({ stdout }) => {
         replaceInFile.sync({
           files: config.targetDir + '/*',
-          from: /\{\$sdkVersion\}/g,
+          from: /\{\$blitsVersion\}/g,
           to: '^' + stdout,
         })
         resolve()
@@ -148,8 +148,14 @@ export const spinnerMsg = {
 export const setAppData = (config) => {
   replaceInFile.sync({
     files: config.targetDir + '/*',
-    from: /\{\$appName\}/g,
+    from: /\{\$appPackage\}/g,
     to: config.appPackage,
+  })
+
+  replaceInFile.sync({
+    files: config.targetDir + '/*',
+    from: /\{\$appName\}/g,
+    to: config.appName,
   })
 }
 
