@@ -20,7 +20,11 @@ import generator from '../codegenerator/generator.js'
 import path from 'path'
 
 export default (source, filePath) => {
-  if (source.indexOf('Blits.Component(') > -1 || source.indexOf('Blits.Application(') > -1) {
+  if (
+    source.indexOf('Blits.Component(') > -1 ||
+    source.indexOf('Blits.Application(') > -1 ||
+    /=>\s*Component\(['"][A-Za-z]+['"],/s.test(source) // blits component
+  ) {
     // get the start of the template key in de component configuration object
     const templateKeyRegex = /template:\s*([`"'])*/g
     const templateStartResult = templateKeyRegex.exec(source)

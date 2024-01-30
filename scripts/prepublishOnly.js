@@ -17,7 +17,7 @@
 
 import fs from 'fs'
 import path from 'path'
-import compiler from '../src/lib/precompiler/compiler.js'
+import compiler from '../src/lib/precompiler/precompiler.js'
 import { exec } from 'child_process'
 
 const currentDir = process.cwd()
