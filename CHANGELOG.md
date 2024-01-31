@@ -1,5 +1,12 @@
 # Changelog
 
+# v0.6.9
+
+_31 jan 2024_
+
+- Fixed single quote escaping for all browsers (removing sometimes unsupported negative lookahead)
+- Fixed issue with focus when navigating back to a page that is kept in history
+
 # v0.6.8
 
 _29 jan 2024_
