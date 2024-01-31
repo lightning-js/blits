@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import path from 'path'
+import process from 'process'
 import { dirname } from 'path'
 import prompts from 'prompts'
 import { fileURLToPath } from 'url'
@@ -93,14 +94,6 @@ const questions = [
     },
     initial: (prev, val) => val.appPackage,
   },
-  // {
-  //   type: 'toggle',
-  //   name: 'tsProject',
-  //   message: 'Do you want to create typescript project',
-  //   initial: '',
-  //   active: 'Yes',
-  //   inactive: 'No'
-  // },
   {
     type: 'toggle',
     name: 'esLint',
@@ -117,16 +110,6 @@ const questions = [
     active: 'Yes',
     inactive: 'No',
   },
-  // {
-  //   type: 'select',
-  //   name: 'config',
-  //   message: 'Select config',
-  //   choices: [
-  //     { title: 'EsLint', value: 'eslintPrettier' },
-  //     // { title: 'EsLint+Prettier', value: 'eslintPrettier' }
-  //     // { title: 'Eslint+Airbnb', value: 'eslintAirbnb' },
-  //   ],
-  // }
 ]
 
 
@@ -136,8 +119,12 @@ const createApp = () => {
     let config
     sequence([
       async () => {
-        config = await prompts(questions)
+        const onCancel = () => {
+          process.exit()
+        }
+        config = await prompts(questions, { onCancel })
         config.fixturesBase = fixturesBase
+        console.log("Config is", config)
         return config
       },
       () => {
