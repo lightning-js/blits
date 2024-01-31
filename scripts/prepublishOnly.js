@@ -21,38 +21,47 @@ import compiler from '../src/lib/precompiler/precompiler.js'
 import { exec } from 'child_process'
 
 const currentDir = process.cwd()
-const targetDir = path.resolve(currentDir, 'src')
 const componentDirs = ['src/components']
 
-function precompileComponents(directory) {
-  console.log(`Checking files in ${directory} for components to precompile`)
+function precompileComponents() {
+  for (const dir of componentDirs) {
+    const fullDir = path.resolve(currentDir, dir)
+    console.log(`Checking files in ${fullDir} for components to precompile`)
+    processDirectory(fullDir)
+  }
+  console.log('Finished processing files suitable for precompilation')
+}
+
+function processDirectory(directory) {
   const files = fs.readdirSync(directory)
 
   for (const file of files) {
     const filePath = path.join(directory, file)
-    const filePathRelative = path.relative(currentDir, filePath)
     const stat = fs.statSync(filePath)
 
     if (stat.isDirectory()) {
-      if (componentDirs.includes(filePathRelative)) {
-        precompileComponents(filePath)
-      }
-    } else if (
-      componentDirs.includes(path.dirname(filePathRelative)) &&
-      (file.endsWith('.js') || file.endsWith('.ts'))
-    ) {
-      const source = fs.readFileSync(filePath, 'utf-8')
-      const newSource = compiler(source, filePath)
-      fs.writeFileSync(filePath, newSource)
-
-      // only format the file if it was changed
-      if (source !== newSource) {
-        formatFileWithESLint(filePath)
-      }
+      processDirectory(filePath)
+    } else if (/^(?!.*\.orig\.(js|ts)$).*\.(js|ts)$/.test(file)) {
+      // only process files that don't end in .orig.js or .orig.ts
+      processFile(filePath)
     }
   }
+}
 
-  console.log('Finished processing files suitable for precompilation')
+function processFile(filePath) {
+  console.log(`Precompiling ${filePath}`)
+  // backup the file
+  const backupFilePath = filePath.replace(/\.(j|t)s$/, '.orig.$1s')
+  fs.copyFileSync(filePath, backupFilePath)
+
+  const source = fs.readFileSync(filePath, 'utf-8')
+  const newSource = compiler(source, filePath)
+  fs.writeFileSync(filePath, newSource)
+
+  // only format the file if it was changed
+  if (source !== newSource) {
+    formatFileWithESLint(filePath)
+  }
 }
 
 function formatFileWithESLint(filePath) {
@@ -72,4 +81,4 @@ function formatFileWithESLint(filePath) {
   })
 }
 
-precompileComponents(targetDir)
+precompileComponents()

@@ -14,7 +14,8 @@
     "test:run": "tape '{,!(node_modules)/**/}*.test.js' | tap-diff",
     "lint": "eslint '**/*.js'",
     "lint:fix": "eslint '**/*.js' --fix",
-    "prepublishOnly": "node scripts/prepublishOnly.js"
+    "prepublishOnly": "node scripts/prepublishOnly.js",
+    "postpublish": "node scripts/postpublish.js"
   },
   "lint-staged": {
     "*.js": [
