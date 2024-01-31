@@ -124,7 +124,6 @@ const createApp = () => {
         }
         config = await prompts(questions, { onCancel })
         config.fixturesBase = fixturesBase
-        console.log("Config is", config)
         return config
       },
       () => {
