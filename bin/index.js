@@ -113,7 +113,6 @@ const questions = [
 ]
 
 
-
 const createApp = () => {
   return new Promise(resolve => {
     let config
@@ -128,12 +127,13 @@ const createApp = () => {
       },
       () => {
         spinnerMsg.start(`Creating Blits Lightning 3 App ${config.appName}`)
-        return copyLightningFixtures(config).then(targetDir => (config.targetDir = targetDir))
+        copyLightningFixtures(config).then(targetDir => (config.targetDir = targetDir))
+        spinnerMsg.succeed()
       },
       () => setAppData(config),
       () => setBlitsVersion(config),
       () => config.esLint && addESlint(config),
-      () => config.gitInit&& gitInit(config.targetDir, config.fixturesBase),
+      () => config.gitInit && gitInit(config.targetDir, config.fixturesBase),
       () => done(config)
     ])
   })
