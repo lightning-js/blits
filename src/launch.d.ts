@@ -145,6 +145,15 @@ export interface Settings {
   * Defaults to 1 if not specified
   */
   pixelRatio?: number
+  /**
+   * Interval in milliseconds to receive FPS updates
+   *
+   * @remarks
+   * If set to `0`, FPS updates will be disabled.
+   *
+   * @defaultValue `0` (disabled)
+   */
+  fpsInterval?: number
 }
 
 /**

@@ -41,6 +41,7 @@ export default (App, target, settings) => {
       appWidth: settings.w || 1920,
       appHeight: settings.h || 1080,
       coreExtensionModule: settings.fontLoader,
+      fpsUpdateInterval: settings.fpsInterval || 0,
       deviceLogicalPixelRatio:
         settings.pixelRatio ||
         screenResolutions[settings.screenResolution] ||

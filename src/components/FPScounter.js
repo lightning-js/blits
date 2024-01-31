@@ -16,6 +16,7 @@
  */
 
 import Component from '../component.js'
+import { renderer } from '../launch.js'
 
 export default () =>
   Component('FPSCounter', {
@@ -94,47 +95,24 @@ export default () =>
     },
     hooks: {
       init() {
-        const times = []
-        let fps = 0
         let minFps = 10000
         let maxFps = 0
         let avgFps = 0
         let totalFps = 0
-        let totalFrames = 0
-        let lastUpdate = performance.now()
+        let fpsUpdateCounter = 0
 
-        const refreshLoop = () => {
-          window.requestAnimationFrame(() => {
-            const now = performance.now()
+        renderer.on('fpsUpdate', (rM, { fps }) => {
+          minFps = Math.min(fps, minFps)
+          maxFps = Math.max(fps, maxFps)
+          totalFps += fps
+          fpsUpdateCounter++
+          avgFps = Math.round(totalFps / fpsUpdateCounter)
 
-            if (minFps < 10000 && lastUpdate <= now - 1000) {
-              lastUpdate = now
-              this.fps = fps.toString().padStart(3, '0')
-              this.avgFps = avgFps.toString().padStart(3, '0')
-              this.minFps = minFps.toString().padStart(3, '0')
-              this.maxFps = maxFps.toString().padStart(3, '0')
-            }
-
-            while (times.length > 0 && times[0] <= now - 1000) {
-              times.shift()
-            }
-            times.push(now)
-
-            fps = times.length
-
-            if (totalFrames > 60) {
-              minFps = Math.min(fps, minFps)
-              maxFps = Math.max(fps, maxFps)
-              totalFps += fps
-              avgFps = Math.round(totalFps / (totalFrames - 60))
-            }
-            totalFrames++
-
-            refreshLoop()
-          })
-        }
-
-        refreshLoop()
+          this.fps = fps.toString().padStart(3, '0')
+          this.avgFps = avgFps.toString().padStart(3, '0')
+          this.minFps = minFps.toString().padStart(3, '0')
+          this.maxFps = maxFps.toString().padStart(3, '0')
+        })
       },
     },
   })
