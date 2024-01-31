@@ -30,6 +30,7 @@ const cacheMap = new WeakMap()
 const history = []
 let overrideOptions = {}
 let navigatingBack = false
+let previousFocus
 
 export const getHash = () => {
   return (document.location.hash || '/').replace(/^#/, '')
@@ -97,6 +98,12 @@ export const navigate = async function () {
 
       this[symbols.children].push(view)
 
+      // keep reference to the previous focus for storing in cache
+      previousFocus = Focus.get()
+
+      // set focus to the view that we're routing to
+      focus ? Focus.set(focus) : Focus.set(view)
+
       // apply before settings to holder element
       if (route.transition.before) {
         if (Array.isArray(route.transition.before)) {
@@ -143,8 +150,6 @@ export const navigate = async function () {
         Announcer.speak(route.announce.message, route.announce.politeness)
       }
 
-      // focus the new view
-      focus ? Focus.set(focus) : view.focus()
       this.activeView = this[symbols.children][this[symbols.children].length - 1]
     } else {
       Log.error(`Route ${hash} not found`)
@@ -172,7 +177,7 @@ const removeView = async (route, view, transition) => {
 
   // cache the page when it's as 'keepAlive' instead of destroying
   if (route.options && route.options.keepAlive === true) {
-    cacheMap.set(route, { view: view, focus: Focus.get() })
+    cacheMap.set(route, { view: view, focus: previousFocus })
   } else {
     // remove and cleanup
     for (let i = 0; i < view[symbols.children].length - 1; i++) {
