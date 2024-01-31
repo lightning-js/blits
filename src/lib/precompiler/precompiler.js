@@ -51,8 +51,8 @@ export default (source, filePath) => {
       const code = generator.call({ components: {} }, parsed)
 
       // Insert the code in the component using the 'code' key, replacing the template key
-      const replacement = `code: { render: ${code.render.toString()}, effects: [${code.effects.map(
-        (fn) => fn.toString() + ','
+      const replacement = `/* eslint-disable no-unused-vars */ \ncode: { render: ${code.render.toString()}, effects: [${code.effects.map(
+        (fn) => fn.toString()
       )}], context: {}}`
       const newSource =
         source.substring(0, templateStartIndex) + replacement + source.substring(templateEndIndex)
