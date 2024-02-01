@@ -56,7 +56,7 @@ const generateElementCode = function (
 
   renderCode.push(`
     if(!${elm}) {
-      ${elm} = this.element({componentId: component[Symbol.for('id')], parent: parent || 'root'}, component)
+      ${elm} = this.element({parent: parent || 'root'}, component)
     }
     const elementConfig${counter} = {}
   `)
@@ -221,9 +221,19 @@ const generateForLoopCode = function (templateObject, parent) {
       const scope = Object.assign(component, {
         key: Math.random(),
         ${index}: __index,
-        ${item}: collection[__index]
-      })
+        ${item}: collection[__index],
     `)
+
+  if ('ref' in templateObject && templateObject.ref.indexOf('$') === -1) {
+    // automatically map the ref for each item in the loop based on the given ref key
+    ctx.renderCode.push(`
+      __ref: '${templateObject.ref}' + __index
+    `)
+    templateObject.ref = '$__ref'
+  }
+  ctx.renderCode.push(`
+      })
+  `)
 
   if ('key' in templateObject) {
     ctx.renderCode.push(`
@@ -316,8 +326,12 @@ const cast = (val = '', key = false, component = 'component.') => {
     if (val.startsWith('$')) {
       castedValue = `${component}${val.replace('$', '')}`
     } else {
-      // unescaped single quotes must be escaped
-      castedValue = `'${parseInlineContent(val.replace(/(?<!\\)'/g, "\\'"), component)}'`
+      // unescaped single quotes must be escaped while preserving escaped backslashes
+      const escapedVal = val
+        .replace(/\\\\/g, '__DOUBLE_BACKSLASH__')
+        .replace(/(^|[^\\])'/g, "$1\\'")
+        .replace(/__DOUBLE_BACKSLASH__/g, '\\\\')
+      castedValue = `'${parseInlineContent(escapedVal, component)}'`
     }
   }
   // numeric

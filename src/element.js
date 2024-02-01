@@ -128,11 +128,11 @@ const Props = {
   },
   set mount(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if (v.x) {
+      if ('x' in v) {
         this._props.mountX = v.x
         this._set.add('mountX')
       }
-      if (v.y) {
+      if ('y' in v) {
         this._props.mountY = v.y
         this._set.add('mountY')
       }
@@ -144,11 +144,11 @@ const Props = {
   },
   set pivot(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if (v.x) {
+      if ('x' in v) {
         this._set.add('pivotX')
         this._props.pivotX = v.x
       }
-      if (v.y) {
+      if ('y' in v) {
         this._set.add('pivotY')
         this._props.pivotY = v.y
       }
@@ -160,8 +160,8 @@ const Props = {
   },
   set scale(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if (v.x) this._props.scaleX = v.x
-      if (v.y) this._props.scaleY = v.y
+      if ('x' in v) this._props.scaleX = v.x
+      if ('y' in v) this._props.scaleY = v.y
     } else {
       this._props.scale = v
     }
@@ -201,10 +201,16 @@ const Props = {
     this._props.contain = v
   },
   set maxLines(v) {
-    this.height = v * this.element.node.fontSize
+    this.height = v * this.element.node.lineHeight
+  },
+  set overflowSuffix(v) {
+    this._props.overflowSuffix = v === false ? ' ' : v === true ? undefined : v
   },
   set letterSpacing(v) {
     this._props.letterSpacing = v
+  },
+  set lineHeight(v) {
+    this._props.lineHeight = v
   },
   set textAlign(v) {
     this._props.textAlign = v

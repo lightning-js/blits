@@ -146,6 +146,18 @@ const Component = (name = required('name'), config = required('config')) => {
         enumerable: false,
         configurable: false,
       },
+      [symbols.timeouts]: {
+        value: [],
+        writable: true,
+        enumerable: false,
+        configurable: false,
+      },
+      [symbols.intervals]: {
+        value: [],
+        writable: true,
+        enumerable: false,
+        configurable: false,
+      },
     })
 
     Object.defineProperty(this, symbols.originalState, {

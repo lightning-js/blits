@@ -47,6 +47,10 @@ export default (App, target, settings) => {
         screenResolutions[settings.screenResolution] ||
         screenResolutions[window.innerHeight] ||
         1,
+      numImageWorkers:
+        'webWorkersLimit' in settings
+          ? settings.webWorkersLimit
+          : window.navigator.hardwareConcurrency || 2,
     },
     target,
     driver

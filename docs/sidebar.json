@@ -1,0 +1,64 @@
+[
+  {
+    "text": "Getting Started",
+    "items": [
+      {
+        "text": "Introduction",
+        "link": "/introduction"
+      },
+      {
+        "text": "Setup",
+        "link": "/getting_started"
+      }
+    ]
+  },
+  {
+    "text": "Basics",
+    "items": [
+      {
+        "text": "Components",
+        "link": "/components"
+      },
+      {
+        "text": "Template Syntax",
+        "link": "/template_syntax"
+      },
+      {
+        "text": "Component State",
+        "link": "/component_state"
+      },
+      {
+        "text": "Hooks",
+        "link": "/lifecycle_events"
+      },
+      {
+        "text": "Props",
+        "link": "/props"
+      },
+      {
+        "text": "User Input",
+        "link": "/user_input"
+      },
+      {
+        "text": "Computed Props",
+        "link": "/computed_properties"
+      },
+      {
+        "text": "Watchers",
+        "link": "/watchers"
+      },
+      {
+        "text": "Styling",
+        "link": "/element_attributes"
+      },
+      {
+        "text": "Images",
+        "link": "/displaying_images"
+      },
+      {
+        "text": "Text-to-Speech",
+        "link": "/text-to-speech-announcer"
+      }
+    ]
+  }
+]
