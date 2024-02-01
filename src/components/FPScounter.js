@@ -74,7 +74,7 @@ export default () =>
             h: 20,
           },
           frames: {
-            false: { x: -1000 },
+            '-': { x: -1000 },
             0: { x: 1 },
             1: { x: 23 },
             2: { x: 45 },
@@ -91,14 +91,14 @@ export default () =>
             min: { x: 371, w: 47, h: 25 },
           },
         },
-        fps: '-',
-        avgFps: '-',
-        minFps: '-',
-        maxFps: '-',
+        fps: '---',
+        avgFps: '---',
+        minFps: '---',
+        maxFps: '---',
       }
     },
     hooks: {
-      init() {
+      ready() {
         let minFps = 10000
         let maxFps = 0
         let avgFps = 0
