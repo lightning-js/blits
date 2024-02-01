@@ -151,7 +151,7 @@ export interface Settings {
    * @remarks
    * If set to `0`, FPS updates will be disabled.
    *
-   * @defaultValue `0` (disabled)
+   * @defaultValue `1000` (disabled)
    */
   fpsInterval?: number
 }

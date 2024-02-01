@@ -17,45 +17,48 @@
 
 import Component from '../component.js'
 import { renderer } from '../launch.js'
+import fps_sprite from '../../public/assets/fps_sprite.base64.js'
+
+console.log(fps_sprite)
 
 export default () =>
-  Component('FPSCounter', {
+  Component('FPScounter', {
     template: `
       <Element>
         <Element y="15" x="20">
           <Element>
-            <Sprite image="assets/fps_sprite.png" w="43" h="25" map="$sprite" frame="fps" />
+            <Sprite image="$image" w="43" h="25" map="$sprite" frame="fps" />
             <Element x="58" y="2">
-              <Sprite image="assets/fps_sprite.png" x="0" h="20" w="20" map="$sprite" :frame="$fps[0]" />
-              <Sprite image="assets/fps_sprite.png" x="18" h="20" w="20" map="$sprite" :frame="$fps[1]" />
-              <Sprite image="assets/fps_sprite.png" x="36" h="20" w="20" map="$sprite" :frame="$fps[2]" />
+              <Sprite image="$image" x="0" h="20" w="20" map="$sprite" :frame="$fps[0]" />
+              <Sprite image="$image" x="18" h="20" w="20" map="$sprite" :frame="$fps[1]" />
+              <Sprite image="$image" x="36" h="20" w="20" map="$sprite" :frame="$fps[2]" />
             </Element>
           </Element>
 
           <Element x="150">
-            <Sprite image="assets/fps_sprite.png" y="2" w="48" h="25" map="$sprite" frame="avg" />
+            <Sprite image="$image" y="2" w="48" h="25" map="$sprite" frame="avg" />
             <Element x="63" y="2">
-              <Sprite image="assets/fps_sprite.png" x="0" h="20" w="20" map="$sprite" :frame="$avgFps[0]" />
-              <Sprite image="assets/fps_sprite.png" x="18" h="20" w="20" map="$sprite" :frame="$avgFps[1]" />
-              <Sprite image="assets/fps_sprite.png" x="36" h="20" w="20" map="$sprite" :frame="$avgFps[2]" />
+              <Sprite image="$image" x="0" h="20" w="20" map="$sprite" :frame="$avgFps[0]" />
+              <Sprite image="$image" x="18" h="20" w="20" map="$sprite" :frame="$avgFps[1]" />
+              <Sprite image="$image" x="36" h="20" w="20" map="$sprite" :frame="$avgFps[2]" />
             </Element>
           </Element>
 
           <Element x="0" y="40" >
-            <Sprite image="assets/fps_sprite.png" x="-2" w="47" h="25" map="$sprite" frame="min" />
+            <Sprite image="$image" x="-2" w="47" h="25" map="$sprite" frame="min" />
             <Element x="58" y="2">
-              <Sprite image="assets/fps_sprite.png" x="0" h="20" w="20" map="$sprite" :frame="$minFps[0]" />
-              <Sprite image="assets/fps_sprite.png" x="18" h="20" w="20" map="$sprite" :frame="$minFps[1]" />
-              <Sprite image="assets/fps_sprite.png" x="36" h="20" w="20" map="$sprite" :frame="$minFps[2]" />
+              <Sprite image="$image" x="0" h="20" w="20" map="$sprite" :frame="$minFps[0]" />
+              <Sprite image="$image" x="18" h="20" w="20" map="$sprite" :frame="$minFps[1]" />
+              <Sprite image="$image" x="36" h="20" w="20" map="$sprite" :frame="$minFps[2]" />
             </Element>
           </Element>
 
           <Element x="150" y="40">
-            <Sprite image="assets/fps_sprite.png" w="53" h="25" map="$sprite" frame="max" />
+            <Sprite image="$image" w="53" h="25" map="$sprite" frame="max" />
             <Element x="63" y="2">
-              <Sprite image="assets/fps_sprite.png" x="0" h="20" w="20" map="$sprite" :frame="$maxFps[0]" />
-              <Sprite image="assets/fps_sprite.png" x="18" h="20" w="20" map="$sprite" :frame="$maxFps[1]" />
-              <Sprite image="assets/fps_sprite.png" x="36" h="20" w="20" map="$sprite" :frame="$maxFps[2]" />
+              <Sprite image="$image" x="0" h="20" w="20" map="$sprite" :frame="$maxFps[0]" />
+              <Sprite image="$image" x="18" h="20" w="20" map="$sprite" :frame="$maxFps[1]" />
+              <Sprite image="$image" x="36" h="20" w="20" map="$sprite" :frame="$maxFps[2]" />
             </Element>
           </Element>
         </Element>
@@ -63,6 +66,7 @@ export default () =>
     `,
     state() {
       return {
+        image: fps_sprite,
         sprite: {
           defaults: {
             y: 1,
