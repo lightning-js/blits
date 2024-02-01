@@ -144,7 +144,16 @@ export interface Settings {
   *
   * Defaults to 1 if not specified
   */
-  pixelRatio?: number,
+  pixelRatio?: number
+  /**
+   * Interval in milliseconds to receive FPS updates
+   *
+   * @remarks
+   * If set to `0`, FPS updates will be disabled.
+   *
+   * @defaultValue `1000` (disabled)
+   */
+  fpsInterval?: number
   /**
   * Maximum number of web workers to spin up simultaneously for offloading functionality such
   * as image loading to separate threads (when supported by the browser)

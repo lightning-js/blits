@@ -23,6 +23,7 @@ import Circle from '../../components/Circle.js'
 import RouterView from '../../components/RouterView.js'
 import Sprite from '../../components/Sprite.js'
 import Text from '../../components/Text.js'
+import FPScounter from '../../components/FPScounter.js'
 import eventListeners from '../eventListeners.js'
 import { default as log, Log } from '../log.js'
 import symbols from '../symbols.js'
@@ -135,6 +136,7 @@ export default (component) => {
         RouterView: RouterView(),
         Sprite: Sprite(),
         Text: Text(),
+        FPScounter: FPScounter(),
       },
       writable: false,
       enumerable: false,
