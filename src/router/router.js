@@ -119,8 +119,8 @@ export const navigate = async function () {
         holder.populate({})
         holder.set('w', '100%')
         holder.set('h', '100%')
+        // merge props with potential route params to be injected into the component instance
         const props = { ...this[symbols.props], ...route.params }
-
         view = await route.component({ props }, holder, this)
         if (view[Symbol.toStringTag] === 'Module') {
           if (view.default && typeof view.default === 'function') {
