@@ -8,13 +8,13 @@ To begin with Blits, follow these simple steps to set up your development enviro
 
 1. Open your terminal or command prompt.
 
-2. Run the following command to create a new Lightning 3 App project:
+2. Run the following command and follow the interactive prompt takes you through a series of steps and choices to create a new Lightning 3 App project:
 
 ```bash
-npx @lightningjs/blits@latest my_lightning3_app
+npx @lightningjs/blits@latest
 ```
 
-This will generate the necessary boilerplate code in the folder `my_lightning3_app` for you to start building your own Lightning 3 App.
+This will generate the necessary boilerplate code in the folder you have specified (default is`my_lightning3_app`) for you to start building your own Lightning 3 App.
 
 3. Navigate to the newly created project directory and install the project dependencies:
 
