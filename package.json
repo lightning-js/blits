@@ -50,7 +50,7 @@
     "validate-npm-package-name": "^5.0.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "^0.7.0",
+    "@lightningjs/renderer": "^0.7.1",
     "@lightningjs/vite-plugin-import-chunk-url": "^0.3.0"
   },
   "repository": {
