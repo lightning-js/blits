@@ -37,16 +37,54 @@ export const getHash = () => {
 }
 
 export const matchHash = (path, routes = []) => {
-  const route = routes
-    .filter((r) => {
-      return r.path === path
-    })
-    .pop()
-  if (route) {
-    route.options = { ...route.options, ...overrideOptions }
-    currentRoute = route
+  let matchingRoute = false
+  let i = 0
+  while (!matchingRoute && i < routes.length) {
+    const route = routes[i]
+    if (route.path === path) {
+      matchingRoute = route
+    } else if (route.path.indexOf(':') > -1) {
+      // match dynamic route parts
+      const dynamicRouteParts = [...route.path.matchAll(/:([^\\s/]+)/gi)]
+
+      // construct a regex for the route with dynamic parts
+      let dynamicRoutePartsRegex = route.path
+      dynamicRouteParts.reverse().forEach((part) => {
+        dynamicRoutePartsRegex =
+          dynamicRoutePartsRegex.substring(0, part.index) +
+          '([^\\s/]+)' +
+          dynamicRoutePartsRegex.substring(part.index + part[0].length)
+      })
+
+      // test if the constructed regex matches the path
+      const match = path.match(new RegExp(`${dynamicRoutePartsRegex}`, 'i'))
+
+      if (match) {
+        // map the route params to a params object
+        route.params = dynamicRouteParts.reverse().reduce((acc, part, index) => {
+          acc[part[1]] = match[index + 1]
+          return acc
+        }, {})
+        matchingRoute = route
+      }
+    } else if (route.path.endsWith('*')) {
+      const regex = new RegExp(route.path.replace(/\/?\*/, '/?([^\\s]*)'), 'i')
+      const match = path.match(regex)
+
+      if (match) {
+        if (match[1]) route.params = { '*': match[1] }
+        matchingRoute = route
+      }
+    }
+    i++
   }
-  return route
+
+  if (matchingRoute) {
+    matchingRoute.options = { ...matchingRoute.options, ...overrideOptions }
+    currentRoute = matchingRoute
+  }
+
+  return matchingRoute
 }
 
 export const navigate = async function () {
@@ -81,16 +119,18 @@ export const navigate = async function () {
         holder.populate({})
         holder.set('w', '100%')
         holder.set('h', '100%')
-        view = await route.component(this[symbols.props], holder, this)
+        const props = { ...this[symbols.props], ...route.params }
+
+        view = await route.component({ props }, holder, this)
         if (view[Symbol.toStringTag] === 'Module') {
           if (view.default && typeof view.default === 'function') {
-            view = view.default(this[symbols.props], holder, this)
+            view = view.default({ props }, holder, this)
           } else {
             Log.error("Dynamic import doesn't have a default export or default is not a function")
           }
         }
         if (typeof view === 'function') {
-          view = view(this[symbols.props], holder, this)
+          view = view({ props }, holder, this)
         }
       } else {
         holder = view[symbols.wrapper]
