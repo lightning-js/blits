@@ -18,12 +18,11 @@ import {
 } from './helpers.js'
 
 const defaultBanner = `
-------------------------------------------------------------------
- Welcome to Blits - The App development framework for Lightning 3
-------------------------------------------------------------------
+--------------------------------------------------------------------
+ Welcome to Blits - The App development framework for Lightning 3 ⚡️
+--------------------------------------------------------------------
 
-
-Answer the questions below to set up a new App
+Answer the questions below to set up a new Lightning 3 Blits App
 `
 
 console.log(defaultBanner)
@@ -39,7 +38,7 @@ const questions = [
   {
     type: 'text',
     name: 'appName',
-    message: 'App name',
+    message: 'What is the name of your App?',
     format: val => {
       // Check if the provided application name is empty
       if (!val.trim()) {
@@ -54,7 +53,7 @@ const questions = [
   {
     type: 'text',
     name: 'appPackage',
-    message: 'Package Name',
+    message: 'What is the package name of your App?',
     format: val => {
       // Validate the package name using validate-npm-package-name
       if (!validatePackage(val).validForNewPackages) {
@@ -69,7 +68,7 @@ const questions = [
   {
     type: 'text',
     name: 'appFolder',
-    message: 'Specify the location for the app to be created',
+    message: 'In what folder (relative to the current location) should the App be generated?',
     format: (val, prev) => {
       // Regular expression to validate whether the path is Unix/Windows-based
       const pathRegex = /([A-Za-z]:)?([\\/]+\w+)+/
@@ -97,7 +96,7 @@ const questions = [
   {
     type: 'toggle',
     name: 'esLint',
-    message: 'Enable eslint',
+    message: 'Do you want to enable eslint?',
     initial: 'true',
     active: 'Yes',
     inactive: 'No',
@@ -105,7 +104,7 @@ const questions = [
   {
     type: 'toggle',
     name: 'gitInit',
-    message: 'Enable gitInit',
+    message: 'Do you want to generate an git repository?',
     initial: 'true',
     active: 'Yes',
     inactive: 'No',
@@ -126,7 +125,7 @@ const createApp = () => {
         return config
       },
       () => {
-        spinnerMsg.start(`Creating Blits Lightning 3 App ${config.appName}`)
+        spinnerMsg.start(`Generating new App "${config.appName}" ...`)
         copyLightningFixtures(config).then(targetDir => (config.targetDir = targetDir))
         spinnerMsg.succeed()
       },

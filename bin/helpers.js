@@ -17,9 +17,13 @@ export const copyLightningFixtures = (config) => {
       exit(red(bold('The target directory ' + targetDir + ' already exists')))
     }
     //this will be removed once ts support is added
-    fs.cpSync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir, {recursive: true})
-    fs.cpSync(path.join(config.fixturesBase, 'common/public'), path.join(targetDir, 'public'), {recursive: true})
-    
+    fs.cpSync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir, {
+      recursive: true,
+    })
+    fs.cpSync(path.join(config.fixturesBase, 'common/public'), path.join(targetDir, 'public'), {
+      recursive: true,
+    })
+
     resolve(targetDir)
   })
 }
@@ -58,7 +62,9 @@ export const addESlint = (config) => {
   )
 
   // Copy IDE stuff from fixture base
-  fs.cpSync(path.join(config.fixturesBase, 'common/ide'), path.join(config.targetDir), {recursive: true})
+  fs.cpSync(path.join(config.fixturesBase, 'common/ide'), path.join(config.targetDir), {
+    recursive: true,
+  })
 
   // Copy and merge fixture specific package.json
   const origPackageJson = JSON.parse(fs.readFileSync(path.join(config.targetDir, 'package.json')))
@@ -201,11 +207,14 @@ export const isValidPath = (path) => {
 }
 
 export const done = (config) => {
-  console.log('================================== ⚡️⚡️⚡️⚡️ ================================== ')
-  console.log('Your new boilerplate Lightning 3 App has been created!')
+  console.log('')
+  console.log('--------------------------------------------------------------------')
+  console.log(' Your new boilerplate Lightning 3 App has been created! ⚡️')
+  console.log('--------------------------------------------------------------------')
+  console.log('')
+  console.log('Follow the steps below to get started:')
   console.log('')
   console.log(`    ${green(bold(`cd ${config.appFolder}`))}`)
   console.log(`    ${green(bold('npm install'))}`)
   console.log(`    ${green(bold('npm run dev'))}`)
-  console.log('================================== ⚡️⚡️⚡️⚡️ ================================== ')
 }
