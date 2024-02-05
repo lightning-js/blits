@@ -64,14 +64,11 @@ const generateElementCode = function (
   const children = templateObject['children']
   delete templateObject['children']
 
-  Object.keys(templateObject).forEach((key) => {
-    if (key === Symbol.for('componentType')) {
-      if (templateObject[key] === 'Slot') {
-        renderCode.push(`elementConfig${counter}[Symbol.for('isSlot')] = true`)
-      }
-      return
-    }
+  if (templateObject[Symbol.for('componentType')] === 'Slot') {
+    renderCode.push(`elementConfig${counter}[Symbol.for('isSlot')] = true`)
+  }
 
+  Object.keys(templateObject).forEach((key) => {
     if (key === 'slot') {
       renderCode.push(`
         elementConfig${counter}['parent'] = component[Symbol.for('slots')].filter(slot => slot.ref === '${templateObject.slot}').shift() || component[Symbol.for('slots')][0] || parent
