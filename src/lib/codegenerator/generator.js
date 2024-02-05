@@ -148,7 +148,6 @@ const generateComponentCode = function (
 
   renderCode.push(`const props${counter} = {}`)
   Object.keys(templateObject).forEach((key) => {
-    if (key === Symbol.for('componentType')) return
     if (isReactiveKey(key)) {
       this.effectsCode.push(`
         ${elm}[Symbol.for('props')]['${key.substring(1)}'] = ${interpolate(
