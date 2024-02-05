@@ -77,7 +77,7 @@ export default (template = '', componentName, parentComponent, filePath = null) 
     const match = moveCursorOnMatch(emptyTagStartRegex)
     if (match) {
       tags.push({
-        type: null,
+        [Symbol.for('componentType')]: null,
         [symbols.type]: 'opening',
         [symbols.level]: currentLevel,
         [symbols.cursorTagStart]: prevCursor,
@@ -94,7 +94,7 @@ export default (template = '', componentName, parentComponent, filePath = null) 
     if (match) {
       currentLevel--
       tags.push({
-        type: null,
+        [Symbol.for('componentType')]: null,
         [symbols.type]: 'closing',
         [symbols.level]: currentLevel,
       })
@@ -108,7 +108,7 @@ export default (template = '', componentName, parentComponent, filePath = null) 
     const match = moveCursorOnMatch(tagStartRegex)
     if (match) {
       currentTag = {
-        type: match[1],
+        [Symbol.for('componentType')]: match[1],
         [symbols.level]: currentLevel,
         [symbols.cursorTagStart]: prevCursor,
       }
@@ -221,7 +221,7 @@ export default (template = '', componentName, parentComponent, filePath = null) 
           [symbols.level]: element[symbols.level],
           [symbols.type]: element[symbols.type],
           [symbols.cursorTagStart]: element[symbols.cursorTagStart],
-          type: element.type,
+          [Symbol.for('componentType')]: element[Symbol.for('componentType')],
           parent: currentParent, // helps getting the previous parent when closing tag is encountered
         })
       } else if (element[symbols.type] === 'closing') {
@@ -230,7 +230,9 @@ export default (template = '', componentName, parentComponent, filePath = null) 
         let isTagMismatch = false
         if (!isStackEmpty) {
           isLevelMismatch = stack[stack.length - 1][symbols.level] !== element[symbols.level]
-          isTagMismatch = stack[stack.length - 1].type !== element.type
+          isTagMismatch =
+            stack[stack.length - 1][Symbol.for('componentType')] !==
+            element[Symbol.for('componentType')]
         }
 
         if (isStackEmpty || isLevelMismatch || isTagMismatch) {
@@ -329,7 +331,7 @@ export default (template = '', componentName, parentComponent, filePath = null) 
       let currentParent = parentComponent
 
       while (currentParent) {
-        hierarchy = `${currentParent.type}/${hierarchy}`
+        hierarchy = `${currentParent[Symbol.for('componentType')]}/${hierarchy}`
         currentParent = currentParent.parent
       }
       return hierarchy

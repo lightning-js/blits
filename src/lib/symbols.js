@@ -36,4 +36,6 @@ export default {
   props: Symbol.for('props'),
   // Symbol 'slots' utilized within generated code
   slots: Symbol.for('slots'),
+  // Symbol 'componentType' utilized within generated code
+  componentType: Symbol.for('componentType'),
 }
