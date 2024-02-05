@@ -122,12 +122,6 @@ const Component = (name = required('name'), config = required('config')) => {
     this[symbols.wrapper] = parentEl
 
     Object.defineProperties(this, {
-      type: {
-        value: name,
-        writable: false,
-        enumerable: true,
-        configurable: false,
-      },
       componentId: {
         value: createHumanReadableId(name),
         writable: false,

@@ -65,7 +65,7 @@ const generateElementCode = function (
   delete templateObject['children']
 
   Object.keys(templateObject).forEach((key) => {
-    if (key === 'type') {
+    if (key === Symbol.for('componentType')) {
       if (templateObject[key] === 'Slot') {
         renderCode.push(`elementConfig${counter}[Symbol.for('isSlot')] = true`)
       }
@@ -119,8 +119,10 @@ const generateComponentCode = function (
 
   renderCode.push(`
     const cmp${counter} =
-      (context.components && context.components['${templateObject.type}']) ||
-      component[Symbol.for('components')]['${templateObject.type}']
+      (context.components && context.components['${
+        templateObject[Symbol.for('componentType')]
+      }']) ||
+      component[Symbol.for('components')]['${templateObject[Symbol.for('componentType')]}']
   `)
 
   if ('key' in templateObject) {
@@ -149,7 +151,7 @@ const generateComponentCode = function (
 
   renderCode.push(`const props${counter} = {}`)
   Object.keys(templateObject).forEach((key) => {
-    if (key === 'type') return
+    if (key === Symbol.for('componentType')) return
     if (isReactiveKey(key)) {
       this.effectsCode.push(`
         ${elm}[Symbol.for('props')]['${key.substring(1)}'] = ${interpolate(
@@ -171,7 +173,13 @@ const generateComponentCode = function (
 
   renderCode.push(`
     if(!${elm}) {
-      ${elm} = (context.components && context.components['${templateObject.type}'] || component[Symbol.for('components')]['${templateObject.type}'] || (() => { console.error('component ${templateObject.type} not found')})).call(null, {props: props${counter}}, ${parent}, component)
+      ${elm} = (context.components && context.components['${
+    templateObject[Symbol.for('componentType')]
+  }'] || component[Symbol.for('components')]['${
+    templateObject[Symbol.for('componentType')]
+  }'] || (() => { console.error('component ${
+    templateObject[Symbol.for('componentType')]
+  } not found')})).call(null, {props: props${counter}}, ${parent}, component)
       if (${elm}[Symbol.for('slots')][0]) {
         parent = ${elm}[Symbol.for('slots')][0]
         component = ${elm}
@@ -245,7 +253,10 @@ const generateForLoopCode = function (templateObject, parent) {
     `)
   }
 
-  if (templateObject.type === 'Element' || templateObject.type === 'Slot') {
+  if (
+    templateObject[Symbol.for('componentType')] === 'Element' ||
+    templateObject[Symbol.for('componentType')] === 'Slot'
+  ) {
     generateElementCode.call(ctx, templateObject, parent, {
       key: 'scope.key',
       component: 'scope.',
@@ -283,7 +294,10 @@ const generateCode = function (templateObject, parent = false, options = {}) {
       if (Object.keys(childTemplateObject).indexOf(':for') > -1) {
         generateForLoopCode.call(this, childTemplateObject, parent)
       } else {
-        if (childTemplateObject.type === 'Element' || childTemplateObject.type === 'Slot') {
+        if (
+          childTemplateObject[Symbol.for('componentType')] === 'Element' ||
+          childTemplateObject[Symbol.for('componentType')] === 'Slot'
+        ) {
           generateElementCode.call(this, childTemplateObject, parent, options)
         } else {
           generateComponentCode.call(this, childTemplateObject, parent, options)
