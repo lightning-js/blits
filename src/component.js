@@ -122,12 +122,6 @@ const Component = (name = required('name'), config = required('config')) => {
     this[symbols.wrapper] = parentEl
 
     Object.defineProperties(this, {
-      type: {
-        value: name,
-        writable: false,
-        enumerable: true,
-        configurable: false,
-      },
       componentId: {
         value: createHumanReadableId(name),
         writable: false,
@@ -143,6 +137,18 @@ const Component = (name = required('name'), config = required('config')) => {
       [symbols.props]: {
         value: reactive(opts.props || {}, Settings.get('reactivityMode')),
         writable: false,
+        enumerable: false,
+        configurable: false,
+      },
+      [symbols.timeouts]: {
+        value: [],
+        writable: true,
+        enumerable: false,
+        configurable: false,
+      },
+      [symbols.intervals]: {
+        value: [],
+        writable: true,
         enumerable: false,
         configurable: false,
       },

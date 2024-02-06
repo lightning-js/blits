@@ -41,11 +41,16 @@ export default (App, target, settings) => {
       appWidth: settings.w || 1920,
       appHeight: settings.h || 1080,
       coreExtensionModule: settings.fontLoader,
+      fpsUpdateInterval: settings.fpsInterval || 1000,
       deviceLogicalPixelRatio:
         settings.pixelRatio ||
         screenResolutions[settings.screenResolution] ||
         screenResolutions[window.innerHeight] ||
         1,
+      numImageWorkers:
+        'webWorkersLimit' in settings
+          ? settings.webWorkersLimit
+          : window.navigator.hardwareConcurrency || 2,
     },
     target,
     driver

@@ -1,5 +1,45 @@
 # Changelog
 
+# v0.6.10
+
+_2 feb 2024_
+
+- Added FPS counter from Example App as a built-in Blits component (available as `<FPScounter />`)
+- Added precompilation to all built-in Blits components for increased performance
+- Updated flow to create a new App project with an interactive prompt of questions (`npx @lightningjs/blits@latest`)
+- Upgraded to latest version of the Lightning 3 renderer (0.7.1)
+
+# v0.6.9
+
+_31 jan 2024_
+
+- Fixed single quote escaping for all browsers (removing sometimes unsupported negative lookahead)
+- Fixed issue with focus when navigating back to a page that is kept in history
+
+# v0.6.8
+
+_29 jan 2024_
+
+- Reverted fix (initially) empty for-loops
+
+# v0.6.7
+
+_26 jan 2024_
+
+- Added `this.$clearInterval` and `this.$clearTimeout` helper functions to Component
+- Updated Lightning renderer to version _0.7.0_
+- Added `lineheight` and `textoverflow` attributes to `<Text />`-component
+- Added setting for specifying maximum number of web workers to spawn (`webWorkersLimit`)
+- Added fix for issue with setting up reactivity for (initially) empty for-loops
+
+# v0.6.6
+
+_24 jan 2024_
+
+- Added temporary fix for renderer issue [#123](https://github.com/lightning-js/renderer/issues/123)
+- Fixed issue with setting mount, pivot and scale values to zero (0) in object literal with x and y key
+- Added automatic mapping of ref string to each item in a for-loop
+
 # v0.6.5
 
 _16 jan 2024_
