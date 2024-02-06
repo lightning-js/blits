@@ -39,10 +39,8 @@ export const getHash = () => {
 const normalizePath = (path) => {
   return (
     path
-      // remove trailing slashes
-      .replace(/^(.+?)\/*?$/, '$1')
-      // remove leading slashes
-      .replace(/^\/+(.+?)/, '$1')
+      // remove leading and trailing slashes
+      .replace(/^\/+|\/+$/g, '')
       .toLowerCase()
   )
 }
