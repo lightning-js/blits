@@ -262,7 +262,13 @@ export const back = () => {
   if (route) {
     // set indicator that we are navigating back (to prevent adding page to history stack)
     navigatingBack = true
-    to(route.path)
+    let targetRoutePath = route.path
+    if (targetRoutePath.indexOf(':') > -1) {
+      Object.keys(route.params).forEach((item) => {
+        targetRoutePath = targetRoutePath.replace(`:${item}`, route.params[item])
+      })
+    }
+    to(targetRoutePath)
     return true
   } else {
     return false
