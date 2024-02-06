@@ -1,5 +1,14 @@
 # Changelog
 
+# v0.6.10
+
+_2 feb 2024_
+
+- Added FPS counter from Example App as a built-in Blits component (available as `<FPScounter />`)
+- Added precompilation to all built-in Blits components for increased performance
+- Updated flow to create a new App project with an interactive prompt of questions (`npx @lightningjs/blits@latest`)
+- Upgraded to latest version of the Lightning 3 renderer (0.7.1)
+
 # v0.6.9
 
 _31 jan 2024_
