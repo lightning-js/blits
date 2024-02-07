@@ -1,5 +1,13 @@
 # Changelog
 
+# v0.6.11
+
+_7 feb 2024_
+
+- Enabled the use of `type` as a component prop or state variable
+- Removed setting focus to AppComponent on back key press in RouterView
+- Fixed broken app create flow caused by missing dev dependencies in npx command (temporary fix)
+
 # v0.6.10
 
 _2 feb 2024_
