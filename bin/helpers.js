@@ -182,7 +182,7 @@ export const gitInit = (cwd, fixturesBase) => {
     .then(({ stdout }) => (msg = stdout))
     .then(() => {
       return fs.copyFileSync(
-        path.join(fixturesBase, 'common/git/.gitignore'),
+        path.join(fixturesBase, 'common/git/gitignore'),
         path.join(cwd, '.gitignore')
       )
     })
