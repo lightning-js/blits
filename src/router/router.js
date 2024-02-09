@@ -36,16 +36,31 @@ export const getHash = () => {
   return (document.location.hash || '/').replace(/^#/, '')
 }
 
+const normalizePath = (path) => {
+  return (
+    path
+      // remove trailing slashes
+      .replace(/^(.+?)\/*?$/, '$1')
+      // remove leading slashes
+      .replace(/^\/+(.+?)/, '$1')
+      .toLowerCase()
+  )
+}
+
 export const matchHash = (path, routes = []) => {
+  // remove trailing slashes
+  const originalPath = path
+  path = normalizePath(path)
   let matchingRoute = false
   let i = 0
   while (!matchingRoute && i < routes.length) {
     const route = routes[i]
+    route.path = normalizePath(route.path)
     if (route.path === path) {
       matchingRoute = route
     } else if (route.path.indexOf(':') > -1) {
       // match dynamic route parts
-      const dynamicRouteParts = [...route.path.matchAll(/:([^\\s/]+)/gi)]
+      const dynamicRouteParts = [...route.path.matchAll(/:([^\s/]+)/gi)]
 
       // construct a regex for the route with dynamic parts
       let dynamicRoutePartsRegex = route.path
@@ -57,7 +72,7 @@ export const matchHash = (path, routes = []) => {
       })
 
       // test if the constructed regex matches the path
-      const match = path.match(new RegExp(`${dynamicRoutePartsRegex}`, 'i'))
+      const match = originalPath.match(new RegExp(`${dynamicRoutePartsRegex}`, 'i'))
 
       if (match) {
         // map the route params to a params object
@@ -72,7 +87,7 @@ export const matchHash = (path, routes = []) => {
       const match = path.match(regex)
 
       if (match) {
-        if (match[1]) route.params = { '*': match[1] }
+        if (match[1]) route.params = { path: match[1] }
         matchingRoute = route
       }
     }
