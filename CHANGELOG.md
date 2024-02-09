@@ -1,5 +1,13 @@
 # Changelog
 
+# v0.6.12
+
+_9 feb 2024_
+
+- Added type hinting for `this.$clearInterval` and `this.$clearTimeout`
+- Fixed issue with `.gitignore` in app create flow
+- Added support for dynamic route parts in the router (i.e `/tv/:series/episodes/:episode`)
+
 # v0.6.11
 
 _7 feb 2024_
