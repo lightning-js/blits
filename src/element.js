@@ -201,7 +201,7 @@ const Props = {
     this._props.contain = v
   },
   set maxLines(v) {
-    this.height = v * this.element.node.lineHeight
+    this._props.maxLines = v
   },
   set overflowSuffix(v) {
     this._props.overflowSuffix = v === false ? ' ' : v === true ? undefined : v
