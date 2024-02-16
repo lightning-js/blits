@@ -51,8 +51,6 @@ const unpackTransition = (obj) => {
   return obj
 }
 
-let firstNode = false
-
 const Props = {
   set parent(v) {
     this._props.parent = v === 'root' ? renderer.root : v.node
@@ -245,13 +243,6 @@ const Element = {
     if (!this.props._set.has('color')) {
       this.props._props.color =
         this.props._set.has('src') || this.props._set.has('texture') ? 0xffffffff : 0
-    }
-
-    // temporary workaround for renderer issue https://github.com/lightning-js/renderer/issues/123
-    if (!firstNode) {
-      this.props._props.src =
-        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII='
-      firstNode = true
     }
 
     this.node = props.__textnode
