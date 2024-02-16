@@ -1,5 +1,15 @@
 # Changelog
 
+# v0.6.13
+
+_16 feb 2024_
+
+- Upgraded to 0.7.2 of the renderer
+- Introduced new `maxheight` attribute (besided the existing `maxlines` attribute) for the `<Text />` component
+- Fixed issue with order of lifecycle event emits
+- Fixed logic to not unfoces a parent when it passes focus to a child
+- Removed temporary fix for renderer issue [#123](https://github.com/lightning-js/renderer/issues/123)
+
 # v0.6.12
 
 _9 feb 2024_
