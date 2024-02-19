@@ -169,11 +169,11 @@ const generateComponentCode = function (
 
   renderCode.push(`
     if(!${elm}) {
-      ${elm} = (context.components && context.components['${
+      const componentType = props${counter}['is'] || '${
     templateObject[Symbol.for('componentType')]
-  }'] || component[Symbol.for('components')]['${
-    templateObject[Symbol.for('componentType')]
-  }'] || (() => { console.error('component ${
+  }'
+
+  ${elm} = (context.components && context.components[componentType] || component[Symbol.for('components')][componentType] || (() => { console.error('component ${
     templateObject[Symbol.for('componentType')]
   } not found')})).call(null, {props: props${counter}}, ${parent}, component)
       if (${elm}[Symbol.for('slots')][0]) {
