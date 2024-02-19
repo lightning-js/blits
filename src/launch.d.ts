@@ -162,6 +162,16 @@ export interface Settings {
   * `navigator.hardwareConcurrency` (or 2 if `navigator.hardwareConcurrency` is not supported)
   */
   webWorkersLimit?: number
+  /**
+   * Background color of the canvas (also known as the clearColor)
+   *
+   * Can be a color name (red, blue, silver), a hexadecimal color (`#000000`, `#ccc`),
+   * or a color number in rgba order (`0xff0033ff`)
+   *
+   * Defauls to transparent (`0x00000000`)
+   *
+   */
+  canvasColor?: string,
 }
 
 /**
