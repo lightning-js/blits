@@ -213,6 +213,9 @@ const Props = {
   set textAlign(v) {
     this._props.textAlign = v
   },
+  set data(v) {
+    this._props.data = v
+  },
 }
 
 const Element = {
