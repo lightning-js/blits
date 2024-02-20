@@ -28,7 +28,9 @@ export let navigating = false
 
 const cacheMap = new WeakMap()
 const history = []
+
 let overrideOptions = {}
+let navigationData = {}
 let navigatingBack = false
 let previousFocus
 
@@ -133,7 +135,8 @@ export const navigate = async function () {
         holder.set('w', '100%')
         holder.set('h', '100%')
         // merge props with potential route params to be injected into the component instance
-        const props = { ...this[symbols.props], ...route.params }
+        const props = { ...this[symbols.props], ...route.params, ...navigationData }
+
         view = await route.component({ props }, holder, this)
         if (view[Symbol.toStringTag] === 'Module') {
           if (view.default && typeof view.default === 'function') {
@@ -250,7 +253,8 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
     : node.set(transition.prop, transition.value)
 }
 
-export const to = (location, options = {}) => {
+export const to = (location, data = {}, options = {}) => {
+  navigationData = data
   overrideOptions = options
   window.location.hash = `#${location}`
 }
