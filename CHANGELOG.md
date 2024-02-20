@@ -1,5 +1,11 @@
 # Changelog
 
+# v0.7.0
+
+- Added support for dynamic components through the `is`-attribute (`<Component is="Poster" />` or `<Component is="$dynamicComponent" />`)
+- Added functionality to pass extra data / props when navigating to a new route ( _breaking change_ in signature of `router.to()` method - previously: `router.to(path, options)`, now: `router.to(path, data, options)`)
+- Added configuration option to set the canvas color (aka clear color)
+
 # v0.6.13
 
 _16 feb 2024_
