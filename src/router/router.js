@@ -236,9 +236,11 @@ const removeView = async (route, view, transition) => {
     cacheMap.set(route, { view: view, focus: previousFocus })
   } else {
     // remove and cleanup
-    for (let i = 0; i < view[symbols.children].length - 1; i++) {
+    for (let i = 0; i < view[symbols.children].length; i++) {
       if (view[symbols.children][i] && view[symbols.children][i].destroy) {
         view[symbols.children][i].destroy()
+        view[symbols.children][i] = null
+      } else if (view[symbols.children][i]) {
         view[symbols.children][i] = null
       }
     }
