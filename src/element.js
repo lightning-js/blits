@@ -214,7 +214,7 @@ const Props = {
     this._props.textAlign = v
   },
   set data(v) {
-    this._props.data = v
+    this._props.data = (isObjectString(v) && parseToObject(v)) || v
   },
 }
 
