@@ -21,7 +21,7 @@ import codegenerator from './lib/codegenerator/generator.js'
 import element from './element.js'
 
 import { createHumanReadableId, createInternalId } from './lib/componentId.js'
-import { registerHooks, emit, privateEmit } from './lib/hooks.js'
+import { registerHooks } from './lib/hooks.js'
 
 import { reactive } from './lib/reactivity/reactive.js'
 import setupBase from './lib/setup/base.js'
@@ -34,6 +34,7 @@ import setupRoutes from './lib/setup/routes.js'
 import setupWatch from './lib/setup/watch.js'
 import { effect } from './lib/reactivity/effect.js'
 import { Log } from './lib/log.js'
+import lifecycle from './lib/lifecycle.js'
 
 import Settings from './settings.js'
 import symbols from './lib/symbols.js'
@@ -54,11 +55,10 @@ const Component = (name = required('name'), config = required('config')) => {
       config.code = codegenerator.call(config, parser(config.template, name, parentComponent))
     }
 
-    setupBase(component)
+    setupBase(component, name)
 
     // setup hooks
     registerHooks(config.hooks, name)
-    lifecycle.state = 'beforeSetup'
 
     // setup props
     // if (config.props) // because of the default props like id - might change this
@@ -83,34 +83,10 @@ const Component = (name = required('name'), config = required('config')) => {
     if (config.input) setupInput(component, config.input)
 
     component.setup = true
-    lifecycle.state = 'setup'
-  }
-
-  const createLifecycle = (scope) => {
-    const states = ['init', 'beforeSetup', 'setup', 'ready', 'focus', 'unfocus', 'destroy']
-
-    return {
-      previous: null,
-      current: null,
-      get state() {
-        return this.current
-      },
-      set state(v) {
-        if (states.indexOf(v) > -1 && v !== this.current) {
-          Log.debug(`Setting lifecycle state from ${this.current} to ${v} for ${scope.componentId}`)
-          this.previous = this.current
-          this.current = v
-          // emit 'private' hook
-          privateEmit(v, name, scope)
-          // emit 'public' hook
-          emit(v, name, scope)
-        }
-      },
-    }
   }
 
   const component = function (opts, parentEl, parentComponent) {
-    this.lifecycle = createLifecycle(this)
+    this.lifecycle = Object.assign(Object.create(lifecycle), { scope: this })
 
     if (!component.setup) {
       setupComponent(this.lifecycle, parentComponent)
