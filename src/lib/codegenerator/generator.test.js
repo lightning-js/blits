@@ -1506,6 +1506,134 @@ test('Generate code for a template with slot content', (assert) => {
   assert.end()
 })
 
+test('Generate code for a template with slot content, using a named slot', (assert) => {
+  const scope = {
+    components: {
+      Page: () => {},
+    },
+  }
+
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        children: [
+          {
+            [Symbol.for('componentType')]: 'Page',
+            w: '1920',
+            h: '1080',
+            children: [
+              {
+                [Symbol.for('componentType')]: 'Element',
+                x: '100',
+                y: '$y',
+                slot: 'mySlot',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      if(!elms[0]) {
+        elms[0] = this.element({parent: parent || 'root'}, component)
+      }
+      const elementConfig0 = {}
+
+      if(!elms[0].nodeId) {
+        elms[0].populate(elementConfig0)
+      }
+
+      const cmp1 = (context.components && context.components['Page']) ||
+      component[Symbol.for('components')]['Page']
+
+      parent = elms[0]
+
+      if(!elms[1]) {
+        elms[1] = this.element({parent: parent || 'root'}, component)
+      }
+      const elementConfig1 = {}
+      elementConfig1['w'] = 1920
+      elementConfig1['h'] = 1080
+
+      if(typeof cmp1 !== 'undefined') {
+        for(let key in cmp1.config.props) {
+          delete  elementConfig1[cmp1.config.props[key]]
+        }
+      }
+
+      if(!elms[1].nodeId) {
+        elms[1].populate(elementConfig1)
+      }
+
+      parent = elms[1]
+      const props2 = {}
+      props2['w'] = 1920
+      props2['h'] = 1080
+
+
+      if(!elms[2]) {
+        const componentType = props2['is'] || 'Page'
+        elms[2] = (context.components && context.components[componentType] || component[Symbol.for('components')][componentType] || (() => { console.error('component Page not found')})).call(null, {props: props2}, elms[1], component)
+        if (elms[2][Symbol.for('slots')][0]) {
+          parent = elms[2][Symbol.for('slots')][0]
+          component = elms[2]
+        } else {
+          parent = elms[2][Symbol.for('children')][0]
+        }
+      }
+
+      if(!elms[3]) {
+        elms[3] = this.element({parent: parent || 'root'}, component)
+      }
+
+      const elementConfig3 = {}
+
+      if(!elms[3].nodeId) {
+        elms[3].populate(elementConfig3)
+      }
+      parent = elms[3]
+
+
+      if(!elms[4]) {
+        elms[4] = this.element({parent: parent || 'root'}, component)
+      }
+      const elementConfig4 = {}
+      elementConfig4['x'] = 100
+      elementConfig4['y'] = component.y
+
+      elementConfig4['parent'] = component[Symbol.for('slots')].filter(slot => slot.ref === 'mySlot').shift() || component[Symbol.for('slots')][0] || parent
+      elementConfig4['slot'] = "mySlot"
+
+      if(!elms[4].nodeId) {
+        elms[4].populate(elementConfig4)
+      }
+
+      return elms
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+
+  assert.end()
+})
+
 test('Generate code for a template with a slot', (assert) => {
   const templateObject = {
     children: [
