@@ -19,7 +19,13 @@ import test from 'tape'
 import generator from './generator.js'
 
 const normalize = (str) => {
-  return str.replace(/[\n\s\t]/gi, '')
+  return (
+    str
+      // remove comments
+      .replace(/\s*\/\/.*\n/gi, '')
+      // remove whitespaces
+      .replace(/[\n\s\t]/gi, '')
+  )
 }
 
 const scope = {
@@ -75,6 +81,7 @@ test('The contex key is an object', (assert) => {
 test('Generate render and effect code for an empty template', (assert) => {
   const expectedRender = `
   function anonymous(parent,component,context) {
+      // this is a comment
       const elms = []
       return elms
   }
