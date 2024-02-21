@@ -1370,7 +1370,7 @@ test('Generate code for a template with a transition attributes', (assert) => {
   assert.end()
 })
 
-test('Generate code for a template with a slot', (assert) => {
+test('Generate code for a template with slot content', (assert) => {
   const scope = {
     components: {
       Page: () => {},
@@ -1501,6 +1501,91 @@ test('Generate code for a template with a slot', (assert) => {
     normalize(actual.effects[0].toString()),
     normalize(expectedEffect1),
     'Generator should return an effect function for the reactive rotation attribute'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with a slot', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        children: [
+          {
+            [Symbol.for('componentType')]: 'Element',
+            w: '1920',
+            h: '1080',
+            children: [
+              {
+                [Symbol.for('componentType')]: 'Slot',
+                x: '100',
+                y: '$y',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      if(!elms[0]) {
+        elms[0] = this.element({parent: parent || 'root'}, component)
+      }
+      const elementConfig0 = {}
+
+      if(!elms[0].nodeId) {
+        elms[0].populate(elementConfig0)
+      }
+
+      parent = elms[0]
+
+      if(!elms[1]) {
+        elms[1] = this.element({parent: parent || 'root'}, component)
+      }
+      const elementConfig1 = {}
+      elementConfig1['w'] = 1920
+      elementConfig1['h'] = 1080
+
+      if(!elms[1].nodeId) {
+        elms[1].populate(elementConfig1)
+      }
+
+      parent = elms[1]
+
+      if(!elms[2]) {
+        elms[2] = this.element({parent: parent || 'root'}, component)
+      }
+
+      const elementConfig2 = {}
+
+      elementConfig2[Symbol.for('isSlot')] = true
+      elementConfig2['x'] = 100
+      elementConfig2['y'] = component.y
+
+      if(!elms[2].nodeId) {
+        elms[2].populate(elementConfig2)
+      }
+
+      return elms
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
   )
 
   assert.end()
