@@ -233,6 +233,50 @@ test('Generate code for a template with a single element with attributes', (asse
   assert.end()
 })
 
+test('Generate code for a template with a single element with attributes with a boolean like value', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        one: 'true',
+        two: 'false',
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      if(!elms[0]) {
+        elms[0] = this.element({parent: parent || 'root'}, component)
+      }
+      const elementConfig0 = {}
+
+      elementConfig0['one'] = true
+      elementConfig0['two'] = false
+
+      if(!elms[0].nodeId) {
+        elms[0].populate(elementConfig0)
+      }
+      return elms
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+  assert.end()
+})
+
 test('Generate code for a template with attributes and a nested element with attributes', (assert) => {
   const templateObject = {
     children: [
@@ -1543,7 +1587,234 @@ test('Generate code for a template with inline Text', (assert) => {
   assert.end()
 })
 
-// todo:
+test('Generate code for a template with inline dynamic Text', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        children: [
+          {
+            [Symbol.for('componentType')]: 'Text',
+            content: '$myText',
+          },
+        ],
+      },
+    ],
+  }
 
-// - for loop
-// - percentage
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      if(!elms[0]) {
+        elms[0] = this.element({parent: parent || 'root'}, component)
+      }
+      const elementConfig0 = {}
+
+      if(!elms[0].nodeId) {
+        elms[0].populate(elementConfig0)
+      }
+
+      const cmp1 = (context.components && context.components['Text']) ||
+        component[Symbol.for('components')]['Text']
+
+      parent = elms[0]
+      if(!elms[1]) {
+        elms[1] = this.element({parent: parent || 'root'}, component)
+      }
+
+      const elementConfig1 = {}
+      elementConfig1['content'] = component.myText
+      if(typeof cmp1 !== 'undefined') {
+        for(let key in cmp1.config.props) {
+          delete  elementConfig1[cmp1.config.props[key]]
+        }
+      }
+
+      if(!elms[1].nodeId) {
+        elms[1].populate(elementConfig1)
+      }
+
+      parent = elms[1]
+      const props2 = {}
+      props2['content'] = component.myText
+
+      if(!elms[2]) {
+        const componentType = props2['is'] || 'Text'
+        elms[2] = (context.components && context.components[componentType] || component[Symbol.for('components')][componentType] || (() => { console.error('component Text not found')})).call(null, {props: props2}, elms[1], component)
+        if (elms[2][Symbol.for('slots')][0]) {
+          parent = elms[2][Symbol.for('slots')][0]
+          component = elms[2]
+        } else {
+          parent = elms[2][Symbol.for('children')][0]
+        }
+      }
+
+      return elms
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+  assert.end()
+})
+
+test('Generate code for a template with inline dynamic Text embedded in static text', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        children: [
+          {
+            [Symbol.for('componentType')]: 'Text',
+            content: 'Hello {{$firstname}} {{$lastname}}, how are you?',
+          },
+        ],
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      if(!elms[0]) {
+        elms[0] = this.element({parent: parent || 'root'}, component)
+      }
+      const elementConfig0 = {}
+
+      if(!elms[0].nodeId) {
+        elms[0].populate(elementConfig0)
+      }
+
+      const cmp1 = (context.components && context.components['Text']) ||
+        component[Symbol.for('components')]['Text']
+
+      parent = elms[0]
+      if(!elms[1]) {
+        elms[1] = this.element({parent: parent || 'root'}, component)
+      }
+
+      const elementConfig1 = {}
+      elementConfig1['content'] = 'Hello ' + component.firstname + ' ' + component.lastname + ', how are you?'
+      if(typeof cmp1 !== 'undefined') {
+        for(let key in cmp1.config.props) {
+          delete  elementConfig1[cmp1.config.props[key]]
+        }
+      }
+
+      if(!elms[1].nodeId) {
+        elms[1].populate(elementConfig1)
+      }
+
+      parent = elms[1]
+      const props2 = {}
+      props2['content'] = 'Hello ' + component.firstname + ' ' + component.lastname + ', how are you?'
+
+      if(!elms[2]) {
+        const componentType = props2['is'] || 'Text'
+        elms[2] = (context.components && context.components[componentType] || component[Symbol.for('components')][componentType] || (() => { console.error('component Text not found')})).call(null, {props: props2}, elms[1], component)
+        if (elms[2][Symbol.for('slots')][0]) {
+          parent = elms[2][Symbol.for('slots')][0]
+          component = elms[2]
+        } else {
+          parent = elms[2][Symbol.for('children')][0]
+        }
+      }
+
+      return elms
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+  assert.end()
+})
+
+test('Generate code for a template with a single element with attributes with percentages', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        w: '1920',
+        h: '1080',
+        children: [
+          {
+            [Symbol.for('componentType')]: 'Element',
+            w: '50%',
+            h: '40%',
+            x: '10%',
+            y: '20%',
+          },
+        ],
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      if(!elms[0]) {
+        elms[0] = this.element({parent: parent || 'root'}, component)
+      }
+      const elementConfig0 = {}
+
+      elementConfig0['w'] = 1920
+      elementConfig0['h'] = 1080
+
+      if(!elms[0].nodeId) {
+        elms[0].populate(elementConfig0)
+      }
+
+      parent = elms[0]
+
+      if(!elms[1]) {
+        elms[1] = this.element({parent: parent || 'root'}, component)
+      }
+      const elementConfig1 = {}
+
+      elementConfig1['w'] = parent.node.width * (50/100)
+      elementConfig1['h'] = parent.node.height * (40/100)
+      elementConfig1['x'] = parent.node.width * (10/100)
+      elementConfig1['y'] = parent.node.height * (20/100)
+
+      if(!elms[1].nodeId) {
+        elms[1].populate(elementConfig1)
+      }
+
+      return elms
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+  assert.end()
+})
