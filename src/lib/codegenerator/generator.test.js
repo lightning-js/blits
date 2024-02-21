@@ -757,6 +757,52 @@ test('Generate code for a template with dynamic attributes with code to be evalu
   assert.end()
 })
 
+test('Generate code for a template with @-listeners', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        src: 'myImage.png',
+        '@loaded': '$loadedCallback',
+        '@error': '$errorCallback',
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      if(!elms[0]) {
+        elms[0] = this.element({parent: parent || 'root'}, component)
+      }
+      const elementConfig0 = {}
+
+      elementConfig0['src'] = "myImage.png"
+      elementConfig0['@loaded'] = component['loadedCallback'] && component['loadedCallback'].bind(component)
+      elementConfig0['@error'] = component['errorCallback'] && component['errorCallback'].bind(component)
+
+      if(!elms[0].nodeId) {
+        elms[0].populate(elementConfig0)
+      }
+      return elms
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+  assert.end()
+})
+
 test('Generate code for a template with custom components', (assert) => {
   const templateObject = {
     children: [
