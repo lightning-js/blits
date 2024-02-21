@@ -48,7 +48,7 @@ const required = (name) => {
 }
 
 const Component = (name = required('name'), config = required('config')) => {
-  const setupComponent = (lifecycle, parentComponent) => {
+  const setupComponent = (parentComponent) => {
     // code generation
     if (!config.code) {
       Log.debug(`Generating code for ${name} component`)
@@ -89,7 +89,7 @@ const Component = (name = required('name'), config = required('config')) => {
     this.lifecycle = Object.assign(Object.create(lifecycle), { scope: this })
 
     if (!component.setup) {
-      setupComponent(this.lifecycle, parentComponent)
+      setupComponent(parentComponent)
     }
 
     this.parent = parentComponent
