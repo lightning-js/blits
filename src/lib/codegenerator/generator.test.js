@@ -2002,3 +2002,316 @@ test('Generate code for a template with a simple for-loop on an Element with a c
 
   assert.end()
 })
+
+test('Generate code for a template with a simple for-loop on an Element with a key attribute', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        children: [
+          {
+            [Symbol.for('componentType')]: 'Element',
+            ':for': 'item in $items',
+            key: 'item.id',
+          },
+        ],
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      if(!elms[0]) {
+        elms[0] = this.element({parent: parent || 'root'}, component)
+      }
+      const elementConfig0 = {}
+
+      if(!elms[0].nodeId) {
+        elms[0].populate(elementConfig0)
+      }
+
+      return elms
+  }
+  `
+
+  const expectedEffect1 = `
+    function anonymous(component,elms,context) {
+      parent = elms[0]
+      const collection = component.items
+      const keys = []
+      for(let __index = 0; __index < collection.length; __index++) {
+        parent = elms[0]
+        if(!component.key) keys.length = 0
+        const scope = Object.assign(component, {
+          key: Math.random(),
+          index: __index,
+          item: collection[__index],
+        })
+        keys.push(item.id)
+
+        parent = elms[0]
+        elms[1] = elms[1] || {}
+        if(!elms[1][item.id]) {
+          elms[1][item.id] = this.element({parent: parent || 'root'}, component)
+        }
+
+        const elementConfig1 = {}
+        elementConfig1['key'] = "item.id"
+
+        if(!elms[1][item.id].nodeId) {
+          elms[1][item.id].populate(elementConfig1)
+        }
+      }
+      if(elms[1]) {
+        Object.keys(elms[1]).forEach(key => {
+          if(keys.indexOf(key) === -1) {
+            elms[1][key].delete && elms[1][key].delete()
+            elms[1][key].destroy && elms[1][key].destroy()
+            delete elms[1][key]
+          }
+        })
+      }
+    }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 1,
+    'Generator should return an effects array with 1 function'
+  )
+
+  assert.equal(
+    normalize(actual.effects[0].toString()),
+    normalize(expectedEffect1),
+    'Generator should return an effect function for the for loop'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with a simple for-loop on a Component with a key attribute and a custom index', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        children: [
+          {
+            [Symbol.for('componentType')]: 'ListItem',
+            ':for': '(item, myIndex) in $items',
+            key: 'item.id',
+          },
+        ],
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      if(!elms[0]) {
+        elms[0] = this.element({parent: parent || 'root'}, component)
+      }
+      const elementConfig0 = {}
+
+      if(!elms[0].nodeId) {
+        elms[0].populate(elementConfig0)
+      }
+
+      return elms
+  }
+  `
+
+  const expectedEffect1 = `
+    function anonymous(component,elms,context) {
+      parent = elms[0]
+      const collection = component.items
+      const keys = []
+      for(let __index = 0; __index < collection.length; __index++) {
+        parent = elms[0]
+        if(!component.key) keys.length = 0
+        const scope = Object.assign(component, {
+          key: Math.random(),
+          myIndex: __index,
+          item: collection[__index],
+        })
+        keys.push(item.id)
+
+        const cmp1 = (context.components && context.components['ListItem']) ||
+        component[Symbol.for('components')]['ListItem']
+
+        elms[1] = elms[1] || {}
+        if(!elms[1][item.id]) {
+          elms[1][item.id] = this.element({parent: parent || 'root'}, component)
+        }
+
+        const elementConfig1 = {}
+        elementConfig1['key'] = "item.id"
+
+        if(typeof cmp1 !== 'undefined') {
+          for(let key in cmp1.config.props) {
+            delete  elementConfig1[cmp1.config.props[key]]
+          }
+        }
+
+        if(!elms[1][item.id].nodeId) {
+          elms[1][item.id].populate(elementConfig1)
+        }
+
+        elms[2] = elms[2] || {}
+        parent = elms[1][item.id]
+
+        const props2 = {}
+        props2['key'] = "item.id"
+
+        if(!elms[2][item.id]) {
+          const componentType = props2['is'] || 'ListItem'
+          elms[2][item.id] = (context.components && context.components[componentType] || component[Symbol.for('components')][componentType] || (() => { console.error('component ListItem not found')})).call(null, {props: props2}, elms[1][item.id], component)
+          if (elms[2][item.id][Symbol.for('slots')][0]) {
+            parent = elms[2][item.id][Symbol.for('slots')][0]
+            component = elms[2][item.id]
+          } else {
+            parent = elms[2][item.id][Symbol.for('children')][0]
+          }
+        }
+      }
+      if(elms[2]) {
+        Object.keys(elms[2]).forEach(key => {
+          if(keys.indexOf(key) === -1) {
+            elms[2][key].delete && elms[2][key].delete()
+            elms[2][key].destroy && elms[2][key].destroy()
+            delete elms[2][key]
+          }
+        })
+      }
+    }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 1,
+    'Generator should return an effects array with 1 function'
+  )
+
+  assert.equal(
+    normalize(actual.effects[0].toString()),
+    normalize(expectedEffect1),
+    'Generator should return an effect function for the for loop'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with a simple for-loop on an Element with an automatic ref attribute', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        children: [
+          {
+            [Symbol.for('componentType')]: 'Element',
+            ':for': 'item in $items',
+            key: 'item.id',
+            ref: 'myref',
+          },
+        ],
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent,component,context) {
+      const elms = []
+
+      if(!elms[0]) {
+        elms[0] = this.element({parent: parent || 'root'}, component)
+      }
+      const elementConfig0 = {}
+
+      if(!elms[0].nodeId) {
+        elms[0].populate(elementConfig0)
+      }
+
+      return elms
+  }
+  `
+
+  const expectedEffect1 = `
+    function anonymous(component,elms,context) {
+      parent = elms[0]
+      const collection = component.items
+      const keys = []
+      for(let __index = 0; __index < collection.length; __index++) {
+        parent = elms[0]
+        if(!component.key) keys.length = 0
+        const scope = Object.assign(component, {
+          key: Math.random(),
+          index: __index,
+          item: collection[__index],
+          __ref: 'myref'+__index
+        })
+        keys.push(item.id)
+
+        parent = elms[0]
+        elms[1] = elms[1] || {}
+        if(!elms[1][item.id]) {
+          elms[1][item.id] = this.element({parent: parent || 'root'}, component)
+        }
+
+        const elementConfig1 = {}
+        elementConfig1['key'] = "item.id"
+        elementConfig1['ref'] = scope.__ref
+
+        if(!elms[1][item.id].nodeId) {
+          elms[1][item.id].populate(elementConfig1)
+        }
+      }
+      if(elms[1]) {
+        Object.keys(elms[1]).forEach(key => {
+          if(keys.indexOf(key) === -1) {
+            elms[1][key].delete && elms[1][key].delete()
+            elms[1][key].destroy && elms[1][key].destroy()
+            delete elms[1][key]
+          }
+        })
+      }
+    }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 1,
+    'Generator should return an effects array with 1 function'
+  )
+
+  assert.equal(
+    normalize(actual.effects[0].toString()),
+    normalize(expectedEffect1),
+    'Generator should return an effect function for the for loop'
+  )
+
+  assert.end()
+})
