@@ -52,6 +52,7 @@ export default (App, target, settings) => {
           ? settings.webWorkersLimit
           : window.navigator.hardwareConcurrency || 2,
       clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
+      enableInspector: settings.inspector || false,
     },
     target,
     driver
