@@ -19,6 +19,7 @@ import parser from './lib/templateparser/parser.js'
 import codegenerator from './lib/codegenerator/generator.js'
 
 import element from './element.js'
+import { renderer } from './launch.js'
 
 import { createHumanReadableId, createInternalId } from './lib/componentId.js'
 import { registerHooks, emit, privateEmit } from './lib/hooks.js'
@@ -114,6 +115,9 @@ const Component = (name = required('name'), config = required('config')) => {
 
     if (!component.setup) {
       setupComponent(this.lifecycle, parentComponent)
+    }
+    if (config.hooks && config.hooks.frameTick) {
+      renderer.on('frameTick', (r, data) => emit('frameTick', name, this, [data]))
     }
 
     this.parent = parentComponent
