@@ -28,7 +28,9 @@ export let navigating = false
 
 const cacheMap = new WeakMap()
 const history = []
+
 let overrideOptions = {}
+let navigationData = {}
 let navigatingBack = false
 let previousFocus
 
@@ -36,17 +38,68 @@ export const getHash = () => {
   return (document.location.hash || '/').replace(/^#/, '')
 }
 
+const normalizePath = (path) => {
+  return (
+    path
+      // remove leading and trailing slashes
+      .replace(/^\/+|\/+$/g, '')
+      .toLowerCase()
+  )
+}
+
 export const matchHash = (path, routes = []) => {
-  const route = routes
-    .filter((r) => {
-      return r.path === path
-    })
-    .pop()
-  if (route) {
-    route.options = { ...route.options, ...overrideOptions }
-    currentRoute = route
+  // remove trailing slashes
+  const originalPath = path
+  path = normalizePath(path)
+  let matchingRoute = false
+  let i = 0
+  while (!matchingRoute && i < routes.length) {
+    const route = routes[i]
+    route.path = normalizePath(route.path)
+    if (route.path === path) {
+      matchingRoute = route
+    } else if (route.path.indexOf(':') > -1) {
+      // match dynamic route parts
+      const dynamicRouteParts = [...route.path.matchAll(/:([^\s/]+)/gi)]
+
+      // construct a regex for the route with dynamic parts
+      let dynamicRoutePartsRegex = route.path
+      dynamicRouteParts.reverse().forEach((part) => {
+        dynamicRoutePartsRegex =
+          dynamicRoutePartsRegex.substring(0, part.index) +
+          '([^\\s/]+)' +
+          dynamicRoutePartsRegex.substring(part.index + part[0].length)
+      })
+
+      // test if the constructed regex matches the path
+      const match = originalPath.match(new RegExp(`${dynamicRoutePartsRegex}`, 'i'))
+
+      if (match) {
+        // map the route params to a params object
+        route.params = dynamicRouteParts.reverse().reduce((acc, part, index) => {
+          acc[part[1]] = match[index + 1]
+          return acc
+        }, {})
+        matchingRoute = route
+      }
+    } else if (route.path.endsWith('*')) {
+      const regex = new RegExp(route.path.replace(/\/?\*/, '/?([^\\s]*)'), 'i')
+      const match = path.match(regex)
+
+      if (match) {
+        if (match[1]) route.params = { path: match[1] }
+        matchingRoute = route
+      }
+    }
+    i++
   }
-  return route
+
+  if (matchingRoute) {
+    matchingRoute.options = { ...matchingRoute.options, ...overrideOptions }
+    currentRoute = matchingRoute
+  }
+
+  return matchingRoute
 }
 
 export const navigate = async function () {
@@ -81,16 +134,19 @@ export const navigate = async function () {
         holder.populate({})
         holder.set('w', '100%')
         holder.set('h', '100%')
-        view = await route.component(this[symbols.props], holder, this)
+        // merge props with potential route params to be injected into the component instance
+        const props = { ...this[symbols.props], ...route.params, ...navigationData }
+
+        view = await route.component({ props }, holder, this)
         if (view[Symbol.toStringTag] === 'Module') {
           if (view.default && typeof view.default === 'function') {
-            view = view.default(this[symbols.props], holder, this)
+            view = view.default({ props }, holder, this)
           } else {
             Log.error("Dynamic import doesn't have a default export or default is not a function")
           }
         }
         if (typeof view === 'function') {
-          view = view(this[symbols.props], holder, this)
+          view = view({ props }, holder, this)
         }
       } else {
         holder = view[symbols.wrapper]
@@ -180,9 +236,13 @@ const removeView = async (route, view, transition) => {
     cacheMap.set(route, { view: view, focus: previousFocus })
   } else {
     // remove and cleanup
-    for (let i = 0; i < view[symbols.children].length - 1; i++) {
-      if (view[symbols.children][i] && view[symbols.children][i].destroy) {
-        view[symbols.children][i].destroy()
+    for (let i = 0; i < view[symbols.children].length; i++) {
+      if (view[symbols.children][i]) {
+        if (view[symbols.children][i].destroy) {
+          view[symbols.children][i].destroy()
+        } else if (view[symbols.children][i].delete) {
+          view[symbols.children][i].delete()
+        }
         view[symbols.children][i] = null
       }
     }
@@ -197,7 +257,8 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
     : node.set(transition.prop, transition.value)
 }
 
-export const to = (location, options = {}) => {
+export const to = (location, data = {}, options = {}) => {
+  navigationData = data
   overrideOptions = options
   window.location.hash = `#${location}`
 }
@@ -207,7 +268,13 @@ export const back = () => {
   if (route) {
     // set indicator that we are navigating back (to prevent adding page to history stack)
     navigatingBack = true
-    to(route.path)
+    let targetRoutePath = route.path
+    if (targetRoutePath.indexOf(':') > -1) {
+      Object.keys(route.params).forEach((item) => {
+        targetRoutePath = targetRoutePath.replace(`:${item}`, route.params[item])
+      })
+    }
+    to(targetRoutePath)
     return true
   } else {
     return false

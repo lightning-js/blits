@@ -19,8 +19,6 @@ import Component from '../component.js'
 import { renderer } from '../launch.js'
 import fps_sprite from '../../public/assets/fps_sprite.base64.js'
 
-console.log(fps_sprite)
-
 export default () =>
   Component('FPScounter', {
     template: `

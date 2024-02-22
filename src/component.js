@@ -97,15 +97,13 @@ const Component = (name = required('name'), config = required('config')) => {
       },
       set state(v) {
         if (states.indexOf(v) > -1 && v !== this.current) {
-          Log.debug(
-            `Setting lifecycle state from ${this.previous} to ${v} for ${scope.componentId}`
-          )
+          Log.debug(`Setting lifecycle state from ${this.current} to ${v} for ${scope.componentId}`)
           this.previous = this.current
+          this.current = v
           // emit 'private' hook
           privateEmit(v, name, scope)
           // emit 'public' hook
           emit(v, name, scope)
-          this.current = v
         }
       },
     }

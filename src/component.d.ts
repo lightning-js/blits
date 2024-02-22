@@ -142,12 +142,22 @@ declare namespace Component {
     * Set a timeout that is automatically cleaned upon component destroy
     */
     $setTimeout: (callback: (args: any) => void, ms?: number | undefined) => ReturnType<typeof setTimeout>
+    
+    /**
+    * Clear a timeout 
+    */
+    $clearTimeout: (id: ReturnType<typeof setTimeout>) => void
 
     /**
     * Set an interval that is automatically cleaned upon component destroy
     */
     $setInterval: (callback: (args: any) => void, ms?: number | undefined) => ReturnType<typeof setInterval>
-
+    
+    /**
+    * Clear a interval 
+    */
+    $clearInterval: (id: ReturnType<typeof setInterval>) => void
+    
     /**
     * Log to the console with prettier output and configurable debug levels in Settings
     */

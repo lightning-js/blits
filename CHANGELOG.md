@@ -1,5 +1,37 @@
 # Changelog
 
+# v0.7.0
+
+- Added support for dynamic components through the `is`-attribute (`<Component is="Poster" />` or `<Component is="$dynamicComponent" />`)
+- Added functionality to pass extra data / props when navigating to a new route ( _breaking change_ in signature of `router.to()` method - previously: `router.to(path, options)`, now: `router.to(path, data, options)`)
+- Added configuration option to set the canvas color (aka clear color)
+
+# v0.6.13
+
+_16 feb 2024_
+
+- Upgraded to 0.7.2 of the renderer
+- Introduced new `maxheight` attribute (besided the existing `maxlines` attribute) for the `<Text />` component
+- Fixed issue with order of lifecycle event emits
+- Fixed logic to not unfoces a parent when it passes focus to a child
+- Removed temporary fix for renderer issue [#123](https://github.com/lightning-js/renderer/issues/123)
+
+# v0.6.12
+
+_9 feb 2024_
+
+- Added type hinting for `this.$clearInterval` and `this.$clearTimeout`
+- Fixed issue with `.gitignore` in app create flow
+- Added support for dynamic route parts in the router (i.e `/tv/:series/episodes/:episode`)
+
+# v0.6.11
+
+_7 feb 2024_
+
+- Enabled the use of `type` as a component prop or state variable
+- Removed setting focus to AppComponent on back key press in RouterView
+- Fixed broken app create flow caused by missing dev dependencies in npx command (temporary fix)
+
 # v0.6.10
 
 _2 feb 2024_

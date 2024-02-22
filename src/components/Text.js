@@ -35,6 +35,7 @@ export default () =>
         contain="$_contain"
         :wordWrap="$wordwrap"
         :maxLines="$maxlines"
+        :h="$maxheight"
         :textAlign="$align"
         :overflowSuffix="$textoverflow"
         @loaded="$@loaded"
@@ -59,6 +60,7 @@ export default () =>
       'align',
       'wordwrap',
       'maxlines',
+      'maxheight',
       'lineheight',
       'contain',
       '@loaded',
@@ -69,7 +71,7 @@ export default () =>
       _contain() {
         return (
           this.contain ||
-          (this.wordwrap && this.maxlines ? 'both' : this.wordwrap ? 'width' : 'none')
+          (this.maxheight && this.wordwrap ? 'both' : this.wordwrap ? 'width' : 'none')
         )
       },
       _lineheight() {

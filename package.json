@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "0.6.10",
+  "version": "0.7.0",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
@@ -11,7 +11,7 @@
   },
   "scripts": {
     "test": "c8 npm run test:run",
-    "test:run": "tape '{,!(node_modules)/**/}*.test.js' | tap-diff",
+    "test:run": "node -r 'global-jsdom/register' ./node_modules/.bin/tape '{,!(node_modules)/**/}*.test.js' | tap-diff",
     "lint": "eslint '**/*.js'",
     "lint:fix": "eslint '**/*.js' --fix",
     "prepublishOnly": "node scripts/prepublishOnly.js",
@@ -36,23 +36,25 @@
     "eslint": "^8.8.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "esm": "^3.2.25",
-    "execa": "^8.0.1",
+    "global-jsdom": "24.0.0",
     "husky": "^7.0.4",
-    "kolorist": "^1.8.0",
+    "jsdom": "24.0.0",
     "lint-staged": "^12.3.3",
     "msdf-bmfont-xml": "^2.7.0",
     "ora": "^7.0.1",
     "prettier": "^2.5.1",
-    "prompts": "^2.4.2",
-    "replace-in-file": "^6.1.0",
     "tap-diff": "^0.1.1",
-    "tape": "^5.5.0",
-    "validate-npm-package-name": "^5.0.0"
+    "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "^0.7.1",
-    "@lightningjs/vite-plugin-import-chunk-url": "^0.3.0"
+    "@lightningjs/renderer": "^0.7.2",
+    "@lightningjs/vite-plugin-import-chunk-url": "^0.3.0",
+    "execa": "^8.0.1",
+    "kolorist": "^1.8.0",
+    "ora": "^7.0.1",
+    "prompts": "^2.4.2",
+    "replace-in-file": "^6.1.0",
+    "validate-npm-package-name": "^5.0.0"
   },
   "repository": {
     "type": "git",

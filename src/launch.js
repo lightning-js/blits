@@ -20,7 +20,7 @@ import { MainCoreDriver, RendererMain } from '@lightningjs/renderer'
 import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import { screenResolutions } from './lib/utils.js'
-// import coreExtensionModule from './fontLoader.js?importChunkUrl'
+import colors from './lib/colors/colors.js'
 
 export let renderer
 
@@ -51,6 +51,7 @@ export default (App, target, settings) => {
         'webWorkersLimit' in settings
           ? settings.webWorkersLimit
           : window.navigator.hardwareConcurrency || 2,
+      clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
     },
     target,
     driver
