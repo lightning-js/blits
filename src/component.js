@@ -22,7 +22,7 @@ import element from './element.js'
 import { renderer } from './launch.js'
 
 import { createHumanReadableId, createInternalId } from './lib/componentId.js'
-import { registerHooks } from './lib/hooks.js'
+import { registerHooks, emit } from './lib/hooks.js'
 
 import { reactive } from './lib/reactivity/reactive.js'
 import setupBase from './lib/setup/base.js'
