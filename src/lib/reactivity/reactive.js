@@ -57,9 +57,14 @@ const reactiveProxy = (target) => {
     set(target, key, value, receiver) {
       const oldValue = target[key]
 
-      const result = Reflect.set(target, key, value, receiver)
+      let result
+      if (typeof value === 'object' && Array.isArray(value) && proxyMap.get(target[key])) {
+        result = target[key].splice(0, target[key].length, ...value)
+      } else {
+        result = Reflect.set(target, key, value, receiver)
+      }
 
-      if (typeof result === 'object') {
+      if (typeof value === 'object') {
         reactiveProxy(target[key])
       }
 
@@ -104,6 +109,7 @@ const reactiveDefineProperty = (target) => {
         return internalValue
       },
       set(newValue) {
+        // todo: support assigning array (as we do with proxies)
         let oldValue = internalValue
         if (oldValue !== newValue) {
           internalValue = newValue
