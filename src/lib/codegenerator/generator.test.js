@@ -81,7 +81,6 @@ test('The contex key is an object', (assert) => {
 test('Generate render and effect code for an empty template', (assert) => {
   const expectedRender = `
   function anonymous(parent,component,context) {
-      // this is a comment
       const elms = []
       return elms
   }
@@ -2278,7 +2277,7 @@ test('Generate code for a template with a simple for-loop on an Element with a k
           {
             [Symbol.for('componentType')]: 'Element',
             ':for': 'item in $items',
-            key: 'item.id',
+            key: '$item.id',
           },
         ],
       },
