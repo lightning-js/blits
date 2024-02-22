@@ -242,11 +242,8 @@ const deleteChildren = function (children) {
     if (!children[i]) return
     if (Array.isArray(children[i])) {
       deleteChildren(children[i])
-    } else if (children[i].delete) {
-      children[i].delete()
     } else if (children[i].destroy) {
       children[i].destroy()
-      children[i] = null
     }
     children[i] = null
   }

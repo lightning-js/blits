@@ -341,7 +341,7 @@ const Element = {
       this.scheduledTransitions[prop].f()
     })
   },
-  delete() {
+  destroy() {
     Log.debug('Deleting  Node', this.nodeId)
     Object.values(this.scheduledTransitions).forEach((scheduledTransition) => {
       clearTimeout(scheduledTransition.timeout)
