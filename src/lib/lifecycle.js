@@ -29,14 +29,14 @@ export default {
   set state(v) {
     if (states.indexOf(v) > -1 && v !== this.current) {
       Log.debug(
-        `Setting lifecycle state from ${this.current} to ${v} for ${this.scope.componentId}`
+        `Setting lifecycle state from ${this.current} to ${v} for ${this.component.componentId}`
       )
       this.previous = this.current
       this.current = v
       // emit 'private' hook
-      privateEmit(v, this.scope.name, this.scope)
+      privateEmit(v, this.component.name, this.component)
       // emit 'public' hook
-      emit(v, this.scope.name, this.scope)
+      emit(v, this.component.name, this.component)
     }
   },
 }

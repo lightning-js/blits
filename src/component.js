@@ -86,7 +86,11 @@ const Component = (name = required('name'), config = required('config')) => {
   }
 
   const component = function (opts, parentEl, parentComponent) {
-    this.lifecycle = Object.assign(Object.create(lifecycle), { scope: this })
+    this.lifecycle = Object.assign(Object.create(lifecycle), {
+      component: this,
+      previous: null,
+      current: null,
+    })
 
     if (!component.setup) {
       setupComponent(parentComponent)
