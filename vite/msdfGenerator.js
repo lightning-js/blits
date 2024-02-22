@@ -1,36 +1,50 @@
-import { resolve as pathResolve } from 'path'
+import path from 'path'
 import * as fs from 'fs'
 import generateBMFont from 'msdf-bmfont-xml'
 
 let config
 
 export default function () {
+  let msdfOutputDir = ''
+  let buildOutputPath = ''
+  let publicDir = ''
+
   return {
     name: 'msdfGenerator',
     configResolved(resolvedConfig) {
       config = resolvedConfig
+      buildOutputPath = config.build.outDir
+      publicDir = path.join(config.root, 'public')
+      msdfOutputDir = path.resolve(config.root, 'node_modules', '.tmp-msdf-fonts')
     },
     async configureServer(server) {
       server.middlewareMode = true
-      const fontDir = pathResolve(getConfig('path', 'public/fonts'))
-
-      // intercept only /fonts/ requests
-      server.middlewares.use('/fonts/', async (req, res, next) => {
+      server.middlewares.use('/', async (req, res, next) => {
         const file = req.url.substring(req.url.lastIndexOf('/') + 1)
         const match = file.match(/(.+)\.msdf\.(json|png)/)
 
+        // msdf font request
         if (match) {
-          if (!fs.existsSync(pathResolve(fontDir, file))) {
+          const fontPath = path.dirname(req.url.split('?')[0]).replace(/^\//, '')
+          const fontDir = path.join(publicDir, fontPath) // actual font directory
+          const targetDir = path.join(msdfOutputDir, fontPath) // target for generated fonts
+
+          if (!fs.existsSync(path.resolve(fontDir, file))) {
             const fontName = match[1]
             const ext = match[2]
-            const fontFile = `${fontDir}/${fontName}.ttf`
+            const fontFile = path.join(fontDir, `${fontName}.ttf`)
 
             if (fs.existsSync(fontFile)) {
-              const generatedFontFile = pathResolve(`.tmp/${fontName}.msdf.${ext}`)
+              const generatedFontFile = path.join(
+                msdfOutputDir,
+                fontPath,
+                `${fontName}.msdf.${ext}`
+              )
               const mimeType = ext === 'png' ? 'image/png' : 'application/json'
 
               if (!fs.existsSync(generatedFontFile)) {
-                await generateFont(fontFile, '.tmp', fontName)
+                console.log(`Generating ${targetDir}/${fontName}.msdf.${ext}`)
+                await generateFont(fontFile, targetDir, fontName)
               }
 
               const fileContent = fs.readFileSync(generatedFontFile)
@@ -55,13 +69,12 @@ export default function () {
         }
       })
     },
-  }
-}
-
-const getConfig = (key, defaultValue) => {
-  if (!config.blits || !config.blits.fonts) return defaultValue
-  else {
-    return key in config.blits.fonts ? config.blits.fonts[key] : defaultValue
+    // after build ends, the first hook is renderStart where we can modify the output
+    async renderStart() {
+      if (fs.existsSync(msdfOutputDir)) {
+        copyDir(msdfOutputDir, buildOutputPath)
+      }
+    },
   }
 }
 
@@ -82,14 +95,14 @@ const generateFont = (fontFile, fontDir, fontName) => {
         } else {
           textures.forEach((texture) => {
             try {
-              fs.writeFileSync(pathResolve(fontDir, `${fontName}.msdf.png`), texture.texture)
+              fs.writeFileSync(path.resolve(fontDir, `${fontName}.msdf.png`), texture.texture)
             } catch (e) {
               console.error(e)
               reject(e)
             }
           })
           try {
-            fs.writeFileSync(pathResolve(fontDir, `${fontName}.msdf.json`), font.data)
+            fs.writeFileSync(path.resolve(fontDir, `${fontName}.msdf.json`), font.data)
             resolve()
           } catch (e) {
             console.error(err)
@@ -99,4 +112,18 @@ const generateFont = (fontFile, fontDir, fontName) => {
       }
     )
   })
+}
+
+const copyDir = (src, dest) => {
+  // Ensure the destination directory exists
+  fs.mkdirSync(dest, { recursive: true })
+
+  const entries = fs.readdirSync(src, { withFileTypes: true })
+
+  for (let entry of entries) {
+    const srcPath = path.join(src, entry.name)
+    const destPath = path.join(dest, entry.name)
+
+    entry.isDirectory() ? copyDir(srcPath, destPath) : fs.copyFileSync(srcPath, destPath) // Copy files
+  }
 }
