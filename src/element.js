@@ -304,36 +304,41 @@ const Element = {
             ? transition.function
             : 'ease'
           : 'ease',
+      delay: typeof transition === 'object' ? ('delay' in transition ? transition.delay : 0) : 0,
     })
 
     // schedule transition
     return new Promise((resolve) => {
+      const startValue = this.node[prop]
       this.scheduledTransitions[prop] = {
         v: props[prop],
-        f,
-        timeout: setTimeout(() => {
-          // fire transition start callback if specified
-          transition.start &&
-            typeof transition.start === 'function' &&
-            transition.start.call(this.component, this, prop, props[prop])
-
-          // start the animation
+        f: () => {
           try {
             f.start()
-              .waitUntilStopped()
-              .then(() => delete this.scheduledTransitions[prop])
-              .then(() => {
-                // fire transition end callback if specified
-                transition.end &&
-                  typeof transition.end === 'function' &&
-                  transition.end.call(this.component, this, prop, this.node[prop])
+              .waitUntilStarted()
+              .then((animation) => {
+                // fire transition start callback if specified
+                transition.start &&
+                  typeof transition.start === 'function' &&
+                  transition.start.call(this.component, this, prop, startValue)
+                // continue the chain
+                animation
+                  .waitUntilStopped()
+                  .then(() => delete this.scheduledTransitions[prop])
+                  .then(() => {
+                    // fire transition end callback if specified
+                    transition.end &&
+                      typeof transition.end === 'function' &&
+                      transition.end.call(this.component, this, prop, this.node[prop])
+                  })
+                  .then(resolve)
               })
-              .then(resolve)
           } catch (e) {
             Log.error(e)
           }
-        }, transition.delay || 0),
+        },
       }
+      this.scheduledTransitions[prop].f()
     })
   },
   delete() {
