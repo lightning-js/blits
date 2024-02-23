@@ -1,6 +1,22 @@
 # Changelog
 
+# v0.7.1
+
+_22 feb 2024_
+
+- Fixed clean up of children nodes when routing to a new view
+- Fixed test cases for code generator (100% coverage)
+- Added support for colorizing sprites
+- Removed before setup and setup lifecycle events and optimized lifecycle instance in components
+- Added support for (re)assigning an array used in a for-loop
+- Refactored delay of transitions (using the now available built-in delay in the renderer)
+- Added preliminary support for frameTick hook
+- Upgraded to latest version of the renderer (0.7.4)
+
 # v0.7.0
+
+_20 feb 2024_
+
 
 - Added support for dynamic components through the `is`-attribute (`<Component is="Poster" />` or `<Component is="$dynamicComponent" />`)
 - Added functionality to pass extra data / props when navigating to a new route ( _breaking change_ in signature of `router.to()` method - previously: `router.to(path, options)`, now: `router.to(path, data, options)`)

@@ -19,8 +19,8 @@ import symbols from './symbols.js'
 
 const cbs = {}
 
-export const emit = (hook, name, scope) => {
-  cbs[name] && cbs[name][hook] && cbs[name][hook].apply(scope)
+export const emit = (hook, name, scope, data = []) => {
+  cbs[name] && cbs[name][hook] && cbs[name][hook].apply(scope, data)
 }
 
 export const privateEmit = (hook, name, scope) => {

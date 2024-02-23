@@ -35,8 +35,14 @@ const shaderAlias = {
   rounded: 'radius',
 }
 
-export default (component) => {
+export default (component, name) => {
   Object.defineProperties(component.prototype, {
+    name: {
+      value: name,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
     focus: {
       value: function (e) {
         Focus.set(this, e)
@@ -242,11 +248,8 @@ const deleteChildren = function (children) {
     if (!children[i]) return
     if (Array.isArray(children[i])) {
       deleteChildren(children[i])
-    } else if (children[i].delete) {
-      children[i].delete()
     } else if (children[i].destroy) {
       children[i].destroy()
-      children[i] = null
     }
     children[i] = null
   }
