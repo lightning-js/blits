@@ -21,6 +21,7 @@ import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import { screenResolutions } from './lib/utils.js'
 import colors from './lib/colors/colors.js'
+import { includeFonts } from './fontLoader.js'
 
 export let renderer
 
@@ -40,7 +41,7 @@ export default (App, target, settings) => {
     {
       appWidth: settings.w || 1920,
       appHeight: settings.h || 1080,
-      coreExtensionModule: settings.fontLoader,
+      // coreExtensionModule: settings.fontLoader,
       fpsUpdateInterval: settings.fpsInterval || 1000,
       deviceLogicalPixelRatio:
         settings.pixelRatio ||
@@ -57,6 +58,7 @@ export default (App, target, settings) => {
     target,
     driver
   )
+  //
 
   const initApp = () => {
     let app = App()
@@ -68,5 +70,8 @@ export default (App, target, settings) => {
     }
   }
 
-  renderer.init().then(() => initApp())
+  renderer.init().then(() => {
+    includeFonts(settings.fonts, renderer.driver.stage)
+    initApp()
+  })
 }
