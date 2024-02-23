@@ -59,7 +59,11 @@ const reactiveProxy = (target) => {
 
       let result
       if (typeof value === 'object' && Array.isArray(value) && proxyMap.get(target[key])) {
-        result = target[key].splice(0, target[key].length, ...value)
+        if (oldValue !== value) {
+          result = oldValue.splice(0, target[key].length, ...value)
+        } else {
+          result = true
+        }
       } else {
         result = Reflect.set(target, key, value, receiver)
       }
