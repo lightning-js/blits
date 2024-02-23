@@ -172,6 +172,15 @@ export interface Settings {
    *
    */
   canvasColor?: string,
+  /**
+   * Enable inspector
+   *
+   * Enables the inspector tool for debugging and inspecting the application, the node tree
+   * will be replicated in the DOM and can be inspected using the browser's developer tools
+   *
+   * Defaults to `false`
+   */
+  inspector?: boolean
 }
 
 /**
