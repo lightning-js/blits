@@ -1,5 +1,12 @@
 # Changelog
 
+# v0.7.2
+
+_23 feb 2024_
+
+- Added small fix to support for (re)assigning an array used in a for-loop
+- Added option to enable the Lightning inspector in launch setting (`inspector: true/false`)
+
 # v0.7.1
 
 _22 feb 2024_
