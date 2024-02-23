@@ -25,7 +25,7 @@ export default (source, filePath) => {
     source.indexOf('Blits.Application(') > -1 ||
     /=>\s*Component\(['"][A-Za-z]+['"],/s.test(source) // blits component
   ) {
-    const templates = source.matchAll(/template\s*:\s*(['"`])((?:\\?.)*?)\1/gs)
+    const templates = source.matchAll(/(?<!\/\/\s*)template\s*:\s*(['"`])((?:\\?.)*?)\1/gs)
     let newSource = source
     /*
       if there are multiple templates in the file, we need to keep
