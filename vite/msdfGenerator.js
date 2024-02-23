@@ -71,6 +71,22 @@ export default function () {
     },
     // after build ends, the first hook is renderStart where we can modify the output
     async renderStart() {
+      // Find all TTF files under publicDir
+      const ttfFiles = findAllTtfFiles(publicDir)
+
+      for (const ttfFile of ttfFiles) {
+        const relativePath = path.relative(publicDir, path.dirname(ttfFile))
+        const baseName = path.basename(ttfFile).replace(/\.ttf$/i, '')
+        const msdfJsonPath = path.join(msdfOutputDir, relativePath, `${baseName}.msdf.json`)
+        const msdfPngPath = path.join(msdfOutputDir, relativePath, `${baseName}.msdf.png`)
+
+        // Check if MSDF files are generated, if not, generate them
+        if (!fs.existsSync(msdfJsonPath) || !fs.existsSync(msdfPngPath)) {
+          console.log(`Generating missing MSDF files for ${ttfFile}`)
+          await generateFont(ttfFile, path.join(msdfOutputDir, relativePath), baseName)
+        }
+      }
+
       if (fs.existsSync(msdfOutputDir)) {
         copyDir(msdfOutputDir, buildOutputPath)
       }
@@ -112,6 +128,25 @@ const generateFont = (fontFile, fontDir, fontName) => {
       }
     )
   })
+}
+
+// finds all TTF files in a directory
+const findAllTtfFiles = (dir, filesList = []) => {
+  const files = fs.readdirSync(dir, { withFileTypes: true })
+
+  files.forEach((file) => {
+    if (file.isDirectory()) {
+      const dirPath = path.join(dir, file.name)
+      findAllTtfFiles(dirPath, filesList)
+    } else {
+      // Check for all case variations of TTF extension
+      if (file.name.match(/\.ttf$/i)) {
+        filesList.push(path.join(dir, file.name))
+      }
+    }
+  })
+
+  return filesList
 }
 
 const copyDir = (src, dest) => {
