@@ -25,40 +25,46 @@ export default (source, filePath) => {
     source.indexOf('Blits.Application(') > -1 ||
     /=>\s*Component\(['"][A-Za-z]+['"],/s.test(source) // blits component
   ) {
-    // get the start of the template key in de component configuration object
-    const templateKeyRegex = /template:\s*([`"'])*/g
-    const templateStartResult = templateKeyRegex.exec(source)
+    const templates = source.matchAll(/template\s*:\s*(['"`])((?:\\?.)*?)\1/gs)
+    let newSource = source
+    /*
+      if there are multiple templates in the file, we need to keep
+      track of the offset caused by the previous replacements
+    */
+    let offset = 0
 
-    if (templateStartResult) {
-      const typeOfQuotesUsed = templateStartResult[1]
-      const templateStartIndex = templateStartResult.index
+    for (const template of templates) {
+      if (template[2]) {
+        const templateStartIndex = template.index + offset
+        const templateEndIndex = templateStartIndex + template[0].length
+        const templateContent = template[2]
 
-      // get the template contents from the configuration object
-      const templateContentsRegex = new RegExp(`${typeOfQuotesUsed}([\\s\\S]*?)${typeOfQuotesUsed}`)
-      const templateContentResult = templateContentsRegex.exec(source.slice(templateStartIndex))
-      const templateEndIndex =
-        templateStartIndex + templateContentResult.index + templateContentResult[0].length
+        // Parse the template
+        let resourceName = 'Blits.Application'
+        if (source.indexOf('Blits.Component(') > -1) {
+          resourceName = source.match(/Blits\.Component\(['"](.*)['"]\s*,/)[1]
+        }
 
-      // Parse the template
-      let resourceName = 'Blits.Application'
-      if (source.indexOf('Blits.Component(') > -1) {
-        resourceName = source.match(/Blits\.Component\(['"](.*)['"]\s*,/)[1]
+        const componentPath = path.relative(process.cwd(), filePath)
+        const parsed = parser(templateContent, resourceName, null, componentPath)
+
+        // Generate the code
+        const code = generator.call({ components: {} }, parsed)
+
+        // Insert the code in the component using the 'code' key, replacing the template key
+        const replacement = `/* eslint-disable no-unused-vars */ \ncode: { render: ${code.render.toString()}, effects: [${code.effects.map(
+          (fn) => fn.toString()
+        )}], context: {}}`
+
+        offset += replacement.length - template[0].length
+
+        newSource =
+          newSource.substring(0, templateStartIndex) +
+          replacement +
+          newSource.substring(templateEndIndex)
       }
-      const componentPath = path.relative(process.cwd(), filePath)
-      const parsed = parser(templateContentResult[1], resourceName, null, componentPath)
-
-      // Generate the code
-      const code = generator.call({ components: {} }, parsed)
-
-      // Insert the code in the component using the 'code' key, replacing the template key
-      const replacement = `/* eslint-disable no-unused-vars */ \ncode: { render: ${code.render.toString()}, effects: [${code.effects.map(
-        (fn) => fn.toString()
-      )}], context: {}}`
-      const newSource =
-        source.substring(0, templateStartIndex) + replacement + source.substring(templateEndIndex)
-
-      return newSource
     }
+    return newSource
   }
   return source
 }
