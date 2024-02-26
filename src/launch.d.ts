@@ -16,7 +16,7 @@
  */
 
 import ApplicationInstance from './application'
-
+import {type Stage} from '@lightningjs/renderer'
 interface WebFont {
   /**
   * Name of the font family
@@ -59,6 +59,9 @@ export type DebugLevel = 0 | 1 | 2
 export type LogTypes = 'info' | 'warn' | 'error' | 'debug'
 export type ReactivityModes = 'Proxy' | 'defineProperty'
 
+interface ExtensionLoader {
+  async (stage: Stage): void
+}
 /**
  * Settings
  *
@@ -85,7 +88,7 @@ export interface Settings {
   /**
    * Font loader file
    */
-  fontLoader?: any
+  fontLoader?: string | ExtensionLoader
   /**
    * Fonts to be used in the Application
    */

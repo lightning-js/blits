@@ -21,7 +21,6 @@ import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import { screenResolutions } from './lib/utils.js'
 import colors from './lib/colors/colors.js'
-import { includeFonts } from './fontLoader.js'
 
 export let renderer
 
@@ -37,28 +36,34 @@ export default (App, target, settings) => {
   //     })
   //   : new MainCoreDriver()
 
-  renderer = new RendererMain(
-    {
-      appWidth: settings.w || 1920,
-      appHeight: settings.h || 1080,
-      // coreExtensionModule: settings.fontLoader,
-      fpsUpdateInterval: settings.fpsInterval || 1000,
-      deviceLogicalPixelRatio:
-        settings.pixelRatio ||
-        screenResolutions[settings.screenResolution] ||
-        screenResolutions[window.innerHeight] ||
-        1,
-      numImageWorkers:
-        'webWorkersLimit' in settings
-          ? settings.webWorkersLimit
-          : window.navigator.hardwareConcurrency || 2,
-      clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
-      enableInspector: settings.inspector || false,
-    },
-    target,
-    driver
-  )
-  //
+  const renderSettings = {
+    appWidth: settings.w || 1920,
+    appHeight: settings.h || 1080,
+    fpsUpdateInterval: settings.fpsInterval || 1000,
+    deviceLogicalPixelRatio:
+      settings.pixelRatio ||
+      screenResolutions[settings.screenResolution] ||
+      screenResolutions[window.innerHeight] ||
+      1,
+    numImageWorkers:
+      'webWorkersLimit' in settings
+        ? settings.webWorkersLimit
+        : window.navigator.hardwareConcurrency || 2,
+    clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
+    enableInspector: settings.inspector || false,
+  }
+
+  if (settings.extensionLoader && settings.fontLoader) {
+    console.warn('Can only use one extension loader, fontLoader will be dropped from settings')
+  }
+
+  const extensionLoader = settings.extensionLoader || settings.fontLoader
+  //when making use of @lightningjs/vite-plugin-import-chunk-url
+  if (extensionLoader && typeof extensionLoader === 'string') {
+    renderSettings.coreExtensionModule = extensionLoader
+  }
+
+  renderer = new RendererMain(renderSettings, target, driver)
 
   const initApp = () => {
     let app = App()
@@ -70,8 +75,10 @@ export default (App, target, settings) => {
     }
   }
 
-  renderer.init().then(() => {
-    includeFonts(settings.fonts, renderer.driver.stage)
+  renderer.init().then(async () => {
+    if (extensionLoader && typeof extensionLoader === 'function') {
+      await extensionLoader(renderer.stage)
+    }
     initApp()
   })
 }
