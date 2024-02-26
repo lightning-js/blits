@@ -27,7 +27,7 @@ export default {
     return this.current
   },
   set state(v) {
-    if (states.indexOf(v) > -1 && v !== this.current) {
+    if (states.indexOf(v) > -1 && (v !== this.current || v === 'focus')) {
       Log.debug(
         `Setting lifecycle state from ${this.current} to ${v} for ${this.component.componentId}`
       )
