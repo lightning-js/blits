@@ -46,12 +46,12 @@ const reactiveProxy = (target) => {
       if (Array.isArray(target) && arrayMethods.includes(key)) {
         return Reflect.get(target, key, receiver)
       }
-      track(target, key)
 
       if (target[key] !== null && typeof target[key] === 'object') {
         return reactiveProxy(target[key])
       }
 
+      track(target, key)
       return Reflect.get(target, key, receiver)
     },
     set(target, key, value, receiver) {
