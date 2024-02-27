@@ -346,7 +346,7 @@ const Element = {
     Object.values(this.scheduledTransitions).forEach((scheduledTransition) => {
       clearTimeout(scheduledTransition.timeout)
     })
-    this.node.parent = null
+    this.node.destroy()
   },
   get nodeId() {
     return this.node && this.node.id
