@@ -2145,7 +2145,6 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
       if(elms[1]) {
         Object.keys(elms[1]).forEach(key => {
           if(keys.indexOf(key) === -1) {
-            elms[1][key].delete && elms[1][key].delete()
             elms[1][key].destroy && elms[1][key].destroy()
             delete elms[1][key]
           }
@@ -2237,7 +2236,6 @@ test('Generate code for a template with a simple for-loop on an Element with a c
       if(elms[1]) {
         Object.keys(elms[1]).forEach(key => {
           if(keys.indexOf(key) === -1) {
-            elms[1][key].delete && elms[1][key].delete()
             elms[1][key].destroy && elms[1][key].destroy()
             delete elms[1][key]
           }
@@ -2314,25 +2312,24 @@ test('Generate code for a template with a simple for-loop on an Element with a k
           index: __index,
           item: collection[__index],
         })
-        keys.push(item.id)
+        keys.push(scope.item.id)
 
         parent = elms[0]
         elms[1] = elms[1] || {}
-        if(!elms[1][item.id]) {
-          elms[1][item.id] = this.element({parent: parent || 'root'}, component)
+        if(!elms[1][scope.item.id]) {
+          elms[1][scope.item.id] = this.element({parent: parent || 'root'}, component)
         }
 
         const elementConfig1 = {}
-        elementConfig1['key'] = "item.id"
+        elementConfig1['key'] = scope.item.id
 
-        if(!elms[1][item.id].nodeId) {
-          elms[1][item.id].populate(elementConfig1)
+        if(!elms[1][scope.item.id].nodeId) {
+          elms[1][scope.item.id].populate(elementConfig1)
         }
       }
       if(elms[1]) {
         Object.keys(elms[1]).forEach(key => {
           if(keys.indexOf(key) === -1) {
-            elms[1][key].delete && elms[1][key].delete()
             elms[1][key].destroy && elms[1][key].destroy()
             delete elms[1][key]
           }
@@ -2424,7 +2421,7 @@ test('Generate code for a template with a simple for-loop on a Component with a 
 
         if(typeof cmp1 !== 'undefined') {
           for(let key in cmp1.config.props) {
-            delete  elementConfig1[cmp1.config.props[key]]
+            delete elementConfig1[cmp1.config.props[key]]
           }
         }
 
@@ -2449,12 +2446,11 @@ test('Generate code for a template with a simple for-loop on a Component with a 
           }
         }
       }
-      if(elms[2]) {
-        Object.keys(elms[2]).forEach(key => {
+      if(elms[1]) {
+        Object.keys(elms[1]).forEach(key => {
           if(keys.indexOf(key) === -1) {
-            elms[2][key].delete && elms[2][key].delete()
-            elms[2][key].destroy && elms[2][key].destroy()
-            delete elms[2][key]
+            elms[1][key].destroy && elms[1][key].destroy()
+            delete elms[1][key]
           }
         })
       }
@@ -2550,7 +2546,6 @@ test('Generate code for a template with a simple for-loop on an Element with an 
       if(elms[1]) {
         Object.keys(elms[1]).forEach(key => {
           if(keys.indexOf(key) === -1) {
-            elms[1][key].delete && elms[1][key].delete()
             elms[1][key].destroy && elms[1][key].destroy()
             delete elms[1][key]
           }

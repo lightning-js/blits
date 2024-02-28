@@ -216,6 +216,8 @@ const generateForLoopCode = function (templateObject, parent) {
   if (parent) {
     ctx.renderCode.push(`parent = ${parent}`)
   }
+
+  const forCounter = counter
   ctx.renderCode.push(`
     const collection = ${cast(result[2], ':for')}
     const keys = []
@@ -269,12 +271,11 @@ const generateForLoopCode = function (templateObject, parent) {
   ctx.renderCode.push('}')
 
   ctx.renderCode.push(`
-    if(elms[${counter}]) {
-      Object.keys(elms[${counter}]).forEach(key => {
+   if(elms[${forCounter}]) {
+      Object.keys(elms[${forCounter}]).forEach(key => {
         if(keys.indexOf(key) === -1) {
-          elms[${counter}][key].delete && elms[${counter}][key].delete()
-          elms[${counter}][key].destroy && elms[${counter}][key].destroy()
-          delete elms[${counter}][key]
+          elms[${forCounter}][key].destroy && elms[${forCounter}][key].destroy()
+          delete elms[1][key]
         }
       })
     }
