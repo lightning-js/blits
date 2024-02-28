@@ -31,12 +31,12 @@ const arrayMethods = [
   'reverse',
 ]
 
-const arrayPatchMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse']
+const arrayPatchMethods = ['push', 'pop', 'shift', 'unshift', 'splice']
 
 const proxyMap = new WeakMap()
 
-const reactiveProxy = (target) => {
-  const isProxy = proxyMap.get(target)
+const reactiveProxy = (targetObj, _parent = null, _key) => {
+  const isProxy = proxyMap.get(targetObj)
   if (isProxy) {
     return isProxy
   }
@@ -44,18 +44,24 @@ const reactiveProxy = (target) => {
   const handler = {
     get(target, key, receiver) {
       if (Array.isArray(target) && arrayMethods.includes(key)) {
+        if (arrayPatchMethods.includes(key)) {
+          trigger(_parent, _key, true)
+        }
         return Reflect.get(target, key, receiver)
       }
 
       if (target[key] !== null && typeof target[key] === 'object') {
-        return reactiveProxy(target[key])
+        if (Array.isArray(target[key])) {
+          track(target, key)
+        }
+        return reactiveProxy(target[key], target, key)
       }
 
       track(target, key)
       return Reflect.get(target, key, receiver)
     },
     set(target, key, value, receiver) {
-      const oldValue = target[key]
+      const oldValue = targetObj[key]
 
       let result
       if (typeof value === 'object' && Array.isArray(value) && proxyMap.get(target[key])) {
@@ -72,19 +78,15 @@ const reactiveProxy = (target) => {
         reactiveProxy(target[key])
       }
 
-      if (key === 'length') {
+      if (key === 'length' || (result && oldValue !== value)) {
         trigger(target, key)
-      } else {
-        if (result && oldValue !== value) {
-          trigger(target, key)
-        }
       }
       return result
     },
   }
 
-  const proxy = new Proxy(target, handler)
-  proxyMap.set(target, proxy)
+  const proxy = new Proxy(targetObj, handler)
+  proxyMap.set(targetObj, proxy)
   return proxy
 }
 
