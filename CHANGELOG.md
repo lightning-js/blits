@@ -1,5 +1,11 @@
 # Changelog
 
+# v0.7.4
+
+_28 feb 2024_
+
+- Fixed dependency for on the fly MSDF font generation
+
 # v0.7.3
 
 _28 feb 2024_
