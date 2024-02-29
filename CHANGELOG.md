@@ -1,5 +1,22 @@
 # Changelog
 
+# v0.7.4
+
+_28 feb 2024_
+
+- Fixed dependency for on the fly MSDF font generation
+
+# v0.7.3
+
+_28 feb 2024_
+
+- Added functionality that forces focus hook to fire when parent receives focus from child
+- Improved destroy sequence of nodes to be disposed
+- Fixed issue with tracking reactive objects multiple times (potential max call stack error)
+- Added on the fly MSDF font generation from a `.ttf` file placed in `publics/fonts`
+- Added support for pre-compilation for files with more than 1 Blits component
+- Fixed transitions on scale attribute when passed an object with `x` and `y` values
+
 # v0.7.2
 
 _23 feb 2024_

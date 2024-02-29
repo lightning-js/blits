@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "0.7.2",
+  "version": "0.7.4",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
@@ -40,6 +40,7 @@
     "husky": "^7.0.4",
     "jsdom": "24.0.0",
     "lint-staged": "^12.3.3",
+    "ora": "^7.0.1",
     "prettier": "^2.5.1",
     "tap-diff": "^0.1.1",
     "tape": "^5.5.0"
@@ -49,6 +50,7 @@
     "@lightningjs/vite-plugin-import-chunk-url": "^0.3.0",
     "execa": "^8.0.1",
     "kolorist": "^1.8.0",
+    "msdf-bmfont-xml": "^2.7.0",
     "ora": "^7.0.1",
     "prompts": "^2.4.2",
     "replace-in-file": "^6.1.0",

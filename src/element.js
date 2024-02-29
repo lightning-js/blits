@@ -158,12 +158,18 @@ const Props = {
   },
   set scale(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if ('x' in v) this._props.scaleX = v.x
-      if ('y' in v) this._props.scaleY = v.y
+      if ('x' in v) {
+        this._set.add('scaleX')
+        this._props.scaleX = v.x
+      }
+      if ('y' in v) {
+        this._set.add('scaleX')
+        this._props.scaleY = v.y
+      }
     } else {
       this._props.scale = v
+      this._set.add('scale')
     }
-    this._set.add('scale')
   },
   set show(v) {
     this._props.alpha = v ? 1 : 0
