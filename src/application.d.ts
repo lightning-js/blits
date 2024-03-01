@@ -35,7 +35,7 @@ declare namespace Application {
     /**
      * Easing function to apply to the transition
      */
-    function?: string,
+    easing?: string,
     /**
      * Delay before the transition starts in milliseconds
      */

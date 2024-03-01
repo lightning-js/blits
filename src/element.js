@@ -307,6 +307,7 @@ const Element = {
       easing:
         typeof transition === 'object'
           ? 'function' in transition
+          ? console.log("function key is deprecated, please use easing key") : 'easing' in transition
             ? transition.function
             : 'ease'
           : 'ease',
