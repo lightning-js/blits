@@ -19,9 +19,9 @@ import htmlColors from './htmlColors.js'
 import { Log } from '../log.js'
 
 export default {
-  // defaultColor must be null when using this function in the template parser
-  // because the template parser need to check attribute values (even they are not color codes)
-  // to see if it is a color value or not
+  // The defaultColor parameter should be set to null when utilizing this function within the template parser.
+  // Because the template parser evaluates attribute values, even if they are not color codes,
+  // to determine whether they represent color values or not.
   normalize(color = '', defaultColor = '0xffffffff') {
     color = color.toString()
 
