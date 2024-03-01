@@ -1195,6 +1195,40 @@ test('Parse template with an invalid attribute name by providing parent componen
   assert.end()
 })
 
+test('Parse template with an invalid attribute name by providing parent component without component name and parsing should fail', (assert) => {
+  const template = `
+  <Element invalid^attribute="hello" />
+  `
+
+  try {
+    parser(template, null, {
+      [componentType]: 'Section',
+      parent: {
+        [componentType]: 'List',
+        parent: {
+          [componentType]: 'Menu',
+          parent: {
+            [componentType]: 'Blits.App',
+          },
+        },
+      },
+    })
+    assert.fail('Parser should throw TemplateParseError:InvalidAttribute')
+  } catch (error) {
+    assert.equal(error.name, 'TemplateParseError', 'Parser should throw TemplateParseError')
+    assert.ok(
+      error.message.startsWith('InvalidAttribute'),
+      'Parser should throw TemplateParseError:InvalidAttribute'
+    )
+    assert.ok(
+      error.message.includes('Blits.App/Menu/List/Section/'),
+      'Error message should contain the component hierarchy without the component name'
+    )
+  }
+
+  assert.end()
+})
+
 test('Parse template with an invalid attribute name by providing component file path and parsing should fail', (assert) => {
   const template = `
   <Element invalid^attribute="hello" />
