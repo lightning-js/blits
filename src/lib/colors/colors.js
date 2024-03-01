@@ -20,7 +20,8 @@ import { Log } from '../log.js'
 
 export default {
   // defaultColor must be null when using this function in the template parser
-  // because the template parser test any string to see if it is a color
+  // because the template parser need to check attribute values (even they are not color codes)
+  // to see if it is a color value or not
   normalize(color = '', defaultColor = '0xffffffff') {
     color = color.toString()
 
