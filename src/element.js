@@ -21,6 +21,21 @@ import colors from './lib/colors/colors.js'
 import { Log } from './lib/log.js'
 import symbols from './lib/symbols.js'
 
+const deprecationMsg = `
+----------------------------------------------------------------------------------------------------
+Deprecation notice:
+----------------------------------------------------------------------------------------------------
+
+The property for defining a transition easing function has been renamed from "function" to "easing".
+
+Please update your code like the example below to keep your custom easing function.
+
+Before: <Element :y.transition=“{v: $y, function: ‘ease-in-out’}” />
+
+After: <Element :y.transition=“{v: $y, easing: ‘ease-in-out’}” />
+
+`
+
 const isTransition = (value) => {
   return typeof value === 'object' && 'transition' in value
 }
@@ -307,9 +322,7 @@ const Element = {
       easing:
         typeof transition === 'object'
           ? 'function' in transition
-            ? Log.info(
-                'The property for defining a transition easing function has been renamed from function to easing. Please update your code.'
-              )
+            ? Log.warn(deprecationMsg)
             : 'easing' in transition
             ? transition.easing
             : 'ease'
