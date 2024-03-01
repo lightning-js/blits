@@ -62,12 +62,8 @@ export default (component, name) => {
     destroy: {
       value: function () {
         this.lifecycle.state = 'destroy'
-        for (let i = 0; i < this[symbols.timeouts].length; i++) {
-          clearTimeout(this[symbols.timeouts][i])
-        }
-        for (let i = 0; i < this[symbols.intervals].length; i++) {
-          clearInterval(this[symbols.intervals][i])
-        }
+        this.$clearTimeouts()
+        this.$clearIntervals()
         eventListeners.removeListeners(this)
         deleteChildren(this[symbols.children])
         Log.debug(`Destroyed component ${this.componentId}`)
