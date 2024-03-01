@@ -19,52 +19,61 @@ import htmlColors from './htmlColors.js'
 import { Log } from '../log.js'
 
 export default {
-  normalize(color = '') {
+  // defaultColor must be null when using this function in the template parser
+  // because the template parser test any string to see if it is a color
+  normalize(color = '', defaultColor = '0xffffffff') {
     color = color.toString()
 
-    if (color.startsWith('0x')) {
-      return color
-    }
+    if (color.length > 0) {
+      const normalized = /^0x[0-9a-f]{8}$/
+      const hex = /^#?([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i
+      const rgba =
+        /^(rgba?)\((\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\s*),(\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\s*),(\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\s*)(,(\s*(-?\d+(?:\.\d+)?)\s*))?\)$/
+      const hsla =
+        /^(hsla?)\((\s*(360|3[0-5][0-9]|[12]?[0-9]{1,2})\s*),(\s*(100|[1-9]?[0-9])\s*)%,(\s*(100|[1-9]?[0-9])\s*)%(,(\s*(1|0(?:\.\d+)?)\s*))?\)$/
 
-    const rgbaRegex = /rgba?\((.+)\)/gi
-    const hslaRegex = /hsla?\((.+)\)/gi
+      if (normalized.test(color)) {
+        return color
+      }
 
-    // RGB(A) color format
-    if (rgbaRegex.test(color)) {
-      const match = new RegExp(rgbaRegex).exec(color)
-      if (match[1]) {
-        color = match[1]
-          .split(',')
-          .map((c, i) => {
-            if (i == 3) {
-              c = Math.min(Math.max(Math.round(c * 255), 0), 255)
-            }
-            return parseInt(c).toString(16).padStart(2, '0')
-          })
-          .join('')
-        return color.padEnd(8, 'f').padStart(10, '0x')
+      if (hex.test(color)) {
+        color = color.replace('#', '').toLowerCase()
+        if (color.length === 3) {
+          color = color
+            .split('')
+            .map((c) => c + c)
+            .join('')
+        }
+
+        return '0x' + color.padEnd(8, 'f')
+      }
+
+      //rgb/a
+      const rgbaMatch = rgba.exec(color)
+      if (rgbaMatch) {
+        return (
+          '0x' +
+          parseInt(rgbaMatch[3]).toString(16).padStart(2, '0') +
+          parseInt(rgbaMatch[5]).toString(16).padStart(2, '0') +
+          parseInt(rgbaMatch[7]).toString(16).padStart(2, '0') +
+          (rgbaMatch[10] && rgbaMatch[1] === 'rgba'
+            ? Math.min(Math.max(Math.round(parseFloat(rgbaMatch[10]) * 255), 0), 255)
+                .toString(16)
+                .padStart(2, '0')
+            : 'ff')
+        )
+      }
+
+      if (hsla.test(color)) {
+        Log.warn('HSL(A) color format is not supported yet')
+        return '0xffffffff'
+      }
+
+      if (color in htmlColors) {
+        return htmlColors[color]
       }
     }
-    // HSL(A) color format
-    else if (hslaRegex.test(color)) {
-      Log.warn('HSL(A) color format is not supported yet')
-      return 0xffffffff
-    }
-    // HTMl name color format
-    else if (color in htmlColors) {
-      return htmlColors[color]
-    }
-    // hex rgba format
-    else if (color.startsWith('#')) {
-      color = color.substring(1)
-    }
-    if (color.length === 3) {
-      color = color
-        .split('')
-        .map((c) => c + c)
-        .join('')
-    }
 
-    return color.padEnd(8, 'f').padStart(10, '0x')
+    return defaultColor
   },
 }

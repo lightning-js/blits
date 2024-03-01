@@ -27,8 +27,30 @@ test('Object', (assert) => {
 })
 
 test('6 character hex', (assert) => {
-  const input = ['#ffffff', '#000000', '#c0ffee', '#7dd3fc', '#0c4a6e']
-  const expected = ['0xffffffff', '0x000000ff', '0xc0ffeeff', '0x7dd3fcff', '0x0c4a6eff']
+  const input = [
+    '#ffffff',
+    '#000000',
+    '#c0ffee',
+    '#7dd3fc',
+    '#0c4a6e',
+    'ffffff',
+    '000000',
+    'c0ffee',
+    '7dd3fc',
+    '0c4a6e',
+  ]
+  const expected = [
+    '0xffffffff',
+    '0x000000ff',
+    '0xc0ffeeff',
+    '0x7dd3fcff',
+    '0x0c4a6eff',
+    '0xffffffff',
+    '0x000000ff',
+    '0xc0ffeeff',
+    '0x7dd3fcff',
+    '0x0c4a6eff',
+  ]
 
   const actual = input.map(colors.normalize)
 
@@ -41,8 +63,15 @@ test('6 character hex', (assert) => {
 })
 
 test('3 character hex', (assert) => {
-  const input = ['#fff', '#000', '#c8c']
-  const expected = ['0xffffffff', '0x000000ff', '0xcc88ccff']
+  const input = ['#fff', '#000', '#c8c', 'fff', '000', 'c8c']
+  const expected = [
+    '0xffffffff',
+    '0x000000ff',
+    '0xcc88ccff',
+    '0xffffffff',
+    '0x000000ff',
+    '0xcc88ccff',
+  ]
 
   const actual = input.map(colors.normalize)
 
@@ -55,8 +84,30 @@ test('3 character hex', (assert) => {
 })
 
 test('8 character hex (rgba)', (assert) => {
-  const input = ['#ffffffff', '#000000ff', '#c0ffee80', '#7dd3fc10', '#0c4a6eff']
-  const expected = ['0xffffffff', '0x000000ff', '0xc0ffee80', '0x7dd3fc10', '0x0c4a6eff']
+  const input = [
+    '#ffffffff',
+    '#000000ff',
+    '#c0ffee80',
+    '#7dd3fc10',
+    '#0c4a6eff',
+    'ffffffff',
+    '000000ff',
+    'c0ffee80',
+    '7dd3fc10',
+    '0c4a6eff',
+  ]
+  const expected = [
+    '0xffffffff',
+    '0x000000ff',
+    '0xc0ffee80',
+    '0x7dd3fc10',
+    '0x0c4a6eff',
+    '0xffffffff',
+    '0x000000ff',
+    '0xc0ffee80',
+    '0x7dd3fc10',
+    '0x0c4a6eff',
+  ]
 
   const actual = input.map(colors.normalize)
 
@@ -64,6 +115,44 @@ test('8 character hex (rgba)', (assert) => {
     actual,
     expected,
     'A 8 character hex (rgba) code should return the correct color in rgba format'
+  )
+  assert.end()
+})
+
+test('Invalid hex values', (assert) => {
+  const input = [
+    '#fde4',
+    '#1000',
+    '#ddc8c',
+    'hg0',
+    '000fffa',
+    '#a',
+    '#0',
+    'c8O',
+    'fffff',
+    '000f00000',
+    '##000000',
+  ]
+  const expected = [
+    '0xffffffff',
+    '0xffffffff',
+    '0xffffffff',
+    '0xffffffff',
+    '0xffffffff',
+    '0xffffffff',
+    '0xffffffff',
+    '0xffffffff',
+    '0xffffffff',
+    '0xffffffff',
+    '0xffffffff',
+  ]
+
+  const actual = input.map((color) => colors.normalize(color))
+
+  assert.deepEqual(
+    actual,
+    expected,
+    'Invalid hex values should return white color as the default color'
   )
   assert.end()
 })
@@ -80,23 +169,35 @@ test('RGB colors', (assert) => {
 
   const actual = input.map(colors.normalize)
 
-  assert.deepEqual(
-    actual,
-    expected,
-    'RGB codes prefixed with # should return the correct color in rgba format'
-  )
+  assert.deepEqual(actual, expected, 'RGB codes should return the correct color in rgba format')
+  assert.end()
+})
+
+test('Invalid RGB colors', (assert) => {
+  const input = [
+    'rgb(256,255,255)',
+    'rgb(123,432,211)',
+    'rgb(192, 255)',
+    'rgb(125,, 211, 252)',
+    'rgb(-12, 74, 110)',
+  ]
+  const expected = ['0xffffffff', '0xffffffff', '0xffffffff', '0xffffffff', '0xffffffff']
+
+  const actual = input.map((color) => colors.normalize(color))
+
+  assert.deepEqual(actual, expected, 'Invalid RGB codes should return white color in rgba format')
   assert.end()
 })
 
 test('RGBA colors', (assert) => {
   const input = [
-    'rgb(255,255,255,1)',
-    'rgb(0,0,0,1)',
-    'rgb(192, 255, 238, 0.5)',
-    'rgb(125, 211, 252, 0.1)',
-    'rgb(12, 74, 110, 0)',
-    'rgb(12, 74, 110, -0.5)', // negative alpha should become 0
-    'rgb(12, 74, 110, 1.2)', // highher than 1 alpha should become 1
+    'rgba(255,255,255,1)',
+    'rgba(0,0,0,1)',
+    'rgba(192, 255, 238, 0.5)',
+    'rgba(125, 211, 252, 0.1)',
+    'rgba(12, 74, 110, 0)',
+    'rgba(12, 74, 110, -0.5)', // negative alpha should become 0
+    'rgba(12, 74, 110, 1.2)', // highher than 1 alpha should become 1
   ]
   const expected = [
     '0xffffffff',
@@ -110,61 +211,60 @@ test('RGBA colors', (assert) => {
 
   const actual = input.map(colors.normalize)
 
-  assert.deepEqual(
-    actual,
-    expected,
-    'RGB codes prefixed with # should return the correct color in rgba format'
-  )
+  assert.deepEqual(actual, expected, 'RGBA codes should return the correct color in rgba format')
   assert.end()
 })
 
-test('RGBA colors', (assert) => {
+test('Invalid RGBA colors', (assert) => {
   const input = [
     'rgb(255,255,255,1)',
-    'rgb(0,0,0,1)',
-    'rgb(192, 255, 238, 0.5)',
-    'rgb(125, 211, 252, 0.1)',
-    'rgb(12, 74, 110, 0)',
-    'rgb(12, 74, 110, -0.5)', // negative alpha should become 0
-    'rgb(12, 74, 110, 1.2)', // highher than 1 alpha should become 1
+    'rgba(0,0,0,a)',
+    'rgba(192, 256, 238, 0.5)',
+    'rgba(125, 252, 0.1)',
+    'rgba(12,, 74, 110, 0)',
+    'rgba(-12, 74, 110, -0.5)',
+    'rgba(12, 74, 110, --1.2)',
   ]
   const expected = [
     '0xffffffff',
-    '0x000000ff',
-    '0xc0ffee80',
-    '0x7dd3fc1a',
-    '0x0c4a6e00',
-    '0x0c4a6e00',
-    '0x0c4a6eff',
+    '0xffffffff',
+    '0xffffffff',
+    '0xffffffff',
+    '0xffffffff',
+    '0xffffffff',
+    '0xffffffff',
   ]
 
-  const actual = input.map(colors.normalize)
+  const actual = input.map((color) => colors.normalize(color))
 
-  assert.deepEqual(
-    actual,
-    expected,
-    'RGB codes prefixed with # should return the correct color in rgba format'
-  )
+  assert.deepEqual(actual, expected, 'Invalid RGBA codes should return white color in rgba format')
   assert.end()
 })
 
 test('HTML colors', (assert) => {
   const input = ['blanchedalmond', 'salmon', 'tomato', 'saddlebrown', 'red']
-
-  const expected = [
-    parseInt('0xffebcdff', 16),
-    parseInt('0xfa8072ff', 16),
-    parseInt('0xff6347ff', 16),
-    parseInt('0x8b4513ff', 16),
-    parseInt('0xff0000ff', 16),
-  ]
+  const expected = ['0xffebcdff', '0xfa8072ff', '0xff6347ff', '0x8b4513ff', '0xff0000ff']
 
   const actual = input.map(colors.normalize)
 
   assert.deepEqual(
     actual,
     expected,
-    'RGB codes prefixed with # should return the correct color in rgba format'
+    'HTML color codes should return the correct color in rgba format'
+  )
+  assert.end()
+})
+
+test('Invalid HTML colors', (assert) => {
+  const input = ['darkblanchedalmond', 'selmon', 'lighttomato', 'sadlebrown', 'darkbrown']
+  const expected = ['0xffffffff', '0xffffffff', '0xffffffff', '0xffffffff', '0xffffffff']
+
+  const actual = input.map((color) => colors.normalize(color))
+
+  assert.deepEqual(
+    actual,
+    expected,
+    'Invalid HTML color codes should return white color in rgba format'
   )
   assert.end()
 })

@@ -16,6 +16,7 @@
  */
 
 import symbols from '../symbols.js'
+import colors from '../colors/colors.js'
 
 export default (template = '', componentName, parentComponent, filePath = null) => {
   let cursor = 0
@@ -186,7 +187,48 @@ export default (template = '', componentName, parentComponent, filePath = null) 
       const [objectName, attributeName] = name.split('.')
       return { name: objectName, value: `{${attributeName}: ${value}}` }
     }
+
+    // process color values
+    if (['color', ':color', ':effects', 'effects'].includes(name)) {
+      return processColors(name, value)
+    }
     return { name, value }
+  }
+
+  const processColors = (name, value) => {
+    let newValue = value //copy for processing
+    let normalized = colors.normalize(newValue, null)
+
+    if (normalized === null) {
+      const stringTokenRegex = /'([^']+)'/g
+      let match
+      let lastIndex = 0
+      let result = ''
+
+      while ((match = stringTokenRegex.exec(value)) !== null) {
+        const potentialColor = match[1]
+        const matchIndex = match.index
+        const matchLength = match[0].length
+
+        result += value.slice(lastIndex, matchIndex)
+        normalized = colors.normalize(potentialColor, null)
+
+        if (normalized === null) {
+          result += value.slice(matchIndex, matchIndex + matchLength)
+        } else {
+          result += `'${normalized}'`
+        }
+
+        lastIndex = matchIndex + matchLength
+      }
+
+      result += value.slice(lastIndex)
+      newValue = result
+    } else {
+      newValue = normalized
+    }
+
+    return { name, value: newValue }
   }
 
   /*
@@ -275,25 +317,21 @@ export default (template = '', componentName, parentComponent, filePath = null) 
   const contextPaddingBefore = 10 // number of characters to show before the error location
   const contextPaddingAfter = 50 // number of characters to show after the error location
 
-  const TemplateParseError = (message, context) => {
+  const TemplateParseError = (message) => {
     const location = getErrorLocation()
     message = `${message} in ${location}`
 
     const error = new Error(message)
     error.name = 'TemplateParseError'
 
-    // generate context if the error is related to parsing
-    if (!context) {
-      const start = Math.max(0, prevCursor - contextPaddingBefore)
-      const end = Math.min(template.length, cursor + contextPaddingAfter)
-      const contextText = template.slice(start, end)
+    const start = Math.max(0, prevCursor - contextPaddingBefore)
+    const end = Math.min(template.length, cursor + contextPaddingAfter)
+    const contextText = template.slice(start, end)
 
-      // add ^ caret to show where the error is
-      const caretPosition = cursor - start
-      error.context = insertContextCaret(caretPosition, contextText)
-    } else {
-      error.context = context
-    }
+    // add ^ caret to show where the error is
+    const caretPosition = cursor - start
+    error.context = insertContextCaret(caretPosition, contextText)
+
     return error
   }
 
