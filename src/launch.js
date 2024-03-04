@@ -21,6 +21,7 @@ import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import { screenResolutions } from './lib/utils.js'
 import colors from './lib/colors/colors.js'
+import { addFonts } from './fontLoader.js'
 
 export let renderer
 
@@ -53,14 +54,8 @@ export default (App, target, settings) => {
     enableInspector: settings.inspector || false,
   }
 
-  if (settings.extensionLoader && settings.fontLoader) {
-    console.warn('Can only use one extension loader, fontLoader will be dropped from settings')
-  }
-
-  const extensionLoader = settings.extensionLoader || settings.fontLoader
-  //when making use of @lightningjs/vite-plugin-import-chunk-url
-  if (extensionLoader && typeof extensionLoader === 'string') {
-    renderSettings.coreExtensionModule = extensionLoader
+  if (settings.fontLoader) {
+    console.warn('fontLoader setting is deprecated')
   }
 
   renderer = new RendererMain(renderSettings, target, driver)
@@ -76,9 +71,7 @@ export default (App, target, settings) => {
   }
 
   renderer.init().then(async () => {
-    if (extensionLoader && typeof extensionLoader === 'function') {
-      await extensionLoader(renderer.stage)
-    }
+    await addFonts(renderer.stage)
     initApp()
   })
 }
