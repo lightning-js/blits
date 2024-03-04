@@ -1,5 +1,12 @@
 # Changelog
 
+# v0.8.0
+
+_1 mar 2024_
+
+- Added `this.$clearIntervals()` and `this.$clearTimeouts()` methods that clear all intervals and timers set on a certain component
+- **Breaking change:** Renamed the key `function` to `easing` in the transitions object used to specify a custom easing functio (deprecation notice added)
+
 # v0.7.4
 
 _28 feb 2024_

@@ -62,12 +62,8 @@ export default (component, name) => {
     destroy: {
       value: function () {
         this.lifecycle.state = 'destroy'
-        for (let i = 0; i < this[symbols.timeouts].length; i++) {
-          clearTimeout(this[symbols.timeouts][i])
-        }
-        for (let i = 0; i < this[symbols.intervals].length; i++) {
-          clearInterval(this[symbols.intervals][i])
-        }
+        this.$clearTimeouts()
+        this.$clearIntervals()
         eventListeners.removeListeners(this)
         deleteChildren(this[symbols.children])
         Log.debug(`Destroyed component ${this.componentId}`)
@@ -176,6 +172,17 @@ export default (component, name) => {
       enumerable: true,
       configurable: false,
     },
+    $clearTimeouts: {
+      value: function () {
+        for (let i = 0; i < this[symbols.timeouts].length; i++) {
+          clearTimeout(this[symbols.timeouts][i])
+        }
+        this[symbols.timeouts] = []
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
     $setInterval: {
       value: function (fn, ms, ...params) {
         const intervalId = setInterval(() => fn.apply(null, params), ms, params)
@@ -192,6 +199,17 @@ export default (component, name) => {
           this[symbols.intervals] = this[symbols.intervals].filter((id) => id !== intervalId)
           clearInterval(intervalId)
         }
+      },
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    $clearIntervals: {
+      value: function () {
+        for (let i = 0; i < this[symbols.intervals].length; i++) {
+          clearInterval(this[symbols.intervals][i])
+        }
+        this[symbols.intervals] = []
       },
       writable: false,
       enumerable: true,
