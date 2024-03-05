@@ -86,14 +86,6 @@ export interface Settings {
    */
   debugLevel?: DebugLevel | LogTypes[],
   /**
-   * Font loader file
-   */
-  fontLoader?: string | ExtensionLoader,
-  /**
-   * Extension Loader file
-   */
-  extensionLoader?: string | ExtensionLoader,
-  /**
    * Fonts to be used in the Application
    */
   fonts?: Font[],

@@ -54,10 +54,6 @@ export default (App, target, settings) => {
     enableInspector: settings.inspector || false,
   }
 
-  if (settings.fontLoader) {
-    console.warn('fontLoader setting is deprecated')
-  }
-
   renderer = new RendererMain(renderSettings, target, driver)
 
   const initApp = () => {
