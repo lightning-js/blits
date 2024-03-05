@@ -43,7 +43,7 @@ export default function () {
               const mimeType = ext === 'png' ? 'image/png' : 'application/json'
 
               if (!fs.existsSync(generatedFontFile)) {
-                console.log(`Generating ${targetDir}/${fontName}.msdf.${ext}`)
+                console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`)
                 await generateFont(fontFile, targetDir, fontName)
               }
 
