@@ -207,6 +207,9 @@ const Props = {
     })
     this._set.add('effects')
   },
+  set clipping(v) {
+    this._props.clipping = v
+  },
   set fontFamily(v) {
     this._props.fontFamily = v
   },
