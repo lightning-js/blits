@@ -50,7 +50,7 @@ This concept of _reactive data binding_ eliminates the need for manual template 
 
 Reactive arguments also support _interpolation_. This enables the use of simple JavaScript instructions, such as ternary conditions or basic String and Math manipulations, right inside your template arguments.
 
-For more complex logic, it's recommended to abstract this into a [Component method](/components/methods.md) or a [Computed property](/components/computed_properties.md).
+For more complex logic, it's recommended to abstract this into a [Component method](../components/methods.md) or a [Computed property](../components/computed_properties.md).
 
 ## Abstracting template portions to custom components
 

@@ -38,7 +38,7 @@ export default Blits.Component('MyComponent', {
 
 ### Accessing State in Templates
 
-As explained in the [template section](/essentials/template_syntax.md), you can refer to state variables in a template by prefixing the state variable name with a _dollar sign_ (e.g., `$alpha`). Think of the `$`-sign as a reference to the `this`-scope of the component.
+As explained in the [template section](../essentials/template_syntax.md), you can refer to state variables in a template by prefixing the state variable name with a _dollar sign_ (e.g., `$alpha`). Think of the `$`-sign as a reference to the `this`-scope of the component.
 
 For nested objects, you can use _dot notation_ (e.g., `$style.dimensions.w`).
 

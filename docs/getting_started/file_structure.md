@@ -2,7 +2,7 @@
 
 ## File structure
 
-Once you have created a new Blits App using the boilerplate described in the [Getting started]('/gettings_started/getting_started.md'), you should have a project with all the basics you need.
+Once you have created a new Blits App using the boilerplate described in the [Getting started](getting_started.md), you should have a project with all the basics you need.
 
 Let's review the basic file structure, and take a closer look at the important ones.
 
