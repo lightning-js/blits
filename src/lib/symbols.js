@@ -3,6 +3,7 @@ export default {
   cursorTagStart: Symbol('cursorTagStart'),
   computedKeys: Symbol('computedKeys'),
   destroy: Symbol('destroy'),
+  id: Symbol('id'),
   index: Symbol('index'),
   init: Symbol('init'),
   inputEvents: Symbol('inputEvents'),
