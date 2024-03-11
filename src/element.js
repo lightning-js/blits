@@ -21,6 +21,21 @@ import colors from './lib/colors/colors.js'
 import { Log } from './lib/log.js'
 import symbols from './lib/symbols.js'
 
+const deprecationMsg = `
+----------------------------------------------------------------------------------------------------
+Deprecation notice:
+----------------------------------------------------------------------------------------------------
+
+The property for defining a transition easing function has been renamed from "function" to "easing".
+
+Please update your code like the example below to keep your custom easing function.
+
+Before: <Element :y.transition=“{v: $y, function: ‘ease-in-out’}” />
+
+After: <Element :y.transition=“{v: $y, easing: ‘ease-in-out’}” />
+
+`
+
 const isTransition = (value) => {
   return typeof value === 'object' && 'transition' in value
 }
@@ -158,12 +173,18 @@ const Props = {
   },
   set scale(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if ('x' in v) this._props.scaleX = v.x
-      if ('y' in v) this._props.scaleY = v.y
+      if ('x' in v) {
+        this._set.add('scaleX')
+        this._props.scaleX = v.x
+      }
+      if ('y' in v) {
+        this._set.add('scaleX')
+        this._props.scaleY = v.y
+      }
     } else {
       this._props.scale = v
+      this._set.add('scale')
     }
-    this._set.add('scale')
   },
   set show(v) {
     this._props.alpha = v ? 1 : 0
@@ -185,6 +206,9 @@ const Props = {
       }),
     })
     this._set.add('effects')
+  },
+  set clipping(v) {
+    this._props.clipping = v
   },
   set fontFamily(v) {
     this._props.fontFamily = v
@@ -301,7 +325,9 @@ const Element = {
       easing:
         typeof transition === 'object'
           ? 'function' in transition
-            ? transition.function
+            ? Log.warn(deprecationMsg)
+            : 'easing' in transition
+            ? transition.easing
             : 'ease'
           : 'ease',
       delay: typeof transition === 'object' ? ('delay' in transition ? transition.delay : 0) : 0,
@@ -346,7 +372,7 @@ const Element = {
     Object.values(this.scheduledTransitions).forEach((scheduledTransition) => {
       clearTimeout(scheduledTransition.timeout)
     })
-    this.node.parent = null
+    this.node.destroy()
   },
   get nodeId() {
     return this.node && this.node.id

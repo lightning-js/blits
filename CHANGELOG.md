@@ -1,5 +1,38 @@
 # Changelog
 
+# v0.8.1
+
+_9 mar 2024_
+
+- Added pre-processing of hardcoded colors used in the template
+- Upgraded Lightning renderer to v0.7.5
+- Removed explicit destroy of child nodes, as the renderer now takes care of this
+- Re-added support for clipping
+
+# v0.8.0
+
+_1 mar 2024_
+
+- Added `this.$clearIntervals()` and `this.$clearTimeouts()` methods that clear all intervals and timers set on a certain component
+- **Breaking change:** Renamed the key `function` to `easing` in the transitions object used to specify a custom easing functio (deprecation notice added)
+
+# v0.7.4
+
+_28 feb 2024_
+
+- Fixed dependency for on the fly MSDF font generation
+
+# v0.7.3
+
+_28 feb 2024_
+
+- Added functionality that forces focus hook to fire when parent receives focus from child
+- Improved destroy sequence of nodes to be disposed
+- Fixed issue with tracking reactive objects multiple times (potential max call stack error)
+- Added on the fly MSDF font generation from a `.ttf` file placed in `publics/fonts`
+- Added support for pre-compilation for files with more than 1 Blits component
+- Fixed transitions on scale attribute when passed an object with `x` and `y` values
+
 # v0.7.2
 
 _23 feb 2024_
