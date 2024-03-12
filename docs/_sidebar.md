@@ -8,12 +8,12 @@
   - [Template syntax](/essentials/template_syntax.md)
   - [Supported element attributes](/essentials/element_attributes.md)
   - [Displaying images](/essentials/displaying_images.md)
+  - [Displaying text](/essentials/displaying_text.md)
 - Components
   - [State](/components/component_state.md)
   - [Props](/components/props.md)
   - [Computed properties](/components/computed_properties.md)
   - [Watchers](/components/watchers.md)
   - [Hooking into lifecycle events](/components/lifecycle_events.md)
-  - [Handling user input](/components/user_input.md)
+  - [Handling User input](/components/user_input.md)
   - [Methods](/components/methods.md)
-
