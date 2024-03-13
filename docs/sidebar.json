@@ -77,5 +77,14 @@
         "link": "/components/methods"
       }
     ]
+  },
+  {
+    "text": "Transitions and Animations",
+    "items": [
+      {
+        "text": "Transitions",
+        "link": "/transitions_animations/transitions"
+      }
+    ]
   }
 ]
