@@ -18,24 +18,3 @@ Firstly, it's short, memorable and just has a nice ring to it.
 
 Finally it's a nerdy reference to the computer term "Bit Blits" commonly used in graphics processing, for rapidly moving a block of data into memory - quite similar to what Lightning is doing 🙂
 
-## Table of contents
-
-- [Getting started](getting_started.md)
-- [Components](components.md)
-- [Template syntax](template_syntax.md)
-- [Component state](component_state.md)
-- [Hooking into lifecycle events](lifecycle_events.md)
-- [Props](props.md)
-- [Handling user input](user_input.md)
-- [Computed properties](computed_properties.md)
-- [Watching for changes](watchers.md)
-- [Styling and positioning Elements](element_attributes.md)
-- [Displaying images](displaying_images.md)
-
-<!---
-- More complex logic in methods
-- Transitions
-- Implementing Custom components
-- Handling Text
-- Routing
--->

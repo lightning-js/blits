@@ -45,6 +45,7 @@ export default (component, name) => {
     },
     focus: {
       value: function (e) {
+        this[symbols.state].hasFocus = true
         Focus.set(this, e)
       },
       writable: false,
@@ -53,6 +54,7 @@ export default (component, name) => {
     },
     unfocus: {
       value: function () {
+        this[symbols.state].hasFocus = false
         this.lifecycle.state = 'unfocus'
       },
       writable: false,
