@@ -137,7 +137,10 @@ const Component = (name = required('name'), config = required('config')) => {
     })
 
     Object.defineProperty(this, symbols.originalState, {
-      value: (config.state && typeof config.state === 'function' && config.state.apply(this)) || {},
+      value: {
+        ...((config.state && typeof config.state === 'function' && config.state.apply(this)) || {}),
+        ...{ hasFocus: false },
+      },
       writable: false,
       enumerable: false,
       configurable: false,

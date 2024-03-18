@@ -22,7 +22,7 @@ import symbols from '../symbols.js'
 export default (component, state) => {
   component[symbols.stateKeys] = []
 
-  state = state.apply(component.prototype)
+  state = { ...state.apply(component.prototype), ...{ hasFocus: false } }
   Object.keys(state).forEach((key) => {
     if (component[symbols.propKeys] && component[symbols.propKeys].indexOf(key) > -1) {
       Log.error(`State ${key} already exists as a prop`)
