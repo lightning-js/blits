@@ -35,12 +35,18 @@ const shaderAlias = {
   rounded: 'radius',
 }
 
-export default (component, name) => {
+export default (component, name, identifier) => {
   Object.defineProperties(component.prototype, {
     name: {
       value: name,
       writable: false,
       enumerable: true,
+      configurable: false,
+    },
+    [symbols.identifier]: {
+      value: component[symbols.identifier],
+      writable: false,
+      enumerable: false,
       configurable: false,
     },
     focus: {
