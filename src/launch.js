@@ -21,7 +21,7 @@ import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import { screenResolutions } from './lib/utils.js'
 import colors from './lib/colors/colors.js'
-import addFonts from './fontLoader.js'
+import fontLoader from './fontLoader.js'
 
 export let renderer
 
@@ -68,8 +68,5 @@ export default (App, target, settings) => {
     }
   }
 
-  renderer
-    .init()
-    .then(() => addFonts(renderer.driver.stage))
-    .then(initApp)
+  renderer.init().then(fontLoader).then(initApp)
 }
