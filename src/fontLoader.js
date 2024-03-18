@@ -1,10 +1,18 @@
-import { CoreExtension, WebTrFontFace, SdfTrFontFace } from '@lightningjs/renderer/core'
+import { WebTrFontFace, SdfTrFontFace } from '@lightningjs/renderer/core'
 
 import Settings from './settings'
 
-export function addFonts(stage) {
+export default (stage) => {
   Settings.get('fonts', []).forEach((font) => {
     if (font.type === 'sdf' || font.type === 'msdf') {
+      // automatically map png key to file name
+      if (!font.png && font.file) {
+        font.png = font.file.replace(/\.[^.]+$/, `.${font.type}.png`)
+      }
+      // automatically map json to file name
+      if (!font.json && font.file) {
+        font.json = font.file.replace(/\.[^.]+$/, `.${font.type}.json`)
+      }
       stage.fontManager.addFontFace(
         new SdfTrFontFace(font.family, {}, font.type, stage, font.png, font.json)
       )

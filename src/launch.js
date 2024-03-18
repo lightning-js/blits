@@ -21,7 +21,7 @@ import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import { screenResolutions } from './lib/utils.js'
 import colors from './lib/colors/colors.js'
-import { addFonts } from './fontLoader.js'
+import addFonts from './fontLoader.js'
 
 export let renderer
 
@@ -37,24 +37,26 @@ export default (App, target, settings) => {
   //     })
   //   : new MainCoreDriver()
 
-  const renderSettings = {
-    appWidth: settings.w || 1920,
-    appHeight: settings.h || 1080,
-    fpsUpdateInterval: settings.fpsInterval || 1000,
-    deviceLogicalPixelRatio:
-      settings.pixelRatio ||
-      screenResolutions[settings.screenResolution] ||
-      screenResolutions[window.innerHeight] ||
-      1,
-    numImageWorkers:
-      'webWorkersLimit' in settings
-        ? settings.webWorkersLimit
-        : window.navigator.hardwareConcurrency || 2,
-    clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
-    enableInspector: settings.inspector || false,
-  }
-
-  renderer = new RendererMain(renderSettings, target, driver)
+  renderer = new RendererMain(
+    {
+      appWidth: settings.w || 1920,
+      appHeight: settings.h || 1080,
+      fpsUpdateInterval: settings.fpsInterval || 1000,
+      deviceLogicalPixelRatio:
+        settings.pixelRatio ||
+        screenResolutions[settings.screenResolution] ||
+        screenResolutions[window.innerHeight] ||
+        1,
+      numImageWorkers:
+        'webWorkersLimit' in settings
+          ? settings.webWorkersLimit
+          : window.navigator.hardwareConcurrency || 2,
+      clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
+      enableInspector: settings.inspector || false,
+    },
+    target,
+    driver
+  )
 
   const initApp = () => {
     let app = App()
@@ -66,8 +68,8 @@ export default (App, target, settings) => {
     }
   }
 
-  renderer.init().then(async () => {
-    await addFonts(renderer.stage)
-    initApp()
-  })
+  renderer
+    .init()
+    .then(() => addFonts(renderer.driver.stage))
+    .then(initApp)
 }
