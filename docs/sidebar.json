@@ -88,6 +88,15 @@
     ]
   },
   {
+    "text": "Built-in components",
+    "items": [
+      {
+        "text": "Directives",
+        "link": "/built-in/directives"
+      }
+    ]
+  },
+  {
     "text": "Plugins",
     "items": [
       {

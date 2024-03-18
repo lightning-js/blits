@@ -19,5 +19,7 @@
   - [Methods](/components/methods.md)
 - Transitions and Animations
   - [Transitions](/transitions_animations/transitions.md)
+- Built-in components
+  - [Directives](/built-in/directives.md)
 - Plugins
   - [Text-to-Speech / Announcer](/plugins/text-to-speech-announcer.md)
