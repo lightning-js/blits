@@ -1,5 +1,5 @@
 - Getting started
-  - [Intro](/readme.md)
+  - [Intro](/getting_started/intro.md)
   - [Getting started](/getting_started/getting_started.md)
   - [File structure](/getting_started/file_structure.md)
 - Essentials
