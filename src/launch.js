@@ -37,6 +37,16 @@ export default (App, target, settings) => {
   //     })
   //   : new MainCoreDriver()
 
+  if ('fontLoader' in settings) {
+    Log.warn(
+      `
+
+Starting version 0.9.0 of Blits, the Launch setting \`fontLoader\` is not supported / required anymore.
+You can remove the option from your \`src/index.js\`-file. And you can safely remove the file \`src/fontLoader.js\` from your project.
+      `
+    )
+  }
+
   renderer = new RendererMain(
     {
       appWidth: settings.w || 1920,
