@@ -21,6 +21,7 @@ import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import { screenResolutions } from './lib/utils.js'
 import colors from './lib/colors/colors.js'
+import fontLoader from './fontLoader.js'
 
 export let renderer
 
@@ -36,11 +37,20 @@ export default (App, target, settings) => {
   //     })
   //   : new MainCoreDriver()
 
+  if ('fontLoader' in settings) {
+    Log.warn(
+      `
+
+Starting version 0.9.0 of Blits, the Launch setting \`fontLoader\` is not supported / required anymore.
+You can remove the option from your \`src/index.js\`-file. And you can safely remove the file \`src/fontLoader.js\` from your project.
+      `
+    )
+  }
+
   renderer = new RendererMain(
     {
       appWidth: settings.w || 1920,
       appHeight: settings.h || 1080,
-      coreExtensionModule: settings.fontLoader,
       fpsUpdateInterval: settings.fpsInterval || 1000,
       deviceLogicalPixelRatio:
         settings.pixelRatio ||
@@ -68,5 +78,5 @@ export default (App, target, settings) => {
     }
   }
 
-  renderer.init().then(() => initApp())
+  renderer.init().then(fontLoader).then(initApp)
 }
