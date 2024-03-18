@@ -1,10 +1,10 @@
 # Blits - Lightning 3 App Development Framework
 
-## Styling and positioning Elements
+## Supported Element attributes
 
-The core building block of a Blits template is the Element tag. The Element tag corresponds directly to a node in the Lightning 3 Renderer. You can style and position Elements via _attributes_, much like you would do in HTML.
+The core building block of a Blits template is the `<Element>`-tag. The Element tag corresponds directly to a node in the Lightning 3 Renderer. You can style and position Elements via _attributes_, much like you would do in plain HTML.
 
-Blits Elements have a specific set of attributes that can be set, loosely modeled after the properties of a Lightning 3 renderer node. In certain cases Blits provides more developer friendly names or accepts a wider range of values, and transparently takes care of the translation into L3 renderer instructions.
+Blits Elements have a specific set of attributes that can be used. The available attributes are loosely modeled after the properties of a Lightning 3 renderer node. In certain cases Blits provides more developer friendly names or accepts a wider range of values, and transparently takes care of the translation into L3 renderer instructions.
 
 ### Positioning and Dimensions
 
@@ -16,7 +16,7 @@ In order to position and set the dimensions of an Element, the following attribu
   - `w` - the width of the element in pixels (optionally `width` can be used as an alias)
   - `h` - the height of the element in pixels (optionally `height` can be used as an alias)
 
-All positioning and dimension related attributes, when not specified, default to `0`.
+All positioning and dimension related attributes, when not specified, will default to `0`.
 
 ```xml
 <Element x="100" y="100" w="800" h="400">
@@ -34,16 +34,17 @@ Besides using values in pixels (i.e. `w="100" h="300"`), you can also specify _p
   <Element w="42%" h="30%" y="5%" x="1%" color="#075985" />
 </Element>
 ```
-The percentage specified in `w` and `x` will be calculated as the percentage of the _width_ (`w`) of the parent element.
-And the percentage specified in `h` and `y` will use the _height_ (`h`) of the parent element as the base of the percentage calculation.
+
+The percentage value specified for `w` and `x` will be calculated as the percentage of the _width_ (`w`) of the parent element.
+And the percentage specified for `h` and `y` will use the _height_ (`h`) of the parent element as the base of the percentage calculation.
 
 ### Colors
 
 By default Elements have a transparent background color. The `color` attribute can be used to give an Element a color.
 
-For those familiar with Lightning 2: colors have gotten a lot easier with Blits! Under the hood the Lightning 3 renderer still uses the somewhat unfamiliar, but efficient `0xffc0ffee` syntax. In Blits you can specify colors as you are used to in HTML and CSS.
+If you are familiar with Lightning 2: colors have gotten a lot easier with Blits. Under the hood the Lightning 3 renderer still uses the somewhat unfamiliar (but efficient) `0xffc0ffee` syntax. In Blits you can specify colors as you are used to in HTML and CSS.
 
-Blits accepts the following color formats and makes sure that they are mapped in a way the Lightning 3 renderer can understand.
+Blits accepts the following color formats and makes sure that they are converted in a way the Lightning 3 renderer can understand.
 
 - hexadecimal (i.e. `#ff4433`)
 - hexadecimal with an alpha channel (i.e `#55553380`)
@@ -52,7 +53,7 @@ Blits accepts the following color formats and makes sure that they are mapped in
 - rgba (i.e `rgba(40, 30, 180, 0.5)`)
 - html color names (i.e. `red`, `blue`, `skyblue`, `tomato`)
 
-HSL and HSLA formats are planned to be added in the future.
+_HSL and HSLA formats are planned to be added in the future._
 
 ```xml
 <Element w="200" h="200" color="#ff4433" />
@@ -69,7 +70,9 @@ HSL and HSLA formats are planned to be added in the future.
 
 The color attribute can also be used to specify basic linear gradients.
 
-A linear gradient can be defined by specifying an _object literal_ as the `color` attribute instead of a single color. The object can consist of a mix of `top`, `bottom`, `left`, `right` keys, with the color to use for that side as a value. If a specific side isn't specified, it defaults to `transparent`. Again you can use "normal" notation for the colors (like hexadecimal or rgba) and you are free to mix and match formats.
+A linear gradient can be defined by specifying an _object literal_ as the `color` attribute instead of a single color. The object can consist of a mix of `top`, `bottom`, `left`, `right` keys, with the color to use for that side as a value. If a specific side isn't specified, it defaults to `transparent`.
+
+Again, you can use "normal" notation for the colors (like hexadecimal or rgba) and you are free to mix and match formats.
 
 ```xml
 <Element w="200" h="200" color="{top: 'red', bottom: 'blue'}" />
@@ -82,7 +85,7 @@ A linear gradient can be defined by specifying an _object literal_ as the `color
 
 The opacity of an Element, can be controlled by setting the `alpha` attribute. This attribute accepts a value between `0` (fully transparent) and `1` (completely visible).
 
-The value of alpha is also being applied recursively to the children of the Element that has its alpha set. If you just want the background color of an Element to be semi-transparent, you should set the alpha channel in the color instead of applying the alpha attribute.
+The value of alpha is also being applied recursively to the children of the Element that has its alpha set. If you just want the background color of an Element to be semi-transparent, you should set the alpha channel in the `color` instead of applying the `alpha` attribute.
 
 ```xml
   <Element w="200" h="200" color="blue" alpha="0.8">
@@ -106,7 +109,7 @@ For scaling an Element the `scale` attribute is used.
 
 This attribute either accepts a single numeric value for scaling evenly accross width and height. Or an _object literal_, if you want to apply a different scaling for the `x` and the `y` axis.
 
-The value should start at `0` and the default value is `1`, which means no scaling.
+The value should be higher than `0` and the default value is `1`, which means no scaling.
 
 Any value below `1` will scale _down_ the element and values greater than `1` will scale the element _up_.
 
@@ -152,3 +155,5 @@ In the case where the `x` and `y` values are the same, you can also just supply 
 <Element w="200" h="200" x="800" y="400" pivot="{y: 1}" scale="3" />
 <Element w="200" h="200" x="800" y="700" pivot="0.9" rotation="42" />
 ```
+
+<!-- ### Clipping -->

@@ -16,4 +16,5 @@ Firstly, it's short, memorable and just has a nice ring to it.
 
 "Blits" is a Dutch word (a significant portion of the Lightning Open Source teams is based in the Netherlands). It means _flashy_ and it's often used to for things that are _great_ or _cool_.
 
-Finally it's a nerdy reference to the computer term "Bit Blits" commonly used in graphics processing, for rapidly moving a block of data into memory - quite similar to what Lightning is doing
+Finally it's a nerdy reference to the computer term "Bit Blits" commonly used in graphics processing, for rapidly moving a block of data into memory - quite similar to what Lightning is doing 🙂
+

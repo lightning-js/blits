@@ -3,61 +3,105 @@
     "text": "Getting Started",
     "items": [
       {
-        "text": "Introduction",
-        "link": "/introduction"
+        "text": "Intro",
+        "link": "/getting_started/intro"
       },
       {
-        "text": "Setup",
-        "link": "/getting_started"
+        "text": "Getting started",
+        "link": "/getting_started/getting_started"
+      },
+      {
+        "text": "File structure",
+        "link": "/getting_started/file_structure"
       }
     ]
   },
   {
-    "text": "Basics",
+    "text": "Essentials",
     "items": [
       {
-        "text": "Components",
-        "link": "/components"
+        "text": "Application root",
+        "link": "/essentials/application_root"
       },
       {
-        "text": "Template Syntax",
-        "link": "/template_syntax"
+        "text": "Component basics",
+        "link": "/essentials/components"
       },
       {
-        "text": "Component State",
-        "link": "/component_state"
+        "text": "Template syntax",
+        "link": "/essentials/template_syntax"
       },
       {
-        "text": "Hooks",
-        "link": "/lifecycle_events"
+        "text": "Supported element attributes",
+        "link": "/essentials/element_attributes"
+      },
+      {
+        "text": "Displaying images",
+        "link": "/essentials/displaying_images"
+      },
+      {
+        "text": "Displaying text",
+        "link": "/essentials/displaying_text"
+      }
+    ]
+  },
+  {
+    "text": "Components",
+    "items": [
+      {
+        "text": "State",
+        "link": "/components/component_state"
       },
       {
         "text": "Props",
-        "link": "/props"
+        "link": "/components/props"
       },
       {
-        "text": "User Input",
-        "link": "/user_input"
-      },
-      {
-        "text": "Computed Props",
-        "link": "/computed_properties"
+        "text": "Computed properties",
+        "link": "/components/computed_properties"
       },
       {
         "text": "Watchers",
-        "link": "/watchers"
+        "link": "/components/watchers"
       },
       {
-        "text": "Styling",
-        "link": "/element_attributes"
+        "text": "Hooking into lifecycle events",
+        "link": "/components/lifecycle_events"
       },
       {
-        "text": "Images",
-        "link": "/displaying_images"
+        "text": "Handling User input",
+        "link": "/components/user_input"
       },
       {
-        "text": "Text-to-Speech",
-        "link": "/text-to-speech-announcer"
+        "text": "Methods",
+        "link": "/components/methods"
+      }
+    ]
+  },
+  {
+    "text": "Transitions and Animations",
+    "items": [
+      {
+        "text": "Transitions",
+        "link": "/transitions_animations/transitions"
+      }
+    ]
+  },
+  {
+    "text": "Built-in components",
+    "items": [
+      {
+        "text": "Directives",
+        "link": "/built-in/directives"
+      }
+    ]
+  },
+  {
+    "text": "Plugins",
+    "items": [
+      {
+        "text": "Text-to-Speech / Announcer",
+        "link": "/plugins/text-to-speech-announcer"
       }
     ]
   }

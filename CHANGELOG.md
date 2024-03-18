@@ -1,5 +1,14 @@
 # Changelog
 
+# v0.8.1
+
+_9 mar 2024_
+
+- Added pre-processing of hardcoded colors used in the template
+- Upgraded Lightning renderer to v0.7.5
+- Removed explicit destroy of child nodes, as the renderer now takes care of this
+- Re-added support for clipping
+
 # v0.8.0
 
 _1 mar 2024_
