@@ -15,78 +15,89 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { track, trigger } from './effect.js'
-
-const arrayMethods = [
-  'constructor',
-  'includes',
-  'indexOf',
-  'lastIndexOf',
-  'push',
-  'pop',
-  'shift',
-  'splice',
-  'unshift',
-  'sort',
-  'reverse',
-]
+import { track, trigger, pauseTracking, resumeTracking } from './effect.js'
+import symbols from '../symbols.js'
 
 const arrayPatchMethods = ['push', 'pop', 'shift', 'unshift', 'splice']
 
 const proxyMap = new WeakMap()
 
-const reactiveProxy = (targetObj, _parent = null, _key) => {
-  const isProxy = proxyMap.get(targetObj)
-  if (isProxy) {
-    return isProxy
+const getProxy = (obj) => {
+  return proxyMap.get(obj)
+}
+
+const getRaw = (value) => {
+  const raw = value && value[symbols.raw]
+  return raw ? getRaw(raw) : value
+}
+
+const reactiveProxy = (original, _parent = null, _key) => {
+  // if original object is already a proxy, don't create a new one but return the existing one instead
+  const existingProxy = getProxy(original)
+  if (existingProxy) {
+    return existingProxy
   }
 
   const handler = {
     get(target, key, receiver) {
-      if (Array.isArray(target) && arrayMethods.includes(key)) {
-        if (arrayPatchMethods.includes(key)) {
-          trigger(_parent, _key, true)
-        }
-        return Reflect.get(target, key, receiver)
+      // return the original object instead of the proxied
+      if (key === symbols.raw) {
+        return original
       }
 
-      if (target[key] !== null && typeof target[key] === 'object') {
+      // handling arrays
+      if (Array.isArray(target)) {
+        // augment array path methods (that change the length of the array)
+        if (arrayPatchMethods.indexOf(key) > -1) {
+          return function (...args) {
+            pauseTracking()
+            const result = target[key].apply(this, args)
+            // trigger a change on the parent object and the key
+            // i.e. when pushing a new item to `obj.data`, _parent will equal `obj`
+            // and _key will equal `data`
+            trigger(_parent, _key)
+            resumeTracking()
+            return result
+          }
+        } else {
+          return Reflect.get(target, key, receiver)
+        }
+      }
+
+      // handling objects (but not null values, which have object type in JS)
+      if (typeof target[key] === 'object' && target[key] !== null) {
         if (Array.isArray(target[key])) {
           track(target, key)
         }
+        // create a new reactive proxy
         return reactiveProxy(target[key], target, key)
       }
 
+      // handling all other types
+      // track the key on the target
       track(target, key)
+      // return the reflected value
       return Reflect.get(target, key, receiver)
     },
     set(target, key, value, receiver) {
-      const oldValue = targetObj[key]
+      // get the raw values (without proxy wrapper) so we can compare them
+      const oldRawValue = getRaw(target[key])
+      const rawValue = getRaw(value)
 
-      let result
-      if (typeof value === 'object' && Array.isArray(value) && proxyMap.get(target[key])) {
-        if (oldValue !== value) {
-          result = oldValue.splice(0, target[key].length, ...value)
-        } else {
-          result = true
-        }
-      } else {
+      let result = true
+      if (oldRawValue !== rawValue) {
         result = Reflect.set(target, key, value, receiver)
       }
 
-      if (typeof value === 'object') {
-        reactiveProxy(target[key])
-      }
-
-      if (key === 'length' || (result && oldValue !== value)) {
-        trigger(target, key)
+      if (result && oldRawValue !== value) {
+        trigger(target, key, true)
       }
       return result
     },
   }
 
-  const proxy = new Proxy(targetObj, handler)
-  proxyMap.set(targetObj, proxy)
+  const proxy = new Proxy(original, handler)
+  proxyMap.set(original, proxy)
   return proxy
 }
 
