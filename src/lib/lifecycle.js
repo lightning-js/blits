@@ -17,6 +17,7 @@
 
 import { Log } from './log.js'
 import { emit, privateEmit } from './hooks.js'
+import symbols from './symbols.js'
 
 const states = ['init', 'ready', 'focus', 'unfocus', 'destroy']
 
@@ -34,9 +35,9 @@ export default {
       this.previous = this.current
       this.current = v
       // emit 'private' hook
-      privateEmit(v, this.component.name, this.component)
+      privateEmit(v, this.component[symbols.identifier], this.component)
       // emit 'public' hook
-      emit(v, this.component.name, this.component)
+      emit(v, this.component[symbols.identifier], this.component)
     }
   },
 }

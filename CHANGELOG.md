@@ -1,5 +1,15 @@
 # Changelog
 
+# v0.9.0
+
+_18 mar 2024_
+
+- Added symbol for `id` on component
+- Fixed issue in for loop when `:key` is a number (and not a string)
+- Added built-in `hasFocus` state variable, available on every Component
+- Refactored font loading, removed the need for temporary `src/fontLoader.js` file
+- Replaced using component name with unique identifier for registering and emitting hooks
+
 # v0.8.1
 
 _9 mar 2024_

@@ -225,7 +225,7 @@ const generateForLoopCode = function (templateObject, parent) {
       parent = ${parent}
       if(!component.key) keys.length = 0
       const scope = Object.assign(component, {
-        key: Math.random(),
+        key: Math.random().toString(),
         ${index}: __index,
         ${item}: collection[__index],
     `)
@@ -243,7 +243,7 @@ const generateForLoopCode = function (templateObject, parent) {
 
   if ('key' in templateObject) {
     ctx.renderCode.push(`
-      keys.push(${interpolate(templateObject.key, 'scope.')})
+      keys.push(${interpolate(templateObject.key, 'scope.')}.toString())
     `)
   } else {
     ctx.renderCode.push(`

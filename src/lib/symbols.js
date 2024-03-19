@@ -4,6 +4,7 @@ export default {
   computedKeys: Symbol('computedKeys'),
   destroy: Symbol('destroy'),
   id: Symbol('id'),
+  identifier: Symbol('identifier'),
   index: Symbol('index'),
   init: Symbol('init'),
   inputEvents: Symbol('inputEvents'),

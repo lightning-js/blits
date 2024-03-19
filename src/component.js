@@ -40,6 +40,8 @@ import lifecycle from './lib/lifecycle.js'
 import Settings from './settings.js'
 import symbols from './lib/symbols.js'
 
+let counter = 0
+
 const stage = {
   element,
 }
@@ -56,10 +58,12 @@ const Component = (name = required('name'), config = required('config')) => {
       config.code = codegenerator.call(config, parser(config.template, name, parentComponent))
     }
 
+    component[symbols.identifier] = ++counter
+
     setupBase(component, name)
 
     // setup hooks
-    registerHooks(config.hooks, name)
+    registerHooks(config.hooks, component[symbols.identifier])
 
     // setup props
     // if (config.props) // because of the default props like id - might change this
@@ -97,7 +101,9 @@ const Component = (name = required('name'), config = required('config')) => {
       setupComponent(parentComponent)
     }
     if (config.hooks && config.hooks.frameTick) {
-      renderer.on('frameTick', (r, data) => emit('frameTick', name, this, [data]))
+      renderer.on('frameTick', (r, data) =>
+        emit('frameTick', component[symbols.identifier], this, [data])
+      )
     }
 
     this.parent = parentComponent
@@ -137,7 +143,10 @@ const Component = (name = required('name'), config = required('config')) => {
     })
 
     Object.defineProperty(this, symbols.originalState, {
-      value: (config.state && typeof config.state === 'function' && config.state.apply(this)) || {},
+      value: {
+        ...((config.state && typeof config.state === 'function' && config.state.apply(this)) || {}),
+        ...{ hasFocus: false },
+      },
       writable: false,
       enumerable: false,
       configurable: false,

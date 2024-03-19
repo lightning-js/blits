@@ -35,7 +35,7 @@ const shaderAlias = {
   rounded: 'radius',
 }
 
-export default (component, name) => {
+export default (component, name, identifier) => {
   Object.defineProperties(component.prototype, {
     name: {
       value: name,
@@ -43,8 +43,15 @@ export default (component, name) => {
       enumerable: true,
       configurable: false,
     },
+    [symbols.identifier]: {
+      value: component[symbols.identifier],
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    },
     focus: {
       value: function (e) {
+        this[symbols.state].hasFocus = true
         Focus.set(this, e)
       },
       writable: false,
@@ -53,6 +60,7 @@ export default (component, name) => {
     },
     unfocus: {
       value: function () {
+        this[symbols.state].hasFocus = false
         this.lifecycle.state = 'unfocus'
       },
       writable: false,
