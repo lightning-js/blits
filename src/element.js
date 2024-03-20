@@ -196,7 +196,17 @@ const Props = {
   set text(v) {
     this._props.text = v !== undefined ? v.toString() : ''
   },
+  set shader(v) {
+    this._props.shader = renderer.createShader(v.type, v.props)
+    this._set.add('shader')
+  },
   set effects(v) {
+    if (this._set.has('shader')) {
+      Log.warn(
+        'Already using a shader prop, You can only use a shader or a collection of effects on one element'
+      )
+      return
+    }
     this._props.shader = renderer.createShader('DynamicShader', {
       effects: v.map((eff) => {
         if (eff.props && eff.props.color) {
