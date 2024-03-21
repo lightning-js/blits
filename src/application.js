@@ -76,9 +76,7 @@ const Application = (config) => {
     setTimeout(() => Focus.set(this))
   }
 
-  const App = Component('App', config)
-
-  return App
+  return Component('App', config)
 }
 
 export default Application

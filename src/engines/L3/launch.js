@@ -18,7 +18,9 @@
 import { MainCoreDriver, RendererMain } from '@lightningjs/renderer'
 // import RendererWorker from '@lightningjs/renderer/workers/renderer?worker'
 import { Log } from '../../lib/log.js'
-// import coreExtensionModule from './fontLoader.js?importChunkUrl'
+import { screenResolutions } from '../../lib/utils.js'
+import colors from '../../lib/colors/colors.js'
+import fontLoader from './fontLoader.js'
 
 export let renderer
 
@@ -30,11 +32,33 @@ export default (App, target, settings) => {
   //     })
   //   : new MainRenderDriver()
 
+  if ('fontLoader' in settings) {
+    Log.warn(
+      `
+
+Starting version 0.9.0 of Blits, the Launch setting \`fontLoader\` is not supported / required anymore.
+You can remove the option from your \`src/index.js\`-file. And you can safely remove the file \`src/fontLoader.js\` from your project.
+      `
+    )
+  }
+
   renderer = new RendererMain(
     {
       appWidth: settings.w || 1920,
       appHeight: settings.h || 1080,
-      coreExtensionModule: settings.fontLoader,
+      fpsUpdateInterval: settings.fpsInterval || 1000,
+      deviceLogicalPixelRatio:
+        settings.pixelRatio ||
+        screenResolutions[settings.screenResolution] ||
+        screenResolutions[window.innerHeight] ||
+        1,
+      numImageWorkers:
+        'webWorkersLimit' in settings
+          ? settings.webWorkersLimit
+          : window.navigator.hardwareConcurrency || 2,
+      clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
+      enableInspector: settings.inspector || false,
+      boundsMargin: settings.viewportMargin || 0,
     },
     target,
     driver
@@ -50,7 +74,7 @@ export default (App, target, settings) => {
     }
   }
 
-  renderer.init().then(() => initApp())
+  renderer.init().then(fontLoader).then(initApp)
 
   return renderer
 }

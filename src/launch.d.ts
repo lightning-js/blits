@@ -16,7 +16,7 @@
  */
 
 import ApplicationInstance from './application'
-
+import {type Stage} from '@lightningjs/renderer'
 interface WebFont {
   /**
   * Name of the font family
@@ -32,15 +32,14 @@ interface WebFont {
   file: string
 }
 
-interface SdfFont {
+interface SdfFontWithFile {
   /**
-  * Name of the font family
-  */
-  family: string,
-  /**
-  * Type of font (msdf or sdf)
-  */
-  type: 'msdf' | 'sdf',
+    * Location of the font file (i.e. `/fonts/OpenSans-Medium.ttf`)
+    */
+  file: string
+}
+
+interface SdfFontWithPngJson {
   /**
   * Location of the font map (i.e. `'/fonts/Lato-Regular.msdf.json'`)
   */
@@ -51,12 +50,29 @@ interface SdfFont {
   png: string
 }
 
+type SdfFont = {
+  /**
+  * Name of the font family
+  */
+  family: string,
+  /**
+  * Type of font (msdf or sdf)
+  */
+  type: 'msdf' | 'sdf',
+} & (SdfFontWithFile | SdfFontWithPngJson)
+
+
+type ScreenResolutions = 'hd' | '720p' | 720 | 'fhd' | 'fullhd' | '1080p' | 1080 | '4k' | '2160p' | 2160
+
 type Font = WebFont | SdfFont
 
 export type DebugLevel = 0 | 1 | 2
 export type LogTypes = 'info' | 'warn' | 'error' | 'debug'
 export type ReactivityModes = 'Proxy' | 'defineProperty'
 
+interface ExtensionLoader {
+  async (stage: Stage): void
+}
 /**
  * Settings
  *
@@ -79,15 +95,20 @@ export interface Settings {
   /**
    * Debug level for console log messages
    */
-  debugLevel?: DebugLevel | LogTypes[]
-  /**
-   * Font loader file
-   */
-  fontLoader?: any
+  debugLevel?: DebugLevel | LogTypes[],
   /**
    * Fonts to be used in the Application
    */
   fonts?: Font[],
+  /**
+   * Default font family to use in the Application when no font attribute is specified
+   * on a Text-component
+   *
+   * The default font must be registered in the `fonts` array in the settings.
+   *
+   * Defaults to `lato` font family
+   */
+  defaultFont?: string,
   /**
    * Custom keymapping
    */
@@ -95,7 +116,97 @@ export interface Settings {
   /**
    * Mode of reactivity (`Proxy` or `defineProperty`)
    */
-  reactivityMode?: ReactivityModes
+  reactivityMode?: ReactivityModes,
+  /**
+  * Screen resolution of the device, defining the pixelRatio used to convert dimensions
+  * and positions in the App code to the actual device logical coordinates
+  *
+  * If not supplied, Blits will try to autodetect the device screen resolution. Otherwise
+  * the exact dimensions and positions used the app code are used.
+  *
+  * Note: If the option `pixelRatio` is specified in the Settings object, this value will take presedence
+  * over the screen resolution setting.
+  *
+  * Currently 3 screen resolutions are supported, which can be defined with different alias values:
+  *
+  * For 720x1080 (1px = 0.66666667px)
+  * - hd
+  * - 720p
+  * - 720
+  *
+  * For 1080x1920 (1px = 1px)
+  * - fhd
+  * - fullhd
+  * - 1080p
+  * - 1080
+  *
+  * For 2160x3840 (1px = 2px)
+  * - 4k
+  * - 2160p
+  * - 2160
+  */
+  screenResolution?: ScreenResolutions,
+  /**
+  * Custom pixel ratio of the device used to convert dimensions
+  * and positions in the App code to the actual device logical coordinates
+  *
+  * Takes presedence over the `screenResolution` setting
+  *
+  * Defaults to 1 if not specified
+  */
+  pixelRatio?: number
+  /**
+   * Interval in milliseconds to receive FPS updates
+   *
+   * @remarks
+   * If set to `0`, FPS updates will be disabled.
+   *
+   * @defaultValue `1000` (disabled)
+   */
+  fpsInterval?: number
+  /**
+  * Maximum number of web workers to spin up simultaneously for offloading functionality such
+  * as image loading to separate threads (when supported by the browser)
+  *
+  * If not specified defaults to the number of logical processers available as reported by
+  * `navigator.hardwareConcurrency` (or 2 if `navigator.hardwareConcurrency` is not supported)
+  */
+  webWorkersLimit?: number
+  /**
+   * Background color of the canvas (also known as the clearColor)
+   *
+   * Can be a color name (red, blue, silver), a hexadecimal color (`#000000`, `#ccc`),
+   * or a color number in rgba order (`0xff0033ff`)
+   *
+   * Defauls to transparent (`0x00000000`)
+   *
+   */
+  canvasColor?: string,
+  /**
+   * Enable inspector
+   *
+   * Enables the inspector tool for debugging and inspecting the application, the node tree
+   * will be replicated in the DOM and can be inspected using the browser's developer tools
+   *
+   * Defaults to `false`
+   */
+  inspector?: boolean,
+  /**
+   * Add an extra margin to the viewport for earlier pre-loading of elements and components
+   *
+   * By default the Lightning renderer, only renders elements that are inside the defined viewport.
+   * Everything outside of these bounds is removed from the render tree.
+   *
+   * With the viewportMargin you have the option to _virtually_ increase the viewport area,
+   * to expedite the pre-loading of elements and / or delay the unloading of elements depending
+   * on their position in the (virtual) viewport
+   *
+   * The margin can be specified in 4 directions by defining an array [top, right, bottom, left],
+   * or as a single number which is then applied to all 4 directions equally.
+   *
+   * Defaults to `0`
+   */
+  viewportMargin?: number | [number, number, number, number]
 }
 
 /**

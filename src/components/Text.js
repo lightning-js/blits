@@ -16,6 +16,7 @@
  */
 
 import Component from '../component.js'
+import Settings from '../settings.js'
 
 export default () =>
   Component('Text', {
@@ -29,11 +30,14 @@ export default () =>
         :style="$style"
         :weight="$weight"
         letterSpacing="$letterspacing"
+        lineHeight="$_lineheight"
         stretch="$stretch"
         contain="$_contain"
         :wordWrap="$wordwrap"
         :maxLines="$maxlines"
+        :h="$maxheight"
         :textAlign="$align"
+        :overflowSuffix="$textoverflow"
         @loaded="$@loaded"
         @error="$@error"
       />`,
@@ -41,7 +45,7 @@ export default () =>
       'content',
       {
         key: 'font',
-        default: 'lato',
+        default: Settings.get('defaultFont', 'lato'),
       },
       {
         key: 'size',
@@ -56,16 +60,22 @@ export default () =>
       'align',
       'wordwrap',
       'maxlines',
+      'maxheight',
+      'lineheight',
       'contain',
       '@loaded',
       '@error',
+      'textoverflow',
     ],
     computed: {
       _contain() {
         return (
           this.contain ||
-          (this.wordwrap && this.maxlines ? 'both' : this.wordwrap ? 'width' : 'none')
+          (this.maxheight && this.wordwrap ? 'both' : this.wordwrap ? 'width' : 'none')
         )
+      },
+      _lineheight() {
+        return this.lineheight !== undefined ? this.lineheight : this.size
       },
     },
   })

@@ -21,6 +21,21 @@ import colors from '../../lib/colors/colors.js'
 import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 
+const deprecationMsg = `
+----------------------------------------------------------------------------------------------------
+Deprecation notice:
+----------------------------------------------------------------------------------------------------
+
+The property for defining a transition easing function has been renamed from "function" to "easing".
+
+Please update your code like the example below to keep your custom easing function.
+
+Before: <Element :y.transition=“{v: $y, function: ‘ease-in-out’}” />
+
+After: <Element :y.transition=“{v: $y, easing: ‘ease-in-out’}” />
+
+`
+
 const isTransition = (value) => {
   return typeof value === 'object' && 'transition' in value
 }
@@ -119,15 +134,18 @@ const Props = {
   },
   set texture(v) {
     this._props.texture = v
+    if (!this._set.has('color')) {
+      this._props.color = 0xffffffff
+    }
     this._set.add('texture')
   },
   set mount(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if (v.x) {
+      if ('x' in v) {
         this._props.mountX = v.x
         this._set.add('mountX')
       }
-      if (v.y) {
+      if ('y' in v) {
         this._props.mountY = v.y
         this._set.add('mountY')
       }
@@ -139,11 +157,11 @@ const Props = {
   },
   set pivot(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if (v.x) {
+      if ('x' in v) {
         this._set.add('pivotX')
         this._props.pivotX = v.x
       }
-      if (v.y) {
+      if ('y' in v) {
         this._set.add('pivotY')
         this._props.pivotY = v.y
       }
@@ -155,22 +173,28 @@ const Props = {
   },
   set scale(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if (v.x) this._props.scaleX = v.x
-      if (v.y) this._props.scaleY = v.y
+      if ('x' in v) {
+        this._set.add('scaleX')
+        this._props.scaleX = v.x
+      }
+      if ('y' in v) {
+        this._set.add('scaleX')
+        this._props.scaleY = v.y
+      }
     } else {
       this._props.scale = v
+      this._set.add('scale')
     }
-    this._set.add('scale')
   },
   set show(v) {
-    this.alpha = v ? 1 : 0
+    this._props.alpha = v ? 1 : 0
   },
   set alpha(v) {
     this._props.alpha = v
     this._set.add('alpha')
   },
   set text(v) {
-    this._props.text = v !== undefined ? v.toString() : ''
+    this._props.text = v.toString()
   },
   set effects(v) {
     this._props.shader = renderer.createShader('DynamicShader', {
@@ -182,6 +206,9 @@ const Props = {
       }),
     })
     this._set.add('effects')
+  },
+  set clipping(v) {
+    this._props.clipping = v
   },
   set fontFamily(v) {
     this._props.fontFamily = v
@@ -196,10 +223,16 @@ const Props = {
     this._props.contain = v
   },
   set maxLines(v) {
-    this.height = v * this.element.node.fontSize
+    this._props.maxLines = v
+  },
+  set overflowSuffix(v) {
+    this._props.overflowSuffix = v === false ? ' ' : v === true ? undefined : v
   },
   set letterSpacing(v) {
-    this._props.letterSpacing = v
+    this._props.letterSpacing = v || 1
+  },
+  set lineHeight(v) {
+    this._props.lineHeight = v
   },
   set textAlign(v) {
     this._props.textAlign = v
@@ -226,12 +259,14 @@ const Element = {
     for (const [prop, value] of Object.entries(props)) {
       const descriptor = Object.getOwnPropertyDescriptor(Props, prop)
       if (descriptor && descriptor.set) {
-        this.props[prop] = unpackTransition(value)
+        if (value !== undefined) {
+          this.props[prop] = unpackTransition(value)
+        }
       }
     }
 
-    // correct for default white nodes
-    if (!this.props._set.has('color')) {
+    // correct for default white nodes (but not for text nodes)
+    if (!props.__textnode && !this.props._set.has('color')) {
       this.props._props.color =
         this.props._set.has('src') || this.props._set.has('texture') ? 0xffffffff : 0
     }
@@ -253,6 +288,7 @@ const Element = {
     }
   },
   set(prop, value) {
+    if (value === undefined) return
     const propsSet = new Set(this.props._set)
 
     this.props._props = {}
@@ -292,47 +328,54 @@ const Element = {
       easing:
         typeof transition === 'object'
           ? 'function' in transition
-            ? transition.function
+            ? Log.warn(deprecationMsg)
+            : 'easing' in transition
+            ? transition.easing
             : 'ease'
           : 'ease',
+      delay: typeof transition === 'object' ? ('delay' in transition ? transition.delay : 0) : 0,
     })
 
     // schedule transition
     return new Promise((resolve) => {
+      const startValue = this.node[prop]
       this.scheduledTransitions[prop] = {
         v: props[prop],
-        f,
-        timeout: setTimeout(() => {
-          // fire transition start callback if specified
-          transition.start &&
-            typeof transition.start === 'function' &&
-            transition.start.call(this.component, this, prop, props[prop])
-
-          // start the animation
+        f: () => {
           try {
             f.start()
-              .waitUntilStopped()
-              .then(() => delete this.scheduledTransitions[prop])
-              .then(() => {
-                // fire transition end callback if specified
-                transition.end &&
-                  typeof transition.end === 'function' &&
-                  transition.end.call(this.component, this, prop, props[prop])
+              .waitUntilStarted()
+              .then((animation) => {
+                // fire transition start callback if specified
+                transition.start &&
+                  typeof transition.start === 'function' &&
+                  transition.start.call(this.component, this, prop, startValue)
+                // continue the chain
+                animation
+                  .waitUntilStopped()
+                  .then(() => delete this.scheduledTransitions[prop])
+                  .then(() => {
+                    // fire transition end callback if specified
+                    transition.end &&
+                      typeof transition.end === 'function' &&
+                      transition.end.call(this.component, this, prop, this.node[prop])
+                  })
+                  .then(resolve)
               })
-              .then(resolve)
           } catch (e) {
             Log.error(e)
           }
-        }, transition.delay || 0),
+        },
       }
+      this.scheduledTransitions[prop].f()
     })
   },
-  delete() {
+  destroy() {
     Log.debug('Deleting  Node', this.nodeId)
     Object.values(this.scheduledTransitions).forEach((scheduledTransition) => {
       clearTimeout(scheduledTransition.timeout)
     })
-    this.node.parent = null
+    this.node.destroy()
   },
   get nodeId() {
     return this.node && this.node.id

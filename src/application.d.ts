@@ -35,7 +35,7 @@ declare namespace Application {
     /**
      * Easing function to apply to the transition
      */
-    function?: string,
+    easing?: string,
     /**
      * Delay before the transition starts in milliseconds
      */
@@ -70,6 +70,19 @@ declare namespace Application {
 
   type RouteTransitionFunction = (previousRoute: Route, currentRoute: Route) => RequireAtLeastOne<RouteTransition>
 
+  interface RouteAnnounce {
+    /**
+     * Message to be announced
+     */
+    message: String,
+    /**
+     * Politeness level
+     *
+     * Defaults to 'off'
+     */
+    politeness?: 'off' | 'polite' | 'assertive'
+  }
+
   function Application(
     config: Application.ApplicationConfig
   ) : Application.ApplicationInstance
@@ -94,7 +107,14 @@ declare namespace Application {
     /**
      * Extra route options
      */
-    options?: object // todo: specify which options are available
+    options?: object // todo: specify which options are available,
+    /**
+     * Message to be announced when visiting the route (often used for accessibility purposes)
+     *
+     * Can be either a `String` with the message or an object that defines the message and the
+     * politeness level
+     */
+    announce?: String | RouteAnnounce
   }
 
   export interface ApplicationInstance extends ComponentInstance {}

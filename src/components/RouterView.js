@@ -44,8 +44,8 @@ export default () =>
       },
     },
     input: {
-      back(e) {
-        if (!Router.back()) this.parent.focus(e)
+      back() {
+        Router.back()
       },
     },
   })

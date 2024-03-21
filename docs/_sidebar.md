@@ -1,11 +1,25 @@
-- [Getting started](getting_started.md)
-- [Components](components.md)
-- [Template syntax](template_syntax.md)
-- [Component state](component_state.md)
-- [Hooking into lifecycle events](lifecycle_events.md)
-- [Props](props.md)
-- [Handling user input](user_input.md)
-- [Computed properties](computed_properties.md)
-- [Watching for changes](watchers.md)
-- [Styling and positioning Elements](element_attributes.md)
-
+- Getting started
+  - [Intro](/getting_started/intro.md)
+  - [Getting started](/getting_started/getting_started.md)
+  - [File structure](/getting_started/file_structure.md)
+- Essentials
+  - [Application root](/essentials/application_root.md)
+  - [Component basics](/essentials/components.md)
+  - [Template syntax](/essentials/template_syntax.md)
+  - [Supported element attributes](/essentials/element_attributes.md)
+  - [Displaying images](/essentials/displaying_images.md)
+  - [Displaying text](/essentials/displaying_text.md)
+- Components
+  - [State](/components/component_state.md)
+  - [Props](/components/props.md)
+  - [Computed properties](/components/computed_properties.md)
+  - [Watchers](/components/watchers.md)
+  - [Hooking into lifecycle events](/components/lifecycle_events.md)
+  - [Handling User input](/components/user_input.md)
+  - [Methods](/components/methods.md)
+- Transitions and Animations
+  - [Transitions](/transitions_animations/transitions.md)
+- Built-in components
+  - [Directives](/built-in/directives.md)
+- Plugins
+  - [Text-to-Speech / Announcer](/plugins/text-to-speech-announcer.md)

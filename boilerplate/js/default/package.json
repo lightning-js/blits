@@ -1,0 +1,36 @@
+{
+  "name": "{$appPackage}",
+  "version": "0.1.0",
+  "description": "{$appName}",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "npm run dev",
+    "lint": "eslint '**/*.js'",
+    "lint:fix": "eslint '**/*.js' --fix",
+    "build": "vite build",
+    "dev": "vite dev --host"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "devDependencies": {
+    "eslint": "^8.8.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^7.0.4",
+    "lint-staged": "^12.3.3",
+    "prettier": "^2.5.1",
+    "vite": "^4.0.4"
+  },
+  "dependencies": {
+    "@lightningjs/blits": "{$blitsVersion}"
+  }
+}

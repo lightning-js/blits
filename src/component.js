@@ -18,10 +18,10 @@
 import parser from './lib/templateparser/parser.js'
 import codegenerator from './lib/codegenerator/generator.js'
 
-import { stage } from './launch.js'
+import { stage, renderer } from './launch.js'
 
 import { createHumanReadableId, createInternalId } from './lib/componentId.js'
-import { registerHooks, emit, privateEmit } from './lib/hooks.js'
+import { registerHooks, emit } from './lib/hooks.js'
 
 import { reactive } from './lib/reactivity/reactive.js'
 import setupBase from './lib/setup/base.js'
@@ -34,29 +34,31 @@ import setupRoutes from './lib/setup/routes.js'
 import setupWatch from './lib/setup/watch.js'
 import { effect } from './lib/reactivity/effect.js'
 import { Log } from './lib/log.js'
+import lifecycle from './lib/lifecycle.js'
 
 import Settings from './settings.js'
 import symbols from './lib/symbols.js'
+
+let counter = 0
 
 const required = (name) => {
   throw new Error(`Parameter ${name} is required`)
 }
 
 const Component = (name = required('name'), config = required('config')) => {
-  let code = null
-
-  const setupComponent = (lifecycle) => {
+  const setupComponent = (parentComponent) => {
     // code generation
-    if (!code) {
+    if (!config.code) {
       Log.debug(`Generating code for ${name} component`)
-      code = codegenerator.call(config, parser(config.template))
+      config.code = codegenerator.call(config, parser(config.template, name, parentComponent))
     }
 
-    setupBase(component)
+    component[symbols.identifier] = ++counter
+
+    setupBase(component, name)
 
     // setup hooks
-    registerHooks(config.hooks, name)
-    lifecycle.state = 'beforeSetup'
+    registerHooks(config.hooks, component[symbols.identifier])
 
     // setup props
     // if (config.props) // because of the default props like id - might change this
@@ -81,51 +83,28 @@ const Component = (name = required('name'), config = required('config')) => {
     if (config.input) setupInput(component, config.input)
 
     component.setup = true
-    lifecycle.state = 'setup'
-  }
-
-  const createLifecycle = (scope) => {
-    const states = ['init', 'beforeSetup', 'setup', 'ready', 'focus', 'unfocus', 'destroy']
-
-    return {
-      previous: null,
-      current: null,
-      get state() {
-        return this.current
-      },
-      set state(v) {
-        if (states.indexOf(v) > -1 && v !== this.current) {
-          Log.debug(
-            `Setting lifecycle state from ${this.previous} to ${v} for ${scope.componentId}`
-          )
-          this.previous = this.current
-          // emit 'private' hook
-          privateEmit(v, name, scope)
-          // emit 'public' hook
-          emit(v, name, scope)
-          this.current = v
-        }
-      },
-    }
   }
 
   const component = function (opts, parentEl, parentComponent) {
-    this.lifecycle = createLifecycle(this)
+    this.lifecycle = Object.assign(Object.create(lifecycle), {
+      component: this,
+      previous: null,
+      current: null,
+    })
 
     if (!component.setup) {
-      setupComponent(this.lifecycle)
+      setupComponent(parentComponent)
+    }
+    if (config.hooks && config.hooks.frameTick) {
+      renderer.on('frameTick', (r, data) =>
+        emit('frameTick', component[symbols.identifier], this, [data])
+      )
     }
 
     this.parent = parentComponent
-    this.wrapper = parentEl
+    this[symbols.wrapper] = parentEl
 
     Object.defineProperties(this, {
-      type: {
-        value: name,
-        writable: false,
-        enumerable: true,
-        configurable: false,
-      },
       componentId: {
         value: createHumanReadableId(name),
         writable: false,
@@ -144,10 +123,25 @@ const Component = (name = required('name'), config = required('config')) => {
         enumerable: false,
         configurable: false,
       },
+      [symbols.timeouts]: {
+        value: [],
+        writable: true,
+        enumerable: false,
+        configurable: false,
+      },
+      [symbols.intervals]: {
+        value: [],
+        writable: true,
+        enumerable: false,
+        configurable: false,
+      },
     })
 
     Object.defineProperty(this, symbols.originalState, {
-      value: (config.state && typeof config.state === 'function' && config.state.apply(this)) || {},
+      value: {
+        ...((config.state && typeof config.state === 'function' && config.state.apply(this)) || {}),
+        ...{ hasFocus: false },
+      },
       writable: false,
       enumerable: false,
       configurable: false,
@@ -163,7 +157,7 @@ const Component = (name = required('name'), config = required('config')) => {
     this.lifecycle.state = 'init'
 
     Object.defineProperty(this, symbols.children, {
-      value: code.render.apply(stage, [parentEl, this, code.context]),
+      value: config.code.render.apply(stage, [parentEl, this, config]),
       writable: false,
       enumerable: false,
       configurable: false,
@@ -176,9 +170,9 @@ const Component = (name = required('name'), config = required('config')) => {
       configurable: false,
     })
 
-    code.effects.forEach((eff) => {
+    config.code.effects.forEach((eff) => {
       effect(() => {
-        eff.apply(stage, [this, this[symbols.children], code.context])
+        eff.apply(stage, [this, this[symbols.children], config])
       })
     })
 

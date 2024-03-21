@@ -16,10 +16,33 @@
  */
 
 let currentEffect = null
+
+let paused = false
+
+export const pauseTracking = () => {
+  paused = true
+}
+
+export const resumeTracking = () => {
+  paused = false
+  for (let i = 0; i < trackQueue.length; i++) {
+    const item = trackQueue[i]
+    currentEffect = item.currentEffect
+    track(item.target, item.key)
+  }
+  trackQueue.length = 0
+}
+
 const objectMap = new WeakMap()
+
+const trackQueue = []
 
 export const track = (target, key) => {
   if (currentEffect) {
+    if (paused) {
+      trackQueue.push({ target, key, currentEffect })
+      return
+    }
     let effectsMap = objectMap.get(target)
     if (!effectsMap) {
       effectsMap = new Map()

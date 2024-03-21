@@ -124,7 +124,13 @@ declare namespace Component {
     /**
     * Fires when the Component is being destroyed and removed.
     */
-    destroy?: (this: ComponentInstance) => void
+    destroy?: (this: ComponentInstance) => void,
+    /**
+    * Fires upon each frame start  (allowing you to tap directly into the renderloop)
+    *
+    * Note: This hook will fire continuously, multiple times per second!
+    */
+    frameTick?: (this: ComponentInstance) => void
   }
 
   export interface ComponentInstance {
@@ -144,9 +150,19 @@ declare namespace Component {
     $setTimeout: (callback: (args: any) => void, ms?: number | undefined) => ReturnType<typeof setTimeout>
 
     /**
+    * Clear a timeout
+    */
+    $clearTimeout: (id: ReturnType<typeof setTimeout>) => void
+
+    /**
     * Set an interval that is automatically cleaned upon component destroy
     */
     $setInterval: (callback: (args: any) => void, ms?: number | undefined) => ReturnType<typeof setInterval>
+
+    /**
+    * Clear a interval
+    */
+    $clearInterval: (id: ReturnType<typeof setInterval>) => void
 
     /**
     * Log to the console with prettier output and configurable debug levels in Settings

@@ -35,7 +35,7 @@ export default {
   },
   set(component, event) {
     clearTimeout(setFocusTimeout)
-    focusedComponent && focusedComponent.unfocus()
+    focusedComponent && focusedComponent !== component.parent && focusedComponent.unfocus()
     focusChain.reverse().forEach((cmp) => cmp.unfocus())
     if (component !== focusedComponent) {
       setFocusTimeout = setTimeout(
