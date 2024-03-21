@@ -55,8 +55,8 @@ const reactiveProxy = (original, _parent = null, _key) => {
             // trigger a change on the parent object and the key
             // i.e. when pushing a new item to `obj.data`, _parent will equal `obj`
             // and _key will equal `data`
-            trigger(_parent, _key)
             resumeTracking()
+            trigger(_parent, _key)
             return result
           }
         } else {

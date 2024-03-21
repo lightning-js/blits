@@ -219,7 +219,7 @@ const generateForLoopCode = function (templateObject, parent) {
 
   const forCounter = counter
   ctx.renderCode.push(`
-    const collection = ${cast(result[2], ':for')}
+    const collection = ${cast(result[2], ':for')} || []
     const keys = []
     for(let __index = 0; __index < collection.length; __index++) {
       parent = ${parent}
