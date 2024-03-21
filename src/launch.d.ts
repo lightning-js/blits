@@ -190,7 +190,23 @@ export interface Settings {
    *
    * Defaults to `false`
    */
-  inspector?: boolean
+  inspector?: boolean,
+  /**
+   * Add an extra margin to the viewport for earlier pre-loading of elements and components
+   *
+   * By default the Lightning renderer, only renders elements that are inside the defined viewport.
+   * Everything outside of these bounds is removed from the render tree.
+   *
+   * With the viewportMargin you have the option to _virtually_ increase the viewport area,
+   * to expedite the pre-loading of elements and / or delay the unloading of elements depending
+   * on their position in the (virtual) viewport
+   *
+   * The margin can be specified in 4 directions by defining an array [top, right, bottom, left],
+   * or as a single number which is then applied to all 4 directions equally.
+   *
+   * Defaults to `0`
+   */
+  viewportMargin?: number | [number, number, number, number]
 }
 
 /**
