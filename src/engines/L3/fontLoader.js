@@ -1,6 +1,6 @@
 import { WebTrFontFace, SdfTrFontFace } from '@lightningjs/renderer/core'
 
-import Settings from './settings'
+import Settings from '../../settings'
 import { renderer } from './launch'
 
 export default () => {

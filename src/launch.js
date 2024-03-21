@@ -15,69 +15,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { MainCoreDriver, RendererMain } from '@lightningjs/renderer'
-// import RendererWorker from '@lightningjs/renderer/workers/renderer?worker'
 import Settings from './settings.js'
-import { initLog, Log } from './lib/log.js'
-import { screenResolutions } from './lib/utils.js'
-import colors from './lib/colors/colors.js'
-import fontLoader from './fontLoader.js'
+import { initLog } from './lib/log.js'
+import engine from './engine.js'
 
 export let renderer
+export const stage = {}
 
 export default (App, target, settings) => {
   Settings.set(settings)
 
   initLog()
 
-  const driver = new MainCoreDriver()
-  // settings.multithreaded === true
-  //   ? new ThreadXRenderDriver({
-  //       RendererWorker,
-  //     })
-  //   : new MainCoreDriver()
+  stage.element = engine.Element
 
-  if ('fontLoader' in settings) {
-    Log.warn(
-      `
-
-Starting version 0.9.0 of Blits, the Launch setting \`fontLoader\` is not supported / required anymore.
-You can remove the option from your \`src/index.js\`-file. And you can safely remove the file \`src/fontLoader.js\` from your project.
-      `
-    )
-  }
-
-  renderer = new RendererMain(
-    {
-      appWidth: settings.w || 1920,
-      appHeight: settings.h || 1080,
-      fpsUpdateInterval: settings.fpsInterval || 1000,
-      deviceLogicalPixelRatio:
-        settings.pixelRatio ||
-        screenResolutions[settings.screenResolution] ||
-        screenResolutions[window.innerHeight] ||
-        1,
-      numImageWorkers:
-        'webWorkersLimit' in settings
-          ? settings.webWorkersLimit
-          : window.navigator.hardwareConcurrency || 2,
-      clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
-      enableInspector: settings.inspector || false,
-      boundsMargin: settings.viewportMargin || 0,
-    },
-    target,
-    driver
-  )
-
-  const initApp = () => {
-    let app = App()
-    app.quit = () => {
-      Log.info('Closing App')
-      app.destroy()
-      app = null
-      renderer = null
-    }
-  }
-
-  renderer.init().then(fontLoader).then(initApp)
+  renderer = engine.Launch(App, target, settings)
 }
