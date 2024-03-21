@@ -1,5 +1,11 @@
 # Changelog
 
+# v0.9.2
+
+_21 mar 2024_
+
+- Fixed issue with updates not triggering during array operation
+
 # v0.9.1
 
 _21 mar 2024_
