@@ -1,5 +1,11 @@
 # Changelog
 
+# v0.9.3
+
+_25 mar 2024_
+
+- Added support for mount / pivot on Text elements and Sprites.
+
 # v0.9.2
 
 _21 mar 2024_
