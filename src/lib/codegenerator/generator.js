@@ -219,6 +219,17 @@ const generateForLoopCode = function (templateObject, parent) {
   }
 
   const forCounter = counter
+
+  // reference all reactive attributes (except those referencing the iterator item),
+  // to ensure that reactivity is registered, even when the initial array is empty
+  Object.keys(templateObject).forEach((k) => {
+    if (isReactiveKey(k) && templateObject[k].indexOf('$' + item) === -1) {
+      ctx.renderCode.push(`
+        void ${interpolate(templateObject[k], 'component.')}
+      `)
+    }
+  })
+
   ctx.renderCode.push(`
     const collection = ${cast(result[2], ':for')} || []
     const keys = []
