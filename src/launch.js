@@ -63,6 +63,7 @@ You can remove the option from your \`src/index.js\`-file. And you can safely re
           : window.navigator.hardwareConcurrency || 2,
       clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
       enableInspector: settings.inspector || false,
+      boundsMargin: settings.viewportMargin || 0,
     },
     target,
     driver

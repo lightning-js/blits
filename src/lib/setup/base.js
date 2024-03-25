@@ -270,15 +270,15 @@ export default (component, name, identifier) => {
 }
 
 const deleteChildren = function (children) {
-  // for (let i = 0; i < children.length; i++) {
-  //   if (!children[i]) return
-  //   if (Array.isArray(children[i])) {
-  //     deleteChildren(children[i])
-  //   } else if (children[i].destroy) {
-  //     children[i].destroy()
-  //   }
-  //   children[i] = null
-  // }
+  for (let i = 0; i < children.length; i++) {
+    if (!children[i]) return
+    if (Array.isArray(children[i])) {
+      deleteChildren(children[i])
+    } else if (children[i].destroy) {
+      children[i].destroy()
+    }
+    children[i] = null
+  }
 
   children.length = 0
 }

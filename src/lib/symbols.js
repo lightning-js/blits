@@ -13,6 +13,7 @@ export default {
   methodKeys: Symbol('methodKeys'),
   originalState: Symbol('originalState'),
   propKeys: Symbol('propKeys'),
+  raw: Symbol('raw'),
   ready: Symbol('ready'),
   renderer: Symbol('renderer'),
   routes: Symbol('routes'),

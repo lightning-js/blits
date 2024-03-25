@@ -1,5 +1,21 @@
 # Changelog
 
+# v0.9.2
+
+_21 mar 2024_
+
+- Fixed issue with updates not triggering during array operation
+
+# v0.9.1
+
+_21 mar 2024_
+
+- Improved support for reactive advanced array operations (i.e. `splice()`, `concat()`, `sort()`)
+- Upgraded Lightning renderer to v0.7.6
+- Reverted removal of destroy of child nodes (added in v0.8.1)
+- Introduced `viewportMargin` setting
+- Added `undefined`-check for props sent to renderer
+
 # v0.9.0
 
 _18 mar 2024_

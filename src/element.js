@@ -194,7 +194,7 @@ const Props = {
     this._set.add('alpha')
   },
   set text(v) {
-    this._props.text = v !== undefined ? v.toString() : ''
+    this._props.text = v.toString()
   },
   set shader(v) {
     this._props.shader = renderer.createShader(v.type, v.props)
@@ -239,7 +239,7 @@ const Props = {
     this._props.overflowSuffix = v === false ? ' ' : v === true ? undefined : v
   },
   set letterSpacing(v) {
-    this._props.letterSpacing = v
+    this._props.letterSpacing = v || 1
   },
   set lineHeight(v) {
     this._props.lineHeight = v
@@ -269,12 +269,14 @@ const Element = {
     for (const [prop, value] of Object.entries(props)) {
       const descriptor = Object.getOwnPropertyDescriptor(Props, prop)
       if (descriptor && descriptor.set) {
-        this.props[prop] = unpackTransition(value)
+        if (value !== undefined) {
+          this.props[prop] = unpackTransition(value)
+        }
       }
     }
 
-    // correct for default white nodes
-    if (!this.props._set.has('color')) {
+    // correct for default white nodes (but not for text nodes)
+    if (!props.__textnode && !this.props._set.has('color')) {
       this.props._props.color =
         this.props._set.has('src') || this.props._set.has('texture') ? 0xffffffff : 0
     }
@@ -296,6 +298,7 @@ const Element = {
     }
   },
   set(prop, value) {
+    if (value === undefined) return
     const propsSet = new Set(this.props._set)
 
     this.props._props = {}
