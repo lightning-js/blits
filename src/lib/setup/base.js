@@ -106,9 +106,9 @@ export default (component, name, identifier) => {
     shader: {
       value: function (type, args) {
         const target = shaderAlias[type] || type
-        const shaders = renderer.driver.stage.shManager.getRegisteredEffects()
-
-        if (target in shaders) {
+        const effects = renderer.driver.stage.shManager.getRegisteredEffects()
+        const shaders = renderer.driver.stage.shManager.getRegisteredShaders()
+        if (target in effects || target in shaders) {
           return {
             type: target,
             props: args,

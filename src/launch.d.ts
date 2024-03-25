@@ -16,7 +16,7 @@
  */
 
 import ApplicationInstance from './application'
-import {type Stage} from '@lightningjs/renderer'
+import {type Stage, type ShaderEffect as RendererShaderEffect, type WebGlCoreShader} from '@lightningjs/renderer'
 interface WebFont {
   /**
   * Name of the font family
@@ -61,6 +61,16 @@ type SdfFont = {
   type: 'msdf' | 'sdf',
 } & (SdfFontWithFile | SdfFontWithPngJson)
 
+type Shader = {
+  name: string,
+  type: WebGlCoreShader
+}
+
+type ShaderEffect = {
+  name: string,
+  type: RendererShaderEffect
+}
+
 
 type ScreenResolutions = 'hd' | '720p' | 720 | 'fhd' | 'fullhd' | '1080p' | 1080 | '4k' | '2160p' | 2160
 
@@ -100,6 +110,14 @@ export interface Settings {
    * Fonts to be used in the Application
    */
   fonts?: Font[],
+  /**
+   * ShaderEffects to be used by DynamicShader
+   */
+  shaderEffects?: ShaderEffect[],
+  /**
+   * Shaders to be used in the application
+   */
+  shaders?: Shader[],
   /**
    * Default font family to use in the Application when no font attribute is specified
    * on a Text-component
