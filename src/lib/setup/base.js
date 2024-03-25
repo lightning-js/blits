@@ -35,7 +35,7 @@ const shaderAlias = {
   rounded: 'radius',
 }
 
-export default (component, name, identifier) => {
+export default (component, name) => {
   Object.defineProperties(component.prototype, {
     name: {
       value: name,

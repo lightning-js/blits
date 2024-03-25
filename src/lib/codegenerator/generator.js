@@ -76,6 +76,7 @@ const generateElementCode = function (
     }
 
     if (isReactiveKey(key)) {
+      if (options.holder && key === ':color') return
       this.effectsCode.push(
         `${elm}.set('${key.substring(1)}', ${interpolate(templateObject[key], options.component)})`
       )
@@ -90,7 +91,7 @@ const generateElementCode = function (
     renderCode.push(`
     if(typeof cmp${counter} !== 'undefined') {
       for(let key in cmp${counter}.config.props) {
-        delete  elementConfig${counter}[cmp${counter}.config.props[key]]
+        delete elementConfig${counter}[cmp${counter}.config.props[key]]
       }
     }
     `)

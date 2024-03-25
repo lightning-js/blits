@@ -22,9 +22,9 @@ import symbols from '../lib/symbols.js'
 export default () =>
   Component('Sprite', {
     template: `
-      <Element w="$w" h="$h" :texture="$texture" :color="$color" />
+      <Element w="100%" h="100%" :texture="$texture" :color="$color" />
     `,
-    props: ['image', 'map', 'frame', 'w', 'h', 'color'],
+    props: ['image', 'map', 'frame', 'color'],
     state() {
       return {
         spriteTexture: false,
