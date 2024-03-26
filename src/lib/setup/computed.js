@@ -25,7 +25,7 @@ export default (component, computeds) => {
   for (let computed in computeds) {
     // test for reserved keys?
     if (component[symbols.stateKeys] && component[symbols.stateKeys].indexOf(computed) > -1) {
-      Log.error(`${computed} already exists as a prop`)
+      Log.error(`${computed} already exists as a state variable`)
     } else if (component[symbols.propKeys] && component[symbols.propKeys].indexOf(computed) > -1) {
       Log.error(`${computed} already exists as a prop`)
     } else if (
