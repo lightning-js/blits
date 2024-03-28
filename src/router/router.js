@@ -60,6 +60,7 @@ export const matchHash = (path, routes = []) => {
     const route = routes[i]
     route.path = normalizePath(route.path)
     if (route.path === path) {
+      route.params = {}
       matchingRoute = route
     } else if (route.path.indexOf(':') > -1) {
       // match dynamic route parts
@@ -115,15 +116,13 @@ export const navigate = async function () {
     if (route) {
       if (route.hooks) {
         if (route.hooks.before) {
-          const args = route.params ? route.params : {}
-          beforeHookOutput = await route.hooks.before(args)
+          beforeHookOutput = await route.hooks.before(route.params)
           if (isString(beforeHookOutput)) {
             to(beforeHookOutput)
             return
           }
         }
       }
-      beforeHookOutput = isObject(beforeHookOutput) ? beforeHookOutput : {}
 
       // add the previous route (technically still the current route at this point)
       // into the history stack, unless navigating back or inHistory flag of route is false
