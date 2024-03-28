@@ -46,6 +46,9 @@ const normalizePath = (path) => {
       .toLowerCase()
   )
 }
+const isObject = (v) => typeof v === 'object' && v !== null
+
+const isString = (v) => typeof v === 'string'
 
 export const matchHash = (path, routes = []) => {
   // remove trailing slashes
@@ -108,8 +111,20 @@ export const navigate = async function () {
     const previousRoute = currentRoute
     const hash = getHash()
     const route = matchHash(hash, this.parent[symbols.routes])
-
+    let beforeHookOutput
     if (route) {
+      if (route.hooks) {
+        if (route.hooks.before) {
+          const args = route.params ? route.params : {}
+          beforeHookOutput = await route.hooks.before(args)
+          if (isString(beforeHookOutput)) {
+            to(beforeHookOutput)
+            return
+          }
+        }
+      }
+      beforeHookOutput = isObject(beforeHookOutput) ? beforeHookOutput : {}
+
       // add the previous route (technically still the current route at this point)
       // into the history stack, unless navigating back or inHistory flag of route is false
       if (navigatingBack === false && previousRoute && previousRoute.options.inHistory === true) {
@@ -135,7 +150,12 @@ export const navigate = async function () {
         holder.set('w', '100%')
         holder.set('h', '100%')
         // merge props with potential route params to be injected into the component instance
-        const props = { ...this[symbols.props], ...route.params, ...navigationData }
+        const props = {
+          ...this[symbols.props],
+          ...route.params,
+          ...navigationData,
+          ...beforeHookOutput,
+        }
 
         view = await route.component({ props }, holder, this)
         if (view[Symbol.toStringTag] === 'Module') {

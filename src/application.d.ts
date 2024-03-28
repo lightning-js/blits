@@ -115,6 +115,11 @@ declare namespace Application {
      * politeness level
      */
     announce?: String | RouteAnnounce
+    /**
+     * Register hooks for the route
+     */
+    hooks?: object
+
   }
 
   export interface ApplicationInstance extends ComponentInstance {}
