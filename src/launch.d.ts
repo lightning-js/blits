@@ -206,7 +206,17 @@ export interface Settings {
    *
    * Defaults to `0`
    */
-  viewportMargin?: number | [number, number, number, number]
+  viewportMargin?: number | [number, number, number, number],
+  /**
+   * Threshold in `Megabytes` after which all the textures that are currently not visible
+   * within the configured viewport margin will be be freed and cleaned up
+   *
+   * When passed `0` the threshold is disabled and textures will not be actively freed
+   * and cleaned up
+   *
+   * Defaults to `200` (mb)
+   */
+  gpuMemoryLimit?: number
 }
 
 /**

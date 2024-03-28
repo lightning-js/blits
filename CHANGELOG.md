@@ -1,5 +1,14 @@
 # Changelog
 
+# v0.9.4
+
+_28 mar 2024_
+
+- Upgraded Lightning renderer to v0.8.0
+- Fixed issue with reactivity in a forloop when initial array is empty
+- Introduced new `gpuMemoryLimit` launch setting
+
+
 # v0.9.3
 
 _25 mar 2024_

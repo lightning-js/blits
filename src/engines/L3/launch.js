@@ -59,6 +59,9 @@ You can remove the option from your \`src/index.js\`-file. And you can safely re
       clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
       enableInspector: settings.inspector || false,
       boundsMargin: settings.viewportMargin || 0,
+      // gpu memory limit, converted from mb to bytes - defaults to 200mb
+      txMemByteThreshold:
+        'gpuMemoryLimit' in settings ? settings.gpuMemoryLimit * 1024 * 1024 : 200 * 1024 * 1024,
     },
     target,
     driver
