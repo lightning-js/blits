@@ -1,5 +1,12 @@
 # Changelog
 
+# v0.9.5
+
+_29 mar 2024_
+
+- Fixed cancelling  of scheduled / running transitions when starting a new transition on the same prop (broke in v0.7.1).
+- Added viewport relates lifecycle hooks
+
 # v0.9.4
 
 _28 mar 2024_
