@@ -113,11 +113,13 @@ declare namespace Component {
     ready?: (this: ComponentInstance) => void
     /**
     * Triggers when the Component receives focus.
+    *
     * This event can fire multiple times during the component's lifecycle
     */
     focus?: (this: ComponentInstance) => void
     /**
     * Triggers when the Component loses focus.
+    *
     * This event can fire multiple times during the component's lifecycle
     */
     unfocus?: (this: ComponentInstance) => void
@@ -130,7 +132,31 @@ declare namespace Component {
     *
     * Note: This hook will fire continuously, multiple times per second!
     */
-    frameTick?: (this: ComponentInstance) => void
+    frameTick?: (this: ComponentInstance) => void,
+    /**
+    * Fires when the component enters the viewport _margin_ and is attached to the render tree
+    *
+    * This event can fire multiple times during the component's lifecycle
+    */
+    attach?: (this: ComponentInstance) => void,
+    /**
+    * Fires when the component leaves the viewport _margin_ and is detached from the render tree
+    *
+    * This event can fire multiple times during the component's lifecycle
+    */
+    detach?: (this: ComponentInstance) => void,
+    /**
+    * Fires when the component enters the visible viewport
+    *
+    * This event can fire multiple times during the component's lifecycle
+    */
+    enter?: (this: ComponentInstance) => void,
+    /**
+    * Fires when the component leaves the visible viewport
+    *
+    * This event can fire multiple times during the component's lifecycle
+    */
+    exit?: (this: ComponentInstance) => void,
   }
 
   export interface ComponentInstance {
