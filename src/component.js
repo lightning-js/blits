@@ -177,8 +177,8 @@ const Component = (name = required('name'), config = required('config')) => {
     }
 
     if (config.hooks && config.hooks.detach) {
-      this[symbols.wrapper].node.on('outOfBounds', () => {
-        this.lifecycle.state = 'detach'
+      this[symbols.wrapper].node.on('outOfBounds', (node, { previous }) => {
+        if (previous > 0) this.lifecycle.state = 'detach'
       })
     }
 
