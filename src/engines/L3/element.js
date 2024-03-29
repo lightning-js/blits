@@ -311,11 +311,10 @@ const Element = {
   },
   animate(prop, value, transition) {
     if (this.node[prop] === value) return Promise.resolve()
-    // check if a transition is already schedule or running on the same prop
+    // check if a transition is already scheduled or running on the same prop
     if (this.scheduledTransitions[prop]) {
-      // clearTimeout(this.scheduledTransitions[prop].timeout)
       if (this.scheduledTransitions[prop].f.state === 'running') {
-        this.scheduledTransitions[prop].f.pause()
+        this.scheduledTransitions[prop].f.stop()
         // fastforward to final value
         this.node[prop] = this.scheduledTransitions[prop].v
       }
@@ -348,33 +347,33 @@ const Element = {
       const startValue = this.node[prop]
       this.scheduledTransitions[prop] = {
         v: props[prop],
-        f: () => {
-          try {
-            f.start()
-              .waitUntilStarted()
-              .then((animation) => {
-                // fire transition start callback if specified
-                transition.start &&
-                  typeof transition.start === 'function' &&
-                  transition.start.call(this.component, this, prop, startValue)
-                // continue the chain
-                animation
-                  .waitUntilStopped()
-                  .then(() => delete this.scheduledTransitions[prop])
-                  .then(() => {
-                    // fire transition end callback if specified
-                    transition.end &&
-                      typeof transition.end === 'function' &&
-                      transition.end.call(this.component, this, prop, this.node[prop])
-                  })
-                  .then(resolve)
-              })
-          } catch (e) {
-            Log.error(e)
-          }
-        },
+        cancel: false,
+        f,
       }
-      this.scheduledTransitions[prop].f()
+
+      try {
+        f.start()
+          .waitUntilStarted()
+          .then((animation) => {
+            // fire transition start callback if specified
+            transition.start &&
+              typeof transition.start === 'function' &&
+              transition.start.call(this.component, this, prop, startValue)
+            // continue the chain
+            animation
+              .waitUntilStopped()
+              .then(() => delete this.scheduledTransitions[prop])
+              .then(() => {
+                // fire transition end callback if specified
+                transition.end &&
+                  typeof transition.end === 'function' &&
+                  transition.end.call(this.component, this, prop, this.node[prop])
+              })
+              .then(resolve)
+          })
+      } catch (e) {
+        Log.error(e)
+      }
     })
   },
   destroy() {
