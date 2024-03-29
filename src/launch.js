@@ -80,5 +80,5 @@ You can remove the option from your \`src/index.js\`-file. And you can safely re
     }
   }
 
-  renderer.init().then(fontLoader).then(shaderLoader).then(initApp)
+  renderer.init().then(shaderLoader).then(fontLoader).then(initApp)
 }

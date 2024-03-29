@@ -197,7 +197,9 @@ const Props = {
     this._props.text = v.toString()
   },
   set shader(v) {
-    this._props.shader = renderer.createShader(v.type, v.props)
+    const target = v[0]
+    this._props.shader = renderer.createShader(target.type, target.props)
+    console.log('test', this._props.shader)
     this._set.add('shader')
   },
   set effects(v) {
