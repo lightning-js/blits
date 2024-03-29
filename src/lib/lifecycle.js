@@ -19,7 +19,17 @@ import { Log } from './log.js'
 import { emit, privateEmit } from './hooks.js'
 import symbols from './symbols.js'
 
-const states = ['init', 'ready', 'focus', 'unfocus', 'destroy']
+const states = [
+  'init', // fired upon component instantiation
+  'ready', // fired when component instantiated, reactivity setup done and template spawned
+  'focus', // fired when receiving focus (can occur multiple times)
+  'unfocus', // fired when losing focus (can occur multiple times)
+  'destroy', // fired when component is destroyed and removed
+  'attach', // fired when entering the viewport margin and attached to the render tree
+  'detach', // fired when leaving the viewport margin and detached from the render tree
+  'enter', // fired when entering the visible viewport
+  'exit', // fired when leaving the visible viewport
+]
 
 export default {
   previous: null,

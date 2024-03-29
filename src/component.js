@@ -102,7 +102,7 @@ const Component = (name = required('name'), config = required('config')) => {
     }
 
     this.parent = parentComponent
-    this[symbols.wrapper] = parentEl
+    this[symbols.holder] = parentEl
 
     Object.defineProperties(this, {
       componentId: {
@@ -162,6 +162,37 @@ const Component = (name = required('name'), config = required('config')) => {
       enumerable: false,
       configurable: false,
     })
+
+    Object.defineProperty(this, symbols.wrapper, {
+      value: this[symbols.children][0],
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    })
+
+    if (config.hooks && config.hooks.attach) {
+      this[symbols.wrapper].node.on('inBounds', () => {
+        this.lifecycle.state = 'attach'
+      })
+    }
+
+    if (config.hooks && config.hooks.detach) {
+      this[symbols.wrapper].node.on('outOfBounds', (node, { previous }) => {
+        if (previous > 0) this.lifecycle.state = 'detach'
+      })
+    }
+
+    if (config.hooks && config.hooks.enter) {
+      this[symbols.wrapper].node.on('inViewport', () => {
+        this.lifecycle.state = 'enter'
+      })
+    }
+
+    if (config.hooks && config.hooks.enter) {
+      this[symbols.wrapper].node.on('outOfViewport', () => {
+        this.lifecycle.state = 'exit'
+      })
+    }
 
     Object.defineProperty(this, symbols.slots, {
       value: this[symbols.children].filter((child) => child[symbols.isSlot]),
