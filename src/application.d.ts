@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2023 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -91,6 +92,10 @@ declare namespace Application {
     [K in keyof T]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<keyof T, K>>>
   }[keyof T]
 
+  interface RouteHooks {
+    before?: (to?: Route, from?: Route) => any;
+  }
+
   type Route = {
     /**
      * URI path for the route
@@ -118,8 +123,13 @@ declare namespace Application {
     /**
      * Register hooks for the route
      */
-    hooks?: object
-
+    hooks?: RouteHooks
+    /**
+     * Allows adding route path parameters to the params property internally 
+     */
+    readonly params?: {
+      [key: string]: string | number;
+    };
   }
 
   export interface ApplicationInstance extends ComponentInstance {}
