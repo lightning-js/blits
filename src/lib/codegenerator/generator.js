@@ -218,7 +218,7 @@ const generateForLoopCode = function (templateObject, parent) {
     ctx.renderCode.push(`parent = ${parent}`)
   }
 
-  const forCounter = counter
+  const forStartCounter = counter
 
   // reference all reactive attributes (except those referencing the iterator item),
   // to ensure that reactivity is registered, even when the initial array is empty
@@ -282,12 +282,15 @@ const generateForLoopCode = function (templateObject, parent) {
   ctx.renderCode = ctx.renderCode.concat(ctx.effectsCode)
   ctx.renderCode.push('}')
 
+  const forEndCounter = counter
   ctx.renderCode.push(`
-   if(elms[${forCounter}]) {
-      Object.keys(elms[${forCounter}]).forEach(key => {
+   if(elms[${forStartCounter}]) {
+      Object.keys(elms[${forStartCounter}]).forEach(key => {
         if(keys.indexOf(key) === -1) {
-          elms[${forCounter}][key].destroy && elms[${forCounter}][key].destroy()
-          delete elms[1][key]
+          for(let i=${forStartCounter}; i <= ${forEndCounter}; i++){
+            elms[i][key].destroy && elms[i][key].destroy()
+            delete elms[i][key]
+          }
         }
       })
     }
