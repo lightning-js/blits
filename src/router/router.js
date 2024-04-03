@@ -111,19 +111,19 @@ export const navigate = async function () {
   if (this.parent[symbols.routes]) {
     const previousRoute = currentRoute
     const hash = getHash()
-    const route = matchHash(hash, this.parent[symbols.routes])
+    let route = matchHash(hash, this.parent[symbols.routes])
     let beforeHookOutput
     if (route) {
       if (route.hooks) {
         if (route.hooks.before) {
-          beforeHookOutput = await route.hooks.before(route.params)
+          beforeHookOutput = await route.hooks.before(route, previousRoute)
           if (isString(beforeHookOutput)) {
             to(beforeHookOutput)
             return
           }
         }
       }
-
+      route = isObject(beforeHookOutput) ? beforeHookOutput : route
       // add the previous route (technically still the current route at this point)
       // into the history stack, unless navigating back or inHistory flag of route is false
       if (navigatingBack === false && previousRoute && previousRoute.options.inHistory === true) {
@@ -149,12 +149,7 @@ export const navigate = async function () {
         holder.set('w', '100%')
         holder.set('h', '100%')
         // merge props with potential route params to be injected into the component instance
-        const props = {
-          ...this[symbols.props],
-          ...route.params,
-          ...navigationData,
-          ...beforeHookOutput,
-        }
+        const props = { ...this[symbols.props], ...route.params, ...navigationData }
 
         view = await route.component({ props }, holder, this)
         if (view[Symbol.toStringTag] === 'Module') {
