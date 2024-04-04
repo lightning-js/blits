@@ -1,13 +1,20 @@
 # Changelog
 
-# v0.9.5
+## v0.9.6
+
+_4 apr 2024_
+
+- Added before hook to router
+- Upgraded Lightning renderer to v0.8.2
+
+## v0.9.5
 
 _29 mar 2024_
 
 - Fixed cancelling  of scheduled / running transitions when starting a new transition on the same prop (broke in v0.7.1).
 - Added viewport relates lifecycle hooks
 
-# v0.9.4
+## v0.9.4
 
 _28 mar 2024_
 
@@ -16,7 +23,7 @@ _28 mar 2024_
 - Introduced new `gpuMemoryLimit` launch setting
 
 
-# v0.9.3
+## v0.9.3
 
 _25 mar 2024_
 
@@ -28,7 +35,7 @@ _21 mar 2024_
 
 - Fixed issue with updates not triggering during array operation
 
-# v0.9.1
+## v0.9.1
 
 _21 mar 2024_
 
@@ -38,7 +45,7 @@ _21 mar 2024_
 - Introduced `viewportMargin` setting
 - Added `undefined`-check for props sent to renderer
 
-# v0.9.0
+## v0.9.0
 
 _18 mar 2024_
 
@@ -48,7 +55,7 @@ _18 mar 2024_
 - Refactored font loading, removed the need for temporary `src/fontLoader.js` file
 - Replaced using component name with unique identifier for registering and emitting hooks
 
-# v0.8.1
+## v0.8.1
 
 _9 mar 2024_
 
@@ -57,20 +64,20 @@ _9 mar 2024_
 - Removed explicit destroy of child nodes, as the renderer now takes care of this
 - Re-added support for clipping
 
-# v0.8.0
+## v0.8.0
 
 _1 mar 2024_
 
 - Added `this.$clearIntervals()` and `this.$clearTimeouts()` methods that clear all intervals and timers set on a certain component
 - **Breaking change:** Renamed the key `function` to `easing` in the transitions object used to specify a custom easing functio (deprecation notice added)
 
-# v0.7.4
+## v0.7.4
 
 _28 feb 2024_
 
 - Fixed dependency for on the fly MSDF font generation
 
-# v0.7.3
+## v0.7.3
 
 _28 feb 2024_
 
@@ -81,14 +88,14 @@ _28 feb 2024_
 - Added support for pre-compilation for files with more than 1 Blits component
 - Fixed transitions on scale attribute when passed an object with `x` and `y` values
 
-# v0.7.2
+## v0.7.2
 
 _23 feb 2024_
 
 - Added small fix to support for (re)assigning an array used in a for-loop
 - Added option to enable the Lightning inspector in launch setting (`inspector: true/false`)
 
-# v0.7.1
+## v0.7.1
 
 _22 feb 2024_
 
@@ -101,7 +108,7 @@ _22 feb 2024_
 - Added preliminary support for frameTick hook
 - Upgraded to latest version of the renderer (0.7.4)
 
-# v0.7.0
+## v0.7.0
 
 _20 feb 2024_
 
@@ -110,7 +117,7 @@ _20 feb 2024_
 - Added functionality to pass extra data / props when navigating to a new route ( _breaking change_ in signature of `router.to()` method - previously: `router.to(path, options)`, now: `router.to(path, data, options)`)
 - Added configuration option to set the canvas color (aka clear color)
 
-# v0.6.13
+## v0.6.13
 
 _16 feb 2024_
 
@@ -120,7 +127,7 @@ _16 feb 2024_
 - Fixed logic to not unfoces a parent when it passes focus to a child
 - Removed temporary fix for renderer issue [#123](https://github.com/lightning-js/renderer/issues/123)
 
-# v0.6.12
+## v0.6.12
 
 _9 feb 2024_
 
@@ -128,7 +135,7 @@ _9 feb 2024_
 - Fixed issue with `.gitignore` in app create flow
 - Added support for dynamic route parts in the router (i.e `/tv/:series/episodes/:episode`)
 
-# v0.6.11
+## v0.6.11
 
 _7 feb 2024_
 
@@ -136,7 +143,7 @@ _7 feb 2024_
 - Removed setting focus to AppComponent on back key press in RouterView
 - Fixed broken app create flow caused by missing dev dependencies in npx command (temporary fix)
 
-# v0.6.10
+## v0.6.10
 
 _2 feb 2024_
 
@@ -145,20 +152,20 @@ _2 feb 2024_
 - Updated flow to create a new App project with an interactive prompt of questions (`npx @lightningjs/blits@latest`)
 - Upgraded to latest version of the Lightning 3 renderer (0.7.1)
 
-# v0.6.9
+## v0.6.9
 
 _31 jan 2024_
 
 - Fixed single quote escaping for all browsers (removing sometimes unsupported negative lookahead)
 - Fixed issue with focus when navigating back to a page that is kept in history
 
-# v0.6.8
+## v0.6.8
 
 _29 jan 2024_
 
 - Reverted fix (initially) empty for-loops
 
-# v0.6.7
+## v0.6.7
 
 _26 jan 2024_
 
@@ -168,7 +175,7 @@ _26 jan 2024_
 - Added setting for specifying maximum number of web workers to spawn (`webWorkersLimit`)
 - Added fix for issue with setting up reactivity for (initially) empty for-loops
 
-# v0.6.6
+## v0.6.6
 
 _24 jan 2024_
 
@@ -176,54 +183,54 @@ _24 jan 2024_
 - Fixed issue with setting mount, pivot and scale values to zero (0) in object literal with x and y key
 - Added automatic mapping of ref string to each item in a for-loop
 
-# v0.6.5
+## v0.6.5
 
 _16 jan 2024_
 
 - Added `path` to boilerplate vite.config.js for deployments in a sub folder
 - Improved error handling in the template parser, with more contextual error messages
 
-# v0.6.4
+## v0.6.4
 
 _15 jan 2024_
 
 - Added fix for sprites not working on certain devices
 
-# v0.6.3
+## v0.6.3
 
 _12 jan 2024_
 
 - Removed prepending protocol and host from sprite image
 
 
-# v0.6.2
+## v0.6.2
 
 _12 jan 2024_
 
 - Fixed issue with Sprites not working correctly due to missing background color
 
-# v0.6.1
+## v0.6.1
 
 _8 jan 2024_
 
 - Fixed issue with using single quotes as Text content
 - Added first Text-to-Speech / Announcer functionality
 
-# v0.6.0
+## v0.6.0
 
 _4 jan 2024_
 
 - Added pre-compilation functionality to improve performance. Requires an update to the `vite.config.js` to enable. Read more details in this [blog post](https://lightningjs.io/blogs/blitsPreCompilation.html)
 - Added `defaultFont` to the Launch settings
 
-# v0.5.10
+## v0.5.10
 
 _3 jan 2024_
 
 - Updated and improved documentation
 - Added `screenResolution` and `pixelRatio` options to settings
 
-# v0.5.9
+## v0.5.9
 
 _21 dec 2023_
 
@@ -234,13 +241,13 @@ _21 dec 2023_
 - Added functionality to override route options during navigation
 - Upgraded to latest version of the renderer (0.6.1) which contains a fix for animations not finishing correctly
 
-# v0.5.8
+## v0.5.8
 
 _15 dec 2023_
 
 - Internal refactor of the `Element`
 
-# v0.5.7
+## v0.5.7
 
 _13 dec 2023_
 
@@ -248,39 +255,39 @@ _13 dec 2023_
 - Linked effects directly to the available shaders exposed by the L3 renderer (starting 0.6.0)
 - Added setting `reactivityMode` to control whether `Proxy` (default) or `defineProperty` is used to trigger reactive side effects
 
-# v0.5.6
+## v0.5.6
 
 _11 dec 2023_
 
 - Upgraded to version 0.6.0 of the Lightning 3 renderer
 
-# v0.5.5
+## v0.5.5
 
 _5 dec 2023_
 
 - Fixed regression in Slots functionality caused by forloop cleanup fix in 0.5.4
 
-# v0.5.4
+## v0.5.4
 
 _5 dec 2023_
 
 - Fixed issue with Components and Elements not always being cleaned up in forloop
 - Added support for nested children inside a forloop on an Element
 
-# v0.5.3
+## v0.5.3
 
 _4 dec 2023_
 
 - Added transition `start` and tranition `end` callbacks
 
-# v0.5.2
+## v0.5.2
 
 _30 nov 2023_
 
 - Fixed issue in code generator leading to creation unnecessary child nodes
 - Added focus handler to router view (that passes focus to the current active page)
 
-# v0.5.1
+## v0.5.1
 
 _29 nov 2023_
 
@@ -288,20 +295,20 @@ _29 nov 2023_
 - Added fastforward of transitions on the same property
 - Added functionality to skip focus change on key hold
 
-# v0.5.0
+## v0.5.0
 
 _23 nov 2023_
 
 - Introduced `wordwrap` and `maxlines` attributes on the Text-component, replacing the previous `w` and `h` attributes (breaking change!)
 
-# v0.4.2
+## v0.4.2
 
 _22 nov 2023_
 
 - Improved parser and added more template validation (i.e. one single root element in a template)
 - Fixed typo in documentation
 
-# v0.4.1
+## v0.4.1
 
 _13 nov 2023_
 
