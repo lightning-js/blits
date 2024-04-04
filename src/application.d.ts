@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2023 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -91,6 +92,10 @@ declare namespace Application {
     [K in keyof T]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<keyof T, K>>>
   }[keyof T]
 
+  interface RouteHooks {
+    before?: (to: Route, from: Route) => string | Route;
+  }
+
   type Route = {
     /**
      * URI path for the route
@@ -115,6 +120,26 @@ declare namespace Application {
      * politeness level
      */
     announce?: String | RouteAnnounce
+    /**
+     * Register hooks for the route
+     */
+    hooks?: RouteHooks
+    /**
+     * Route path parameters
+     */
+    readonly params?: {
+      [key: string]: string | number
+    }
+    /**
+     * Allows for attaching custom data to a route, either hardcoded in the
+     * route definition or asigned to the route object in a before hook
+     *
+     * Will be merged with the route params and navigation data and passed as
+     * props into the route component
+     */
+    data?: {
+      [key: string]: any
+    }
   }
 
   export interface ApplicationInstance extends ComponentInstance {}
