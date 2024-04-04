@@ -100,6 +100,9 @@ export const matchHash = (path, routes = []) => {
 
   if (matchingRoute) {
     matchingRoute.options = { ...matchingRoute.options, ...overrideOptions }
+    if (!matchingRoute.data) {
+      matchingRoute.data = {}
+    }
     currentRoute = matchingRoute
   }
 
@@ -149,8 +152,8 @@ export const navigate = async function () {
         holder.populate({})
         holder.set('w', '100%')
         holder.set('h', '100%')
-        // merge props with potential route params to be injected into the component instance
-        const props = { ...this[symbols.props], ...route.params, ...navigationData }
+        // merge props with potential route params, navigation data and route data to be injected into the component instance
+        const props = { ...this[symbols.props], ...route.params, ...navigationData, ...route.data }
 
         view = await route.component({ props }, holder, this)
         if (view[Symbol.toStringTag] === 'Module') {

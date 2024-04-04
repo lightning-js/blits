@@ -125,11 +125,21 @@ declare namespace Application {
      */
     hooks?: RouteHooks
     /**
-     * Allows adding route path parameters to the params property internally 
+     * Route path parameters
      */
     readonly params?: {
-      [key: string]: string | number;
-    };
+      [key: string]: string | number
+    }
+    /**
+     * Allows for attaching custom data to a route, either hardcoded in the
+     * route definition or asigned to the route object in a before hook
+     *
+     * Will be merged with the route params and navigation data and passed as
+     * props into the route component
+     */
+    data?: {
+      [key: string]: any
+    }
   }
 
   export interface ApplicationInstance extends ComponentInstance {}
