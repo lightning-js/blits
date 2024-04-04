@@ -93,7 +93,7 @@ declare namespace Application {
   }[keyof T]
 
   interface RouteHooks {
-    before?: (to?: Route, from?: Route) => any;
+    before?: (to: Route, from: Route) => string | Route;
   }
 
   type Route = {
