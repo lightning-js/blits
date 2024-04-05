@@ -2,7 +2,7 @@ import Blits from '@lightningjs/blits'
 
 import Loader from '../components/Loader.js'
 
-export default Blits.Component('Loading', {
+export default Blits.Component('Home', {
   components: {
     Loader,
   },
