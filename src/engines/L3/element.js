@@ -240,6 +240,10 @@ const Props = {
   set textAlign(v) {
     this._props.textAlign = v
   },
+  set rtt(v) {
+    this._props.rtt = v
+    this._set.add('rtt')
+  },
 }
 
 const Element = {
@@ -271,9 +275,12 @@ const Element = {
     // correct for default white nodes (but not for text nodes)
     if (!props.__textnode && !this.props._set.has('color')) {
       this.props._props.color =
-        this.props._set.has('src') || this.props._set.has('texture') ? 0xffffffff : 0
+        this.props._set.has('src') ||
+        this.props._set.has('texture') ||
+        (this.props._set.has('rtt') && this.props._props.rtt === true)
+          ? 0xffffffff
+          : 0
     }
-
     this.node = props.__textnode
       ? renderer.createTextNode(this.props._props)
       : renderer.createNode(this.props._props)
