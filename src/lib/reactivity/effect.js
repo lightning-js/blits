@@ -58,6 +58,7 @@ export const track = (target, key) => {
 }
 
 export const trigger = (target, key, force = false) => {
+  if (paused) return
   const effectsMap = objectMap.get(target)
   if (!effectsMap) {
     return
