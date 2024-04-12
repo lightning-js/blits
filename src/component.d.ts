@@ -50,13 +50,22 @@ declare namespace Component {
   }
 
   type Props = string | AdvancedProp
+  type PropsArray<T extends string> = T[]
+
+  // type ExtractPropNames<T extends Prop[]> = T extends (infer U)[]
+  // ? U extends string
+  //   ? U
+  //   : U extends AdvancedProp
+  //   ? U['key']
+  //   : never
+  // : never;
 
   type NotFunction<T> = T extends Function ? never : T;
 
   /**
    * Internal state of a Component instance
    */
-  interface StateObject {
+  interface State {
     [key: string]: any
   }
 
@@ -74,31 +83,25 @@ declare namespace Component {
 
   interface Input {
     [key: string]: (this: ComponentInstance, event: KeyboardEvent) => void,
-    /**
-     * Catch all input function
-     *
-     * Will be invoked when there is no dedicated function for a certain key
-     */
-    'any'?: (this: ComponentInstance, event: KeyboardEvent) => void,
   }
 
   interface Log {
     /**
     * Log an info message
     */
-    info: typeof console.info
+    info(...args): typeof console.info
     /**
     * Log an error message
     */
-    error: typeof console.error
+    error(...args): typeof console.error
     /**
     * Log a warning
     */
-    warn: typeof console.warn
+    warn(...args): typeof console.warn
     /**
     * Log a debug message
     */
-    debug: typeof console.debug
+    debug(...args): typeof console.debug
   }
 
   interface Hooks {
@@ -225,7 +228,7 @@ declare namespace Component {
     focus?: () => void
   }
 
-  export interface ComponentConfig {
+  export interface ComponentConfig<Props extends string, Watch, Computed, Hooks, Input, State, Methods> {
     components?: any,
     /**
      * XML-based template string of the Component
@@ -261,7 +264,7 @@ declare namespace Component {
      * }
      * ```
      */
-    state?: (this: ComponentInstance) => StateObject,
+    state?: (this: { [K in Props]: any}) => State,
     /**
      * Allowed props to be passed into the Component by the parent
      *
@@ -279,27 +282,27 @@ declare namespace Component {
      * }]
      * ```
      */
-    props?: Props[],
+    props?: PropsArray<Props> | AdvancedProp[],
     /**
      * Computed properties
      */
-    computed?: Computed,
+    computed?: Computed & ThisType<ComponentInstance & State & Methods & { [K in Props]: any}>,
     /**
      * Watchers for changes to state variables, props or computed properties
      */
-    watch?: Watch,
+    watch?: Watch & ThisType<ComponentInstance & State & Methods & { [K in Props]: any}>,
     /**
      * Hooking into Lifecycle events
      */
-    hooks?: Hooks,
+    hooks?: Hooks & ThisType<ComponentInstance & State & Methods & { [K in Props]: any}>,
     /**
      * Methods for abstracting more complex business logic into separate function
      */
-    methods?: Methods,
+    methods?: Methods & ThisType<ComponentInstance & State & Methods & { [K in Props]: any}>,
     /**
      * Tapping into user input
      */
-    input?: Input
+    input?: Input & ThisType<ComponentInstance & State & Methods & { [K in Props]: any}>,
   }
 }
 
@@ -307,9 +310,9 @@ declare namespace Component {
  /**
  * Blits.Component()
  */
-declare function Component(
+declare function Component<Props extends string, Watch, Computed, Hooks, Input, State=Component.State, Methods=Component.Methods>(
   name: Component.Name,
-  config: Component.ComponentConfig,
+  config: Component.ComponentConfig<Props, Watch, Computed, Hooks, Input, State, Methods>,
 ) : Component.ComponentInstance
 
 export default Component;
