@@ -310,7 +310,7 @@ declare namespace Component {
  /**
  * Blits.Component()
  */
-declare function Component<Props extends string, Watch, Computed, Hooks, Input, State=Component.State, Methods=Component.Methods>(
+declare function Component<Props extends string, Watch, Computed, Hooks, Input, State, Methods>(
   name: Component.Name,
   config: Component.ComponentConfig<Props, Watch, Computed, Hooks, Input, State, Methods>,
 ) : Component.ComponentInstance
