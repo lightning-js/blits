@@ -48,9 +48,8 @@ declare namespace Component {
      */
     cast?: () => any
   }
-
-  type Props = string | AdvancedProp
   type PropsArray<T extends string> = T[]
+  type AdvancedProps = AdvancedProp[]
 
   // type ExtractPropNames<T extends Prop[]> = T extends (infer U)[]
   // ? U extends string
