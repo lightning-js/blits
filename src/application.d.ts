@@ -16,7 +16,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {default as Component, ComponentInstance} from './component'
+import {default as Component} from './component'
+import ComponentInstance from './component'
 
 declare namespace Application {
 
@@ -144,7 +145,7 @@ declare namespace Application {
 
   export interface ApplicationInstance extends ComponentInstance {}
 
-  export interface ApplicationConfig extends Component.ComponentConfig {
+  export interface ApplicationConfig extends Component.ComponentConfig<Component.Props extends string, Component.Watch, Component.Computed, Component.Hooks, Component.Input, Component.State, Component.Methods> {
     /**
      * Routes definition
      *
