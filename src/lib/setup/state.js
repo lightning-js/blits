@@ -19,7 +19,7 @@ import { Log } from '../log.js'
 
 import symbols from '../symbols.js'
 
-export default (component, state) => {
+export default (component, state = () => {}) => {
   component[symbols.stateKeys] = []
 
   state = { ...state.apply(component.prototype), ...{ hasFocus: false } }
