@@ -77,7 +77,7 @@ declare namespace Component {
   }
 
   interface Methods {
-    [methodName: string]: (this: ComponentInstance & S & M & P) => any;
+    [methodName: string]: (this: ComponentInstance) => any;
   }
 
   interface Input<S, M, P> {
