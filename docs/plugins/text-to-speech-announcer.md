@@ -2,7 +2,7 @@
 
 ## Text-to-Speech / Announcer
 
-Blits comes with a built-in Text-to-Speech / Announcer functionality, to easily make your App more accessible. This is something that's often overlooked when developing an App, but having speech assistance integrated into your App is a huge deal for those users that are visually impaired.
+Blits comes with a built-in Text-to-Speech / Announcer functionality, to easily make your App more accessible. This is something that's often overlooked when developing an App, but having speech assistance integrated into your App is a huge deal for those users who are visually impaired.
 
 ### Integrated with the router
 
@@ -24,7 +24,7 @@ const routes = [
 
 ## Custom announcement messages
 
-Furthermore it's possible to speak out custom messages anywhere in your App logic, for example when a component receives focus, as a reaction to user input, or to announce error messages when an remote API call
+Furthermore, it's possible to speak out custom messages anywhere in your App logic, for example when a component receives focus, as a reaction to user input, or to announce error messages when a remote API call
 fails.
 
 Each component in Blits has a `this.$announcer.speak()` available, which accepts `string` of a message to be announced.

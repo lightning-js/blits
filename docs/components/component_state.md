@@ -47,8 +47,7 @@ For nested objects, you can use _dot notation_ (e.g., `$style.dimensions.w`).
 In your component's code, you can reference state variables directly within the `this`-scope. For instance, a state variable named `color` can be accessed (and modified) by referencing `this.color`.
 
 It's important to note that unlike in the template, you should _not_ use the dollar sign when accessing state variables within the component's code.
-
-Also remember that there is no need to explicitely reference the `state`-key. Blits automatically maps all state variables directly on the `this`-scope, for easy access.
+Also, remember that there is no need to explicitly reference the `state`-key. Blits automatically maps all state variables directly on the `this`-scope, for easy access.
 
 The example below gives a full example of defining and using a component's state:
 
