@@ -226,8 +226,6 @@ declare namespace Component {
     */
     select: (ref: string) => ComponentInstance | ElementInstance
 
-    // tmp
-    [key: string]: any
   }
 
   export interface ElementInstance {
