@@ -274,6 +274,13 @@ const deleteChildren = function (children) {
     if (!children[i]) return
     if (Array.isArray(children[i])) {
       deleteChildren(children[i])
+    } else if (Object.getPrototypeOf(children[i]) === Object.prototype) {
+      Object.keys(children[i]).forEach((k) => {
+        if (children[i][k].destroy) {
+          children[i][k].destroy()
+          children[i][k] = null
+        }
+      })
     } else if (children[i].destroy) {
       children[i].destroy()
     }
