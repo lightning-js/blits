@@ -156,4 +156,10 @@ In the case where the `x` and `y` values are the same, you can also just supply 
 <Element w="200" h="200" x="800" y="700" pivot="0.9" rotation="42" />
 ```
 
-<!-- ### Clipping -->
+### Clipping / overflow
+
+By default contents inside an Element (i.e. child Elements) will overflow the boundaries of the parent, even when you give the parent Element fixed dimensions.
+
+In order to contain / cut off the content inside an Elements' `w` and `h`, you can add the `clipping="true"`-attribute. Setting `clipping` to `false` restores the default behaviour of content overflowing.
+
+Alternatively you can also use the `overflow`-attribute (and pass it `true` or `false`), which works similar to clipping just mapped inversly (i.e. `overflow="false"` ensures content that surpasses the parent dimensions is clipped-off).
