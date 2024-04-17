@@ -2,13 +2,13 @@
 
 ## Directives
 
-Blits comes with a few built-in attributes that tap into specific behaviour provided by the framework - also kn ows as _directives_. Most of them can be used in the template on both Elements and Components.
+Blits comes with a few built-in attributes that tap into specific behaviour provided by the framework - also known as _directives_. Most of them can be used in the template on both Elements and Components.
 
 ### Show-directive
 
-The `show`-attribute allows you to conditionally show and hide Components and Elements.
+The `show` attribute allows you to conditionally show and hide Components and Elements.
 
-When passed a _truthy_ value, such as `true` or `1`, the element will be made visible. And when passed a _falsy_ value (`false` or `0`) it will not be visible.
+When passed a _truthy_ value, such as `true` or `1`, the element will be made visible. And when passed a _falsey_ value (`false` or `0`) it will not be visible.
 
 ```xml
 <Element>
