@@ -25,7 +25,7 @@ For the best performance, it's important to keep your source images as small as 
 
 You also have the option to _colorize_ an image on the fly. Just add a `color` attribute to the Element with a `src` attribute. You can use a single color, or apply a gradient.
 
-By default all Elements with a `src` attribute get the a solid white background, with the result that the actual colors of the image will be shown.
+By default, all Elements with a `src` attribute get a solid white background, with the result that the actual colors of the image will be shown.
 
 ```xml
 <Element
@@ -66,4 +66,4 @@ Considering the template above you would do something like the following in the 
 }
 ```
 
-The `loaded` event receives the images dimensions as it's argument and the `error` event receives an error message explaining the failure.
+The `loaded` event receives image dimensions as its argument and the `error` event receives an error message explaining the failure.

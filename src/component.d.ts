@@ -68,20 +68,20 @@ declare namespace Component {
     [key: string]: any
   }
 
-  interface Computed {
-    [key: string]: (this: ComponentInstance) => any
+  interface Computed<S, M, P> {
+    [key: string]: (this: ComponentInstance & S & M & P) => any
   }
 
-  interface Watch {
-    [key: string]: (this: ComponentInstance, value: any, oldValue: any) => void
+  interface Watch<S, M, P> {
+    [key: string]: (this: ComponentInstance & S & M & P, value: any, oldValue: any) => void
   }
 
   interface Methods {
-    [key: string]: (this: ComponentInstance) => any
+    [methodName: string]: (this: ComponentInstance) => any;
   }
 
-  interface Input {
-    [key: string]: ((this: ComponentInstance, event: KeyboardEvent) => void) | undefined,
+  interface Input<S, M, P> {
+    [key: string]: ((this: ComponentInstance & S & M & P, event: KeyboardEvent) => void) | undefined,
 
     /**
      * Catch all input function
@@ -110,62 +110,62 @@ declare namespace Component {
     debug(...args): typeof console.debug
   }
 
-  interface Hooks {
+  interface Hooks<S, M, P> {
     /**
     * Fires when the Component is being instantiated.
     * At this moment child elements will not be available yet
     */
-    init?: (this: ComponentInstance) => void
+    init?: (this: ComponentInstance & S & M & P) => void
     /**
     * Fires when the Component is fully initialized and ready for interaction.
     */
-    ready?: (this: ComponentInstance) => void
+    ready?: (this: ComponentInstance & S & M & P) => void
     /**
     * Triggers when the Component receives focus.
     *
     * This event can fire multiple times during the component's lifecycle
     */
-    focus?: (this: ComponentInstance) => void
+    focus?: (this: ComponentInstance & S & M & P) => void
     /**
     * Triggers when the Component loses focus.
     *
     * This event can fire multiple times during the component's lifecycle
     */
-    unfocus?: (this: ComponentInstance) => void
+    unfocus?: (this: ComponentInstance & S & M & P) => void
     /**
     * Fires when the Component is being destroyed and removed.
     */
-    destroy?: (this: ComponentInstance) => void,
+    destroy?: (this: ComponentInstance & S & M & P) => void,
     /**
     * Fires upon each frame start  (allowing you to tap directly into the renderloop)
     *
     * Note: This hook will fire continuously, multiple times per second!
     */
-    frameTick?: (this: ComponentInstance) => void,
+    frameTick?: (this: ComponentInstance & S & M & P) => void,
     /**
     * Fires when the component enters the viewport _margin_ and is attached to the render tree
     *
     * This event can fire multiple times during the component's lifecycle
     */
-    attach?: (this: ComponentInstance) => void,
+    attach?: (this: ComponentInstance & S & M & P) => void,
     /**
     * Fires when the component leaves the viewport _margin_ and is detached from the render tree
     *
     * This event can fire multiple times during the component's lifecycle
     */
-    detach?: (this: ComponentInstance) => void,
+    detach?: (this: ComponentInstance & S & M & P) => void,
     /**
     * Fires when the component enters the visible viewport
     *
     * This event can fire multiple times during the component's lifecycle
     */
-    enter?: (this: ComponentInstance) => void,
+    enter?: (this: ComponentInstance & S & M & P) => void,
     /**
     * Fires when the component leaves the visible viewport
     *
     * This event can fire multiple times during the component's lifecycle
     */
-    exit?: (this: ComponentInstance) => void,
+    exit?: (this: ComponentInstance & S & M & P) => void,
   }
 
   export interface ComponentInstance {
@@ -234,7 +234,7 @@ declare namespace Component {
     focus?: () => void
   }
 
-  export interface ComponentConfig<Props extends string, Watch, Computed, Hooks, Input, State, Methods> {
+  export interface ComponentConfig<Props extends string, S extends State, M extends Methods> {
     components?: any,
     /**
      * XML-based template string of the Component
@@ -270,7 +270,7 @@ declare namespace Component {
      * }
      * ```
      */
-    state?: (this: { [K in Props]: any}) => State,
+    state?: (this: { [K in Props]: any}) => S,
     /**
      * Allowed props to be passed into the Component by the parent
      *
@@ -292,23 +292,23 @@ declare namespace Component {
     /**
      * Computed properties
      */
-    computed?: Computed & ThisType<ComponentInstance & State & Methods & { [K in Props]: any}>,
+    computed?: Computed<S, M, { [K in Props]: any}>,
     /**
      * Watchers for changes to state variables, props or computed properties
      */
-    watch?: Watch & ThisType<ComponentInstance & State & Methods & { [K in Props]: any}>,
+    watch?: Watch<S, M, { [K in Props]: any}>,
     /**
      * Hooking into Lifecycle events
      */
-    hooks?: Hooks & ThisType<ComponentInstance & State & Methods & { [K in Props]: any}>,
+    hooks?: Hooks<S, M, { [K in Props]: any}>, // & ThisType<ComponentInstance & S & M & H & { [K in Props]: any}>,
     /**
      * Methods for abstracting more complex business logic into separate function
      */
-    methods?: Methods & ThisType<ComponentInstance & State & Methods & { [K in Props]: any}>,
+    methods?: M & ThisType<ComponentInstance & S  & { [K in Props]: any}>,
     /**
      * Tapping into user input
      */
-    input?: Input & ThisType<ComponentInstance & State & Methods & { [K in Props]: any}>,
+    input?: Input<S, M, { [K in Props]: any}>
   }
 }
 
@@ -316,9 +316,13 @@ declare namespace Component {
  /**
  * Blits.Component()
  */
-declare function Component<Props extends string, Watch, Computed, Hooks, Input, State, Methods>(
+declare function Component<
+    Props extends string,
+    S extends Component.State,
+    M extends Component.Methods
+  >(
   name: Component.Name,
-  config: Component.ComponentConfig<Props, Watch, Computed, Hooks, Input, State, Methods>,
+  config: Component.ComponentConfig<Props, S, M>,
 ) : Component.ComponentInstance
 
 export default Component;

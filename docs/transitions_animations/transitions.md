@@ -35,7 +35,7 @@ Blits offers an easy and intuitive way to apply transitions. All you need to do 
 ```js
 export default Blits('Gold', {
   template: `
-    <Element color="gold" w="100" h="100" :x.transiton="$x" :y.transition=:"$y" />
+    <Element color="gold" w="100" h="100" :x.transition="$x" :y.transition=:"$y" />
   `,
   state() {
     return {
@@ -51,7 +51,7 @@ export default Blits('Gold', {
   },
 ```
 
-If we try out the modified example above, you'll notice how difference adding a simple transition makes.
+If we try out the modified example above, you'll notice how much difference adding a simple transition makes.
 
 When the `.transition`-modifier is added to a reactive attribute, a default `ease-in` transition with a duration of `300ms` is applied
 
@@ -61,19 +61,19 @@ While the default transition will look pretty good out of the box and is great f
 
 Blits gives you full control over your transitions, with a simple to use format, right inside your template.
 
-Instead of referencing your component's state variable directly, you can also supply an inlien `object literal` in the attribute with a `.transition`-modifier. This will allow you to pass a number of options to change the way the transition will work.
+Instead of referencing your component's state variable directly, you can also supply an inline `object literal`` in the attribute with a `.transition`-modifier. This will allow you to pass a number of options to change the way the transition will work.
 
 The transition object must have a `value` key, which references the state variable (or prop or computed property) that triggers the transition.
 
-Further more you can specify:
+Furthermore, you can specify:
 
 - `duration` - the duration of the transition in `ms`
 - `delay` - the time in `ms` after which the transition should initiate
-- `easing` - the easing function of the transition. Can be one of the defaults easing options listed below, or a custom `cubic-bezier` definitions (i.e. `cubic-bezier(0,1.35,.99,-0.07)`).
+- `easing` - the easing function of the transition. Can be one of the default easing options listed below, or a custom `cubic-bezier` definition (i.e. `cubic-bezier(0,1.35,.99,-0.07)`).
 
 ```xml
 <Element color="gold" w="100" h="100"
-  :x.transiton="{value: $x, duration: 300, easing: 'ease-in-back', delay: 400}"
+  :x.transition="{value: $x, duration: 300, easing: 'ease-in-back', delay: 400}"
   :y.transition=:"{value: $x, duration: 300, easing: 'cubic-bezier(1,-0.64,0.39,1.44)'}">
 </Element>
 ```
@@ -82,7 +82,7 @@ Besides a reference to the `value`, you can also use dynamic values for the othe
 
 ```xml
 <Element color="gold" w="100" h="100"
-  :x.transiton="{value: $x, duration: $dynamicDuration, delay: $dynamicDelay}">
+  :x.transition="{value: $x, duration: $dynamicDuration, delay: $dynamicDelay}">
 </Element>
 ```
 
@@ -108,15 +108,15 @@ Besides a reference to the `value`, you can also use dynamic values for the othe
 
 Sometimes you may want to perform an action when a transition ends or when it starts.
 
-You can easily hook into these transiti)on events by adding a `start` and `end` key to the transition object. Both value should be a function (or a reference to a `method` on your component).
+You can easily hook into these transition events by adding a `start` and `end` key to the transition object. Both values should be a function (or a reference to a `method` on your component).
 
-The `start` function will be called when the transition actually starts (after a possible specified delay) and the `end` function is called as soon as the transitions is finished.
+The `start` function will be called when the transition actually starts (after a possible specified delay) and the `end` function is called as soon as the transition is finished.
 
 ```js
 export default Blits('Gold', {
   template: `
     <Element color="gold" w="100" h="100"
-      :x.transiton="{value: $x, start: $transitionBegin, end: $transitionEnd}"
+      :x.transition="{value: $x, start: $transitionBegin, end: $transitionEnd}"
     />
   `,
   ///

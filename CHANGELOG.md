@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.9.7
+
+_15 apr 2024_
+
+- Added support for direct assignment of an Array element and triggering reactivity
+- Added support for .env in boilerplate
+- Fixed issue with Blits component being wrapped in a Proxy when assigned to a state variable
+- Fixed built-in `hasFocus`-state to also work for components that don't have state in their config object
+
 ## v0.9.6
 
 _4 apr 2024_
@@ -29,7 +38,7 @@ _25 mar 2024_
 
 - Added support for mount / pivot on Text elements and Sprites.
 
-# v0.9.2
+## v0.9.2
 
 _21 mar 2024_
 
