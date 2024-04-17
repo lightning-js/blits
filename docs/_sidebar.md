@@ -21,5 +21,6 @@
   - [Transitions](/transitions_animations/transitions.md)
 - Built-in components
   - [Directives](/built-in/directives.md)
+  - [For loop](/built-in/for-loop.md)
 - Plugins
   - [Text-to-Speech / Announcer](/plugins/text-to-speech-announcer.md)

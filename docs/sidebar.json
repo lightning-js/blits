@@ -93,6 +93,10 @@
       {
         "text": "Directives",
         "link": "/built-in/directives"
+      },
+      {
+        "text": "For loop",
+        "link": "/built-in/for-loop"
       }
     ]
   },
