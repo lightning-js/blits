@@ -278,8 +278,8 @@ const deleteChildren = function (children) {
       Object.keys(children[i]).forEach((k) => {
         if (children[i][k].destroy) {
           children[i][k].destroy()
-          children[i][k] = null
         }
+        children[i][k] = null
       })
     } else if (children[i].destroy) {
       children[i].destroy()
