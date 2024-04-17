@@ -4,9 +4,8 @@
 
 So far we've learned how to utilize a Component's [internal state](./component_state.md) and [props](./props.md) passed by a parent into a child component.
 
-We've also seen how we can perform simple operations like `Math.max()` or `str.toUpperCase()` directly within an argument of a template on the Component's internal state or passed props .
-
-However as these operations become more complex it's more clear and more maintainable to abstract these operations into what we call _computed properties_.
+We've also seen how we can perform simple operations like `Math.max()` or `str.toUpperCase()` directly within an argument of a template on the Component's internal state or passed props.
+However, as these operations become more complex it's more clear and more maintainable to abstract these operations into what we call _computed properties_.
 
 Computed properties are a powerful tool for enhancing the readability of your component code. By abstracting complex or frequently used calculations from your template into computed properties, you can make your code more concise and easier to understand.
 
@@ -17,7 +16,7 @@ Within the `computed`-key of the Component configuration object, you can specify
 
 A computed property function should always _return_ a value.
 
-In your template, you can reference these computed properties exactly the same as you would with _state_ variable and _props_, by prefixing them with a dollar sign (e.g., `$offset`).
+In your template, you can reference these computed properties exactly the same as you would with _state_ variables and _props_, by prefixing them with a dollar sign (e.g., `$offset`).
 
 In the rest of your app's code, you can access these computed properties (but not modify them!) using `this.offset`. Note that similar to Component state and props, you do not need to prefix with `computed` to access the computed property.
 

@@ -75,7 +75,7 @@ const Component = (name = required('name'), config = required('config')) => {
     if (config.methods) setupMethods(component, config.methods)
 
     // setup state
-    if (config.state) setupState(component, config.state)
+    setupState(component, config.state)
 
     // setup computed
     if (config.computed) setupComputed(component, config.computed)

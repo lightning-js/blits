@@ -32,6 +32,11 @@ const getRaw = (value) => {
 }
 
 const reactiveProxy = (original, _parent = null, _key) => {
+  // don't create a proxy when a Blits component is assigned to a state variable
+  if (typeof original === 'object' && original[symbols.id]) {
+    return original
+  }
+
   // if original object is already a proxy, don't create a new one but return the existing one instead
   const existingProxy = getProxy(original)
   if (existingProxy) {
