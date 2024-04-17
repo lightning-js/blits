@@ -22,7 +22,7 @@ The simplest way to define props is to just list their names within the `props` 
 
 Once specified, you can refer to these props inside the template of your component using the `$` sign, similar to how you would reference variables defined within the component's [internal state](./component_state.md) (i.e. `<Element color="$color" />`).
 
-You can als access a prop inside a component's code using `this.color` (without a dollar sign!). And similar to component `state` variables,
+You can also access a prop inside a component's code using `this.color` (without a dollar sign!). And similar to component `state` variables,
 there is no need to specifically reference the `props`-key. Blits automatically maps all props directly on the `this`-scope, for easy access.
 
 Since props are used to pass information from a parent to a child, it's important not to attempt to _modify_ props inside your child component. If changes based on the prop from the parent are needed, you should probably use the prop in a so called [computed property](./computed_properties.md).
