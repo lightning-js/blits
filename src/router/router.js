@@ -257,7 +257,7 @@ const removeView = async (route, view, transition) => {
     for (let i = 0; i < view[symbols.children].length; i++) {
       // if (view[symbols.children][i] && view[symbols.children][i].destroy) {
       //   view[symbols.children][i].destroy()
-      view[symbols.children][i] = null
+      // view[symbols.children][i] = null
       // }
     }
     view.destroy()
