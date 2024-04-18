@@ -272,11 +272,15 @@ export default (component, name) => {
 const deleteChildren = function (children) {
   for (let i = 0; i < children.length; i++) {
     if (!children[i]) return
-    if (Array.isArray(children[i])) {
-      deleteChildren(children[i])
-    } else if (children[i].destroy) {
+    // call destroy when method is available on child
+    if (children[i].destroy && typeof children[i].destroy === 'function') {
       children[i].destroy()
     }
+    // recursively call deleteChildren when it's an object of items (happens when using a forloop construct)
+    else if (Object.getPrototypeOf(children[i]) === Object.prototype) {
+      deleteChildren(Object.values(children[i]))
+    }
+
     children[i] = null
   }
 
