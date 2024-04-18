@@ -280,10 +280,6 @@ const deleteChildren = function (children) {
     else if (Object.getPrototypeOf(children[i]) === Object.prototype) {
       deleteChildren(Object.values(children[i]))
     }
-    // todo: this case may not be needed anymore
-    else if (Array.isArray(children[i])) {
-      deleteChildren(children[i])
-    }
 
     children[i] = null
   }
