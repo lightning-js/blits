@@ -1,6 +1,4 @@
-# Blits - Lightning 3 App Development Framework
-
-## Transitions
+# Transitions
 
 So far we have explored how to create components and draw elements on the screen. But everything has
 been rather static so far.
@@ -28,7 +26,7 @@ export default Blits('Gold', {
 
 Using _transitions_ we really make our App come alive.
 
-### Applying a transition
+## Applying a transition
 
 Blits offers an easy and intuitive way to apply transitions. All you need to do is add the `.transition` modifier to a reactive attribute, and now whenever you change the value referenced in the attribute, it will automatically _smooth_ into the new value.
 
@@ -55,7 +53,7 @@ If we try out the modified example above, you'll notice how much difference addi
 
 When the `.transition`-modifier is added to a reactive attribute, a default `ease-in` transition with a duration of `300ms` is applied
 
-### Customizing transitions
+## Customizing transitions
 
 While the default transition will look pretty good out of the box and is great for quickly improving the look of your App, you may want to customize specific transitions.
 
@@ -86,7 +84,7 @@ Besides a reference to the `value`, you can also use dynamic values for the othe
 </Element>
 ```
 
-#### Available easing functions
+### Available easing functions
 
 - `ease-in`
 - `ease-out`
@@ -104,7 +102,7 @@ Besides a reference to the `value`, you can also use dynamic values for the othe
 - `ease-out-back`
 - `ease-in-out-back`
 
-### Listening to transition events
+## Listening to transition events
 
 Sometimes you may want to perform an action when a transition ends or when it starts.
 

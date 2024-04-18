@@ -1,13 +1,11 @@
-# Blits - Lightning 3 App Development Framework
-
-## Handling User Input
+# Handling User Input
 
 In order to allow users to interact with your app, you will want to capture and handle _user input_. If you are developing a TV based app this will
 often be key input via a remote control.
 
 Blits offers an intuitive and straightforward interface to handle key input in Components.
 
-### Focus
+## Focus
 
 Before diving into the specifics of key handling, it is important to understand the basic concept of _focus_.
 
@@ -17,7 +15,7 @@ The component that has focus, is the one that is responsible for handling the us
 
 For example, when a user clicks the _right_ or _left_ button while a _Poster Component_ has focus, it is that instance of the Poster Component that will _receive_ the first key press event.
 
-### Configuring Input Handling
+## Configuring Input Handling
 
 Within the Component configuration object, the `input` key is used to define how the component should react to specific key presses when it has focus. The `input` key should be an `object literal` of `functions` for each input event that the component wants to handle.
 
@@ -40,7 +38,7 @@ export default Blits.Component('MyComponent', {
 }
 ```
 
-### Catch-All Handling
+## Catch-All Handling
 
 To allow a focused component to respond to any key and act as a _catch-all_, you can add an `any()` function to the input object. As it receives the `InputEvent` object as the first argument, you can abstract the key press in there and handle (or ignore) it as you wish.
 
@@ -54,7 +52,7 @@ To allow a focused component to respond to any key and act as a _catch-all_, you
 }
 ```
 
-### Event Handling Chain
+## Event Handling Chain
 
 If the currently focused component does not handle a key press, Blits will traverse up the component hierarchy, checking for any _parent_ component that does have a function defined for that key press in the `input`-key. This input event handling chain continues until it reaches the root Application component.
 
@@ -75,7 +73,7 @@ When a component handles a key press by having a corresponding function specifie
 }
 ```
 
-### Custom Keycode mapping
+## Custom Keycode mapping
 
 Blits comes with a default keycode mapping. This mapping is a sensible default that works in your desktop browser and with most RDK based devices.
 

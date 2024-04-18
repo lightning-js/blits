@@ -1,6 +1,4 @@
-# Blits - Lightning 3 App Development Framework
-
-## Displaying Text
+# Displaying Text
 
 Besides displaying images, it is also very common to have _texts_ in an App.
 
@@ -17,7 +15,7 @@ Blits comes with a built-in `<Text>`-tag for displaying and styling texts in a s
 ```
 You can use the Text-tag anywhere in your template, without the need to explicitly import and register it in your Component.
 
-### Available attributes on the Text tag
+## Available attributes on the Text tag
 
 The Text-tag accepts the following attributes:
 
@@ -35,7 +33,7 @@ The Text-tag accepts the following attributes:
 - `textoverflow` - the suffix to be added when text is cropped due to bounds limits, defaults to `...`
 
 
-### SDF and Canvas2d
+## SDF and Canvas2d
 
 Compared to Lightning 2, texts have improved a lot in Lightning 3, thanks to the SDF (Signed Distance Field) Text renderer.
 
@@ -43,7 +41,7 @@ With the SDF text renderer, texts appear a lot _sharper_ on screen. The SDF tech
 
  In general, it's recommended to use the SDF text renderer, but Lightning 3 still has a Canvas2d text renderer as a backup, and you can use both text renderers within the same App.
 
-### Using custom fonts
+## Using custom fonts
 
 The `font`-attribute on the `<Text>`-tag is used to define which font family should be used for a certain piece of text.
 

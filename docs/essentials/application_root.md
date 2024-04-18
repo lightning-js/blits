@@ -1,6 +1,4 @@
-# Blits - Lightning 3 App Development Framework
-
-## Application root
+# Application root
 
 Every Blits App starts with a base Application component.
 
