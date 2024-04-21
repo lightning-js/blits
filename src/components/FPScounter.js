@@ -42,7 +42,7 @@ export default () =>
             </Element>
           </Element>
 
-          <Element x="0" y="40" >
+          <Element x="0" y="40">
             <Sprite image="$image" x="-2" w="47" h="25" map="$sprite" frame="min" />
             <Element x="58" y="2">
               <Sprite image="$image" x="0" h="20" w="20" map="$sprite" :frame="$minFps[0]" />
@@ -58,6 +58,18 @@ export default () =>
               <Sprite image="$image" x="18" h="20" w="20" map="$sprite" :frame="$maxFps[1]" />
               <Sprite image="$image" x="36" h="20" w="20" map="$sprite" :frame="$maxFps[2]" />
             </Element>
+          </Element>
+
+          <Element x="0" y="80">
+            <Sprite image="$image" w="116" h="25" map="$sprite" frame="frametime" />
+            <Element x="126" y="2">
+              <Sprite image="$image" x="0" h="20" w="20" map="$sprite" :frame="$frameTime[0]" />
+              <Sprite image="$image" x="18" h="20" w="20" map="$sprite" :frame="$frameTime[1]" />
+              <Sprite image="$image" x="36" h="20" w="5" map="$sprite" y="3" frame="dot" />
+              <Sprite image="$image" x="40" h="20" w="20" map="$sprite" :frame="$frameTime[3]" />
+              <Sprite image="$image" x="58" h="20" w="20" map="$sprite" :frame="$frameTime[4]" />
+            </Element>
+            <Sprite x="212" image="$image" w="34" h="25" map="$sprite" frame="ms" />
           </Element>
         </Element>
       </Element>
@@ -87,12 +99,16 @@ export default () =>
             fps: { x: 271, w: 43, h: 25 },
             max: { x: 316, w: 53, h: 25 },
             min: { x: 371, w: 47, h: 25 },
+            frametime: { x: 420, w: 116, h: 25 },
+            ms: { x: 541, w: 34, h: 25 },
+            dot: { x: 263, w: 5, h: 25 },
           },
         },
         fps: '---',
         avgFps: '---',
         minFps: '---',
         maxFps: '---',
+        frameTime: '---',
       }
     },
     hooks: {
@@ -102,8 +118,15 @@ export default () =>
         let avgFps = 0
         let totalFps = 0
         let fpsUpdateCounter = 0
+        let previousTime = Date.now()
+
+        let frames = 0
+        renderer.on('frameTick', () => {
+          frames++
+        })
 
         renderer.on('fpsUpdate', (rM, { fps }) => {
+          const time = Date.now()
           minFps = Math.min(fps, minFps)
           maxFps = Math.max(fps, maxFps)
           totalFps += fps
@@ -114,6 +137,9 @@ export default () =>
           this.avgFps = avgFps.toString().padStart(3, '0')
           this.minFps = minFps.toString().padStart(3, '0')
           this.maxFps = maxFps.toString().padStart(3, '0')
+          this.frameTime = ((time - previousTime) / frames).toFixed(2)
+          previousTime = time
+          frames = 0
         })
       },
     },
