@@ -72,6 +72,22 @@ export default () =>
             <Sprite x="212" image="$image" w="34" h="25" map="$sprite" frame="ms" />
           </Element>
         </Element>
+
+        <Element y="140" x="20" w="270" h="70" color="#00000020">
+          <Element
+            :for="(item, index) in $timeline"
+            w="3"
+            mount="{y: 1}"
+            h="$item.fps"
+            y="70"
+            color="green"
+            :x="(54 - $timeline.length) * 5 + ($index * 5)"
+            :key="$item.time"
+            :color="$item.fps > 40 ? '#65a30d' : ($item.fps < 15 ? '#dc2626' : '#facc15')"
+          />
+          <Element w="270" h="1" color="#00000080" x="0" y="70" />
+        </Element>
+
       </Element>
     `,
     state() {
@@ -109,6 +125,7 @@ export default () =>
         minFps: '---',
         maxFps: '---',
         frameTime: '---',
+        timeline: [],
       }
     },
     hooks: {
@@ -132,6 +149,8 @@ export default () =>
           totalFps += fps
           fpsUpdateCounter++
           avgFps = Math.round(totalFps / fpsUpdateCounter)
+
+          this.timeline = [...this.timeline.splice(-53), { key: time, fps: Math.min(fps, 70) }]
 
           this.fps = fps.toString().padStart(3, '0')
           this.avgFps = avgFps.toString().padStart(3, '0')
