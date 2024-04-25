@@ -45,7 +45,7 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "^0.8.2",
+    "@lightningjs/renderer": "^0.8.3",
     "@lightningjs/vite-plugin-import-chunk-url": "^0.3.0",
     "execa": "^8.0.1",
     "kolorist": "^1.8.0",
