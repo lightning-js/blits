@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.9.8
+
+_25 apr 2024_
+
+- Fixed issue with removing children during navigation with the router
+- Added support for overflow (as an inversed alias of clipping)
+- Upgraded to latest version of renderer (0.8.3)
+- Introduced `renderMode` setting (`webgl` or `canvas`)
+
 ## v0.9.7
 
 _15 apr 2024_
