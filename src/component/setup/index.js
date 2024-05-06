@@ -29,8 +29,7 @@ import symbols from '../../lib/symbols.js'
 
 let counter = 0
 
-export default function (component, config, name) {
-  console.log('setup for', name, config)
+export default function (component, config) {
   component[symbols.identifier] = ++counter
 
   // setup hooks

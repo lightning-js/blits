@@ -15,11 +15,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import Announcer from '../../announcer/announcer.js'
+import symbols from '../../lib/symbols'
+
+import { renderer } from '../../launch.js'
 
 export default {
-  $announcer: {
-    value: Announcer,
+  [symbols.renderer]: {
+    value: () => renderer,
     writable: false,
     enumerable: true,
     configurable: false,

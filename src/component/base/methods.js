@@ -86,7 +86,7 @@ export default {
   },
   $trigger: {
     value: function (key) {
-      Log.warn('this.$trigger is deprecated, use trigger instead')
+      Log.warn('this.$trigger is deprecated, use this.trigger instead')
       return this.trigger(key)
     },
     writable: false,

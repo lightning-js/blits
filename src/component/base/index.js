@@ -21,8 +21,9 @@ import events from './events.js'
 import log from './log.js'
 import router from './router.js'
 import announcer from './announcer.js'
+import utils from './utils.js'
 
 export default Object.defineProperties(
   {},
-  { ...methods, ...scheduling, ...events, ...log, ...router, ...announcer }
+  { ...methods, ...scheduling, ...events, ...log, ...router, ...announcer, ...utils }
 )

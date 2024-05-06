@@ -16,26 +16,22 @@
  */
 
 import { Log } from './lib/log.js'
+import parser from './lib/templateparser/parser.js'
+import codegenerator from './lib/codegenerator/generator.js'
+import { createHumanReadableId, createInternalId } from './lib/componentId.js'
+import { emit } from './lib/hooks.js'
+import { reactive } from './lib/reactivity/reactive.js'
+import { effect } from './lib/reactivity/effect.js'
+import Lifecycle from './lib/lifecycle.js'
+import symbols from './lib/symbols.js'
 
 import { stage, renderer } from './launch.js'
 
-import parser from './lib/templateparser/parser.js'
-import codegenerator from './lib/codegenerator/generator.js'
-
-import { createHumanReadableId, createInternalId } from './lib/componentId.js'
-import { emit } from './lib/hooks.js'
-
-import { reactive } from './lib/reactivity/reactive.js'
 import Base from './component/base/index.js'
 
-import { effect } from './lib/reactivity/effect.js'
-import Lifecycle from './lib/lifecycle.js'
-
 import Settings from './settings.js'
-import symbols from './lib/symbols.js'
 
 import setupComponent from './component/setup/index.js'
-
 import components from './components/index.js'
 
 // object to store global components
@@ -168,13 +164,11 @@ const Component = (name = required('name'), config = required('config')) => {
       })
     }
 
-    // set all symbol based properties to non-enumerable,
-    // read-only and non-configurable
+    // set all symbol based properties to non-enumerable and non-configurable
     Object.getOwnPropertySymbols(this).forEach((property) => {
       Object.defineProperties(this, {
         [property]: {
           enumerable: false,
-          writable: false,
           configurable: false,
         },
       })
@@ -190,7 +184,8 @@ const Component = (name = required('name'), config = required('config')) => {
   const factory = (options = {}, parentEl, parentComponent) => {
     // setup the component once, using Base as the prototype
     if (!base) {
-      base = setupComponent(Object.create(Base), config, name)
+      Log.debug(`Setting up ${name} component`)
+      base = setupComponent(Object.create(Base), config)
     }
 
     // one time code generation (only if precompilation is turned off)
@@ -205,9 +200,7 @@ const Component = (name = required('name'), config = required('config')) => {
     }
 
     // create an instance of the component, using base as the prototype (which contains Base)
-    const instance = component.call(Object.create(base), options, parentEl, parentComponent)
-
-    return instance
+    return component.call(Object.create(base), options, parentEl, parentComponent)
   }
 
   // store the config on the factory, in order to access the config
