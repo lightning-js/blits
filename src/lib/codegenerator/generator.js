@@ -30,7 +30,9 @@ export default function (templateObject = { children: [] }) {
 
   return {
     render: new Function('parent', 'component', 'context', 'components', ctx.renderCode.join('\n')),
-    effects: ctx.effectsCode.map((code) => new Function('component', 'elms', 'context', code)),
+    effects: ctx.effectsCode.map(
+      (code) => new Function('component', 'elms', 'context', 'components', code)
+    ),
     context: ctx.context,
   }
 }
