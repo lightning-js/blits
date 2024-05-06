@@ -15,9 +15,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Log } from '../log.js'
+import { Log } from '../../lib/log.js'
 
-import symbols from '../symbols.js'
+import symbols from '../../lib/symbols.js'
 
 const baseProp = {
   cast: (v) => v,
@@ -32,7 +32,7 @@ export default (component, props = []) => {
   props.forEach((prop) => {
     prop = { ...baseProp, ...(typeof prop === 'object' ? prop : { key: prop }) }
     component[symbols.propKeys].push(prop.key)
-    Object.defineProperty(component.prototype, prop.key, {
+    Object.defineProperty(component, prop.key, {
       get() {
         const value = prop.cast(
           this[symbols.props] && prop.key in this[symbols.props]

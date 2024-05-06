@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Comcast Cable Communications Management, LLC
+ * Copyright 2024 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,21 +15,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import symbols from '../symbols.js'
+import eventListeners from '../../lib/eventListeners'
 
-export default (component, watchers) => {
-  component.prototype[symbols.watchKeys] = []
-  component.prototype[symbols.watchers] = {}
-
-  for (let watch in watchers) {
-    if (typeof watchers[watch] !== 'function') {
-      console.warn(`${watch} is not a function`)
-    }
-
-    component.prototype[symbols.watchKeys].push(watch)
-
-    component.prototype[symbols.watchers][watch] = function (v, old) {
-      watchers[watch].call(this, v, old)
-    }
-  }
+export default {
+  $emit: {
+    value: function (event, params) {
+      eventListeners.executeListeners(event, params)
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
+  $listen: {
+    value: function (event, callback) {
+      eventListeners.registerListener(this, event, callback)
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
 }

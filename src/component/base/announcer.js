@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Comcast Cable Communications Management, LLC
+ * Copyright 2024 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,16 +15,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Log } from '../log.js'
+import Announcer from '../../announcer/announcer.js'
 
-import symbols from '../symbols.js'
-
-export default (component, input) => {
-  component.prototype[symbols.inputEvents] = []
-  Object.keys(input).forEach((key) => {
-    if (typeof input[key] !== 'function') {
-      Log.warn(`${input[key]} is not a function`)
-    }
-    component.prototype[symbols.inputEvents][key] = input[key]
-  })
+export default {
+  $announcer: {
+    value: Announcer,
+    writable: false,
+    enumerable: false,
+    configurable: false,
+  },
 }

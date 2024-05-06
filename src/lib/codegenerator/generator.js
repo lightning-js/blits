@@ -29,7 +29,7 @@ export default function (templateObject = { children: [] }) {
   ctx.renderCode.push('return elms')
 
   return {
-    render: new Function('parent', 'component', 'context', ctx.renderCode.join('\n')),
+    render: new Function('parent', 'component', 'context', 'components', ctx.renderCode.join('\n')),
     effects: ctx.effectsCode.map((code) => new Function('component', 'elms', 'context', code)),
     context: ctx.context,
   }
@@ -119,8 +119,7 @@ const generateComponentCode = function (
     const cmp${counter} =
       (context.components && context.components['${
         templateObject[Symbol.for('componentType')]
-      }']) ||
-      component[Symbol.for('components')]['${templateObject[Symbol.for('componentType')]}']
+      }']) || components['${templateObject[Symbol.for('componentType')]}']
   `)
 
   if ('key' in templateObject) {
@@ -174,7 +173,7 @@ const generateComponentCode = function (
     templateObject[Symbol.for('componentType')]
   }'
 
-  ${elm} = (context.components && context.components[componentType] || component[Symbol.for('components')][componentType] || (() => { console.error('component ${
+  ${elm} = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component ${
     templateObject[Symbol.for('componentType')]
   } not found')})).call(null, {props: props${counter}}, ${parent}, component)
       if (${elm}[Symbol.for('slots')][0]) {
