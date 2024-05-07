@@ -22,6 +22,47 @@ declare namespace Component {
    */
   type Name = string
 
+
+  interface Announcer {
+    /**
+     * Announce a message to screen readers by specifying the politeness level
+    */
+    speak: (message: string, politeness?: 'polite' | 'assertive') => void
+
+    /**
+     * Announce a message to screen readers with a polite politeness level
+    */
+    polite: (message: string) => void
+
+    /**
+     * Announce a message to screen readers with an assertive politeness level
+    */
+    assertive: (message: string) => void
+
+    /**
+     * Stop all announcements
+    */
+    stop: () => void
+  }
+
+  interface Log {
+    /**
+    * Log an info message
+    */
+    info(...args): typeof console.info
+    /**
+    * Log an error message
+    */
+    error(...args): typeof console.error
+    /**
+    * Log a warning
+    */
+    warn(...args): typeof console.warn
+    /**
+    * Log a debug message
+    */
+    debug(...args): typeof console.debug
+  }
   interface AdvancedProp {
     /**
      * Name of the prop
@@ -77,8 +118,12 @@ declare namespace Component {
   }
 
   interface Methods {
-    [methodName: string]: (this: ComponentInstance) => any;
+    [key: string]: (this: ComponentInstance & State & Methods, ...args: any) => any;
   }
+
+  // interface MethodsExtended<S, M, P> extends Methods {
+  //   [key: string]: (this: ComponentInstance & S & M & P) => any;
+  // }
 
   interface Input<S, M, P> {
     [key: string]: ((this: ComponentInstance & S & M & P, event: KeyboardEvent) => void) | undefined,
@@ -88,7 +133,7 @@ declare namespace Component {
      *
      * Will be invoked when there is no dedicated function for a certain key
     */
-    any?: (this: ComponentInstance, event: KeyboardEvent) => void,
+    any?: (this: ComponentInstance & S & M & P, event: KeyboardEvent) => void,
   }
 
   interface Log {
@@ -115,57 +160,103 @@ declare namespace Component {
     * Fires when the Component is being instantiated.
     * At this moment child elements will not be available yet
     */
-    init?: (this: ComponentInstance & S & M & P) => void
+    init?: (this: ComponentInstance & S & M & P, ...args: any) => void
     /**
     * Fires when the Component is fully initialized and ready for interaction.
     */
-    ready?: (this: ComponentInstance & S & M & P) => void
+    ready?: (this: ComponentInstance & S & M & P, ...args: any) => void
     /**
     * Triggers when the Component receives focus.
     *
     * This event can fire multiple times during the component's lifecycle
     */
-    focus?: (this: ComponentInstance & S & M & P) => void
+    focus?: (this: ComponentInstance & S & M & P, ...args: any) => void
     /**
     * Triggers when the Component loses focus.
     *
     * This event can fire multiple times during the component's lifecycle
     */
-    unfocus?: (this: ComponentInstance & S & M & P) => void
+    unfocus?: (this: ComponentInstance & S & M & P, ...args: any) => void
     /**
     * Fires when the Component is being destroyed and removed.
     */
-    destroy?: (this: ComponentInstance & S & M & P) => void,
+    destroy?: (this: ComponentInstance & S & M & P, ...args: any) => void,
     /**
     * Fires upon each frame start  (allowing you to tap directly into the renderloop)
     *
     * Note: This hook will fire continuously, multiple times per second!
     */
-    frameTick?: (this: ComponentInstance & S & M & P) => void,
+    frameTick?: (this: ComponentInstance & S & M & P, ...args: any) => void,
     /**
     * Fires when the component enters the viewport _margin_ and is attached to the render tree
     *
     * This event can fire multiple times during the component's lifecycle
     */
-    attach?: (this: ComponentInstance & S & M & P) => void,
+    attach?: (this: ComponentInstance & S & M & P, ...args: any) => void,
     /**
     * Fires when the component leaves the viewport _margin_ and is detached from the render tree
     *
     * This event can fire multiple times during the component's lifecycle
     */
-    detach?: (this: ComponentInstance & S & M & P) => void,
+    detach?: (this: ComponentInstance & S & M & P, ...args: any) => void,
     /**
     * Fires when the component enters the visible viewport
     *
     * This event can fire multiple times during the component's lifecycle
     */
-    enter?: (this: ComponentInstance & S & M & P) => void,
+    enter?: (this: ComponentInstance & S & M & P, ...args: any) => void,
     /**
     * Fires when the component leaves the visible viewport
     *
     * This event can fire multiple times during the component's lifecycle
     */
-    exit?: (this: ComponentInstance & S & M & P) => void,
+    exit?: (this: ComponentInstance & S & M & P, ...args: any) => void,
+  }
+
+  /**
+   * Route object
+  */
+  interface Route {
+    path: string;
+    params: Record<string, string>;
+    options?: {
+      inHistory?: boolean;
+      keepAlive?: boolean;
+      [key: string]: any;
+    };
+    data?: Record<string, any>;
+    hooks?: {
+      before?: (route: Route, previousRoute: Route) => Promise<string | Route | void>;
+    };
+  }
+
+
+  interface Router {
+    /**
+     * Navigate to a different location
+    */
+    to(location: string, data?: Record<string, any>, options?: Record<string, any>): void;
+
+    /**
+     * Navigate to the previous location
+    */
+    back(): boolean;
+
+    /**
+     * Get the current route read-only
+    */
+    readonly currentRoute: Route;
+
+    /**
+     * Get the list of all routes
+     */
+    readonly routes: Route[];
+
+    /**
+     * Get navigating state
+     */
+    readonly navigating: boolean;
+
   }
 
   export interface ComponentInstance {
@@ -226,13 +317,29 @@ declare namespace Component {
     */
     select: (ref: string) => ComponentInstance | ElementInstance
 
+    /**
+     * Announcer methods for screen reader support
+     */
+    $announcer: Announcer
+
+    /**
+     * Triggers a forced update on state variables.
+     */
+    $trigger: (key: string) => void
+    trigger: (key: string) => void
+
+    /**
+     * Router instance
+     */
+    $router: Router
+
   }
 
   export interface ElementInstance {
     focus?: () => void
   }
 
-  export interface ComponentConfig<Props extends string, S extends State, M extends Methods> {
+  export interface ComponentConfig<Props extends string, S, M> {
     components?: any,
     /**
      * XML-based template string of the Component
@@ -298,11 +405,11 @@ declare namespace Component {
     /**
      * Hooking into Lifecycle events
      */
-    hooks?: Hooks<S, M, { [K in Props]: any}>, // & ThisType<ComponentInstance & S & M & H & { [K in Props]: any}>,
+    hooks?: Hooks<S, M, { [K in Props]: any}>,
     /**
      * Methods for abstracting more complex business logic into separate function
      */
-    methods?: M & ThisType<ComponentInstance & S  & { [K in Props]: any}>,
+    methods?: M //MethodsExtended<S, M, { [K in Props]: any}>,
     /**
      * Tapping into user input
      */
@@ -320,7 +427,7 @@ declare function Component<
     M extends Component.Methods
   >(
   name: Component.Name,
-  config: Component.ComponentConfig<Props, S, M>,
+  config: Component.ComponentConfig<Props, S, M>
 ) : Component.ComponentInstance
 
 export default Component;
