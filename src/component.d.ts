@@ -217,17 +217,18 @@ declare namespace Component {
    * Route object
   */
   interface Route {
-    path: string;
-    params: Record<string, string>;
+    path: string,
+    params: Record<string, string>,
     options?: {
-      inHistory?: boolean;
-      keepAlive?: boolean;
-      [key: string]: any;
-    };
-    data?: Record<string, any>;
+      inHistory?: boolean,
+      keepAlive?: boolean,
+      [key: string]: any,
+    },
+    data?: Record<string, any>,
+    component?: (args: { props: any }, holder: any, context: any) => Promise<any>,
     hooks?: {
-      before?: (route: Route, previousRoute: Route) => Promise<string | Route | void>;
-    };
+      before?: (route: Route, previousRoute: Route) => Promise<string | Route | void>,
+    }
   }
 
 

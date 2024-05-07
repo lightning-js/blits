@@ -17,7 +17,6 @@
  */
 
 import {default as Component} from './component'
-import ComponentInstance from './component'
 
 declare namespace Application {
 
@@ -85,10 +84,6 @@ declare namespace Application {
     politeness?: 'off' | 'polite' | 'assertive'
   }
 
-  function Application(
-    config: Application.ApplicationConfig
-  ) : Application.ApplicationInstance
-
   type RequireAtLeastOne<T> = {
     [K in keyof T]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<keyof T, K>>>
   }[keyof T]
@@ -105,7 +100,7 @@ declare namespace Application {
     /**
      * Component to load when activating the route
      */
-    component: typeof ComponentInstance,
+    component: Component,
     /**
      * Transition configuration for the route
      */
@@ -143,9 +138,9 @@ declare namespace Application {
     }
   }
 
-  export interface ApplicationInstance extends ComponentInstance {}
+  export interface ApplicationInstance extends Component.ComponentInstance {}
 
-  export interface ApplicationConfig extends Component.ComponentConfig<Component.Props extends string, Component.Watch, Component.Computed, Component.Hooks, Component.Input, Component.State, Component.Methods> {
+  export interface ApplicationConfig<Props extends string, S, M> extends Component.ComponentConfig<Props, S, M> {
     /**
      * Routes definition
      *
@@ -168,8 +163,12 @@ declare namespace Application {
  *
  * Root App component
  */
-declare function Application(
-  config: Application.ApplicationConfig
+declare function Application<
+  Props extends string,
+  S extends Component.State,
+  M extends Component.Methods
+  >(
+    config: Application.ApplicationConfig<Props, S, M>
 ) : Application.ApplicationInstance
 
 export default Application;
