@@ -10,7 +10,7 @@ We did learn how to _reactively_ changes values and trigger rerenders based on t
 ```js
 export default Blits('Gold', {
   template: `
-    <Element color="gold" w="100" h="100" :x="$x" :y=:"$y" />
+    <Element color="gold" w="100" h="100" :x="$x" :y="$y" />
   `,
   state() {
     return {
@@ -35,7 +35,7 @@ Blits offers an easy and intuitive way to apply transitions. All you need to do 
 ```js
 export default Blits('Gold', {
   template: `
-    <Element color="gold" w="100" h="100" :x.transition="$x" :y.transition=:"$y" />
+    <Element color="gold" w="100" h="100" :x.transition="$x" :y.transition="$y" />
   `,
   state() {
     return {
@@ -74,7 +74,7 @@ Furthermore, you can specify:
 ```xml
 <Element color="gold" w="100" h="100"
   :x.transition="{value: $x, duration: 300, easing: 'ease-in-back', delay: 400}"
-  :y.transition=:"{value: $x, duration: 300, easing: 'cubic-bezier(1,-0.64,0.39,1.44)'}">
+  :y.transition="{value: $x, duration: 300, easing: 'cubic-bezier(1,-0.64,0.39,1.44)'}">
 </Element>
 ```
 
