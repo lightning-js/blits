@@ -20,27 +20,9 @@ import Focus from './focus.js'
 import Settings from './settings.js'
 
 import symbols from './lib/symbols.js'
+import keymapping from './lib/keymapping.js'
 
 const Application = (config) => {
-  const defaultKeyMap = {
-    ArrowLeft: 'left',
-    ArrowRight: 'right',
-    ArrowUp: 'up',
-    ArrowDown: 'down',
-    Enter: 'enter',
-    ' ': 'space',
-    Backspace: 'back',
-    Escape: 'escape',
-    37: 'left',
-    39: 'right',
-    38: 'up',
-    40: 'down',
-    13: 'enter',
-    32: 'space',
-    8: 'back',
-    27: 'escape',
-  }
-
   config.hooks = config.hooks || {}
 
   let keyDownHandler
@@ -53,7 +35,7 @@ const Application = (config) => {
   }
 
   config.hooks[symbols.init] = function () {
-    const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
+    const keyMap = { ...keymapping(), ...Settings.get('keymap', {}) }
 
     keyDownHandler = (e) => {
       const key = keyMap[e.key] || keyMap[e.keyCode] || e.key || e.keyCode
