@@ -45,6 +45,13 @@ const required = (name) => {
   throw new Error(`Parameter ${name} is required`)
 }
 
+/**
+ * Component factory function
+ * @param {string} name - The name of the component
+ * @param {object} config - The configuration object for the component
+ * @returns {function} - A factory function that creates a new component instance
+ *
+ */
 const Component = (name = required('name'), config = required('config')) => {
   const setupComponent = (parentComponent) => {
     // code generation
