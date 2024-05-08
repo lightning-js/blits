@@ -27,7 +27,7 @@ export default (component, state = () => {}) => {
     writable: false,
   })
 
-  const stateKeys = Object.keys(state.apply(component) || {}).concat(['hasFocus', 'theme'])
+  const stateKeys = Object.keys(state.apply(component) || {}).concat(['hasFocus'])
 
   stateKeys.forEach((key) => {
     if (component[symbols.propKeys] && component[symbols.propKeys].indexOf(key) > -1) {
