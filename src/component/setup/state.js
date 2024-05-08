@@ -15,15 +15,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Log } from '../log.js'
+import { Log } from '../../lib/log.js'
 
-import symbols from '../symbols.js'
+import symbols from '../../lib/symbols.js'
 
 export default (component, state = () => {}) => {
-  component[symbols.stateKeys] = []
+  Object.defineProperty(component, symbols.stateKeys, {
+    value: [],
+    enumerable: false,
+    configurable: false,
+    writable: false,
+  })
 
-  state = { ...state.apply(component.prototype), ...{ hasFocus: false } }
-  Object.keys(state).forEach((key) => {
+  const stateKeys = Object.keys(state.apply(component) || {}).concat(['hasFocus', 'theme'])
+
+  stateKeys.forEach((key) => {
     if (component[symbols.propKeys] && component[symbols.propKeys].indexOf(key) > -1) {
       Log.error(`State ${key} already exists as a prop`)
     }
@@ -32,13 +38,14 @@ export default (component, state = () => {}) => {
     }
     component[symbols.stateKeys].push(key)
     try {
-      Object.defineProperty(component.prototype, key, {
+      Object.defineProperty(component, key, {
         get() {
           return this[symbols.state] && key in this[symbols.state] && this[symbols.state][key]
         },
         set(v) {
           if (this[symbols.state]) this[symbols.state][key] = v
         },
+        // enumerable: true,
       })
     } catch (e) {
       Log.error(e)
