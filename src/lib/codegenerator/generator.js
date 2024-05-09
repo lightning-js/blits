@@ -396,48 +396,20 @@ const cast = (val = '', key = false, component = 'component.') => {
   else if (val.startsWith('$')) {
     castedValue = `${component}${val.replace('$', '')}`
   }
-  // mount && pivot attribute's value object with dynamic arguments
+  // dynamic value in object
   else if (dynamicArgumentRegex.exec(val)) {
-    if (key === 'mount' || key === 'pivot') {
-      const xRegex = /x:\s*([^,}\s]+)/i
-      const yRegex = /y:\s*([^,}\s]+)/i
-      const xVal = xRegex.exec(val)
-      const yVal = yRegex.exec(val)
-
-      castedValue = {}
-      if (xVal) {
-        populateFields('x', xVal[1], component, castedValue)
+    const rex = /\w+\s*:\s*(?:[^\s,}]+|".*?"|'.*?')/g
+    const results = val.match(rex)
+    castedValue = {}
+    if (results) {
+      for (let i = 0; i < results.length; i++) {
+        const members = results[i].split(/\s*:\s*/)
+        if (members) {
+          populateFields(members[0], members[1], component, castedValue)
+        }
       }
-      if (yVal) {
-        populateFields('y', yVal[1], component, castedValue)
-      }
-      return interpolateObject(castedValue)
-    } else if (key === 'color') {
-      const topRegex = /top:\s*([^,}\s]+)/i
-      const bottomRegex = /bottom:\s*([^,}\s]+)/i
-      const leftRegex = /left:\s*([^,}\s]+)/i
-      const rightRegex = /right:\s*([^,}\s]+)/i
-
-      const topVal = topRegex.exec(val)
-      const bottomVal = bottomRegex.exec(val)
-      const leftVal = leftRegex.exec(val)
-      const rightVal = rightRegex.exec(val)
-
-      castedValue = {}
-      if (topVal) {
-        populateFields('top', topVal[1], component, castedValue)
-      }
-      if (bottomVal) {
-        populateFields('bottom', bottomVal[1], component, castedValue)
-      }
-      if (leftVal) {
-        populateFields('left', leftVal[1], component, castedValue)
-      }
-      if (rightVal) {
-        populateFields('right', rightVal[1], component, castedValue)
-      }
-      return interpolateObject(castedValue)
     }
+    return interpolateObject(castedValue)
   }
   // static string
   else {
