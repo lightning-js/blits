@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import eventListeners from '../../lib/eventListeners'
+import eventListeners from '../../lib/eventListeners.js'
 
 export default {
   $emit: {

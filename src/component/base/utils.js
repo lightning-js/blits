@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import symbols from '../../lib/symbols'
+import symbols from '../../lib/symbols.js'
 
 import { renderer } from '../../launch.js'
 

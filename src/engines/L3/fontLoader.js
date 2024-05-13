@@ -1,7 +1,7 @@
 import { WebTrFontFace, SdfTrFontFace } from '@lightningjs/renderer/core'
 
-import Settings from '../../settings'
-import { renderer } from './launch'
+import Settings from '../../settings.js'
+import { renderer } from './launch.js'
 
 export default () => {
   const stage = renderer.driver.stage

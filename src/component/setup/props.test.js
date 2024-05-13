@@ -17,9 +17,9 @@
 
 import test from 'tape'
 import propsFn from './props.js'
-import { initLog } from '../log.js'
+import { initLog } from '../../lib/log.js'
 
-import symbols from '../symbols.js'
+import symbols from '../../lib/symbols.js'
 
 initLog()
 
@@ -49,7 +49,7 @@ test('Pass props as an array', (assert) => {
   assert.equal(props.length, props.map(prop => component[symbols.propKeys].indexOf(prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on propKeys')
 
   props.forEach((prop) => {
-    assert.true(typeof Object.getOwnPropertyDescriptor(component.prototype, prop).get === 'function', `A getter should have been created for property ${prop}`)
+    assert.true(typeof Object.getOwnPropertyDescriptor(component, prop).get === 'function', `A getter should have been created for property ${prop}`)
   })
 
   assert.end()
@@ -95,7 +95,7 @@ test('Passing props as an object', (assert) => {
   assert.equal(props.length, props.map(prop => component[symbols.propKeys].indexOf(typeof prop === 'object' ? prop.key : prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on propKeys')
 
   props.forEach((prop) => {
-    assert.true(typeof Object.getOwnPropertyDescriptor(component.prototype, typeof prop === 'object' ? prop.key : prop).get === 'function', `A getter should have been created for property ${prop}`)
+    assert.true(typeof Object.getOwnPropertyDescriptor(component, typeof prop === 'object' ? prop.key : prop).get === 'function', `A getter should have been created for property ${prop}`)
   })
 
   assert.end()
@@ -111,7 +111,7 @@ test('Passing props as an object mixed with single keys', (assert) => {
   assert.equal(props.length, props.map(prop => component[symbols.propKeys].indexOf(typeof prop === 'object' ? prop.key : prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on propKeys')
 
   props.forEach((prop) => {
-    assert.true(typeof Object.getOwnPropertyDescriptor(component.prototype, typeof prop === 'object' ? prop.key : prop).get === 'function', `A getter should have been created for property ${prop}`)
+    assert.true(typeof Object.getOwnPropertyDescriptor(component, typeof prop === 'object' ? prop.key : prop).get === 'function', `A getter should have been created for property ${prop}`)
   })
 
   assert.end()
