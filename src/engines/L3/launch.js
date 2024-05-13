@@ -24,7 +24,7 @@ import fontLoader from './fontLoader.js'
 
 export let renderer
 
-export default (App, target, settings) => {
+export default (App, target, settings = {}) => {
   const driver = new MainCoreDriver()
   // settings.multithreaded === true
   //   ? new ThreadXRenderDriver({
