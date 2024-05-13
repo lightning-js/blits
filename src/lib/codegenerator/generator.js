@@ -19,7 +19,7 @@ let counter
 
 export default function (templateObject = { children: [] }) {
   const ctx = {
-    renderCode: ['const elms = []'],
+    renderCode: ['const elms = []', 'let holderParent'],
     effectsCode: [],
     context: { props: [], components: this.components },
   }
@@ -44,6 +44,9 @@ const generateElementCode = function (
 ) {
   const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
   if (parent) {
+    if (options.holder === true) {
+      renderCode.push(`holderParent = ${parent}`)
+    }
     renderCode.push(`parent = ${parent}`)
   }
 
@@ -59,6 +62,10 @@ const generateElementCode = function (
   renderCode.push(`
     if(!${elm}) {
       ${elm} = this.element({parent: parent || 'root'}, component)
+    }
+    if(holderParent) {
+      parent = holderParent
+      holderParent = null
     }
     const elementConfig${counter} = {}
   `)
@@ -144,9 +151,9 @@ const generateComponentCode = function (
     `)
   }
 
-  if (parent) {
-    renderCode.push(`parent = ${parent}`)
-  }
+  // if (parent) {
+  // renderCode.push(`parent = ${parent}`)
+  // }
 
   renderCode.push(`const props${counter} = {}`)
   Object.keys(templateObject).forEach((key) => {
@@ -210,7 +217,7 @@ const generateForLoopCode = function (templateObject, parent) {
 
   // local context
   const ctx = {
-    renderCode: [],
+    renderCode: ['let holderParent'],
     effectsCode: [],
     context: { props: [], components: this.components },
   }
