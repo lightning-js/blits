@@ -19,7 +19,7 @@ let counter
 
 export default function (templateObject = { children: [] }) {
   const ctx = {
-    renderCode: ['const elms = []'],
+    renderCode: ['const elms = []', 'let componentType'],
     effectsCode: [],
     context: { props: [], components: this.components },
   }
@@ -40,7 +40,7 @@ export default function (templateObject = { children: [] }) {
 const generateElementCode = function (
   templateObject,
   parent = false,
-  options = { key: false, component: 'component.', forceEffect: false }
+  options = { key: false, component: 'component.', forceEffect: false, forloop: false }
 ) {
   const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
   if (parent) {
@@ -56,12 +56,19 @@ const generateElementCode = function (
     `)
   }
 
+  renderCode.push(`const elementConfig${counter} = {}`)
+
+  if (options.forloop) {
+    renderCode.push(`if(!${elm}) {`)
+  }
+
   renderCode.push(`
-    if(!${elm}) {
-      ${elm} = this.element({parent: parent || 'root'}, component)
-    }
-    const elementConfig${counter} = {}
+    ${elm} = this.element({parent: parent || 'root'}, component)
   `)
+
+  if (options.forloop) {
+    renderCode.push('}')
+  }
 
   const children = templateObject['children']
   delete templateObject['children']
@@ -99,11 +106,15 @@ const generateElementCode = function (
     `)
   }
 
-  renderCode.push(`
-    if(!${elm}.nodeId) {
-      ${elm}.populate(elementConfig${counter})
-    }
-  `)
+  if (options.forloop) {
+    renderCode.push(`if(!${elm}.nodeId) {`)
+  }
+
+  renderCode.push(`${elm}.populate(elementConfig${counter})`)
+
+  if (options.forloop) {
+    renderCode.push('}')
+  }
 
   if (children) {
     generateCode.call(this, { children }, `${elm}`, options)
@@ -113,7 +124,13 @@ const generateElementCode = function (
 const generateComponentCode = function (
   templateObject,
   parent = false,
-  options = { key: false, component: 'component.', forceEffect: false, holder: false }
+  options = {
+    key: false,
+    component: 'component.',
+    forceEffect: false,
+    holder: false,
+    forloop: false,
+  }
 ) {
   const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
 
@@ -169,13 +186,14 @@ const generateComponentCode = function (
     }
   })
 
-  renderCode.push(`
-    if(!${elm}) {
-      const componentType = props${counter}['is'] || '${
-    templateObject[Symbol.for('componentType')]
-  }'
+  if (options.forloop) {
+    renderCode.push(`if(!${elm}) {`)
+  }
 
-  ${elm} = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component ${
+  renderCode.push(`
+    componentType = props${counter}['is'] || '${templateObject[Symbol.for('componentType')]}'
+
+    ${elm} = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component ${
     templateObject[Symbol.for('componentType')]
   } not found')})).call(null, {props: props${counter}}, ${parent}, component)
       if (${elm}[Symbol.for('slots')][0]) {
@@ -184,8 +202,11 @@ const generateComponentCode = function (
       } else {
         parent = ${elm}[Symbol.for('children')][0]
       }
-    }
   `)
+
+  if (options.forloop) {
+    renderCode.push('}')
+  }
 
   if (children) {
     counter++
@@ -210,7 +231,7 @@ const generateForLoopCode = function (templateObject, parent) {
 
   // local context
   const ctx = {
-    renderCode: [],
+    renderCode: ['let componentType'],
     effectsCode: [],
     context: { props: [], components: this.components },
   }
@@ -272,12 +293,14 @@ const generateForLoopCode = function (templateObject, parent) {
       key: 'scope.key',
       component: 'scope.',
       forceEffect: false,
+      forloop: true,
     })
   } else {
     generateComponentCode.call(ctx, templateObject, false, {
       key: 'scope.key',
       component: 'scope.',
       forceEffect: false,
+      forloop: true,
     })
   }
   ctx.renderCode = ctx.renderCode.concat(ctx.effectsCode)
