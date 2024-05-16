@@ -332,8 +332,12 @@ const generateCode = function (templateObject, parent = false, options = {}) {
       } else {
         if (
           childTemplateObject[Symbol.for('componentType')] === 'Element' ||
-          childTemplateObject[Symbol.for('componentType')] === 'Slot'
+          childTemplateObject[Symbol.for('componentType')] === 'Slot' ||
+          childTemplateObject[Symbol.for('componentType')] === 'Text'
         ) {
+          if (childTemplateObject[Symbol.for('componentType')] === 'Text') {
+            childTemplateObject.__textnode = 'true'
+          }
           generateElementCode.call(this, childTemplateObject, parent, options)
         } else {
           generateComponentCode.call(this, childTemplateObject, parent, options)

@@ -240,6 +240,10 @@ const Props = {
   set textAlign(v) {
     this._props.textAlign = v
   },
+  set content(v) {
+    this._props.text = v
+    this._props.fontFamily = 'lato'
+  },
   set rtt(v) {
     this._props.rtt = v
     this._set.add('rtt')
@@ -285,12 +289,12 @@ const Element = {
       ? renderer.createTextNode(this.props._props)
       : renderer.createNode(this.props._props)
 
-    if (props.__textnode) {
-      this.node.on('loaded', (el, { dimensions }) => {
-        this.node.parent.width = dimensions.width
-        this.node.parent.height = dimensions.height
-      })
-    }
+    // if (props.__textnode) {
+    //   this.node.on('loaded', (el, { dimensions }) => {
+    //     this.node.parent.width = dimensions.width
+    //     this.node.parent.height = dimensions.height
+    //   })
+    // }
 
     if (props['@loaded']) {
       this.node.on('loaded', (el, { type, dimensions }) => {
