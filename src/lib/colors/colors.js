@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import colorsMap from './htmlColors'
+import colorsMap from './htmlColors.js'
 
 const hex = /^#?([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i
 const rgba =
