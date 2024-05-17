@@ -241,7 +241,7 @@ const generateForLoopCode = function (templateObject, parent) {
   }
 
   if (parent) {
-    ctx.renderCode.push(`parent = ${parent}`)
+    ctx.renderCode.push(`let parent = ${parent}`)
   }
 
   const forStartCounter = counter
