@@ -52,7 +52,9 @@ const generateElementCode = function (
 
   if (options.key) {
     renderCode.push(`
-      elms[${counter}] = elms[${counter}] || {}
+      if(elms[${counter}] === undefined) {
+        elms[${counter}] = {}
+      }
     `)
   }
 
@@ -157,7 +159,9 @@ const generateComponentCode = function (
 
   if (options.key) {
     renderCode.push(`
-      elms[${counter}] = elms[${counter}] || {}
+      if(elms[${counter}] === undefined) {
+        elms[${counter}] = {}
+      }
     `)
   }
 
@@ -254,12 +258,12 @@ const generateForLoopCode = function (templateObject, parent) {
 
   ctx.renderCode.push(`
     const collection = ${cast(result[2], ':for')} || []
-    const keys = []
+    const keys = new Set()
     for(let __index = 0; __index < collection.length; __index++) {
       parent = ${parent}
-      if(!component.key) keys.length = 0
+      if(!component.key) keys.length = 0 //??
       const scope = Object.assign(component, {
-        key: Math.random().toString(),
+        key: __index,
         ${index}: __index,
         ${item}: collection[__index],
     `)
@@ -277,11 +281,11 @@ const generateForLoopCode = function (templateObject, parent) {
 
   if ('key' in templateObject) {
     ctx.renderCode.push(`
-      keys.push(${interpolate(templateObject.key, 'scope.')}.toString())
+      keys.add('' + ${interpolate(templateObject.key, 'scope.')})
     `)
   } else {
     ctx.renderCode.push(`
-      keys.push(scope.key.toString())
+      keys.add('' + scope.key)
     `)
   }
 
@@ -309,14 +313,21 @@ const generateForLoopCode = function (templateObject, parent) {
   const forEndCounter = counter
   ctx.renderCode.push(`
    if(elms[${forStartCounter}]) {
-      Object.keys(elms[${forStartCounter}]).forEach(key => {
-        if(keys.indexOf(key) === -1) {
-          for(let i=${forStartCounter}; i <= ${forEndCounter}; i++){
-            elms[i][key].destroy && elms[i][key].destroy()
-            delete elms[i][key]
-          }
+      const all = Object.keys(elms[1])
+      let i = all.length
+      while (i--) {
+        const key = all[i]
+        if (!keys.has(key)) {
+    `)
+  for (let i = forStartCounter; i <= forEndCounter; i++) {
+    ctx.renderCode.push(`
+      elms[${i}][key] && elms[${i}][key].destroy()
+      delete elms[${i}][key]
+    `)
+  }
+  ctx.renderCode.push(`
         }
-      })
+      }
     }
   `)
   this.effectsCode.push(ctx.renderCode.join('\n'))
