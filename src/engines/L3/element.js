@@ -66,6 +66,13 @@ const unpackTransition = (obj) => {
   return obj
 }
 
+const colorMap = {
+  top: 'colorTop',
+  bottom: 'colorBottom',
+  left: 'colorLeft',
+  right: 'colorRight',
+}
+
 const Props = {
   set parent(v) {
     this._props.parent = v === 'root' ? renderer.root : v.node
@@ -108,20 +115,14 @@ const Props = {
     this._set.add('zIndex')
   },
   set color(v) {
-    if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      const map = {
-        top: 'colorTop',
-        bottom: 'colorBottom',
-        left: 'colorLeft',
-        right: 'colorRight',
-      }
+    if (typeof v === 'string' && v.indexOf('{') === -1) {
+      this._props.color = colors.normalize(v)
+    } else if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
       this._props.color = 0
       Object.entries(v).forEach((color) => {
-        this._props[map[color[0]]] = colors.normalize(color[1])
-        this._set.add(map[color[0]])
+        this._props[colorMap[color[0]]] = colors.normalize(color[1])
+        this._set.add(colorMap[color[0]])
       })
-    } else {
-      this._props.color = colors.normalize(v)
     }
     this._set.add('color')
   },
@@ -267,12 +268,12 @@ const Element = {
 
     this.props.element = this
 
-    for (const [prop, value] of Object.entries(props)) {
-      const descriptor = Object.getOwnPropertyDescriptor(Props, prop)
-      if (descriptor && descriptor.set) {
-        if (value !== undefined) {
-          this.props[prop] = unpackTransition(value)
-        }
+    const propKeys = Object.keys(props)
+    const length = propKeys.length
+    for (let i = 0; i < length; i++) {
+      const value = props[propKeys[i]]
+      if (value !== undefined) {
+        this.props[propKeys[i]] = unpackTransition(value)
       }
     }
 
@@ -288,13 +289,6 @@ const Element = {
     this.node = props.__textnode
       ? renderer.createTextNode(this.props._props)
       : renderer.createNode(this.props._props)
-
-    // if (props.__textnode) {
-    //   this.node.on('loaded', (el, { dimensions }) => {
-    //     this.node.parent.width = dimensions.width
-    //     this.node.parent.height = dimensions.height
-    //   })
-    // }
 
     if (props['@loaded']) {
       this.node.on('loaded', (el, { type, dimensions }) => {
