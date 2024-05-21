@@ -184,30 +184,34 @@ const propsTransformer = {
   set size(v) {
     this.props['fontSize'] = v
   },
-  set wordWrap(v) {
+  set wordwrap(v) {
     this.props['width'] = v
+    this.props['contain'] = 'width'
+  },
+  set maxheight(v) {
+    this.props['height'] = v
+    this.props['contain'] = 'both'
   },
   set contain(v) {
     this.props['contain'] = v
   },
-  set maxLines(v) {
+  set maxlines(v) {
     this.props['maxLines'] = v
   },
-  set overflowSuffix(v) {
+  set textoverflow(v) {
     this.props['overflowSuffix'] = v === false ? ' ' : v === true ? undefined : v
   },
-  set letterSpacing(v) {
+  set letterspacing(v) {
     this.props['letterSpacing'] = v || 1
   },
-  set lineHeight(v) {
+  set lineheight(v) {
     this.props['lineHeight'] = v
   },
-  set textAlign(v) {
+  set align(v) {
     this.props['textAlign'] = v
   },
   set content(v) {
     this.props['text'] = '' + v
-    this.props['fontFamily'] = 'lato'
   },
   set rtt(v) {
     this.props['rtt'] = v
