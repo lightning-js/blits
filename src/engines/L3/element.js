@@ -215,10 +215,8 @@ const propsTransformer = {
 }
 
 const Element = {
-  defaults: {},
   populate(data) {
     const props = {
-      ...this.defaults,
       ...this.config,
       ...data,
     }
