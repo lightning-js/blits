@@ -22,21 +22,6 @@ import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 
-const deprecationMsg = `
-----------------------------------------------------------------------------------------------------
-Deprecation notice:
-----------------------------------------------------------------------------------------------------
-
-The property for defining a transition easing function has been renamed from "function" to "easing".
-
-Please update your code like the example below to keep your custom easing function.
-
-Before: <Element :y.transition=“{v: $y, function: ‘ease-in-out’}” />
-
-After: <Element :y.transition=“{v: $y, easing: ‘ease-in-out’}” />
-
-`
-
 const isTransition = (value) => {
   return typeof value === 'object' && 'transition' in value
 }
@@ -337,9 +322,7 @@ const Element = {
           : 300,
       easing:
         typeof transition === 'object'
-          ? 'function' in transition
-            ? Log.warn(deprecationMsg)
-            : 'easing' in transition
+          ? 'easing' in transition
             ? transition.easing
             : 'ease'
           : 'ease',
@@ -366,7 +349,7 @@ const Element = {
       transition.start.call(this.component, this, prop, startValue)
 
     // wait until the animation ends
-    const finished = await animation.waitUntilStopped()
+    await animation.waitUntilStopped()
 
     // removed the prop from scheduled transitions
     delete this.scheduledTransitions[prop]
