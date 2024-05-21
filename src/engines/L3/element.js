@@ -221,8 +221,6 @@ const Element = {
       ...data,
     }
 
-    this.initData = data
-
     if (props[symbols.isSlot]) {
       this[symbols.isSlot] = true
     }
@@ -370,7 +368,7 @@ const Element = {
     return this.node && this.node.id
   },
   get ref() {
-    return this.initData.ref || null
+    return this.props.props.ref || null
   },
 }
 
@@ -380,9 +378,8 @@ export default (config, component) => {
   }
   return Object.assign(Object.create(Element), {
     props: Object.assign(Object.create(propsTransformer), { props: {} }),
-    node: null,
+    // node: null,
     scheduledTransitions: {},
-    initData: {},
     config,
     component,
   })
