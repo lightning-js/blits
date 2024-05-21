@@ -31,7 +31,7 @@ export default function (templateObject = { children: [] }) {
   return {
     render: new Function('parent', 'component', 'context', 'components', ctx.renderCode.join('\n')),
     effects: ctx.effectsCode.map(
-      (code) => new Function('component', 'elms', 'context', 'components', code)
+      (code) => new Function('component', 'elms', 'context', 'components', 'effect', code)
     ),
     context: ctx.context,
   }
@@ -86,10 +86,18 @@ const generateElementCode = function (
       `)
     }
 
+    if (key === 'key') return
+
     if (isReactiveKey(key)) {
       if (options.holder && key === ':color') return
       this.effectsCode.push(
         `${elm}.set('${key.substring(1)}', ${interpolate(templateObject[key], options.component)})`
+      )
+      renderCode.push(
+        `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(
+          templateObject[key],
+          options.component
+        )}`
       )
     } else {
       renderCode.push(
@@ -291,7 +299,8 @@ const generateForLoopCode = function (templateObject, parent) {
 
   if (
     templateObject[Symbol.for('componentType')] === 'Element' ||
-    templateObject[Symbol.for('componentType')] === 'Slot'
+    templateObject[Symbol.for('componentType')] === 'Slot' ||
+    templateObject[Symbol.for('componentType')] === 'Text'
   ) {
     generateElementCode.call(ctx, templateObject, parent, {
       key: 'scope.key',
@@ -307,7 +316,15 @@ const generateForLoopCode = function (templateObject, parent) {
       forloop: true,
     })
   }
-  ctx.renderCode = ctx.renderCode.concat(ctx.effectsCode)
+
+  ctx.effectsCode.forEach((effect) => {
+    ctx.renderCode.push(`
+      effect(() => {
+        ${effect}
+      })
+    `)
+  })
+
   ctx.renderCode.push('}')
 
   const forEndCounter = counter
