@@ -20,6 +20,7 @@ import colors from '../../lib/colors/colors.js'
 
 import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
+import Settings from '../../settings.js'
 
 const deprecationMsg = `
 ----------------------------------------------------------------------------------------------------
@@ -49,21 +50,25 @@ const parseToObject = (str) => {
 }
 
 const parsePercentage = function (v, base) {
-  if (typeof v === 'string' && v.endsWith('%')) {
+  if (typeof v !== 'string') {
+    return v
+  } else if (v.indexOf('%') === v.length - 1) {
     return this.element.node._parent[base] * (parseFloat(v) / 100)
   }
   return v
 }
 
-const unpackTransition = (obj) => {
-  if (typeof obj === 'object' && obj.constructor === Object) {
-    if ('value' in obj) {
-      return obj.value
-    } else if ('transition' in obj) {
-      return unpackTransition(obj.transition)
+const unpackTransition = (v) => {
+  if (typeof v === 'string') return v
+  else if (typeof v === 'number') return v
+  else if (typeof v === 'object' && v.constructor === Object) {
+    if ('value' in v) {
+      return v.value
+    } else if ('transition' in v) {
+      return unpackTransition(v.transition)
     }
   }
-  return obj
+  return v
 }
 
 const colorMap = {
@@ -73,132 +78,107 @@ const colorMap = {
   right: 'colorRight',
 }
 
-const Props = {
+let textDefaults
+
+const propsTransformer = {
   set parent(v) {
-    this._props.parent = v === 'root' ? renderer.root : v.node
-    this._set.add('parent')
+    this.props['parent'] = v === 'root' ? renderer.root : v.node
   },
   set rotation(v) {
-    this._props.rotation = v * (Math.PI / 180)
-    this._set.add('rotation')
+    this.props['rotation'] = v * (Math.PI / 180)
   },
   set w(v) {
-    this._props.width = parsePercentage.call(this, v, 'width')
-    this._set.add('width')
+    this.props['width'] = typeof v !== 'string' ? v : parsePercentage.call(this, v, 'width')
   },
   set width(v) {
-    this._props.width = parsePercentage.call(this, v, 'width')
-    this._set.add('width')
+    this.props['width'] = parsePercentage.call(this, v, 'width')
   },
   set h(v) {
-    this._props.height = parsePercentage.call(this, v, 'height')
-    this._set.add('height')
+    this.props['height'] = parsePercentage.call(this, v, 'height')
   },
   set height(v) {
-    this._props.height = parsePercentage.call(this, v, 'height')
-    this._set.add('height')
+    this.props['height'] = parsePercentage.call(this, v, 'height')
   },
   set x(v) {
-    this._props.x = parsePercentage.call(this, v, 'width')
-    this._set.add('x')
+    this.props['x'] = parsePercentage.call(this, v, 'width')
   },
   set y(v) {
-    this._props.y = parsePercentage.call(this, v, 'height')
-    this._set.add('y')
+    this.props['y'] = parsePercentage.call(this, v, 'height')
   },
   set z(v) {
-    this._props.zIndex = v
-    this._set.add('zIndex')
+    this.props['zIndex'] = v
   },
   set zIndex(v) {
-    this._props.zIndex = v
-    this._set.add('zIndex')
+    this.props['zIndex'] = v
   },
   set color(v) {
     if (typeof v === 'string' && v.indexOf('{') === -1) {
-      this._props.color = colors.normalize(v)
+      this.props['color'] = colors.normalize(v)
     } else if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      this._props.color = 0
+      this.props['color'] = 0
       Object.entries(v).forEach((color) => {
-        this._props[colorMap[color[0]]] = colors.normalize(color[1])
-        this._set.add(colorMap[color[0]])
+        this.props[colorMap[color[0]]] = colors.normalize(color[1])
       })
     }
-    this._set.add('color')
   },
   set src(v) {
-    this._props.src = v
-    if (!this._set.has('color')) {
-      this._props.color = 0xffffffff
+    this.props['src'] = v
+    if (!this.raw.has('color')) {
+      this.props['color'] = 0xffffffff
     }
-    this._set.add('src')
   },
   set texture(v) {
-    this._props.texture = v
-    if (!this._set.has('color')) {
-      this._props.color = 0xffffffff
+    this.props['texture'] = v
+    if (!this.raw.has('color')) {
+      this.props['color'] = 0xffffffff
     }
-    this._set.add('texture')
   },
   set mount(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
       if ('x' in v) {
-        this._props.mountX = v.x
-        this._set.add('mountX')
+        this.props['mountX'] = v.x
       }
       if ('y' in v) {
-        this._props.mountY = v.y
-        this._set.add('mountY')
+        this.props['mountY'] = v.y
       }
     } else {
-      this._props.mountX = this._props.mountY = v
-      this._set.add('mountX')
-      this._set.add('mountY')
+      this.props['mountX'] = v
+      this._props['mountY'] = v
     }
   },
   set pivot(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
       if ('x' in v) {
-        this._set.add('pivotX')
-        this._props.pivotX = v.x
+        this.props['pivotX'] = v.x
       }
       if ('y' in v) {
-        this._set.add('pivotY')
-        this._props.pivotY = v.y
+        this.props['pivotY'] = v.y
       }
     } else {
-      this._props.pivotX = this._props.pivotY = v
-      this._set.add('pivotX')
-      this._set.add('pivotY')
+      this.props['pivotX'] = v
+      this.props['pivotY'] = v
     }
   },
   set scale(v) {
     if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
       if ('x' in v) {
-        this._set.add('scaleX')
-        this._props.scaleX = v.x
+        this.props['scaleX'] = v.x
       }
       if ('y' in v) {
-        this._set.add('scaleX')
-        this._props.scaleY = v.y
+        this.props['scaleY'] = v.y
       }
     } else {
-      this._props.scale = v
-      this._set.add('scale')
+      this.props['scale'] = v
     }
   },
   set show(v) {
-    this._props.alpha = v ? 1 : 0
+    this.props['alpha'] = v ? 1 : 0
   },
   set alpha(v) {
-    this._props.alpha = v
-    this._set.add('alpha')
-  },
-  set text(v) {
-    this._props.text = v.toString()
+    this.props['alpha'] = v
   },
   set effects(v) {
-    this._props.shader = renderer.createShader('DynamicShader', {
+    this.props['shader'] = renderer.createShader('DynamicShader', {
       effects: v.map((eff) => {
         if (eff.props && eff.props.color) {
           eff.props.color = colors.normalize(eff.props.color)
@@ -206,48 +186,46 @@ const Props = {
         return eff
       }),
     })
-    this._set.add('effects')
   },
   set clipping(v) {
-    this._props.clipping = v
+    this.props['clipping'] = v
   },
   set overflow(v) {
-    this._props.clipping = !!!v
+    this.props['clipping'] = !!!v
   },
-  set fontFamily(v) {
-    this._props.fontFamily = v
+  set font(v) {
+    this.props['fontFamily'] = v
   },
-  set fontSize(v) {
-    this._props.fontSize = v
+  set size(v) {
+    this.props['fontSize'] = v
   },
   set wordWrap(v) {
-    this._props.width = v
+    this.props['width'] = v
   },
   set contain(v) {
-    this._props.contain = v
+    this.props['contain'] = v
   },
   set maxLines(v) {
-    this._props.maxLines = v
+    this.props['maxLines'] = v
   },
   set overflowSuffix(v) {
-    this._props.overflowSuffix = v === false ? ' ' : v === true ? undefined : v
+    this.props['overflowSuffix'] = v === false ? ' ' : v === true ? undefined : v
   },
   set letterSpacing(v) {
-    this._props.letterSpacing = v || 1
+    this.props['letterSpacing'] = v || 1
   },
   set lineHeight(v) {
-    this._props.lineHeight = v
+    this.props['lineHeight'] = v
   },
   set textAlign(v) {
-    this._props.textAlign = v
+    this.props['textAlign'] = v
   },
   set content(v) {
-    this._props.text = v
-    this._props.fontFamily = 'lato'
+    this.props['text'] = '' + v
+    this.props['fontFamily'] = 'lato'
   },
   set rtt(v) {
-    this._props.rtt = v
-    this._set.add('rtt')
+    this.props['rtt'] = v
   },
 }
 
@@ -270,25 +248,28 @@ const Element = {
 
     const propKeys = Object.keys(props)
     const length = propKeys.length
+
+    this.props.raw = new Map(Object.entries(props))
+
     for (let i = 0; i < length; i++) {
-      const value = props[propKeys[i]]
+      const key = propKeys[i]
+      const value = props[key]
       if (value !== undefined) {
-        this.props[propKeys[i]] = unpackTransition(value)
+        this.props[key] = unpackTransition(value)
       }
     }
 
     // correct for default white nodes (but not for text nodes)
-    if (!props.__textnode && !this.props._set.has('color')) {
-      this.props._props.color =
-        this.props._set.has('src') ||
-        this.props._set.has('texture') ||
-        (this.props._set.has('rtt') && this.props._props.rtt === true)
+    if (!this.props.props['color'] && !props.__textnode) {
+      this.props.props['color'] =
+        this.props.props['src'] || this.props.props['texture'] || this.props.props['rtt'] === true
           ? 0xffffffff
           : 0
     }
+
     this.node = props.__textnode
-      ? renderer.createTextNode(this.props._props)
-      : renderer.createNode(this.props._props)
+      ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
+      : (this.node = renderer.createNode(this.props.props))
 
     if (props['@loaded']) {
       this.node.on('loaded', (el, { type, dimensions }) => {
@@ -304,16 +285,30 @@ const Element = {
   },
   set(prop, value) {
     if (value === undefined) return
+    if (this.props.raw.get(prop) === value) return
     const propsSet = new Set(this.props._set)
 
-    this.props._props = {}
+    this.props.props = {}
     this.props[prop] = unpackTransition(value)
 
-    for (const [p, v] of Object.entries(this.props._props)) {
+    const props = Object.entries(this.props.props)
+
+    if (props.length === 1) {
+      const [p, v] = props[0]
       if (isTransition(value) && propsSet.has(p)) {
         return this.animate(p, v, value.transition)
-      } else {
+      } else if (this.node[p] !== v) {
         this.node[p] = v
+      }
+    } else {
+      for (let i = 0; i < props.length; i++) {
+        // todo: fix code duplication
+        const [p, v] = props[0]
+        if (isTransition(value) && propsSet.has(p)) {
+          return this.animate(p, v, value.transition)
+        } else if (this.node[p] !== v) {
+          this.node[p] = v
+        }
       }
     }
   },
@@ -399,12 +394,16 @@ const Element = {
   },
 }
 
-export default (config, component) =>
-  Object.assign(Object.create(Element), {
-    props: Object.assign(Object.create(Props), { _props: {}, _set: new Set() }),
+export default (config, component) => {
+  if (!textDefaults) {
+    textDefaults = { fontSize: 32, fontFamily: Settings.get('defaultFont', 'lato') }
+  }
+  return Object.assign(Object.create(Element), {
+    props: Object.assign(Object.create(propsTransformer), { props: {} }),
     node: null,
     scheduledTransitions: {},
     initData: {},
     config,
     component,
   })
+}
