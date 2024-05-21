@@ -271,7 +271,8 @@ const Element = {
   set(prop, value) {
     if (value === undefined) return
     if (this.props.raw.get(prop) === value) return
-    const propsSet = new Set(this.props._set)
+
+    this.props.raw.set(prop, value)
 
     this.props.props = {}
     this.props[prop] = unpackTransition(value)
@@ -280,7 +281,7 @@ const Element = {
 
     if (props.length === 1) {
       const [p, v] = props[0]
-      if (isTransition(value) && propsSet.has(p)) {
+      if (isTransition(value)) {
         return this.animate(p, v, value.transition)
       } else if (this.node[p] !== v) {
         this.node[p] = v
@@ -289,7 +290,7 @@ const Element = {
       for (let i = 0; i < props.length; i++) {
         // todo: fix code duplication
         const [p, v] = props[0]
-        if (isTransition(value) && propsSet.has(p)) {
+        if (isTransition(value)) {
           return this.animate(p, v, value.transition)
         } else if (this.node[p] !== v) {
           this.node[p] = v
