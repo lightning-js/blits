@@ -312,7 +312,8 @@ const Element = {
       }
     }
   },
-  animate(prop, value, transition) {
+  async animate(prop, value, transition) {
+    // if current value is the same as the value to animate to, instantly resolve
     if (this.node[prop] === value) return Promise.resolve()
     // check if a transition is already scheduled or running on the same prop
     if (this.scheduledTransitions[prop]) {
@@ -345,39 +346,37 @@ const Element = {
       delay: typeof transition === 'object' ? ('delay' in transition ? transition.delay : 0) : 0,
     })
 
-    // schedule transition
-    return new Promise((resolve) => {
-      const startValue = this.node[prop]
-      this.scheduledTransitions[prop] = {
-        v: props[prop],
-        cancel: false,
-        f,
-      }
+    // capture the current value to be used in the transition start
+    const startValue = this.node[prop]
 
-      try {
-        f.start()
-          .waitUntilStarted()
-          .then((animation) => {
-            // fire transition start callback if specified
-            transition.start &&
-              typeof transition.start === 'function' &&
-              transition.start.call(this.component, this, prop, startValue)
-            // continue the chain
-            animation
-              .waitUntilStopped()
-              .then(() => delete this.scheduledTransitions[prop])
-              .then(() => {
-                // fire transition end callback if specified
-                transition.end &&
-                  typeof transition.end === 'function' &&
-                  transition.end.call(this.component, this, prop, this.node[prop])
-              })
-              .then(resolve)
-          })
-      } catch (e) {
-        Log.error(e)
-      }
-    })
+    // schedule the transition for this prop, so it can be canceled /
+    // removed if another transition for the same prop starts in the mean time
+    this.scheduledTransitions[prop] = {
+      v: props[prop],
+      cancel: false,
+      f,
+    }
+
+    // wait until the animation really starts (depending on specified delay)
+    const animation = await f.start().waitUntilStarted()
+
+    // fire transition start callback if specified
+    transition.start &&
+      typeof transition.start === 'function' &&
+      transition.start.call(this.component, this, prop, startValue)
+
+    // wait until the animation ends
+    const finished = await animation.waitUntilStopped()
+
+    // removed the prop from scheduled transitions
+    delete this.scheduledTransitions[prop]
+
+    // fire transition end callback if specified
+    transition.end &&
+      typeof transition.end === 'function' &&
+      transition.end.call(this.component, this, prop, this.node[prop])
+
+    return Promise.resolve()
   },
   destroy() {
     Log.debug('Deleting  Node', this.nodeId)
