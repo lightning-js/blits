@@ -19,7 +19,7 @@ let counter
 
 export default function (templateObject = { children: [] }) {
   const ctx = {
-    renderCode: ['const elms = []', 'let componentType'],
+    renderCode: ['const elms = []', 'let componentType', 'const rootComponent = component'],
     effectsCode: [],
     context: { props: [], components: this.components },
   }
@@ -207,7 +207,7 @@ const generateComponentCode = function (
 
     ${elm} = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component ${
     templateObject[Symbol.for('componentType')]
-  } not found')})).call(null, {props: props${counter}}, ${parent}, component)
+  } not found')})).call(null, {props: props${counter}}, ${parent}, component, rootComponent)
       if (${elm}[Symbol.for('slots')][0]) {
         parent = ${elm}[Symbol.for('slots')][0]
         component = ${elm}
@@ -224,6 +224,9 @@ const generateComponentCode = function (
     counter++
     generateElementCode.call(this, { children }, false, { ...options })
   }
+  renderCode.push(`
+    component = rootComponent
+  `)
 }
 
 const generateForLoopCode = function (templateObject, parent) {

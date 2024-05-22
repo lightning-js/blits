@@ -373,7 +373,16 @@ const Element = {
     return this.node && this.node.id
   },
   get ref() {
-    return this.props.props.ref || null
+    return this.props.ref || null
+  },
+  get parent() {
+    return this.node && this.node.parent
+  },
+  get children() {
+    console.log('get children')
+    return this.component[symbols.getChildren]().filter((child) => {
+      return child.parent === (this[symbols.isSlot] ? this.node.children[0] : this.node)
+    })
   },
 }
 
