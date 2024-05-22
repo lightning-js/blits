@@ -128,7 +128,7 @@ const propsTransformer = {
       }
     } else {
       this.props['mountX'] = v
-      this._props['mountY'] = v
+      this.props['mountY'] = v
     }
   },
   set pivot(v) {
