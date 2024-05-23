@@ -1,6 +1,6 @@
 import path from 'path'
 import * as fs from 'fs'
-import generateBMFont from 'msdf-bmfont-xml'
+import { generateSDF } from 'msdf-generator'
 
 let config
 
@@ -22,7 +22,6 @@ export default function () {
       server.middlewares.use('/', async (req, res, next) => {
         const file = req.url.substring(req.url.lastIndexOf('/') + 1)
         const match = file.match(/(.+)\.msdf\.(json|png)/)
-
         // msdf font request
         if (match) {
           const fontPath = path.dirname(req.url.split('?')[0]).replace(/^\//, '')
@@ -44,7 +43,7 @@ export default function () {
 
               if (!fs.existsSync(generatedFontFile)) {
                 console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`)
-                await generateFont(fontFile, targetDir, fontName)
+                await generateSDF(fontFile, path.join(targetDir), 'msdf')
               }
 
               const fileContent = fs.readFileSync(generatedFontFile)
@@ -71,7 +70,6 @@ export default function () {
     },
     // after build ends, the first hook is renderStart where we can modify the output
     async renderStart() {
-      // Find all TTF files under publicDir
       const ttfFiles = findAllTtfFiles(publicDir)
 
       for (const ttfFile of ttfFiles) {
@@ -83,7 +81,7 @@ export default function () {
         // Check if MSDF files are generated, if not, generate them
         if (!fs.existsSync(msdfJsonPath) || !fs.existsSync(msdfPngPath)) {
           console.log(`Generating missing MSDF files for ${ttfFile}`)
-          await generateFont(ttfFile, path.join(msdfOutputDir, relativePath), baseName)
+          await generateSDF(ttfFile, path.join(msdfOutputDir, relativePath), 'msdf')
         }
       }
 
@@ -92,42 +90,6 @@ export default function () {
       }
     },
   }
-}
-
-const generateFont = (fontFile, fontDir, fontName) => {
-  return new Promise((resolve, reject) => {
-    if (!fs.existsSync(fontDir)) {
-      fs.mkdirSync(fontDir, { recursive: true })
-    }
-    generateBMFont(
-      fontFile,
-      {
-        outputType: 'json',
-      },
-      (err, textures, font) => {
-        if (err) {
-          console.error(err)
-          reject(err)
-        } else {
-          textures.forEach((texture) => {
-            try {
-              fs.writeFileSync(path.resolve(fontDir, `${fontName}.msdf.png`), texture.texture)
-            } catch (e) {
-              console.error(e)
-              reject(e)
-            }
-          })
-          try {
-            fs.writeFileSync(path.resolve(fontDir, `${fontName}.msdf.json`), font.data)
-            resolve()
-          } catch (e) {
-            console.error(err)
-            reject(e)
-          }
-        }
-      }
-    )
-  })
 }
 
 // finds all TTF files in a directory
