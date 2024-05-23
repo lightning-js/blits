@@ -1,6 +1,7 @@
 import path from 'path'
 import * as fs from 'fs'
-import { generateSDF } from 'msdf-generator'
+import { genFont, setGeneratePaths } from 'msdf-generator'
+import { adjustFont } from 'msdf-generator/adjustFont'
 
 let config
 
@@ -43,7 +44,7 @@ export default function () {
 
               if (!fs.existsSync(generatedFontFile)) {
                 console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`)
-                await generateSDF(fontFile, path.join(targetDir), 'msdf')
+                await generateSDF(fontFile, path.join(targetDir))
               }
 
               const fileContent = fs.readFileSync(generatedFontFile)
@@ -81,7 +82,7 @@ export default function () {
         // Check if MSDF files are generated, if not, generate them
         if (!fs.existsSync(msdfJsonPath) || !fs.existsSync(msdfPngPath)) {
           console.log(`Generating missing MSDF files for ${ttfFile}`)
-          await generateSDF(ttfFile, path.join(msdfOutputDir, relativePath), 'msdf')
+          await generateSDF(ttfFile, path.join(msdfOutputDir, relativePath))
         }
       }
 
@@ -90,6 +91,17 @@ export default function () {
       }
     },
   }
+}
+
+const generateSDF = async (inputFilePath, outputDirPath) => {
+  // Ensure the destination directory exists
+  fs.mkdirSync(outputDirPath, { recursive: true })
+
+  setGeneratePaths(path.dirname(inputFilePath), outputDirPath)
+
+  let font = await genFont(path.basename(inputFilePath), 'msdf')
+
+  if (font) await adjustFont(font)
 }
 
 // finds all TTF files in a directory
