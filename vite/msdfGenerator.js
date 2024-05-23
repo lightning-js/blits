@@ -102,6 +102,7 @@ const generateSDF = async (inputFilePath, outputDirPath) => {
   let font = await genFont(path.basename(inputFilePath), 'msdf')
 
   if (font) await adjustFont(font)
+  else console.error('Failed to generate MSDF file')
 }
 
 // finds all TTF files in a directory
