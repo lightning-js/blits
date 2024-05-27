@@ -52,7 +52,8 @@
     "ora": "^7.0.1",
     "prompts": "^2.4.2",
     "replace-in-file": "^6.1.0",
-    "validate-npm-package-name": "^5.0.0"
+    "validate-npm-package-name": "^5.0.0",
+    "msdf-generator": "https://github.com/lightning-js/msdf-generator.git"
   },
   "repository": {
     "type": "git",
