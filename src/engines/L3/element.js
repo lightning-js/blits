@@ -267,6 +267,12 @@ const Element = {
         props['@error'](error, this)
       })
     }
+
+    if (this.component && this.component.___layout) {
+      this.node.on('loaded', () => {
+        this.component.___layout()
+      })
+    }
   },
   set(prop, value) {
     if (value === undefined) return
