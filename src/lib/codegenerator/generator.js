@@ -352,6 +352,9 @@ const generateForLoopCode = function (templateObject, parent) {
   ctx.renderCode.push(`
         }
       }
+      if(elms[${forStartCounter}][0] && elms[${forStartCounter}][0].forComponent && elms[${forStartCounter}][0].forComponent.___layout) {
+        elms[${forStartCounter}][0].forComponent.___layout()
+      }
     }
   `)
   this.effectsCode.push(ctx.renderCode.join('\n'))
