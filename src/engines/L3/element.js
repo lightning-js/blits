@@ -108,13 +108,19 @@ const propsTransformer = {
   },
   set src(v) {
     this.props['src'] = v
-    if (!this.raw.has('color')) {
+    if (this.raw.get('color') === undefined) {
       this.props['color'] = 0xffffffff
     }
   },
   set texture(v) {
     this.props['texture'] = v
-    if (!this.raw.has('color')) {
+    if (this.raw.get('color') === undefined) {
+      this.props['color'] = 0xffffffff
+    }
+  },
+  set rtt(v) {
+    this.props['rtt'] = v
+    if (this.raw.get('color') === undefined) {
       this.props['color'] = 0xffffffff
     }
   },
@@ -213,9 +219,6 @@ const propsTransformer = {
   set content(v) {
     this.props['text'] = '' + v
   },
-  set rtt(v) {
-    this.props['rtt'] = v
-  },
 }
 
 const Element = {
@@ -245,11 +248,8 @@ const Element = {
     }
 
     // correct for default white nodes (but not for text nodes)
-    if (!this.props.props['color'] && !props.__textnode) {
-      this.props.props['color'] =
-        this.props.props['src'] || this.props.props['texture'] || this.props.props['rtt'] === true
-          ? 0xffffffff
-          : 0
+    if (this.props.props['color'] === undefined && !('__textnode' in props)) {
+      this.props.props['color'] = 0
     }
 
     this.node = props.__textnode
@@ -282,7 +282,6 @@ const Element = {
 
     this.props.props = {}
     this.props[prop] = unpackTransition(value)
-
     const props = Object.entries(this.props.props)
 
     if (props.length === 1) {
@@ -295,7 +294,7 @@ const Element = {
     } else {
       for (let i = 0; i < props.length; i++) {
         // todo: fix code duplication
-        const [p, v] = props[0]
+        const [p, v] = props[i]
         if (isTransition(value)) {
           return this.animate(p, v, value.transition)
         } else if (this.node[p] !== v) {
@@ -398,7 +397,10 @@ const Element = {
 
 export default (config, component) => {
   if (!textDefaults) {
-    textDefaults = { fontSize: 32, fontFamily: Settings.get('defaultFont', 'lato') }
+    textDefaults = {
+      fontSize: 32,
+      fontFamily: Settings.get('defaultFont', 'lato'),
+    }
   }
   return Object.assign(Object.create(Element), {
     props: Object.assign(Object.create(propsTransformer), { props: {} }),
