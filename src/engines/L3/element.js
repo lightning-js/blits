@@ -38,7 +38,7 @@ const parsePercentage = function (v, base) {
   if (typeof v !== 'string') {
     return v
   } else if (v.indexOf('%') === v.length - 1) {
-    return this.element.node._parent[base] * (parseFloat(v) / 100)
+    return this.element.node && this.element.node._parent[base] * (parseFloat(v) / 100)
   }
   return v
 }
