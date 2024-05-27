@@ -73,7 +73,7 @@ const propsTransformer = {
     this.props['rotation'] = v * (Math.PI / 180)
   },
   set w(v) {
-    this.props['width'] = typeof v !== 'string' ? v : parsePercentage.call(this, v, 'width')
+    this.props['width'] = parsePercentage.call(this, v, 'width')
   },
   set width(v) {
     this.props['width'] = parsePercentage.call(this, v, 'width')
@@ -297,6 +297,11 @@ const Element = {
         }
       }
     }
+
+    // todo: review naming
+    if (this.component && this.component.___layout) {
+      this.component.___layout()
+    }
   },
   async animate(prop, value, transition) {
     // if current value is the same as the value to animate to, instantly resolve
@@ -379,7 +384,6 @@ const Element = {
     return this.node && this.node.parent
   },
   get children() {
-    console.log('get children')
     return this.component[symbols.getChildren]().filter((child) => {
       return child.parent === (this[symbols.isSlot] ? this.node.children[0] : this.node)
     })
@@ -392,7 +396,6 @@ export default (config, component) => {
   }
   return Object.assign(Object.create(Element), {
     props: Object.assign(Object.create(propsTransformer), { props: {} }),
-    // node: null,
     scheduledTransitions: {},
     config,
     component,

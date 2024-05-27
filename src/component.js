@@ -159,7 +159,14 @@ const Component = (name = required('name'), config = required('config')) => {
     // reactive bindings define in the template
     config.code.effects.forEach((eff) => {
       effect(() => {
-        eff.apply(stage, [this, this[symbols.children], config, globalComponents, effect])
+        eff.apply(stage, [
+          this,
+          this[symbols.children],
+          config,
+          globalComponents,
+          rootComponent,
+          effect,
+        ])
       })
     })
 

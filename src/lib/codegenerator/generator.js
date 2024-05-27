@@ -31,7 +31,8 @@ export default function (templateObject = { children: [] }) {
   return {
     render: new Function('parent', 'component', 'context', 'components', ctx.renderCode.join('\n')),
     effects: ctx.effectsCode.map(
-      (code) => new Function('component', 'elms', 'context', 'components', 'effect', code)
+      (code) =>
+        new Function('component', 'elms', 'context', 'components', 'rootComponent', 'effect', code)
     ),
     context: ctx.context,
   }
@@ -224,9 +225,11 @@ const generateComponentCode = function (
     counter++
     generateElementCode.call(this, { children }, false, { ...options })
   }
-  renderCode.push(`
+  if (!options.forloop) {
+    renderCode.push(`
     component = rootComponent
   `)
+  }
 }
 
 const generateForLoopCode = function (templateObject, parent) {
@@ -332,6 +335,7 @@ const generateForLoopCode = function (templateObject, parent) {
 
   const forEndCounter = counter
   ctx.renderCode.push(`
+   component = rootComponent
    if(elms[${forStartCounter}]) {
       const all = Object.keys(elms[1])
       let i = all.length

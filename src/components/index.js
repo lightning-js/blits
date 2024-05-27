@@ -20,6 +20,7 @@ import Circle from './Circle.js'
 import RouterView from './RouterView.js'
 import Sprite from './Sprite.js'
 import FPScounter from './FPScounter.js'
+import Layout from './Layout.js'
 
 export default () => ({
   Image: Image(),
@@ -27,4 +28,5 @@ export default () => ({
   RouterView: RouterView(),
   Sprite: Sprite(),
   FPScounter: FPScounter(),
+  Layout: Layout(),
 })
