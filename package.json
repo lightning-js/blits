@@ -6,7 +6,6 @@
   "exports": {
     ".": "./index.js",
     "./vite": "./vite/index.js",
-    "./fontloader": "./src/fontLoader.js",
     "./transitions": "./src/router/transitions/index.js"
   },
   "scripts": {
