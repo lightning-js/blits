@@ -337,7 +337,7 @@ const generateForLoopCode = function (templateObject, parent) {
   ctx.renderCode.push(`
    component = rootComponent
    if(elms[${forStartCounter}]) {
-      const all = Object.keys(elms[1])
+      const all = Object.keys(elms[${forStartCounter}])
       let i = all.length
       while (i--) {
         const key = all[i]
