@@ -103,9 +103,9 @@ const reactiveProxy = (original, _parent = null, _key) => {
 
       if (result && oldRawValue !== rawValue) {
         // if we're assigning an array key directly trigger reactivity on the parent key as well
-        // if (Array.isArray(target) && key in target) {
-        //   trigger(_parent, _key, true)
-        // }
+        if (Array.isArray(target) && key in target) {
+          trigger(_parent, _key, true)
+        }
         trigger(target, key, true)
       }
       return result
