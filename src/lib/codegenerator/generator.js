@@ -275,23 +275,19 @@ const generateForLoopCode = function (templateObject, parent) {
     const keys = new Set()
     for(let __index = 0; __index < collection.length; __index++) {
       parent = ${parent}
-      if(!component.key) keys.length = 0 //??
-      const scope = Object.assign(component, {
-        key: __index,
-        ${index}: __index,
-        ${item}: collection[__index],
+      const scope = Object.create(component)
+      scope['key'] = __index
+      scope['${index}'] = __index
+      scope['${item}'] = collection[__index]
     `)
 
   if ('ref' in templateObject && templateObject.ref.indexOf('$') === -1) {
     // automatically map the ref for each item in the loop based on the given ref key
     ctx.renderCode.push(`
-      __ref: '${templateObject.ref}' + __index
+      scope['__ref'] = '${templateObject.ref}' + __index
     `)
     templateObject.ref = '$__ref'
   }
-  ctx.renderCode.push(`
-      })
-  `)
 
   if ('key' in templateObject) {
     ctx.renderCode.push(`
