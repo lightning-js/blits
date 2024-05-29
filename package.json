@@ -1,12 +1,11 @@
 {
   "name": "@lightningjs/blits",
-  "version": "0.9.8",
+  "version": "0.9.9",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
     ".": "./index.js",
     "./vite": "./vite/index.js",
-    "./fontloader": "./src/fontLoader.js",
     "./transitions": "./src/router/transitions/index.js"
   },
   "scripts": {
@@ -45,7 +44,7 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "^0.8.3",
+    "@lightningjs/renderer": "^0.8.4",
     "@lightningjs/vite-plugin-import-chunk-url": "^0.3.0",
     "execa": "^8.0.1",
     "kolorist": "^1.8.0",

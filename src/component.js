@@ -117,8 +117,14 @@ const Component = (name = required('name'), config = required('config')) => {
       // frame tick event
       if (config.hooks.frameTick) {
         renderer.on('frameTick', (r, data) =>
-          emit('frameTick', component[symbols.identifier], this, [data])
+          emit('frameTick', this[symbols.identifier], this, [data])
         )
+      }
+
+      if (config.hooks.idle) {
+        renderer.on('idle', () => {
+          emit('idle', this[symbols.identifier], this)
+        })
       }
 
       // inBounds event emiting a lifecycle attach event
