@@ -278,15 +278,13 @@ const Element = {
     if (value === undefined) return
     if (this.props.raw.get(prop) === value) return
 
-    this.props.raw.set(prop, value)
-
     this.props.props = {}
     this.props[prop] = unpackTransition(value)
     const props = Object.entries(this.props.props)
 
     if (props.length === 1) {
       const [p, v] = props[0]
-      if (isTransition(value)) {
+      if (isTransition(value) && this.props.raw.has(prop)) {
         return this.animate(p, v, value.transition)
       } else if (this.node[p] !== v) {
         this.node[p] = v
@@ -295,13 +293,15 @@ const Element = {
       for (let i = 0; i < props.length; i++) {
         // todo: fix code duplication
         const [p, v] = props[i]
-        if (isTransition(value)) {
+        if (isTransition(value) && this.props.raw.has(prop)) {
           return this.animate(p, v, value.transition)
         } else if (this.node[p] !== v) {
           this.node[p] = v
         }
       }
     }
+
+    this.props.raw.set(prop, value)
 
     // todo: review naming
     if (this.component && this.component.___layout) {
