@@ -30,6 +30,7 @@ export default () => {
         new WebTrFontFace({
           fontFamily: font.family,
           fontUrl: font.file,
+          descriptors: {},
           ...(font.metrics ? { metrics: font.metrics } : {}),
         })
       )
