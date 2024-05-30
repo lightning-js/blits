@@ -157,9 +157,9 @@ const Component = (name = required('name'), config = required('config')) => {
 
     // setup (and execute) all the generated side effects based on the
     // reactive bindings define in the template
-    config.code.effects.forEach((eff) => {
+    for(let i = 0; i < config.code.effects.length; i++) {
       effect(() => {
-        eff.apply(stage, [
+        config.code.effects[i].apply(stage, [
           this,
           this[symbols.children],
           config,
@@ -168,7 +168,7 @@ const Component = (name = required('name'), config = required('config')) => {
           effect,
         ])
       })
-    })
+    }
 
     // setup watchers if the components has watchers specified
     if (this[symbols.watchers]) {

@@ -65,9 +65,9 @@ export const trigger = (target, key, force = false) => {
   }
   const effects = effectsMap.get(key)
   if (effects) {
-    effects.forEach((effect) => {
+    for (let effect of effects) {
       effect(force)
-    })
+    }
   }
 }
 
