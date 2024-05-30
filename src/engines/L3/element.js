@@ -120,7 +120,7 @@ const propsTransformer = {
   },
   set rtt(v) {
     this.props['rtt'] = v
-    if (this.raw.get('color') === undefined) {
+    if (v === true && this.raw.get('color') === undefined) {
       this.props['color'] = 0xffffffff
     }
   },
