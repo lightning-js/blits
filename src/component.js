@@ -15,198 +15,156 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { Log } from './lib/log.js'
 import parser from './lib/templateparser/parser.js'
 import codegenerator from './lib/codegenerator/generator.js'
+import { createHumanReadableId, createInternalId } from './lib/componentId.js'
+import { emit } from './lib/hooks.js'
+import { reactive } from './lib/reactivity/reactive.js'
+import { effect } from './lib/reactivity/effect.js'
+import Lifecycle from './lib/lifecycle.js'
+import symbols from './lib/symbols.js'
 
 import { stage, renderer } from './launch.js'
 
-import { createHumanReadableId, createInternalId } from './lib/componentId.js'
-import { registerHooks, emit } from './lib/hooks.js'
-
-import { reactive } from './lib/reactivity/reactive.js'
-import setupBase from './lib/setup/base.js'
-import setupProps from './lib/setup/props.js'
-import setupMethods from './lib/setup/methods.js'
-import setupState from './lib/setup/state.js'
-import setupComputed from './lib/setup/computed.js'
-import setupInput from './lib/setup/input.js'
-import setupRoutes from './lib/setup/routes.js'
-import setupWatch from './lib/setup/watch.js'
-import { effect } from './lib/reactivity/effect.js'
-import { Log } from './lib/log.js'
-import lifecycle from './lib/lifecycle.js'
+import Base from './component/base/index.js'
 
 import Settings from './settings.js'
-import symbols from './lib/symbols.js'
 
-let counter = 0
+import setupComponent from './component/setup/index.js'
+import components from './components/index.js'
+
+// object to store global components
+let globalComponents
 
 const required = (name) => {
   throw new Error(`Parameter ${name} is required`)
 }
 
+/**
+ * Component factory function
+ * @param {string} name - The name of the component
+ * @param {object} config - The configuration object for the component
+ * @returns {function} - A factory function that creates a new component instance
+ *
+ */
 const Component = (name = required('name'), config = required('config')) => {
-  const setupComponent = (parentComponent) => {
-    // code generation
-    if (!config.code) {
-      Log.debug(`Generating code for ${name} component`)
-      config.code = codegenerator.call(config, parser(config.template, name, parentComponent))
-    }
-
-    component[symbols.identifier] = ++counter
-
-    setupBase(component, name)
-
-    // setup hooks
-    registerHooks(config.hooks, component[symbols.identifier])
-
-    // setup props
-    // if (config.props) // because of the default props like id - might change this
-    setupProps(component, config.props)
-
-    // setup methods
-    if (config.methods) setupMethods(component, config.methods)
-
-    // setup state
-    setupState(component, config.state)
-
-    // setup computed
-    if (config.computed) setupComputed(component, config.computed)
-
-    // setup watchers
-    if (config.watch) setupWatch(component, config.watch)
-
-    // setup routes
-    if (config.routes) setupRoutes(component, config.routes)
-
-    // setup input
-    if (config.input) setupInput(component, config.input)
-
-    component.setup = true
-  }
+  let base
 
   const component = function (opts, parentEl, parentComponent) {
-    this.lifecycle = Object.assign(Object.create(lifecycle), {
+    // generate a human readable ID for the component instance (i.e. Blits::ComponentName1)
+    this.componentId = createHumanReadableId(name)
+
+    // instantiate a lifecycle object for this instance
+    this.lifecycle = Object.assign(Object.create(Lifecycle), {
       component: this,
       previous: null,
       current: null,
     })
 
-    if (!component.setup) {
-      setupComponent(parentComponent)
-    }
-    if (config.hooks && config.hooks.frameTick) {
-      renderer.on('frameTick', (r, data) =>
-        emit('frameTick', component[symbols.identifier], this, [data])
-      )
-    }
-
+    // set a reference to the parent component
     this.parent = parentComponent
+
+    // set a reference to the holder / parentElement
+    // Components are wrapped in a holder node (used to apply positioning and transforms
+    // such as rotation and scale to components)
     this[symbols.holder] = parentEl
 
-    Object.defineProperties(this, {
-      componentId: {
-        value: createHumanReadableId(name),
-        writable: false,
-        enumerable: true,
-        configurable: false,
-      },
-      [symbols.id]: {
-        value: createInternalId(),
-        writable: false,
-        enumerable: false,
-        configurable: false,
-      },
-      [symbols.props]: {
-        value: reactive(opts.props || {}, Settings.get('reactivityMode')),
-        writable: false,
-        enumerable: false,
-        configurable: false,
-      },
-      [symbols.timeouts]: {
-        value: [],
-        writable: true,
-        enumerable: false,
-        configurable: false,
-      },
-      [symbols.intervals]: {
-        value: [],
-        writable: true,
-        enumerable: false,
-        configurable: false,
-      },
-    })
+    // generate an internal id (simple counter)
+    this[symbols.id] = createInternalId()
 
-    Object.defineProperty(this, symbols.originalState, {
-      value: {
-        ...((config.state && typeof config.state === 'function' && config.state.apply(this)) || {}),
-        ...{ hasFocus: false },
-      },
-      writable: false,
-      enumerable: false,
-      configurable: false,
-    })
+    // set the internal props and make them reactive (based on the reactivity mode)
+    this[symbols.props] = reactive(opts.props || {}, Settings.get('reactivityMode'))
 
-    Object.defineProperty(this, symbols.state, {
-      value: reactive(this[symbols.originalState], Settings.get('reactivityMode')),
-      writable: false,
-      enumerable: false,
-      configurable: false,
-    })
+    // create an empty array for storing timeouts created by this component (via this.$setTimeout)
+    this[symbols.timeouts] = []
 
+    // create an empty array for storing intervals created by this component (via this.$setInterval)
+    this[symbols.intervals] = []
+
+    // apply the state function (passing in the this reference to utilize configured props)
+    // and store a reference to this original state
+    // hasFocus key is sprinkled in
+    this[symbols.originalState] = {
+      ...((config.state && typeof config.state === 'function' && config.state.apply(this)) || {}),
+      ...{ hasFocus: false },
+    }
+
+    // generate a reactive state (using the result of previously execute state function)
+    // and store it
+    this[symbols.state] = reactive(this[symbols.originalState], Settings.get('reactivityMode'))
+
+    // all basic setup has been done now, set the lifecycle to state 'init'
     this.lifecycle.state = 'init'
 
-    Object.defineProperty(this, symbols.children, {
-      value: config.code.render.apply(stage, [parentEl, this, config]),
-      writable: false,
-      enumerable: false,
-      configurable: false,
-    })
+    // execute the render code that constructs the initial state of the component
+    // and store the children result (a flat map of elements and components)
+    this[symbols.children] = config.code.render.apply(stage, [
+      parentEl,
+      this,
+      config,
+      globalComponents,
+    ])
 
-    Object.defineProperty(this, symbols.wrapper, {
-      value: this[symbols.children][0],
-      writable: false,
-      enumerable: false,
-      configurable: false,
-    })
+    // create a reference to the wrapper element of the component (i.e. the root Element of the component)
+    this[symbols.wrapper] = this[symbols.children][0]
 
-    if (config.hooks && config.hooks.attach) {
-      this[symbols.wrapper].node.on('inBounds', () => {
-        this.lifecycle.state = 'attach'
-      })
+    // create a reference to an array of children that are slots
+    this[symbols.slots] = this[symbols.children].filter((child) => child[symbols.isSlot])
+
+    // register hooks if component has hooks specified
+    if (config.hooks) {
+      // frame tick event
+      if (config.hooks.frameTick) {
+        renderer.on('frameTick', (r, data) =>
+          emit('frameTick', this[symbols.identifier], this, [data])
+        )
+      }
+
+      if (config.hooks.idle) {
+        renderer.on('idle', () => {
+          emit('idle', this[symbols.identifier], this)
+        })
+      }
+
+      // inBounds event emiting a lifecycle attach event
+      if (config.hooks.attach) {
+        this[symbols.wrapper].node.on('inBounds', () => {
+          this.lifecycle.state = 'attach'
+        })
+      }
+
+      // outOfBounds event emiting a lifeycle detach event
+      if (config.hooks.detach) {
+        this[symbols.wrapper].node.on('outOfBounds', (node, { previous }) => {
+          if (previous > 0) this.lifecycle.state = 'detach'
+        })
+      }
+
+      // inViewport event emiting a lifecycle enter event
+      if (config.hooks.enter) {
+        this[symbols.wrapper].node.on('inViewport', () => {
+          this.lifecycle.state = 'enter'
+        })
+      }
+
+      // outOfViewport event emitting a lifecycle exit event
+      if (config.hooks.exit) {
+        this[symbols.wrapper].node.on('outOfViewport', () => {
+          this.lifecycle.state = 'exit'
+        })
+      }
     }
 
-    if (config.hooks && config.hooks.detach) {
-      this[symbols.wrapper].node.on('outOfBounds', (node, { previous }) => {
-        if (previous > 0) this.lifecycle.state = 'detach'
-      })
-    }
-
-    if (config.hooks && config.hooks.enter) {
-      this[symbols.wrapper].node.on('inViewport', () => {
-        this.lifecycle.state = 'enter'
-      })
-    }
-
-    if (config.hooks && config.hooks.enter) {
-      this[symbols.wrapper].node.on('outOfViewport', () => {
-        this.lifecycle.state = 'exit'
-      })
-    }
-
-    Object.defineProperty(this, symbols.slots, {
-      value: this[symbols.children].filter((child) => child[symbols.isSlot]),
-      writable: false,
-      enumerable: false,
-      configurable: false,
-    })
-
+    // setup (and execute) all the generated side effects based on the
+    // reactive bindings define in the template
     config.code.effects.forEach((eff) => {
       effect(() => {
-        eff.apply(stage, [this, this[symbols.children], config])
+        eff.apply(stage, [this, this[symbols.children], config, globalComponents])
       })
     })
 
+    // setup watchers if the components has watchers specified
     if (this[symbols.watchers]) {
       Object.keys(this[symbols.watchers]).forEach((watchKey) => {
         let old = this[watchKey]
@@ -219,14 +177,47 @@ const Component = (name = required('name'), config = required('config')) => {
       })
     }
 
-    // next tick
+    // set all symbol based properties to non-enumerable and non-configurable
+    Object.getOwnPropertySymbols(this).forEach((property) => {
+      Object.defineProperties(this, {
+        [property]: {
+          enumerable: false,
+          configurable: false,
+        },
+      })
+    })
+
+    // finaly set the lifecycle state to ready (in the next tick)
     setTimeout(() => (this.lifecycle.state = 'ready'))
+
+    // and return this
+    return this
   }
 
   const factory = (options = {}, parentEl, parentComponent) => {
-    return new component(options, parentEl, parentComponent)
+    // setup the component once, using Base as the prototype
+    if (!base) {
+      Log.debug(`Setting up ${name} component`)
+      base = setupComponent(Object.create(Base), config)
+    }
+
+    // one time code generation (only if precompilation is turned off)
+    if (!config.code) {
+      Log.debug(`Generating code for ${name} component`)
+      config.code = codegenerator.call(config, parser(config.template, name))
+    }
+
+    // register global components once
+    if (!globalComponents) {
+      globalComponents = components()
+    }
+
+    // create an instance of the component, using base as the prototype (which contains Base)
+    return component.call(Object.create(base), options, parentEl, parentComponent)
   }
 
+  // store the config on the factory, in order to access the config
+  // during the code generation step
   factory.config = config
 
   return factory

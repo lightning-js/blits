@@ -15,9 +15,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Log } from '../log.js'
+import { Log } from '../../lib/log.js'
 
-import symbols from '../symbols.js'
+import symbols from '../../lib/symbols.js'
 
 export default (component, methods) => {
   component[symbols.methodKeys] = []
@@ -31,7 +31,7 @@ export default (component, methods) => {
         Log.warn(`${method} is not a function`)
       }
       component[symbols.methodKeys].push(method)
-      component.prototype[method] = methods[method]
+      component[method] = methods[method]
     }
   }
 }

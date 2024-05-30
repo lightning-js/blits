@@ -24,7 +24,7 @@ import fontLoader from './fontLoader.js'
 
 export let renderer
 
-export default (App, target, settings) => {
+export default (App, target, settings = {}) => {
   const driver = new MainCoreDriver()
   // settings.multithreaded === true
   //   ? new ThreadXRenderDriver({
@@ -62,6 +62,7 @@ You can remove the option from your \`src/index.js\`-file. And you can safely re
       // gpu memory limit, converted from mb to bytes - defaults to 200mb
       txMemByteThreshold:
         'gpuMemoryLimit' in settings ? settings.gpuMemoryLimit * 1024 * 1024 : 200 * 1024 * 1024,
+      renderMode: 'renderMode' in settings ? settings.renderMode : 'webgl',
     },
     target,
     driver

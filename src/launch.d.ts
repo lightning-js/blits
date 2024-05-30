@@ -69,6 +69,7 @@ type Font = WebFont | SdfFont
 export type DebugLevel = 0 | 1 | 2
 export type LogTypes = 'info' | 'warn' | 'error' | 'debug'
 export type ReactivityModes = 'Proxy' | 'defineProperty'
+export type RenderModes = 'webgl' | 'canvas'
 
 interface ExtensionLoader {
   async (stage: Stage): void
@@ -216,7 +217,16 @@ export interface Settings {
    *
    * Defaults to `200` (mb)
    */
-  gpuMemoryLimit?: number
+  gpuMemoryLimit?: number,
+  /**
+   * Defines which mode the renderer should operate in: `webgl` or `canvas`
+   *
+   * SDF fonts are not supported in _canvas_ renderMode. Instead, _web_ fonts should
+   * be used. Also note that Canvas2d rendering doesnt support the use of shaders.
+   *
+   * Defaults to `webgl`
+   */
+  renderMode?: RenderModes
 }
 
 /**
