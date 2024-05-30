@@ -168,6 +168,9 @@ const propsTransformer = {
   set alpha(v) {
     this.props['alpha'] = v
   },
+  set shader(v) {
+    this.props['shader'] = renderer.createShader(v.type, v.props)
+  },
   set effects(v) {
     this.props['shader'] = renderer.createShader('DynamicShader', {
       effects: v.map((eff) => {

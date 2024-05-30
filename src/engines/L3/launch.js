@@ -21,6 +21,7 @@ import { Log } from '../../lib/log.js'
 import { screenResolutions } from '../../lib/utils.js'
 import colors from '../../lib/colors/colors.js'
 import fontLoader from './fontLoader.js'
+import shaderLoader from './shaderLoader.js'
 
 export let renderer
 
@@ -78,7 +79,7 @@ You can remove the option from your \`src/index.js\`-file. And you can safely re
     }
   }
 
-  renderer.init().then(fontLoader).then(initApp)
+  renderer.init().then(shaderLoader).then(fontLoader).then(initApp)
 
   return renderer
 }
