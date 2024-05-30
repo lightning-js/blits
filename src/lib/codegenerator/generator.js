@@ -83,6 +83,7 @@ const generateElementCode = function (
   Object.keys(templateObject).forEach((key) => {
     if (key === 'slot') {
       renderCode.push(`
+        console.log(component, component[Symbol.for('slots')])
         elementConfig${counter}['parent'] = component[Symbol.for('slots')].filter(slot => slot.ref === '${templateObject.slot}').shift() || component[Symbol.for('slots')][0] || parent
       `)
     }
@@ -225,11 +226,11 @@ const generateComponentCode = function (
     counter++
     generateElementCode.call(this, { children }, false, { ...options })
   }
-  if (!options.forloop) {
-    renderCode.push(`
-    component = rootComponent
-  `)
-  }
+  // if (!options.forloop) {
+  //   renderCode.push(`
+  //   component = rootComponent
+  // `)
+  // }
 }
 
 const generateForLoopCode = function (templateObject, parent) {
