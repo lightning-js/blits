@@ -29,7 +29,7 @@ export default {
   [symbols.getChildren]: {
     value() {
       const parent = this.rootParent || this.parent
-      return this[symbols.children].concat(
+      return (this[symbols.children] || []).concat(
         (parent &&
           parent[symbols.getChildren]()
             .map((child) => {
