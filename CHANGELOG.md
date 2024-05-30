@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.9.9
+
+_22 may 2024_
+
+- Added support for `rtt`-attribute (Render To Texture)
+- Refactored Component for efficiency and readability
+- Improved type definitions
+- Fixed error when no settings object is supplied to Launch method
+- Fixed issue with `parent` variable being set on the global window object
+- Improved code of firing transitions
+- Bumped renderer to version 0.8.4
+
 ## v0.9.8
 
 _25 apr 2024_
