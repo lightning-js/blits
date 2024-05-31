@@ -2,10 +2,24 @@ import path from 'path'
 import * as fs from 'fs'
 import { genFont, setGeneratePaths } from 'msdf-generator'
 import { adjustFont } from 'msdf-generator/adjustFont'
-import PQueue from 'p-queue'
 
-// Queue with a concurrency of 1 to ensure tasks are processed one at a time
-const generationQueue = new PQueue({ concurrency: 1 })
+class TaskQueue {
+  constructor() {
+    this.currentTask = Promise.resolve()
+  }
+
+  async enqueue(task) {
+    // Wait for the current task to complete before starting a new one
+    this.currentTask = this.currentTask.then(task, this.handleError)
+    await this.currentTask
+  }
+
+  handleError(error) {
+    console.error('Error during task execution:', error)
+  }
+}
+
+const fontGenerationQueue = new TaskQueue()
 let config
 
 export default function () {
@@ -45,7 +59,7 @@ export default function () {
               )
               const mimeType = ext === 'png' ? 'image/png' : 'application/json'
 
-              await generationQueue.add(async () => {
+              await fontGenerationQueue.enqueue(async () => {
                 if (!fs.existsSync(generatedFontFile)) {
                   // Check if generation is needed
                   console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`)
