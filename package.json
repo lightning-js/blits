@@ -39,6 +39,7 @@
     "husky": "^7.0.4",
     "jsdom": "24.0.0",
     "lint-staged": "^12.3.3",
+    "p-queue": "^8.0.1",
     "prettier": "^2.5.1",
     "tap-diff": "^0.1.1",
     "tape": "^5.5.0"
@@ -48,7 +49,7 @@
     "@lightningjs/vite-plugin-import-chunk-url": "^0.3.0",
     "execa": "^8.0.1",
     "kolorist": "^1.8.0",
-    "msdf-generator": "github:uguraslan/msdf-generator#2dcd6689798b3913a49b40ece6539e09c303ee31",
+    "msdf-generator": "github:uguraslan/msdf-generator#3d0edda69368914e3309f490842a995b7af6e26f",
     "ora": "^7.0.1",
     "prompts": "^2.4.2",
     "replace-in-file": "^6.1.0",
