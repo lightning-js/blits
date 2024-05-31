@@ -3,6 +3,23 @@ import * as fs from 'fs'
 import { genFont, setGeneratePaths } from 'msdf-generator'
 import { adjustFont } from 'msdf-generator/adjustFont'
 
+class TaskQueue {
+  constructor() {
+    this.currentTask = Promise.resolve()
+  }
+
+  async enqueue(task) {
+    // Wait for the current task to complete before starting a new one
+    this.currentTask = this.currentTask.then(task, this.handleError)
+    await this.currentTask
+  }
+
+  handleError(error) {
+    console.error('Error during task execution:', error)
+  }
+}
+
+const fontGenerationQueue = new TaskQueue()
 let config
 
 export default function () {
@@ -42,21 +59,28 @@ export default function () {
               )
               const mimeType = ext === 'png' ? 'image/png' : 'application/json'
 
-              if (!fs.existsSync(generatedFontFile)) {
-                console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`)
-                await generateSDF(fontFile, path.join(targetDir))
-              }
+              await fontGenerationQueue.enqueue(async () => {
+                if (!fs.existsSync(generatedFontFile)) {
+                  // Check if generation is needed
+                  console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`)
+                  await generateSDF(fontFile, path.join(targetDir))
+                }
+              })
 
-              const fileContent = fs.readFileSync(generatedFontFile)
+              if (fs.existsSync(generatedFontFile)) {
+                const fileContent = fs.readFileSync(generatedFontFile)
 
-              // Check if headers have already been sent
-              if (!res.headersSent) {
-                res.setHeader('Content-Type', mimeType)
-                res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
-                res.end(fileContent)
+                // Check if headers have already been sent
+                if (!res.headersSent) {
+                  res.setHeader('Content-Type', mimeType)
+                  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+                  res.end(fileContent)
+                } else {
+                  // this should never happen except some edge cases
+                  console.error(`ERROR: Headers already sent for ${req.url}`, res.getHeaders())
+                }
               } else {
-                // this should never happen except some edge cases
-                console.error(`ERROR: Headers already sent for ${req.url}`, res.getHeaders())
+                next() // Handle case where generation might have failed
               }
             } else {
               next() // ttf file does not exist
