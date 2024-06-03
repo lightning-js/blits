@@ -1,7 +1,7 @@
 import path from 'path'
 import * as fs from 'fs'
-import { genFont, setGeneratePaths } from 'msdf-generator'
-import { adjustFont } from 'msdf-generator/adjustFont'
+import { genFont, setGeneratePaths } from '@lightningjs/msdf-generator'
+import { adjustFont } from '@lightningjs/msdf-generator/adjustFont'
 
 class TaskQueue {
   constructor() {
