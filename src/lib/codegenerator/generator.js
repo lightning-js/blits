@@ -292,13 +292,12 @@ const generateForLoopCode = function (templateObject, parent) {
 
   if ('key' in templateObject) {
     ctx.renderCode.push(`
-      keys.add('' + ${interpolate(templateObject.key, 'scope.')})
-    `)
-  } else {
-    ctx.renderCode.push(`
-      keys.add('' + scope.key)
+      scope.key = '' + ${interpolate(templateObject.key, 'scope.')}
     `)
   }
+  ctx.renderCode.push(`
+    keys.add(scope.key)
+  `)
 
   if (
     templateObject[Symbol.for('componentType')] === 'Element' ||
@@ -322,9 +321,12 @@ const generateForLoopCode = function (templateObject, parent) {
 
   ctx.effectsCode.forEach((effect) => {
     ctx.renderCode.push(`
-      effect(() => {
-        ${effect}
-      })
+      if(!elms[${counter}][scope.key].___hasEffect) {
+          effect(() => {
+            ${effect}
+          })
+          elms[${counter}][scope.key].___hasEffect = true
+      }
     `)
   })
 

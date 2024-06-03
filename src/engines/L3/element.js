@@ -248,6 +248,9 @@ const Element = {
     const propKeys = Object.keys(props)
     const length = propKeys.length
 
+    this.props['parent'] = props.parent
+    delete props.parent
+
     this.props.raw = new Map(Object.entries(props))
 
     for (let i = 0; i < length; i++) {
