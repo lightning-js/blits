@@ -48,7 +48,7 @@
     "@lightningjs/vite-plugin-import-chunk-url": "^0.3.0",
     "execa": "^8.0.1",
     "kolorist": "^1.8.0",
-    "msdf-generator": "github:uguraslan/msdf-generator#3d0edda69368914e3309f490842a995b7af6e26f",
+    "msdf-generator": "^0.0.7",
     "ora": "^7.0.1",
     "prompts": "^2.4.2",
     "replace-in-file": "^6.1.0",
