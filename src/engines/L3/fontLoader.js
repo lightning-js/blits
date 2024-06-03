@@ -22,7 +22,7 @@ export default () => {
           atlasUrl: font.png,
           atlasDataUrl: font.json,
           stage,
-          ...(font.metrics ? { metrics: font.metrics } : {}),
+          metrics: font.metrics || null,
         })
       )
     } else if (font.type === 'web') {
@@ -31,7 +31,7 @@ export default () => {
           fontFamily: font.family,
           fontUrl: font.file,
           descriptors: {},
-          ...(font.metrics ? { metrics: font.metrics } : {}),
+          metrics: font.metrics || null,
         })
       )
     }
