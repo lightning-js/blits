@@ -319,16 +319,20 @@ const generateForLoopCode = function (templateObject, parent) {
     })
   }
 
+  ctx.renderCode.push(`if(!elms[${counter}][scope.key].___hasEffect) {`)
+
   ctx.effectsCode.forEach((effect) => {
     ctx.renderCode.push(`
-      if(!elms[${counter}][scope.key].___hasEffect) {
-          effect(() => {
-            ${effect}
-          })
-          elms[${counter}][scope.key].___hasEffect = true
-      }
+        effect(() => {
+          ${effect}
+        })
     `)
   })
+
+  ctx.renderCode.push(`
+    elms[${counter}][scope.key].___hasEffect = true
+  }
+  `)
 
   ctx.renderCode.push('}')
 
