@@ -23,7 +23,7 @@ import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 
 const isTransition = (value) => {
-  return typeof value === 'object' && 'transition' in value
+  return value !== null && typeof value === 'object' && 'transition' in value
 }
 
 const isObjectString = (str) => {
@@ -44,6 +44,7 @@ const parsePercentage = function (v, base) {
 }
 
 const unpackTransition = (v) => {
+  if (v === null) return v
   if (typeof v === 'string') return v
   else if (typeof v === 'number') return v
   else if (typeof v === 'object' && v.constructor === Object) {
@@ -169,7 +170,11 @@ const propsTransformer = {
     this.props['alpha'] = v
   },
   set shader(v) {
-    this.props['shader'] = renderer.createShader(v.type, v.props)
+    if (v !== null) {
+      this.props['shader'] = renderer.createShader(v.type, v.props)
+    } else {
+      this.props['shader'] = renderer.createShader('DefaultShader')
+    }
   },
   set effects(v) {
     this.props['shader'] = renderer.createShader('DynamicShader', {
