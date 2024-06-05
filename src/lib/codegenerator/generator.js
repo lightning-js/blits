@@ -29,7 +29,14 @@ export default function (templateObject = { children: [] }) {
   ctx.renderCode.push('return elms')
 
   return {
-    render: new Function('parent', 'component', 'context', 'components', ctx.renderCode.join('\n')),
+    render: new Function(
+      'parent',
+      'component',
+      'context',
+      'components',
+      'effect',
+      ctx.renderCode.join('\n')
+    ),
     effects: ctx.effectsCode.map(
       (code) =>
         new Function('component', 'elms', 'context', 'components', 'rootComponent', 'effect', code)
@@ -250,53 +257,63 @@ const generateForLoopCode = function (templateObject, parent) {
 
   // local context
   const ctx = {
-    renderCode: ['let componentType'],
+    renderCode: [],
     effectsCode: [],
     context: { props: [], components: this.components },
   }
 
   if (parent) {
-    ctx.renderCode.push(`let parent = ${parent}`)
+    ctx.renderCode.push(`parent = ${parent}`)
   }
 
   const forStartCounter = counter
-
-  // reference all reactive attributes (except those referencing the iterator item),
-  // to ensure that reactivity is registered, even when the initial array is empty
-  Object.keys(templateObject).forEach((k) => {
-    if (isReactiveKey(k) && templateObject[k].indexOf('$' + item) === -1) {
-      ctx.renderCode.push(`
-        void ${interpolate(templateObject[k], 'component.')}
-      `)
-    }
-  })
+  const forEndCounter = counter + (templateObject.children || []).length
 
   ctx.renderCode.push(`
-    const collection = ${cast(result[2], ':for')} || []
-    const keys = new Set()
-    for(let __index = 0; __index < collection.length; __index++) {
-      parent = ${parent}
-      const scope = Object.create(component)
-      scope['key'] = __index
-      scope['${index}'] = __index
-      scope['${item}'] = collection[__index]
-    `)
+    const created${forStartCounter} = []
+    const forloop${forStartCounter} = (collection = [], elms, created) => {
+      const keys = new Set(collection.map((${item}) => ${interpolate(templateObject.key, '')}))
+      let i = created.length
 
+      while (i--) {
+        const key = created[i]
+        if (!keys.has(key)) {
+  `)
+  for (let i = forStartCounter; i <= forEndCounter; i++) {
+    ctx.renderCode.push(`
+          elms[${i}][key] && elms[${i}][key].destroy()
+          delete elms[${i}][key]
+    `)
+  }
+  ctx.renderCode.push(`
+        }
+      }
+
+      created.length = 0
+      const length = collection.length
+
+      for(let __index = 0; __index < collection.length; __index++) {
+        parent = ${parent}
+        const scope = Object.create(component)
+        scope['key'] = __index
+        scope['${index}'] = __index
+        scope['${item}'] = collection[__index]
+  `)
   if ('ref' in templateObject && templateObject.ref.indexOf('$') === -1) {
     // automatically map the ref for each item in the loop based on the given ref key
     ctx.renderCode.push(`
-      scope['__ref'] = '${templateObject.ref}' + __index
+        scope['__ref'] = '${templateObject.ref}' + __index
     `)
     templateObject.ref = '$__ref'
   }
 
   if ('key' in templateObject) {
     ctx.renderCode.push(`
-      scope.key = '' + ${interpolate(templateObject.key, 'scope.')}
+        scope.key = '' + ${interpolate(templateObject.key, 'scope.')}
     `)
   }
   ctx.renderCode.push(`
-    keys.add(scope.key)
+        created.push(scope.key)
   `)
 
   if (
@@ -319,7 +336,9 @@ const generateForLoopCode = function (templateObject, parent) {
     })
   }
 
-  ctx.renderCode.push(`if(!elms[${counter}][scope.key].___hasEffect) {`)
+  ctx.renderCode.push(`
+    if(!elms[${counter}][scope.key].___hasEffect) {
+  `)
 
   ctx.effectsCode.forEach((effect) => {
     ctx.renderCode.push(`
@@ -331,36 +350,21 @@ const generateForLoopCode = function (templateObject, parent) {
 
   ctx.renderCode.push(`
     elms[${counter}][scope.key].___hasEffect = true
-  }
-  `)
+  }`)
 
-  ctx.renderCode.push('}')
-
-  const forEndCounter = counter
   ctx.renderCode.push(`
-   component = rootComponent
-   if(elms[${forStartCounter}]) {
-      const all = Object.keys(elms[${forStartCounter}])
-      let i = all.length
-      while (i--) {
-        const key = all[i]
-        if (!keys.has(key)) {
-    `)
-  for (let i = forStartCounter; i <= forEndCounter; i++) {
-    ctx.renderCode.push(`
-      elms[${i}][key] && elms[${i}][key].destroy()
-      delete elms[${i}][key]
-    `)
-  }
-  ctx.renderCode.push(`
-        }
-      }
       if(elms[${forStartCounter}][0] && elms[${forStartCounter}][0].forComponent && elms[${forStartCounter}][0].forComponent.___layout) {
         elms[${forStartCounter}][0].forComponent.___layout()
       }
     }
-  `)
-  this.effectsCode.push(ctx.renderCode.join('\n'))
+  }
+
+  effect(() => {
+    forloop${forStartCounter}(${cast(result[2], ':for')}, elms, created${forStartCounter})
+  }, '${interpolate(result[2], '')}')
+`)
+
+  this.renderCode.push(ctx.renderCode.join('\n'))
 }
 
 const generateCode = function (templateObject, parent = false, options = {}) {
@@ -388,6 +392,7 @@ const generateCode = function (templateObject, parent = false, options = {}) {
 }
 
 const interpolate = (val, component = 'component.') => {
+  if (val === undefined) return val
   const replaceString = /('.*?')+/gi
   const replaceDollar = /\$/gi
   const matches = val.matchAll(replaceString)
@@ -403,7 +408,7 @@ const interpolate = (val, component = 'component.') => {
   }
 
   // replace remaining dollar signs
-  val = val.replace(replaceDollar, component)
+  val = val.replace(replaceDollar, component || '')
 
   // restore string replacemenet
   restore.forEach((el, idx) => {

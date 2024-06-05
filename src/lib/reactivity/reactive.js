@@ -22,10 +22,6 @@ const arrayPatchMethods = ['push', 'pop', 'shift', 'unshift', 'splice']
 
 const proxyMap = new WeakMap()
 
-const getProxy = (obj) => {
-  return proxyMap.get(obj)
-}
-
 const getRaw = (value) => {
   const raw = value && value[symbols.raw]
   return raw ? getRaw(raw) : value
@@ -38,7 +34,7 @@ const reactiveProxy = (original, _parent = null, _key) => {
   }
 
   // if original object is already a proxy, don't create a new one but return the existing one instead
-  const existingProxy = getProxy(original)
+  const existingProxy = proxyMap.get(original)
   if (existingProxy) {
     return existingProxy
   }
@@ -52,28 +48,27 @@ const reactiveProxy = (original, _parent = null, _key) => {
 
       // handling arrays
       if (Array.isArray(target)) {
+        if (typeof target[key] === 'object' && target[key] !== null) {
+          if (Array.isArray(target[key])) {
+            track(target, key)
+          }
+          // create a new reactive proxy
+          return reactiveProxy(target[key], target, key)
+        }
         // augment array path methods (that change the length of the array)
-        if (arrayPatchMethods.indexOf(key) > -1) {
+        if (arrayPatchMethods.indexOf(key) !== -1) {
           return function (...args) {
-            pauseTracking()
+            // pauseTracking()
             const result = target[key].apply(this, args)
             // trigger a change on the parent object and the key
             // i.e. when pushing a new item to `obj.data`, _parent will equal `obj`
             // and _key will equal `data`
-            resumeTracking()
+            // resumeTracking()
             trigger(_parent, _key)
             return result
           }
-        } else {
-          if (typeof target[key] === 'object' && target[key] !== null) {
-            if (Array.isArray(target[key])) {
-              track(target, key)
-            }
-            // create a new reactive proxy
-            return reactiveProxy(target[key], target, key)
-          }
-          return Reflect.get(target, key, receiver)
         }
+        return Reflect.get(target, key, receiver)
       }
 
       // handling objects (but not null values, which have object type in JS)
