@@ -44,11 +44,11 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "^0.8.4",
+    "@lightningjs/msdf-generator": "^1.0.1",
+    "@lightningjs/renderer": "^0.9.1",
     "@lightningjs/vite-plugin-import-chunk-url": "^0.3.0",
     "execa": "^8.0.1",
     "kolorist": "^1.8.0",
-    "msdf-bmfont-xml": "^2.7.0",
     "ora": "^7.0.1",
     "prompts": "^2.4.2",
     "replace-in-file": "^6.1.0",
