@@ -365,13 +365,16 @@ const Element = {
       f,
     }
 
-    // wait until the animation really starts (depending on specified delay)
-    const animation = await f.start().waitUntilStarted()
+    // listen to animating event when animation really starts (depending on specified delay)
+    f.once('animating', () => {
+      // fire transition start callback if specified
+      transition.start &&
+        typeof transition.start === 'function' &&
+        transition.start.call(this.component, this, prop, startValue)
+    })
 
-    // fire transition start callback if specified
-    transition.start &&
-      typeof transition.start === 'function' &&
-      transition.start.call(this.component, this, prop, startValue)
+    // start animation
+    const animation = await f.start()
 
     // wait until the animation ends
     await animation.waitUntilStopped()
