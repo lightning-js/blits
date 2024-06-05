@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { MainCoreDriver, RendererMain } from '@lightningjs/renderer'
+import {  RendererMain } from '@lightningjs/renderer'
 // import RendererWorker from '@lightningjs/renderer/workers/renderer?worker'
 import { Log } from '../../lib/log.js'
 import { screenResolutions } from '../../lib/utils.js'
@@ -26,12 +26,6 @@ import shaderLoader from './shaderLoader.js'
 export let renderer
 
 export default (App, target, settings = {}) => {
-  const driver = new MainCoreDriver()
-  // settings.multithreaded === true
-  //   ? new ThreadXRenderDriver({
-  //       RendererWorker,
-  //     })
-  //   : new MainRenderDriver()
 
   if ('fontLoader' in settings) {
     Log.warn(
@@ -66,7 +60,6 @@ You can remove the option from your \`src/index.js\`-file. And you can safely re
       renderMode: 'renderMode' in settings ? settings.renderMode : 'webgl',
     },
     target,
-    driver
   )
 
   const initApp = () => {
@@ -79,7 +72,10 @@ You can remove the option from your \`src/index.js\`-file. And you can safely re
     }
   }
 
-  renderer.init().then(shaderLoader).then(fontLoader).then(initApp)
+
+  shaderLoader()
+  fontLoader()
+  initApp()
 
   return renderer
 }
