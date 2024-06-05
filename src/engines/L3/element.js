@@ -374,7 +374,7 @@ const Element = {
     })
 
     // start animation
-    const animation = await f.start()
+    const animation = f.start()
 
     // wait until the animation ends
     await animation.waitUntilStopped()
