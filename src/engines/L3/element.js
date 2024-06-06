@@ -330,7 +330,7 @@ const Element = {
       if (this.scheduledTransitions[prop].f.state === 'running') {
         // fastforward to final value
         this.node[prop] = this.scheduledTransitions[prop].v
-        this.scheduledTransitions[prop].f.stop()
+        // this.scheduledTransitions[prop].f.stop()
       }
     }
 
