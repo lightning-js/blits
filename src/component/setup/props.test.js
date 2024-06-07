@@ -59,14 +59,14 @@ test('Pass props as an array', (assert) => {
 test('Get value of props', (assert) => {
   const component = new Function()
 
-  const componentInstance = new component
+  const componentInstance = Object.create(component)
   componentInstance[symbols.props] = {
     index: 1,
     img: 'lorem-ipsum.jpg',
     url: 'http://localhost'
   }
 
-  const componentInstance2 = new component
+  const componentInstance2 = Object.create(component)
   componentInstance2[symbols.props] = {
     index: 2,
     img: 'bla.jpg',
@@ -120,7 +120,7 @@ test('Passing props as an object mixed with single keys', (assert) => {
 test('Casting props to a type', (assert) => {
   const component = new Function()
 
-  const componentInstance = new component
+  const componentInstance = Object.create(component)
   componentInstance[symbols.props] = {
     number: '1',
     string: 100,
@@ -145,9 +145,9 @@ test('Casting props to a type', (assert) => {
   }]
   propsFn(component, props)
 
-  assert.true(typeof componentInstance.number === 'number', 'Should cast prop value to a Number')
-  assert.true(typeof componentInstance.string === 'string', 'Should cast prop value to a String')
-  assert.true(typeof componentInstance.boolean === 'boolean', 'Should cast prop value to a Boolean')
+  assert.equal(typeof componentInstance.number, 'number', 'Should cast prop value to a Number')
+  assert.equal(typeof componentInstance.string, 'string', 'Should cast prop value to a String')
+  assert.equal(typeof componentInstance.boolean, 'boolean', 'Should cast prop value to a Boolean')
   assert.equal(componentInstance.image, 'http://localhost/my_image.jpg','Should cast according to a custom function')
 
   assert.end()
@@ -156,7 +156,7 @@ test('Casting props to a type', (assert) => {
 test('Setting default value for undefined props', (assert) => {
   const component = new Function()
 
-  const componentInstance = new component
+  const componentInstance = Object.create(component)
 
   const props = [{
     key: 'missing',
@@ -172,7 +172,7 @@ test('Setting default value for undefined props', (assert) => {
 test('Required props with default', (assert) => {
   const component = new Function()
 
-  const componentInstance = new component
+  const componentInstance = Object.create(component)
 
   const props = [{
     key: 'missing',
@@ -189,7 +189,7 @@ test('Required props with default', (assert) => {
 test('Required props without default', (assert) => {
   const component = new Function()
 
-  const componentInstance = new component
+  const componentInstance = Object.create(component)
 
   const props = [{
     key: 'missing',
