@@ -187,9 +187,6 @@ const generateComponentCode = function (
 
       ${elm} = component${counter}.call(null, {props: props${counter}}, ${parent}, component)
 
-
-
-  ${elm} = component${counter}.call(null, {props: props${counter}}, ${parent}, component)
       if (${elm}[Symbol.for('slots')][0]) {
         parent = ${elm}[Symbol.for('slots')][0]
         component = ${elm}
