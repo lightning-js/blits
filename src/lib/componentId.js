@@ -25,3 +25,7 @@ export const createHumanReadableId = (name) => {
 export const createInternalId = () => {
   return ++counter
 }
+
+export const resetCounter = () => {
+  counter = 0
+}
