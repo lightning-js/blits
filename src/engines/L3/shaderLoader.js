@@ -1,5 +1,5 @@
 import Settings from '../../settings.js'
-import { renderer } from './launch'
+import { renderer } from './launch.js'
 
 export default () => {
   const stage = renderer.driver.stage
