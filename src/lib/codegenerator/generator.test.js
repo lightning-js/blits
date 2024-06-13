@@ -378,7 +378,6 @@ test('Generate code for a template with attributes and 2 nested elements with at
   }
   `
 
-
   const actual = generator.call(scope, templateObject)
 
   assert.equal(
@@ -527,7 +526,6 @@ test('Generate code for a template with simple dynamic attributes', (assert) => 
   }
   `
 
-
   const expectedEffect1 = `
   function anonymous(component, elms, context, components, rootComponent, effect) {
     elms[0].set('w', component.foo)
@@ -637,7 +635,6 @@ test('Generate code for a template with dynamic attributes with code to be evalu
       return elms
   }
   `
-
 
   const expectedEffect1 = `
   function anonymous(component, elms, context, components, rootComponent, effect) {
@@ -785,7 +782,6 @@ test('Generate code for a template with custom components', (assert) => {
       } else {
         parent = elms[2][Symbol.for('children')][0]
       }
-      component = rootComponent
 
       const cmp3 = (context.components && context.components['Poster']) || components['Poster']
       parent = elms[0]
@@ -809,7 +805,6 @@ test('Generate code for a template with custom components', (assert) => {
       } else {
         parent = elms[4][Symbol.for('children')][0]
       }
-      component = rootComponent
 
       return elms
   }
@@ -885,7 +880,6 @@ test('Generate code for a template with an unregistered custom component', (asse
       } else {
         parent = elms[2][Symbol.for('children')][0]
       }
-      component = rootComponent
 
       const cmp3 = (context.components && context.components['Poster2']) || components['Poster2']
       parent = elms[0]
@@ -909,7 +903,6 @@ test('Generate code for a template with an unregistered custom component', (asse
       } else {
         parent = elms[4][Symbol.for('children')][0]
       }
-      component = rootComponent
 
       return elms
   }
@@ -990,7 +983,6 @@ test('Generate code for a template with custom components with arguments', (asse
       } else {
         parent = elms[2][Symbol.for('children')][0]
       }
-      component = rootComponent
 
       const cmp3 = (context.components && context.components['Poster']) || components['Poster']
       parent = elms[0]
@@ -1018,7 +1010,6 @@ test('Generate code for a template with custom components with arguments', (asse
       } else {
         parent = elms[4][Symbol.for('children')][0]
       }
-      component = rootComponent
 
       return elms
   }
@@ -1102,7 +1093,6 @@ test('Generate code for a template with custom components with reactive props', 
       } else {
         parent = elms[2][Symbol.for('children')][0]
       }
-      component = rootComponent
 
       const cmp3 = (context.components && context.components['Poster']) || components['Poster']
       parent = elms[0]
@@ -1130,7 +1120,6 @@ test('Generate code for a template with custom components with reactive props', 
       } else {
         parent = elms[4][Symbol.for('children')][0]
       }
-      component = rootComponent
 
       return elms
   }
@@ -1319,7 +1308,6 @@ test('Generate code for a template with slot content', (assert) => {
       elementConfig4['y'] = component.y
       elementConfig4['rotation'] = component.rotate
       elms[4].populate(elementConfig4)
-      component = rootComponent
 
       return elms
   }
@@ -1429,15 +1417,14 @@ test('Generate code for a template with slot content, using a named slot', (asse
       elms[4] = this.element({ parent: parent || 'root' }, component)
       elementConfig4['x'] = 100
       elementConfig4['y'] = component.y
+      console.log(component, component[Symbol.for('slots')])
       elementConfig4['parent'] = component[Symbol.for('slots')].filter(slot => slot.ref === 'mySlot').shift() || component[Symbol.for('slots')][0] || parent
       elementConfig4['slot'] = "mySlot"
       elms[4].populate(elementConfig4)
-      component = rootComponent
 
       return elms
   }
   `
-
 
   const actual = generator.call(scope, templateObject)
 
@@ -1506,7 +1493,6 @@ test('Generate code for a template with a slot', (assert) => {
       return elms
   }
   `
-
 
   const actual = generator.call(scope, templateObject)
 
@@ -1719,7 +1705,6 @@ test('Generate code for a template with a single element with attributes with pe
   }
   `
 
-
   const actual = generator.call(scope, templateObject)
 
   assert.equal(
@@ -1763,7 +1748,6 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
   }
   `
 
-
   const expectedEffect1 = `
     function anonymous(component, elms, context, components, rootComponent, effect) {
       let componentType
@@ -1777,7 +1761,7 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
         scope['key'] = __index
         scope['index'] = __index
         scope['item'] = collection[__index]
-        keys.add('' + scope.key)
+        keys.add(scope.key)
         parent = elms[0]
 
         if(elms[1] === undefined) {
@@ -1792,6 +1776,9 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
 
         if(!elms[1][scope.key].nodeId) {
           elms[1][scope.key].populate(elementConfig1)
+        }
+        if(!elms[1][scope.key].___hasEffect) {
+          elms[1][scope.key].___hasEffect = true
         }
       }
 
@@ -1867,7 +1854,6 @@ test('Generate code for a template with a simple for-loop on an Element with a c
     }
   `
 
-
   const expectedEffect1 = `
     function anonymous(component, elms, context, components, rootComponent, effect) {
       let componentType
@@ -1881,7 +1867,7 @@ test('Generate code for a template with a simple for-loop on an Element with a c
         scope['key'] = __index
         scope['customIndex'] = __index
         scope['item'] = collection[__index]
-        keys.add('' + scope.key)
+        keys.add(scope.key)
         parent = elms[0]
 
         if(elms[1] === undefined) {
@@ -1896,6 +1882,9 @@ test('Generate code for a template with a simple for-loop on an Element with a c
 
         if(!elms[1][scope.key].nodeId) {
           elms[1][scope.key].populate(elementConfig1)
+        }
+        if(!elms[1][scope.key].___hasEffect) {
+          elms[1][scope.key].___hasEffect = true
         }
       }
 
@@ -1972,7 +1961,6 @@ test('Generate code for a template with a simple for-loop on an Element with a k
     }
   `
 
-
   const expectedEffect1 = `
     function anonymous(component, elms, context, components, rootComponent, effect) {
       let componentType
@@ -1986,7 +1974,8 @@ test('Generate code for a template with a simple for-loop on an Element with a k
         scope['key'] = __index
         scope['index'] = __index
         scope['item'] = collection[__index]
-        keys.add('' + scope.item.id)
+        scope.key = '' + scope.item.id
+        keys.add(scope.key)
         parent = elms[0]
 
         if(elms[1] === undefined) {
@@ -2001,6 +1990,9 @@ test('Generate code for a template with a simple for-loop on an Element with a k
 
         if(!elms[1][scope.item.id].nodeId) {
           elms[1][scope.item.id].populate(elementConfig1)
+        }
+        if(!elms[1][scope.key].___hasEffect) {
+          elms[1][scope.key].___hasEffect = true
         }
       }
       component = rootComponent
@@ -2073,7 +2065,6 @@ test('Generate code for a template with a simple for-loop on a Component with a 
   }
   `
 
-
   const expectedEffect1 = `
     function anonymous(component, elms, context, components, rootComponent, effect) {
       let componentType
@@ -2087,7 +2078,8 @@ test('Generate code for a template with a simple for-loop on a Component with a 
         scope['key'] = __index
         scope['myIndex'] = __index
         scope['item'] = collection[__index]
-        keys.add('' + item.id)
+        scope.key = '' + item.id
+        keys.add(scope.key)
         const cmp1 = (context.components && context.components['ListItem']) || components['ListItem']
 
         if(elms[1] === undefined) {
@@ -2123,6 +2115,9 @@ test('Generate code for a template with a simple for-loop on a Component with a 
           } else {
             parent = elms[2][item.id][Symbol.for('children')][0]
           }
+        }
+        if(!elms[2][scope.key].___hasEffect) {
+          elms[2][scope.key].___hasEffect = true
         }
       }
       component = rootComponent
@@ -2213,7 +2208,8 @@ test('Generate code for a template with a simple for-loop on an Element with an 
         scope['index'] = __index
         scope['item'] = collection[__index]
         scope['__ref'] = 'myref' + __index
-        keys.add('' + item.id)
+        scope.key = '' + item.id
+        keys.add(scope.key)
         parent = elms[0]
 
         if(elms[1] === undefined) {
@@ -2228,6 +2224,9 @@ test('Generate code for a template with a simple for-loop on an Element with an 
 
         if(!elms[1][item.id].nodeId) {
           elms[1][item.id].populate(elementConfig1)
+        }
+        if(!elms[1][scope.key].___hasEffect) {
+          elms[1][scope.key].___hasEffect = true
         }
       }
       component = rootComponent
