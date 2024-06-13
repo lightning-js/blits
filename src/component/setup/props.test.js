@@ -18,10 +18,8 @@
 import test from 'tape'
 import propsFn from './props.js'
 import { initLog } from '../../lib/log.js'
-
+import Settings from '../../settings.js'
 import symbols from '../../lib/symbols.js'
-
-initLog()
 
 test('Type props function', (assert) => {
   const expected = 'function'
@@ -187,6 +185,8 @@ test('Required props with default', (assert) => {
 })
 
 test('Required props without default', (assert) => {
+  initLogTest(assert)
+  const capture = assert.capture(console, 'warn')
   const component = new Function()
 
   const componentInstance = Object.create(component)
@@ -198,9 +198,41 @@ test('Required props without default', (assert) => {
   propsFn(component, props)
 
   assert.equal(componentInstance.missing, undefined, 'Should return undefined prop value when undefined')
-  // todo: should log a warning about prop being required
+  const logs = capture()
+  assert.equal(logs.length, 1)
+  assert.equal(logs[0].args.pop(), 'missing is required', 'Should log warning message')
 
   assert.end()
 })
 
-// todo add test when setting a prop (should work, but should log a warning about avoiding mutating a prop)
+test('Setting prop value directly', (assert) => {
+  initLogTest(assert)
+  const capture = assert.capture(console, 'warn')
+  const component = new Function()
+  const componentInstance = Object.create(component)
+  componentInstance[symbols.props] = {
+    property: 'foo'
+  }
+  const props = [{
+    key: 'property',
+  }]
+
+  propsFn(component, props)
+  componentInstance.property = 'bar'
+
+  assert.equal(componentInstance[symbols.props].property, 'bar', 'Should be possible to mutate the property')
+  let logs = capture()
+  assert.equal(logs.length, 1)
+  assert.equal(logs[0].args.pop(), 'Warning! Avoid mutating props directly (property)', 'Should log warning message')
+
+  assert.end()
+})
+
+function initLogTest(assert) {
+  assert.capture(Settings, 'get', (key) => {
+    if (key === 'debugLevel') {
+      return 1
+    }
+  })
+  initLog()
+}
