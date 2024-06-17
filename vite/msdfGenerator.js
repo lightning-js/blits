@@ -33,7 +33,7 @@ export default function () {
       config = resolvedConfig
       buildOutputPath = config.build.outDir
       publicDir = path.join(config.root, 'public')
-      msdfOutputDir = path.resolve(config.root, 'node_modules', '.tmp-msdf-fonts')
+      msdfOutputDir = path.resolve(config.root, 'node_modules', '.tmp-msdf-fonts-v2')
     },
     async configureServer(server) {
       server.middlewareMode = true

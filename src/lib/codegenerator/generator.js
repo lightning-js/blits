@@ -207,15 +207,24 @@ const generateComponentCode = function (
   renderCode.push(`
     componentType = props${counter}['is'] || '${templateObject[Symbol.for('componentType')]}'
 
-    ${elm} = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component ${
-    templateObject[Symbol.for('componentType')]
-  } not found')})).call(null, {props: props${counter}}, ${parent}, component, rootComponent)
-      if (${elm}[Symbol.for('slots')][0]) {
-        parent = ${elm}[Symbol.for('slots')][0]
-        component = ${elm}
-      } else {
-        parent = ${elm}[Symbol.for('children')][0]
+    let component${counter}
+    if(typeof componentType === 'string') {
+      component${counter} = context.components && context.components[componentType] || components[componentType]
+      if(!component${counter}) {
+        throw new Error('Component "${templateObject[Symbol.for('componentType')]}" not found')
       }
+    } else if(typeof componentType === 'function' && componentType.name === 'factory') {
+      component${counter} = componentType
+    }
+
+    ${elm} = component${counter}.call(null, {props: props${counter}}, ${parent}, component)
+
+    if (${elm}[Symbol.for('slots')][0]) {
+      parent = ${elm}[Symbol.for('slots')][0]
+      component = ${elm}
+    } else {
+      parent = ${elm}[Symbol.for('children')][0]
+    }
   `)
 
   if (options.forloop) {

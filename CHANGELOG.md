@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.10.0
+
+_17 june 2024_
+
+- Updated renderer to version v0.9.1
+- Updated font generation to use the new `@lightningjs/msdf-generator`-package with required font metrics
+- Added queue mechanism to font generation to prevent hanging process
+- Added functionality to pass a component into the Component `:is` attribute
+
+Please read refer to the [breaking changes](https://github.com/lightning-js/renderer/releases/tag/v0.9.0) in the
+renderer related to MSDF fonts. When you have custom msdf fonts in your `/public` folder you may need to regenerate
+them (or remove the files and let Blits take care of [generating for you from a `.ttf`](https://lightning-js.github.io/blits/#/essentials/displaying_text?id=using-custom-fonts))
+
+
 ## v0.9.9
 
 _22 may 2024_
