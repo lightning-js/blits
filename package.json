@@ -52,6 +52,7 @@
     "ora": "^7.0.1",
     "prompts": "^2.4.2",
     "replace-in-file": "^6.1.0",
+    "superstruct": "^1.0.4",
     "validate-npm-package-name": "^5.0.0"
   },
   "repository": {
