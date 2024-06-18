@@ -258,11 +258,18 @@ const removeView = async (route, view, transition) => {
   }
 }
 
-const setOrAnimate = async (node, transition, shouldAnimate = true) => {
-  return node.set(transition.prop, transition.value)
-  // return shouldAnimate
-  //   ? await node.animate(transition.prop, transition.value, transition)
-  //   : node.set(transition.prop, transition.value)
+const setOrAnimate = (node, transition, shouldAnimate = true) => {
+  return new Promise((resolve) => {
+    if (shouldAnimate) {
+      transition.end = () => {
+        resolve()
+      }
+      node.animate(transition.prop, transition.value, transition)
+    } else {
+      node.set(transition.prop, transition.value)
+      resolve()
+    }
+  })
 }
 
 export const to = (location, data = {}, options = {}) => {
