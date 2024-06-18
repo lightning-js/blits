@@ -772,10 +772,20 @@ test('Generate code for a template with custom components', (assert) => {
       }
       elms[1].populate(elementConfig1)
       parent = elms[1]
-
       const props2 = {}
       componentType = props2['is'] || 'Poster'
-      elms[2] = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component Poster not found') })).call(null, { props: props2 }, elms[1], component, rootComponent)
+      let component2
+
+      if (typeof componentType === 'string') {
+          component2 = context.components && context.components[componentType] || components[componentType]
+          if (!component2) {
+              throw new Error('Component "Poster" not found')
+          }
+      } else if (typeof componentType === 'function' && componentType.name === 'factory') {
+          component2 = componentType
+      }
+
+      elms[2] = component2.call(null, { props: props2 }, elms[1], component)
       if(elms[2][Symbol.for('slots')][0]) {
         parent = elms[2][Symbol.for('slots')][0]
         component = elms[2]
@@ -795,10 +805,20 @@ test('Generate code for a template with custom components', (assert) => {
       }
       elms[3].populate(elementConfig3)
       parent = elms[3]
-
       const props4 = {}
       componentType = props4['is'] || 'Poster'
-      elms[4] = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component Poster not found') })).call(null, { props: props4 }, elms[3], component, rootComponent)
+      let component4
+      if (typeof componentType === 'string') {
+          component4 = context.components && context.components[componentType] || components[componentType]
+          if (!component4) {
+              throw new Error('Component "Poster" not found')
+            }
+        } else if (typeof componentType === 'function' && componentType.name === 'factory') {
+            component4 = componentType
+        }
+
+        elms[4] = component4.call(null, { props: props4 }, elms[3], component)
+
       if(elms[4][Symbol.for('slots')][0]) {
         parent = elms[4][Symbol.for('slots')][0]
         component = elms[4]
@@ -873,7 +893,19 @@ test('Generate code for a template with an unregistered custom component', (asse
 
       const props2 = {}
       componentType = props2['is'] || 'Poster'
-      elms[2] = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component Poster not found') })).call(null, { props: props2 }, elms[1], component, rootComponent)
+      let component2
+
+      if(typeof componentType === 'string') {
+          component2 = context.components && context.components[componentType] || components[componentType]
+          if(!component2) {
+              throw new Error('Component "Poster" not found')
+          }
+      } else if(typeof componentType === 'function' && componentType.name === 'factory') {
+          component2 = componentType
+      }
+
+      elms[2] = component2.call(null, { props: props2 }, elms[1], component)
+
       if(elms[2][Symbol.for('slots')][0]) {
         parent = elms[2][Symbol.for('slots')][0]
         component = elms[2]
@@ -896,7 +928,19 @@ test('Generate code for a template with an unregistered custom component', (asse
 
       const props4 = {}
       componentType = props4['is'] || 'Poster2'
-      elms[4] = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component Poster2 not found') })).call(null, { props: props4 }, elms[3], component, rootComponent)
+      let component4
+
+      if(typeof componentType === 'string') {
+          component4 = context.components && context.components[componentType] || components[componentType]
+          if(!component4) {
+              throw new Error('Component "Poster2" not found')
+          }
+      } else if(typeof componentType === 'function' && componentType.name === 'factory') {
+          component4 = componentType
+      }
+
+      elms[4] = component4.call(null, { props: props4 }, elms[3], component)
+
       if(elms[4][Symbol.for('slots')][0]) {
         parent = elms[4][Symbol.for('slots')][0]
         component = elms[4]
@@ -976,7 +1020,16 @@ test('Generate code for a template with custom components with arguments', (asse
       const props2 = {}
       props2['x'] = 10
       componentType = props2['is'] || 'Poster'
-      elms[2] = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component Poster not found') })).call(null, { props: props2 }, elms[1], component, rootComponent)
+      let component2
+      if (typeof componentType === 'string') {
+          component2 = context.components && context.components[componentType] || components[componentType]
+          if (!component2) {
+              throw new Error('Component "Poster" not found')
+          }
+      } else if (typeof componentType === 'function' && componentType.name === 'factory') {
+          component2 = componentType
+      }
+      elms[2] = component2.call(null, { props: props2 }, elms[1], component)
       if(elms[2][Symbol.for('slots')][0]) {
         parent = elms[2][Symbol.for('slots')][0]
         component = elms[2]
@@ -1003,7 +1056,19 @@ test('Generate code for a template with custom components with arguments', (asse
       props4['x'] = 100
       props4['img'] = component.img
       componentType = props4['is'] || 'Poster'
-      elms[4] = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component Poster not found') })).call(null, { props: props4 }, elms[3], component, rootComponent)
+      let component4
+
+      if (typeof componentType === 'string') {
+          component4=context.components && context.components[componentType] || components[componentType]
+          if (!component4) {
+              throw new Error('Component "Poster" not found')
+          }
+      } else if (typeof componentType === 'function' && componentType.name === 'factory') {
+          component4 = componentType
+      }
+
+      elms[4] = component4.call(null, { props: props4 }, elms[3], component)
+
       if(elms[4][Symbol.for('slots')][0]) {
         parent = elms[4][Symbol.for('slots')][0]
         component = elms[4]
@@ -1086,7 +1151,19 @@ test('Generate code for a template with custom components with reactive props', 
       props2['x'] = 10
       props2['img'] = component.image
       componentType = props2['is'] || 'Poster'
-      elms[2] = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component Poster not found') })).call(null, { props: props2 }, elms[1], component, rootComponent)
+      let component2
+
+      if (typeof componentType === 'string') {
+          component2 = context.components && context.components[componentType] || components[componentType]
+          if (!component2) {
+              throw new Error('Component "Poster" not found')
+          }
+      } else if (typeof componentType === 'function' && componentType.name === 'factory') {
+          component2 = componentType
+      }
+
+      elms[2] = component2.call(null, { props: props2 }, elms[1], component)
+
       if(elms[2][Symbol.for('slots')][0]) {
         parent = elms[2][Symbol.for('slots')][0]
         component = elms[2]
@@ -1113,7 +1190,18 @@ test('Generate code for a template with custom components with reactive props', 
       props4['x'] = 100
       props4['img'] = component.image
       componentType = props4['is'] || 'Poster'
-      elms[4] = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component Poster not found') })).call(null, { props: props4 }, elms[3], component, rootComponent)
+      let component4
+
+      if (typeof componentType === 'string') {
+          component4 = context.components && context.components[componentType] || components[componentType]
+          if (!component4) {
+              throw new Error('Component "Poster" not found')
+          }
+      } else if (typeof componentType === 'function' && componentType.name === 'factory') {
+          component4 = componentType
+      }
+
+      elms[4] = component4.call(null, { props: props4 }, elms[3], component)
       if(elms[4][Symbol.for('slots')][0]) {
         parent = elms[4][Symbol.for('slots')][0]
         component = elms[4]
@@ -1289,7 +1377,17 @@ test('Generate code for a template with slot content', (assert) => {
       props2['w'] = 1920
       props2['h'] = 1080
       componentType = props2['is'] || 'Page'
-      elms[2] = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component Page not found') })).call(null, { props: props2 }, elms[1], component, rootComponent)
+      let component2
+
+      if (typeof componentType === 'string') {
+          component2 = context.components && context.components[componentType] || components[componentType]
+          if (!component2) {
+              throw new Error('Component "Page" not found')
+          }
+      } else if (typeof componentType === 'function' && componentType.name === 'factory') {
+          component2 = componentType
+      }
+      elms[2] = component2.call(null, { props: props2 }, elms[1], component)
       if(elms[2][Symbol.for('slots')][0]) {
         parent = elms[2][Symbol.for('slots')][0]
         component = elms[2]
@@ -1393,6 +1491,7 @@ test('Generate code for a template with slot content, using a named slot', (asse
           delete elementConfig1[cmp1.config.props[key]]
         }
       }
+
       elms[1].populate(elementConfig1)
       parent = elms[1]
 
@@ -1400,7 +1499,18 @@ test('Generate code for a template with slot content, using a named slot', (asse
       props2['w'] = 1920
       props2['h'] = 1080
       componentType = props2['is'] || 'Page'
-      elms[2] = (context.components && context.components[componentType] || components[componentType] || (() => { console.error('component Page not found') })).call(null, { props: props2 }, elms[1], component, rootComponent)
+      let component2
+
+      if (typeof componentType === 'string') {
+          component2 = context.components && context.components[componentType] || components[componentType]
+          if (!component2) {
+              throw new Error('Component "Page" not found')
+          }
+      } else if (typeof componentType === 'function' && componentType.name === 'factory') {
+          component2 = componentType
+      }
+
+      elms[2] = component2.call(null, { props: props2 }, elms[1], component)
       if(elms[2][Symbol.for('slots')][0]) {
         parent = elms[2][Symbol.for('slots')][0]
         component = elms[2]
@@ -2105,10 +2215,16 @@ test('Generate code for a template with a simple for-loop on a Component with a 
         props2['key'] = "item.id"
         if(!elms[2][item.id]) {
           componentType = props2['is'] || 'ListItem'
-          elms[2][item.id] = (context.components && context.components[componentType] || components[componentType] || (() => {
-            console.error('component ListItem not found')
-          })).call(null, { props: props2 }, elms[1][item.id], component, rootComponent)
-
+              let component2
+              if (typeof componentType === 'string') {
+                  component2 = context.components && context.components[componentType] || components[componentType]
+                  if (!component2) {
+                      throw new Error('Component "ListItem" not found')
+          }
+              } else if (typeof componentType === 'function' && componentType.name === 'factory') {
+                  component2 = componentType
+              }
+          elms[2][item.id] = component2.call(null, { props: props2 }, elms[1][item.id], component)
           if(elms[2][item.id][Symbol.for('slots')][0]) {
             parent = elms[2][item.id][Symbol.for('slots')][0]
             component = elms[2][item.id]
