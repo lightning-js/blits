@@ -261,10 +261,16 @@ const removeView = async (route, view, transition) => {
 const setOrAnimate = (node, transition, shouldAnimate = true) => {
   return new Promise((resolve) => {
     if (shouldAnimate) {
-      transition.end = () => {
-        resolve()
-      }
-      node.animate(transition.prop, transition.value, transition)
+      // resolve the promise in the transition end-callback
+      // ("extending" end callback when one is already specified)
+      const existingEndCallback = transition.end
+      transition.end = existingEndCallback
+        ? (...args) => {
+            existingEndCallback(args)
+            resolve()
+          }
+        : resolve
+      node.set(transition.prop, { transition })
     } else {
       node.set(transition.prop, transition.value)
       resolve()
