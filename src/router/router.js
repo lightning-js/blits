@@ -266,7 +266,7 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
       const existingEndCallback = transition.end
       transition.end = existingEndCallback
         ? (...args) => {
-            existingEndCallback(args)
+            existingEndCallback(...args)
             resolve()
           }
         : resolve
