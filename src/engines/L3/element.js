@@ -322,9 +322,9 @@ const Element = {
       this.component.___layout()
     }
   },
-  async animate(prop, value, transition) {
+  animate(prop, value, transition) {
     // if current value is the same as the value to animate to, instantly resolve
-    if (this.node[prop] === value) return Promise.resolve()
+    if (this.node[prop] === value) return
     // check if a transition is already scheduled or running on the same prop
     if (this.scheduledTransitions[prop]) {
       if (this.scheduledTransitions[prop].f.state === 'running') {
@@ -383,8 +383,6 @@ const Element = {
 
     // start animation
     f.start()
-
-    return Promise.resolve()
   },
   destroy() {
     Log.debug('Deleting  Node', this.nodeId)
