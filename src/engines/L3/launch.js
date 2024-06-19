@@ -23,7 +23,7 @@ import colors from '../../lib/colors/colors.js'
 import fontLoader from './fontLoader.js'
 import shaderLoader from './shaderLoader.js'
 
-export let renderer
+export let renderer = {}
 
 export default (App, target, settings = {}) => {
   const driver = new MainCoreDriver()
