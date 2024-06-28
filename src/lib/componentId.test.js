@@ -16,7 +16,7 @@
  */
 
 import test from 'tape'
-import { createHumanReadableId, createInternalId } from './componentId.js'
+import { createHumanReadableId, createInternalId, resetCounter } from './componentId.js'
 
 test('Type createHumandReadableId', (assert) => {
   const expected = 'function'
@@ -59,6 +59,7 @@ test('Type createInternalId', (assert) => {
 })
 
 test('Returns an internal id, disregarding the component name', (assert) => {
+  resetCounter()
   const expected = 1
   const actual = createInternalId('Spinner')
 
