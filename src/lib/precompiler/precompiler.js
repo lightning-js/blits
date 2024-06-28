@@ -23,7 +23,8 @@ export default (source, filePath) => {
   if (
     source.indexOf('Blits.Component(') > -1 ||
     source.indexOf('Blits.Application(') > -1 ||
-    /=>\s*Component\(['"][A-Za-z]+['"],/s.test(source) // blits component
+    /=>\s*Component\(['"][A-Za-z]+['"],/s.test(source) || // blits component
+    /\{.*?template\s*:\s*(['"`])((?:\\?.)*?)\1.*?\}/s.test(source) // object with template key
   ) {
     const templates = source.matchAll(/(?<!\/\/\s*)template\s*:\s*(['"`])((?:\\?.)*?)\1/gs)
     let newSource = source
