@@ -283,7 +283,7 @@ const generateForLoopCode = function (templateObject, parent) {
       created.length = 0
       const length = collection.length
 
-      for(let __index = 0; __index < collection.length; __index++) {
+      for(let __index = 0; __index < length; __index++) {
         parent = ${parent}
         const scope = Object.create(component)
         scope['key'] = __index
@@ -327,6 +327,16 @@ const generateForLoopCode = function (templateObject, parent) {
     })
   }
 
+  // any dynamic attribute referencing index, should run
+  // as part of the forloop function
+  ctx.effectsCode.forEach((effect) => {
+    if (effect.indexOf(`scope.${index}`) !== -1) {
+      ctx.renderCode.push(`
+        ${effect}
+      `)
+    }
+  })
+
   ctx.renderCode.push(`
       let i = prevKeys.length
 
@@ -348,13 +358,19 @@ const generateForLoopCode = function (templateObject, parent) {
   ctx.renderCode.push(`
     if(!elms[${counter}][scope.key].___hasEffect) {
   `)
-
   ctx.effectsCode.forEach((effect) => {
-    ctx.renderCode.push(`
-        effect(() => {
-          ${effect}
-        })
-    `)
+    if (
+      // no reference to index
+      effect.indexOf(`scope.${index}`) === -1 ||
+      // reference to index, but _also_ another dynamic scope variable
+      (effect.indexOf(`scope.${index}`) !== -1 && effect.match(/scope\./g).length > 1)
+    ) {
+      ctx.renderCode.push(`
+          effect(() => {
+            ${effect}
+          })
+      `)
+    }
   })
 
   ctx.renderCode.push(`
