@@ -18,7 +18,7 @@
 import { track, trigger, pauseTracking, resumeTracking } from './effect.js'
 import symbols from '../symbols.js'
 
-const arrayPatchMethods = ['push', 'pop', 'shift', 'unshift', 'splice']
+const arrayPatchMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort']
 
 const proxyMap = new WeakMap()
 
@@ -53,21 +53,25 @@ const reactiveProxy = (original, _parent = null, _key) => {
             track(target, key)
           }
           // create a new reactive proxy
-          return reactiveProxy(target[key], target, key)
+          return reactiveProxy(getRaw(target[key]), target, key)
         }
         // augment array path methods (that change the length of the array)
         if (arrayPatchMethods.indexOf(key) !== -1) {
           return function (...args) {
-            // pauseTracking()
+            pauseTracking()
             const result = target[key].apply(this, args)
+            resumeTracking()
             // trigger a change on the parent object and the key
             // i.e. when pushing a new item to `obj.data`, _parent will equal `obj`
             // and _key will equal `data`
-            // resumeTracking()
             trigger(_parent, _key)
             return result
           }
         }
+        if (key === 'length') {
+          return original.length
+        }
+
         return Reflect.get(target, key, receiver)
       }
 
@@ -77,7 +81,7 @@ const reactiveProxy = (original, _parent = null, _key) => {
           track(target, key)
         }
         // create a new reactive proxy
-        return reactiveProxy(target[key], target, key)
+        return reactiveProxy(getRaw(target[key]), target, key)
       }
 
       // handling all other types
