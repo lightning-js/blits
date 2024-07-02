@@ -267,28 +267,22 @@ const generateForLoopCode = function (templateObject, parent) {
   }
 
   const forStartCounter = counter
-  const forEndCounter = counter + (templateObject.children || []).length
 
   ctx.renderCode.push(`
     const created${forStartCounter} = []
     const forloop${forStartCounter} = (collection = [], elms, created) => {
-      const keys = new Set(collection.map((${item}) => ${interpolate(templateObject.key, '')}))
-      let i = created.length
-
-      while (i--) {
-        const key = created[i]
-        if (!keys.has(key)) {
+      const keys = new Set(collection.map((${item}) => '' +  ${interpolate(
+    templateObject.key,
+    ''
+  )}))
   `)
-  for (let i = forStartCounter; i <= forEndCounter; i++) {
-    ctx.renderCode.push(`
-          elms[${i}][key] && elms[${i}][key].destroy()
-          delete elms[${i}][key]
-    `)
-  }
-  ctx.renderCode.push(`
-        }
-      }
 
+  // keep track of the index in the render code so we can inject
+  // the code that takes care of destroying elements (generated later on)
+  // in the right spot
+  const indexToInjectDestroyCode = ctx.renderCode.length
+
+  ctx.renderCode.push(`
       created.length = 0
       const length = collection.length
 
@@ -373,12 +367,37 @@ const generateForLoopCode = function (templateObject, parent) {
         elms[${forStartCounter}][0].forComponent.___layout()
       }
     }
-  }
+  }`)
 
-  effect(() => {
-    forloop${forStartCounter}(${cast(result[2], ':for')}, elms, created${forStartCounter})
-  }, '${interpolate(result[2], '')}')
-`)
+  // generate code that destroys items
+  const destroyCode = []
+  destroyCode.push(`
+      let i = created.length
+
+      while (i--) {
+        const key = created[i]
+        if (!keys.has(key)) {
+  `)
+  const forEndCounter = counter
+
+  for (let i = forStartCounter; i <= forEndCounter; i++) {
+    destroyCode.push(`
+          elms[${i}][key] && elms[${i}][key].destroy()
+          delete elms[${i}][key]
+      `)
+  }
+  destroyCode.push(`
+       }
+    }
+  `)
+
+  // inject the destroy code in the correct spot
+  ctx.renderCode.splice(indexToInjectDestroyCode, 0, ...destroyCode)
+  ctx.renderCode.push(`
+    effect(() => {
+      forloop${forStartCounter}(${cast(result[2], ':for')}, elms, created${forStartCounter})
+    }, '${interpolate(result[2], '')}')
+  `)
 
   this.renderCode.push(ctx.renderCode.join('\n'))
 }
