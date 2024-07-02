@@ -1,0 +1,1 @@
+export const DEFAULT_HOLD_TIMEOUT_MS = 50

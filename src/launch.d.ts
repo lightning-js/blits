@@ -243,7 +243,16 @@ export interface Settings {
    *
    * Defaults to `webgl`
    */
-  renderMode?: RenderModes
+  renderMode?: RenderModes,
+
+  /**
+   * The delay, in milliseconds, after the key is released before the selected component
+   * gains focus. This delay can be used to create a smoother transition between focused
+   * components or to prevent rapid focus changes.
+   *
+   * Defaults to `50` (ms)
+   */
+  focusHoldTimeout?: number
 }
 
 /**
