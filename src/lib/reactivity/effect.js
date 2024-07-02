@@ -30,8 +30,6 @@ export const resumeTracking = () => {
 
 const objectMap = new WeakMap()
 
-// const trackQueue = []
-
 export const track = (target, key) => {
   if (currentEffect) {
     if (paused) {
