@@ -279,6 +279,8 @@ const generateForLoopCode = function (templateObject, parent) {
 
   `)
 
+  const removeElemsCodeIndex = ctx.renderCode.length
+
   ctx.renderCode.push(`
       created.length = 0
       const length = collection.length
@@ -338,24 +340,6 @@ const generateForLoopCode = function (templateObject, parent) {
   })
 
   ctx.renderCode.push(`
-      let i = prevKeys.length
-
-      while (i--) {
-        const key = prevKeys[i]
-        if (!keys.has(key)) {
-    `)
-  const forEndCounter = counter
-  for (let i = forStartCounter; i <= forEndCounter; i++) {
-    ctx.renderCode.push(`
-            elms[${i}][key] && elms[${i}][key].destroy()
-            delete elms[${i}][key]
-      `)
-  }
-  ctx.renderCode.push(`
-       }
-      }
-    `)
-  ctx.renderCode.push(`
     if(!elms[${counter}][scope.key].___hasEffect) {
   `)
   ctx.effectsCode.forEach((effect) => {
@@ -382,12 +366,35 @@ const generateForLoopCode = function (templateObject, parent) {
         elms[${forStartCounter}][0].forComponent.___layout()
       }
     }
-  }
+  }`)
 
-  effect(() => {
-    forloop${forStartCounter}(${cast(result[2], ':for')}, elms, created${forStartCounter})
-  }, '${interpolate(result[2], '')}')
-`)
+  const removeElementsCode = []
+  removeElementsCode.push(`
+      let i = prevKeys.length
+
+      while (i--) {
+        const key = prevKeys[i]
+        if (!keys.has(key)) {
+  `)
+  const forEndCounter = counter
+
+  for (let i = forStartCounter; i <= forEndCounter; i++) {
+    removeElementsCode.push(`
+          elms[${i}][key] && elms[${i}][key].destroy()
+          delete elms[${i}][key]
+      `)
+  }
+  removeElementsCode.push(`
+       }
+      }
+  `)
+
+  ctx.renderCode.splice(removeElemsCodeIndex, 0, ...removeElementsCode)
+  ctx.renderCode.push(`
+    effect(() => {
+      forloop${forStartCounter}(${cast(result[2], ':for')}, elms, created${forStartCounter})
+    }, '${interpolate(result[2], '')}')
+  `)
 
   this.renderCode.push(ctx.renderCode.join('\n'))
 }
