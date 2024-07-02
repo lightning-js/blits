@@ -275,11 +275,12 @@ const generateForLoopCode = function (templateObject, parent) {
     templateObject.key,
     ''
   )}))
-      const prevKeys = [...created]
-
   `)
 
-  const removeElemsCodeIndex = ctx.renderCode.length
+  // keep track of the index in the render code so we can inject
+  // the code that takes care of destroying elements (generated later on)
+  // in the right spot
+  const indexToInjectDestroyCode = ctx.renderCode.length
 
   ctx.renderCode.push(`
       created.length = 0
@@ -368,28 +369,30 @@ const generateForLoopCode = function (templateObject, parent) {
     }
   }`)
 
-  const removeElementsCode = []
-  removeElementsCode.push(`
-      let i = prevKeys.length
+  // generate code that destroys items
+  const destroyCode = []
+  destroyCode.push(`
+      let i = created.length
 
       while (i--) {
-        const key = prevKeys[i]
+        const key = created[i]
         if (!keys.has(key)) {
   `)
   const forEndCounter = counter
 
   for (let i = forStartCounter; i <= forEndCounter; i++) {
-    removeElementsCode.push(`
+    destroyCode.push(`
           elms[${i}][key] && elms[${i}][key].destroy()
           delete elms[${i}][key]
       `)
   }
-  removeElementsCode.push(`
+  destroyCode.push(`
        }
-      }
+    }
   `)
 
-  ctx.renderCode.splice(removeElemsCodeIndex, 0, ...removeElementsCode)
+  // inject the destroy code in the correct spot
+  ctx.renderCode.splice(indexToInjectDestroyCode, 0, ...destroyCode)
   ctx.renderCode.push(`
     effect(() => {
       forloop${forStartCounter}(${cast(result[2], ':for')}, elms, created${forStartCounter})
