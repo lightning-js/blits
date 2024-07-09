@@ -15,8 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { MainCoreDriver, RendererMain } from '@lightningjs/renderer'
-// import RendererWorker from '@lightningjs/renderer/workers/renderer?worker'
+import { RendererMain } from '@lightningjs/renderer'
 import { Log } from '../../lib/log.js'
 import { screenResolutions } from '../../lib/utils.js'
 import colors from '../../lib/colors/colors.js'
@@ -26,13 +25,6 @@ import shaderLoader from './shaderLoader.js'
 export let renderer
 
 export default (App, target, settings = {}) => {
-  const driver = new MainCoreDriver()
-  // settings.multithreaded === true
-  //   ? new ThreadXRenderDriver({
-  //       RendererWorker,
-  //     })
-  //   : new MainRenderDriver()
-
   if ('fontLoader' in settings) {
     Log.warn(
       `
@@ -65,8 +57,7 @@ You can remove the option from your \`src/index.js\`-file. And you can safely re
         'gpuMemoryLimit' in settings ? settings.gpuMemoryLimit * 1024 * 1024 : 200 * 1024 * 1024,
       renderMode: 'renderMode' in settings ? settings.renderMode : 'webgl',
     },
-    target,
-    driver
+    target
   )
 
   const initApp = () => {
@@ -78,8 +69,10 @@ You can remove the option from your \`src/index.js\`-file. And you can safely re
       renderer = null
     }
   }
-
-  renderer.init().then(shaderLoader).then(fontLoader).then(initApp)
+  shaderLoader()
+  fontLoader()
+  initApp()
+  // renderer.init().then(shaderLoader).then(fontLoader).then(initApp)
 
   return renderer
 }
