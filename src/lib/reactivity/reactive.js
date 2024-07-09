@@ -32,8 +32,12 @@ const getRaw = (value) => {
 }
 
 const reactiveProxy = (original, _parent = null, _key) => {
-  // don't create a proxy when a Blits component is assigned to a state variable
-  if (typeof original === 'object' && original[symbols.id]) {
+  // don't create a proxy when a Blits component or an Image Texture
+  // is assigned to a state variable
+  if (
+    (typeof original === 'object' && original[symbols.id]) ||
+    original.constructor.name === '_ImageTexture'
+  ) {
     return original
   }
 
