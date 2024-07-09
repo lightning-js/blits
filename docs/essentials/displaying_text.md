@@ -22,7 +22,7 @@ You can use the Text-tag anywhere in your template, without the need to explicit
 The Text-tag accepts the following attributes:
 
 - `content` - the text to be displayed. Can be a hardcoded text, a dynamic value, or a reactive value
-- `font` - the font family, defaults to `lato`, or the default font specified in the launch settings
+- `font` - the font family, defaults to `sans-serif`, or the default font specified in the launch settings
 - `size`  - the font size, defaults to `32`
 - `color` - the color to display for the text, defaults to `white` and can be any of the supported Blits color formats (HTML, hexadecimal or rgb(a))
 - `letterspacing` - letterspacing in pixels, defaults to `0`

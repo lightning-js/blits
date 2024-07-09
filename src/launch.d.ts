@@ -124,7 +124,7 @@ export interface Settings {
    *
    * The default font must be registered in the `fonts` array in the settings.
    *
-   * Defaults to `lato` font family
+   * Defaults to `sans-serif` font family, which is the default of the Lightning Renderer
    */
   defaultFont?: string,
   /**
