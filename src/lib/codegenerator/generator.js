@@ -263,6 +263,8 @@ const generateForLoopCode = function (templateObject, parent) {
     .replace(')', '')
     .split(/\s*,\s*/)
 
+  const scopeRegex = new RegExp(`(scope\\.(?!${item}\\.|${index}|key)(\\w+))`, 'gi')
+
   // local context
   const ctx = {
     renderCode: [],
@@ -295,8 +297,8 @@ const generateForLoopCode = function (templateObject, parent) {
       const length = collection.length
 
       for(let __index = 0; __index < length; __index++) {
-        parent = ${parent}
         const scope = Object.create(component)
+        parent = ${parent}
         scope['key'] = __index
         scope['${index}'] = __index
         scope['${item}'] = collection[__index]
@@ -338,37 +340,25 @@ const generateForLoopCode = function (templateObject, parent) {
     })
   }
 
-  // any dynamic attribute referencing index, should run
-  // as part of the forloop function
-  ctx.effectsCode.forEach((effect) => {
-    if (effect.indexOf(`scope.${index}`) !== -1) {
-      ctx.renderCode.push(`
+  // separate effects that only rely on variables in the itteration
+  const innerScopeEffects = ctx.effectsCode.filter(
+    (effect) => [...effect.matchAll(scopeRegex)].length === 0
+  )
+
+  // separate effects that (also) rely on variables in the outer scope
+  const outerScopeEffects = ctx.effectsCode.filter(
+    (effect) => [...effect.matchAll(scopeRegex)].length !== 0
+  )
+
+  // inner scope variables are part of the main forloop
+  innerScopeEffects.forEach((effect) => {
+    const key = effect.indexOf(`scope.${index}`) > -1 ? `'${interpolate(result[2], '')}'` : null
+    ctx.renderCode.push(`
+      effect(() => {
         ${effect}
-      `)
-    }
+      }, ${key})
+    `)
   })
-
-  ctx.renderCode.push(`
-    if(!elms[${counter}][scope.key].___hasEffect) {
-  `)
-  ctx.effectsCode.forEach((effect) => {
-    if (
-      // no reference to index
-      effect.indexOf(`scope.${index}`) === -1 ||
-      // reference to index, but _also_ another dynamic scope variable
-      (effect.indexOf(`scope.${index}`) !== -1 && effect.match(/scope\./g).length > 1)
-    ) {
-      ctx.renderCode.push(`
-          effect(() => {
-            ${effect}
-          })
-      `)
-    }
-  })
-
-  ctx.renderCode.push(`
-    elms[${counter}][scope.key].___hasEffect = true
-  }`)
 
   ctx.renderCode.push(`
       if(elms[${forStartCounter}][0] && elms[${forStartCounter}][0].forComponent && elms[${forStartCounter}][0].forComponent.___layout) {
@@ -406,6 +396,33 @@ const generateForLoopCode = function (templateObject, parent) {
       forloop${forStartCounter}(${cast(result[2], ':for')}, elms, created${forStartCounter})
     }, '${interpolate(result[2], '')}')
   `)
+
+  outerScopeEffects.forEach((effect) => {
+    const matches = [...effect.matchAll(scopeRegex)]
+
+    let l = matches.length
+    const refs = []
+    while (l--) {
+      const match = matches[l]
+      const ref = `component.${match[2]}`
+      refs.indexOf(ref) === -1 && refs.push(ref)
+      effect =
+        effect.substring(0, match.index) + ref + effect.substring(match.index + match[1].length)
+    }
+
+    ctx.renderCode.push(`
+      effect(() => {
+        void ${refs.join(', ')}
+        for(let __index = 0; __index < ${interpolate(result[2])}.length; __index++) {
+          const scope = {}
+          scope['key'] = __index
+          scope['${index}'] = __index
+          scope['${item}'] = ${interpolate(result[2])}[__index]
+          ${effect}
+        }
+      })
+    `)
+  })
 
   this.renderCode.push(ctx.renderCode.join('\n'))
 }
