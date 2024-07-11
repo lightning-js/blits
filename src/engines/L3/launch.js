@@ -69,10 +69,10 @@ You can remove the option from your \`src/index.js\`-file. And you can safely re
       renderer = null
     }
   }
+
   shaderLoader()
   fontLoader()
   initApp()
-  // renderer.init().then(shaderLoader).then(fontLoader).then(initApp)
 
   return renderer
 }
