@@ -20,7 +20,7 @@ import parser from './lib/templateparser/parser.js'
 import codegenerator from './lib/codegenerator/generator.js'
 import { createHumanReadableId, createInternalId } from './lib/componentId.js'
 import { emit } from './lib/hooks.js'
-import { reactive } from './lib/reactivity/reactive.js'
+import { reactive, getRaw } from './lib/reactivity/reactive.js'
 import { effect } from './lib/reactivity/effect.js'
 import Lifecycle from './lib/lifecycle.js'
 import symbols from './lib/symbols.js'
@@ -103,7 +103,8 @@ const Component = (name = required('name'), config = required('config')) => {
     // execute the render code that constructs the initial state of the component
     // and store the children result (a flat map of elements and components)
     this[symbols.children] =
-      config.code.render.apply(stage, [parentEl, this, config, globalComponents, effect]) || []
+      config.code.render.apply(stage, [parentEl, this, config, globalComponents, effect, getRaw]) ||
+      []
 
     // create a reference to the wrapper element of the component (i.e. the root Element of the component)
     this[symbols.wrapper] = this[symbols.children][0]

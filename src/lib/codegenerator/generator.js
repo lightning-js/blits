@@ -35,6 +35,7 @@ export default function (templateObject = { children: [] }) {
       'context',
       'components',
       'effect',
+      'getRaw',
       ctx.renderCode.join('\n')
     ),
     effects: ctx.effectsCode.map(
@@ -252,6 +253,10 @@ const generateForLoopCode = function (templateObject, parent) {
   const forLoop = templateObject[':for']
   delete templateObject[':for']
 
+  const key = templateObject['key']
+  const forKey = interpolate(key, 'scope.')
+
+  delete templateObject['key']
   const regex = /(.+)\s+in\s+(.+)/gi
   //   const regex = /(:?\(*)(.+)\s+in\s+(.+)/gi
 
@@ -281,10 +286,8 @@ const generateForLoopCode = function (templateObject, parent) {
   ctx.renderCode.push(`
     const created${forStartCounter} = []
     const forloop${forStartCounter} = (collection = [], elms, created) => {
-      const keys = new Set(collection.map((${item}) => '' +  ${interpolate(
-    templateObject.key,
-    ''
-  )}))
+      const rawCollection = getRaw(collection)
+      const keys = new Set(rawCollection.map((${item}) => '' +  ${interpolate(key, '')}))
   `)
 
   // keep track of the index in the render code so we can inject
@@ -295,13 +298,12 @@ const generateForLoopCode = function (templateObject, parent) {
   ctx.renderCode.push(`
       created.length = 0
       const length = collection.length
-
       for(let __index = 0; __index < length; __index++) {
         const scope = Object.create(component)
         parent = ${parent}
-        scope['key'] = __index
         scope['${index}'] = __index
-        scope['${item}'] = collection[__index]
+        scope['${item}'] = rawCollection[__index]
+        scope['key'] = ${forKey || '__index'}
   `)
   if ('ref' in templateObject && templateObject.ref.indexOf('$') === -1) {
     // automatically map the ref for each item in the loop based on the given ref key
@@ -311,11 +313,6 @@ const generateForLoopCode = function (templateObject, parent) {
     templateObject.ref = '$__ref'
   }
 
-  if ('key' in templateObject) {
-    ctx.renderCode.push(`
-        scope.key = '' + ${interpolate(templateObject.key, 'scope.')}
-    `)
-  }
   ctx.renderCode.push(`
         created.push(scope.key)
   `)
@@ -349,6 +346,10 @@ const generateForLoopCode = function (templateObject, parent) {
   const outerScopeEffects = ctx.effectsCode.filter(
     (effect) => [...effect.matchAll(scopeRegex)].length !== 0
   )
+
+  ctx.renderCode.push(`
+    scope['${item}'] = collection[__index]
+  `)
 
   // inner scope variables are part of the main forloop
   innerScopeEffects.forEach((effect) => {
@@ -415,9 +416,12 @@ const generateForLoopCode = function (templateObject, parent) {
         void ${refs.join(', ')}
         for(let __index = 0; __index < ${interpolate(result[2])}.length; __index++) {
           const scope = {}
-          scope['key'] = __index
           scope['${index}'] = __index
           scope['${item}'] = ${interpolate(result[2])}[__index]
+          scope['key'] = ${forKey || '__index'}
+    `)
+
+    ctx.renderCode.push(`
           ${effect}
         }
       })

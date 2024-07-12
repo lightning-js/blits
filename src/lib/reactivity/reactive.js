@@ -22,7 +22,7 @@ const arrayPatchMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort']
 
 const proxyMap = new WeakMap()
 
-const getRaw = (value) => {
+export const getRaw = (value) => {
   const raw = value && value[symbols.raw]
   return raw ? getRaw(raw) : value
 }
