@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@lightningjs/msdf-generator": "^1.0.1",
-    "@lightningjs/renderer": "^0.9.2",
+    "@lightningjs/renderer": "^1.0.0-rc.1",
     "@lightningjs/vite-plugin-import-chunk-url": "^0.3.0",
     "execa": "^8.0.1",
     "kolorist": "^1.8.0",

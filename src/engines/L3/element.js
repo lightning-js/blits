@@ -38,7 +38,11 @@ const parsePercentage = function (v, base) {
   if (typeof v !== 'string') {
     return v
   } else if (v.indexOf('%') === v.length - 1) {
-    return this.element.node && this.element.node._parent[base] * (parseFloat(v) / 100)
+    return (
+      this.element.parent &&
+      this.element.parent[base] &&
+      this.element.parent[base] * (parseFloat(v) / 100)
+    )
   }
   return v
 }
@@ -408,7 +412,7 @@ export default (config, component) => {
   if (!textDefaults) {
     textDefaults = {
       fontSize: 32,
-      fontFamily: Settings.get('defaultFont', 'lato'),
+      fontFamily: Settings.get('defaultFont', 'sans-serif'),
     }
   }
   return Object.assign(Object.create(Element), {

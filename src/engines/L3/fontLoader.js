@@ -1,10 +1,9 @@
-import { WebTrFontFace, SdfTrFontFace } from '@lightningjs/renderer/core'
-
+import { SdfTrFontFace, WebTrFontFace } from '@lightningjs/renderer'
 import Settings from '../../settings.js'
 import { renderer } from './launch.js'
 
 export default () => {
-  const stage = renderer.driver.stage
+  const stage = renderer.stage
   Settings.get('fonts', []).forEach((font) => {
     if (font.type === 'sdf' || font.type === 'msdf') {
       // automatically map png key to file name
