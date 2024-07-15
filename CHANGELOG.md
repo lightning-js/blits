@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.0.0
+
+_15 july 2024_
+
+- Added multiple optimizations that improve the performance
+- Fixed mountY prop setting
+- Added functionality for providing custom shaders
+- Added initial support for accessing children
+- Added first version of Layout component
+- Improved test coverage
+- Refactored transitions and fixed promise resolve issues
+- Upgraded to renderer v1.0.0
+
 ## v0.10.0
 
 _17 june 2024_
