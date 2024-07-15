@@ -15,6 +15,6 @@ export default {
       warn(msg)
     }
   },
-  plugins: [resolve(), commonjs(), terser()],
+  plugins: [resolve(), terser()],
   external: ['execa', 'kolorist', 'ora', 'prompts', 'replace-in-file', 'validate-npm-package-name'],
 }
