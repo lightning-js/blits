@@ -37,7 +37,9 @@ export default (component, props = []) => {
         const value = prop.cast(
           this[symbols.props] && prop.key in this[symbols.props]
             ? this[symbols.props][prop.key]
-            : prop.default || undefined
+            : 'default' in prop
+            ? prop.default
+            : undefined
         )
 
         if (prop.required && value === undefined) {

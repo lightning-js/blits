@@ -15,13 +15,46 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import symbols from '../../lib/symbols'
+import symbols from '../../lib/symbols.js'
 
 import { renderer } from '../../launch.js'
 
 export default {
   [symbols.renderer]: {
     value: () => renderer,
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
+  [symbols.getChildren]: {
+    value() {
+      const parent = this.rootParent || this.parent
+      return (this[symbols.children] || []).concat(
+        (parent &&
+          parent[symbols.getChildren]()
+            .map((child) => {
+              if (Object.getPrototypeOf(child) === Object.prototype) {
+                return Object.values(child).map((c) => {
+                  // ugly hack .. but the point is to reference the right component
+                  c.forComponent = c.config && c.config.parent.component
+                  return c
+                })
+              }
+              return child
+            })
+            .flat()
+            .filter((child) => {
+              // problem is that component of a forloop in a slot has component of root component
+              if (child && child.component) {
+                return (
+                  (child.component && child.component.componentId === this.componentId) ||
+                  (child.forComponent && child.forComponent.componentId === this.componentId)
+                )
+              }
+            })) ||
+          []
+      )
+    },
     writable: false,
     enumerable: true,
     configurable: false,

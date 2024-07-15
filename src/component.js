@@ -20,7 +20,7 @@ import parser from './lib/templateparser/parser.js'
 import codegenerator from './lib/codegenerator/generator.js'
 import { createHumanReadableId, createInternalId } from './lib/componentId.js'
 import { emit } from './lib/hooks.js'
-import { reactive } from './lib/reactivity/reactive.js'
+import { reactive, getRaw } from './lib/reactivity/reactive.js'
 import { effect } from './lib/reactivity/effect.js'
 import Lifecycle from './lib/lifecycle.js'
 import symbols from './lib/symbols.js'
@@ -51,7 +51,7 @@ const required = (name) => {
 const Component = (name = required('name'), config = required('config')) => {
   let base
 
-  const component = function (opts, parentEl, parentComponent) {
+  const component = function (opts, parentEl, parentComponent, rootComponent) {
     // generate a human readable ID for the component instance (i.e. Blits::ComponentName1)
     this.componentId = createHumanReadableId(name)
 
@@ -64,6 +64,9 @@ const Component = (name = required('name'), config = required('config')) => {
 
     // set a reference to the parent component
     this.parent = parentComponent
+
+    //
+    this.rootParent = rootComponent
 
     // set a reference to the holder / parentElement
     // Components are wrapped in a holder node (used to apply positioning and transforms
@@ -99,12 +102,9 @@ const Component = (name = required('name'), config = required('config')) => {
 
     // execute the render code that constructs the initial state of the component
     // and store the children result (a flat map of elements and components)
-    this[symbols.children] = config.code.render.apply(stage, [
-      parentEl,
-      this,
-      config,
-      globalComponents,
-    ])
+    this[symbols.children] =
+      config.code.render.apply(stage, [parentEl, this, config, globalComponents, effect, getRaw]) ||
+      []
 
     // create a reference to the wrapper element of the component (i.e. the root Element of the component)
     this[symbols.wrapper] = this[symbols.children][0]
@@ -158,11 +158,18 @@ const Component = (name = required('name'), config = required('config')) => {
 
     // setup (and execute) all the generated side effects based on the
     // reactive bindings define in the template
-    config.code.effects.forEach((eff) => {
+    for (let i = 0; i < config.code.effects.length; i++) {
       effect(() => {
-        eff.apply(stage, [this, this[symbols.children], config, globalComponents])
+        config.code.effects[i].apply(stage, [
+          this,
+          this[symbols.children],
+          config,
+          globalComponents,
+          rootComponent,
+          effect,
+        ])
       })
-    })
+    }
 
     // setup watchers if the components has watchers specified
     if (this[symbols.watchers]) {
@@ -194,7 +201,7 @@ const Component = (name = required('name'), config = required('config')) => {
     return this
   }
 
-  const factory = (options = {}, parentEl, parentComponent) => {
+  const factory = (options = {}, parentEl, parentComponent, rootComponent) => {
     // setup the component once, using Base as the prototype
     if (!base) {
       Log.debug(`Setting up ${name} component`)
@@ -213,7 +220,7 @@ const Component = (name = required('name'), config = required('config')) => {
     }
 
     // create an instance of the component, using base as the prototype (which contains Base)
-    return component.call(Object.create(base), options, parentEl, parentComponent)
+    return component.call(Object.create(base), options, parentEl, parentComponent, rootComponent)
   }
 
   // store the config on the factory, in order to access the config
