@@ -6,7 +6,8 @@
   "exports": {
     ".": "./index.js",
     "./vite": "./vite/index.js",
-    "./transitions": "./src/router/transitions/index.js"
+    "./transitions": "./src/router/transitions/index.js",
+    "./precompiler": "./src/lib/precompiler/precompiler.js"
   },
   "scripts": {
     "test": "c8 npm run test:run",
