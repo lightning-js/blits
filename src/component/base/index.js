@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Comcast Cable Communications Management, LLC
+ * Copyright 2024 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,20 +15,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import compiler from '../src/lib/precompiler/precompiler.js'
-import path from 'path'
+import methods from './methods.js'
+import scheduling from './timeouts_intervals.js'
+import events from './events.js'
+import log from './log.js'
+import router from './router.js'
+import announcer from './announcer.js'
+import utils from './utils.js'
 
-export default function () {
-  let config
-  return {
-    name: 'preCompiler',
-    configResolved(resolvedConfig) {
-      config = resolvedConfig
-    },
-    transform(source, filePath) {
-      if (config.blits && config.blits.precompile === false) return source
-      const relativePath = path.relative(process.cwd(), filePath)
-      return compiler(source, relativePath)
-    },
-  }
-}
+export default Object.defineProperties(
+  {},
+  { ...methods, ...scheduling, ...events, ...log, ...router, ...announcer, ...utils }
+)

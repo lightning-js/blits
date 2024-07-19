@@ -15,9 +15,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Log } from '../log.js'
+import { Log } from '../../lib/log.js'
 
-import symbols from '../symbols.js'
+import symbols from '../../lib/symbols.js'
 
 export default (component, computeds) => {
   component[symbols.computedKeys] = []
@@ -38,7 +38,7 @@ export default (component, computeds) => {
         Log.warn(`${computed} is not a function`)
       }
       component[symbols.computedKeys].push(computed)
-      Object.defineProperty(component.prototype, computed, {
+      Object.defineProperty(component, computed, {
         get() {
           return computeds[computed].apply(this)
         },

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Comcast Cable Communications Management, LLC
+ * Copyright 2024 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,20 +15,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import compiler from '../src/lib/precompiler/precompiler.js'
-import path from 'path'
+import eventListeners from '../../lib/eventListeners.js'
 
-export default function () {
-  let config
-  return {
-    name: 'preCompiler',
-    configResolved(resolvedConfig) {
-      config = resolvedConfig
+export default {
+  $emit: {
+    value: function (event, params) {
+      eventListeners.executeListeners(event, params)
     },
-    transform(source, filePath) {
-      if (config.blits && config.blits.precompile === false) return source
-      const relativePath = path.relative(process.cwd(), filePath)
-      return compiler(source, relativePath)
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
+  $listen: {
+    value: function (event, callback) {
+      eventListeners.registerListener(this, event, callback)
     },
-  }
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
 }

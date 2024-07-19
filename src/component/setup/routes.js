@@ -15,20 +15,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import compiler from '../src/lib/precompiler/precompiler.js'
-import path from 'path'
+import symbols from '../../lib/symbols.js'
 
-export default function () {
-  let config
-  return {
-    name: 'preCompiler',
-    configResolved(resolvedConfig) {
-      config = resolvedConfig
-    },
-    transform(source, filePath) {
-      if (config.blits && config.blits.precompile === false) return source
-      const relativePath = path.relative(process.cwd(), filePath)
-      return compiler(source, relativePath)
-    },
-  }
+export default (component, routes) => {
+  component[symbols.routes] = []
+  Object.keys(routes).forEach((key) => {
+    // todo: validate routes[key] for expected format etc.
+    component[symbols.routes][key] = {
+      ...routes[key],
+      ...{
+        // merge default route options with route specific options
+        options: {
+          ...{
+            inHistory: true,
+          },
+          ...routes[key].options,
+        },
+      },
+    }
+  })
 }

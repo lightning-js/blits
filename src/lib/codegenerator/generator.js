@@ -19,7 +19,7 @@ let counter
 
 export default function (templateObject = { children: [] }) {
   const ctx = {
-    renderCode: ['const elms = []'],
+    renderCode: ['const elms = []', 'let componentType', 'const rootComponent = component'],
     effectsCode: [],
     context: { props: [], components: this.components },
   }
@@ -29,8 +29,19 @@ export default function (templateObject = { children: [] }) {
   ctx.renderCode.push('return elms')
 
   return {
-    render: new Function('parent', 'component', 'context', ctx.renderCode.join('\n')),
-    effects: ctx.effectsCode.map((code) => new Function('component', 'elms', 'context', code)),
+    render: new Function(
+      'parent',
+      'component',
+      'context',
+      'components',
+      'effect',
+      'getRaw',
+      ctx.renderCode.join('\n')
+    ),
+    effects: ctx.effectsCode.map(
+      (code) =>
+        new Function('component', 'elms', 'context', 'components', 'rootComponent', 'effect', code)
+    ),
     context: ctx.context,
   }
 }
@@ -38,7 +49,7 @@ export default function (templateObject = { children: [] }) {
 const generateElementCode = function (
   templateObject,
   parent = false,
-  options = { key: false, component: 'component.', forceEffect: false }
+  options = { key: false, component: 'component.', forceEffect: false, forloop: false }
 ) {
   const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
   if (parent) {
@@ -50,16 +61,25 @@ const generateElementCode = function (
 
   if (options.key) {
     renderCode.push(`
-      elms[${counter}] = elms[${counter}] || {}
+      if(elms[${counter}] === undefined) {
+        elms[${counter}] = {}
+      }
     `)
   }
 
+  renderCode.push(`const elementConfig${counter} = {}`)
+
+  if (options.forloop) {
+    renderCode.push(`if(!${elm}) {`)
+  }
+
   renderCode.push(`
-    if(!${elm}) {
-      ${elm} = this.element({parent: parent || 'root'}, component)
-    }
-    const elementConfig${counter} = {}
+    ${elm} = this.element({parent: parent || 'root'}, component)
   `)
+
+  if (options.forloop) {
+    renderCode.push('}')
+  }
 
   const children = templateObject['children']
   delete templateObject['children']
@@ -75,10 +95,18 @@ const generateElementCode = function (
       `)
     }
 
+    if (key === 'key') return
+
     if (isReactiveKey(key)) {
       if (options.holder && key === ':color') return
       this.effectsCode.push(
         `${elm}.set('${key.substring(1)}', ${interpolate(templateObject[key], options.component)})`
+      )
+      renderCode.push(
+        `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(
+          templateObject[key],
+          options.component
+        )}`
       )
     } else {
       renderCode.push(
@@ -97,11 +125,15 @@ const generateElementCode = function (
     `)
   }
 
-  renderCode.push(`
-    if(!${elm}.nodeId) {
-      ${elm}.populate(elementConfig${counter})
-    }
-  `)
+  if (options.forloop) {
+    renderCode.push(`if(!${elm}.nodeId) {`)
+  }
+
+  renderCode.push(`${elm}.populate(elementConfig${counter})`)
+
+  if (options.forloop) {
+    renderCode.push('}')
+  }
 
   if (children) {
     generateCode.call(this, { children }, `${elm}`, options)
@@ -111,7 +143,13 @@ const generateElementCode = function (
 const generateComponentCode = function (
   templateObject,
   parent = false,
-  options = { key: false, component: 'component.', forceEffect: false, holder: false }
+  options = {
+    key: false,
+    component: 'component.',
+    forceEffect: false,
+    holder: false,
+    forloop: false,
+  }
 ) {
   const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
 
@@ -119,8 +157,7 @@ const generateComponentCode = function (
     const cmp${counter} =
       (context.components && context.components['${
         templateObject[Symbol.for('componentType')]
-      }']) ||
-      component[Symbol.for('components')]['${templateObject[Symbol.for('componentType')]}']
+      }']) || components['${templateObject[Symbol.for('componentType')]}']
   `)
 
   if ('key' in templateObject) {
@@ -139,7 +176,9 @@ const generateComponentCode = function (
 
   if (options.key) {
     renderCode.push(`
-      elms[${counter}] = elms[${counter}] || {}
+      if(elms[${counter}] === undefined) {
+        elms[${counter}] = {}
+      }
     `)
   }
 
@@ -168,34 +207,56 @@ const generateComponentCode = function (
     }
   })
 
-  renderCode.push(`
-    if(!${elm}) {
-      const componentType = props${counter}['is'] || '${
-    templateObject[Symbol.for('componentType')]
-  }'
+  if (options.forloop) {
+    renderCode.push(`if(!${elm}) {`)
+  }
 
-  ${elm} = (context.components && context.components[componentType] || component[Symbol.for('components')][componentType] || (() => { console.error('component ${
-    templateObject[Symbol.for('componentType')]
-  } not found')})).call(null, {props: props${counter}}, ${parent}, component)
-      if (${elm}[Symbol.for('slots')][0]) {
-        parent = ${elm}[Symbol.for('slots')][0]
-        component = ${elm}
-      } else {
-        parent = ${elm}[Symbol.for('children')][0]
+  renderCode.push(`
+    componentType = props${counter}['is'] || '${templateObject[Symbol.for('componentType')]}'
+
+    let component${counter}
+    if(typeof componentType === 'string') {
+      component${counter} = context.components && context.components[componentType] || components[componentType]
+      if(!component${counter}) {
+        throw new Error('Component "${templateObject[Symbol.for('componentType')]}" not found')
       }
+    } else if(typeof componentType === 'function' && componentType.name === 'factory') {
+      component${counter} = componentType
+    }
+
+    ${elm} = component${counter}.call(null, {props: props${counter}}, ${parent}, component)
+
+    if (${elm}[Symbol.for('slots')][0]) {
+      parent = ${elm}[Symbol.for('slots')][0]
+      component = ${elm}
+    } else {
+      parent = ${elm}[Symbol.for('children')][0]
     }
   `)
+
+  if (options.forloop) {
+    renderCode.push('}')
+  }
 
   if (children) {
     counter++
     generateElementCode.call(this, { children }, false, { ...options })
   }
+  // if (!options.forloop) {
+  //   renderCode.push(`
+  //   component = rootComponent
+  // `)
+  // }
 }
 
 const generateForLoopCode = function (templateObject, parent) {
   const forLoop = templateObject[':for']
   delete templateObject[':for']
 
+  const key = templateObject['key']
+  const forKey = interpolate(key, 'scope.')
+
+  delete templateObject['key']
   const regex = /(.+)\s+in\s+(.+)/gi
   //   const regex = /(:?\(*)(.+)\s+in\s+(.+)/gi
 
@@ -206,6 +267,8 @@ const generateForLoopCode = function (templateObject, parent) {
     .replace('(', '')
     .replace(')', '')
     .split(/\s*,\s*/)
+
+  const scopeRegex = new RegExp(`(scope\\.(?!${item}\\.|${index}|key)(\\w+))`, 'gi')
 
   // local context
   const ctx = {
@@ -220,82 +283,152 @@ const generateForLoopCode = function (templateObject, parent) {
 
   const forStartCounter = counter
 
-  // reference all reactive attributes (except those referencing the iterator item),
-  // to ensure that reactivity is registered, even when the initial array is empty
-  Object.keys(templateObject).forEach((k) => {
-    if (isReactiveKey(k) && templateObject[k].indexOf('$' + item) === -1) {
-      ctx.renderCode.push(`
-        void ${interpolate(templateObject[k], 'component.')}
-      `)
-    }
-  })
+  ctx.renderCode.push(`
+    const created${forStartCounter} = []
+    const forloop${forStartCounter} = (collection = [], elms, created) => {
+      const rawCollection = getRaw(collection)
+      const keys = new Set(rawCollection.map((${item}) => '' +  ${interpolate(key, '')}))
+  `)
+
+  // keep track of the index in the render code so we can inject
+  // the code that takes care of destroying elements (generated later on)
+  // in the right spot
+  const indexToInjectDestroyCode = ctx.renderCode.length
 
   ctx.renderCode.push(`
-    const collection = ${cast(result[2], ':for')} || []
-    const keys = []
-    for(let __index = 0; __index < collection.length; __index++) {
-      parent = ${parent}
-      if(!component.key) keys.length = 0
-      const scope = Object.assign(component, {
-        key: Math.random().toString(),
-        ${index}: __index,
-        ${item}: collection[__index],
-    `)
-
+      created.length = 0
+      const length = collection.length
+      for(let __index = 0; __index < length; __index++) {
+        const scope = Object.create(component)
+        parent = ${parent}
+        scope['${index}'] = __index
+        scope['${item}'] = rawCollection[__index]
+        scope['key'] = ${forKey || '__index'}
+  `)
   if ('ref' in templateObject && templateObject.ref.indexOf('$') === -1) {
     // automatically map the ref for each item in the loop based on the given ref key
     ctx.renderCode.push(`
-      __ref: '${templateObject.ref}' + __index
+        scope['__ref'] = '${templateObject.ref}' + __index
     `)
     templateObject.ref = '$__ref'
   }
-  ctx.renderCode.push(`
-      })
-  `)
 
-  if ('key' in templateObject) {
-    ctx.renderCode.push(`
-      keys.push(${interpolate(templateObject.key, 'scope.')}.toString())
-    `)
-  } else {
-    ctx.renderCode.push(`
-      keys.push(scope.key.toString())
-    `)
-  }
+  ctx.renderCode.push(`
+        created.push(scope.key)
+  `)
 
   if (
     templateObject[Symbol.for('componentType')] === 'Element' ||
-    templateObject[Symbol.for('componentType')] === 'Slot'
+    templateObject[Symbol.for('componentType')] === 'Slot' ||
+    templateObject[Symbol.for('componentType')] === 'Text'
   ) {
     generateElementCode.call(ctx, templateObject, parent, {
       key: 'scope.key',
       component: 'scope.',
       forceEffect: false,
+      forloop: true,
     })
   } else {
     generateComponentCode.call(ctx, templateObject, false, {
       key: 'scope.key',
       component: 'scope.',
       forceEffect: false,
+      forloop: true,
     })
   }
-  ctx.renderCode = ctx.renderCode.concat(ctx.effectsCode)
-  ctx.renderCode.push('}')
 
-  const forEndCounter = counter
+  // separate effects that only rely on variables in the itteration
+  const innerScopeEffects = ctx.effectsCode.filter(
+    (effect) => [...effect.matchAll(scopeRegex)].length === 0
+  )
+
+  // separate effects that (also) rely on variables in the outer scope
+  const outerScopeEffects = ctx.effectsCode.filter(
+    (effect) => [...effect.matchAll(scopeRegex)].length !== 0
+  )
+
   ctx.renderCode.push(`
-   if(elms[${forStartCounter}]) {
-      Object.keys(elms[${forStartCounter}]).forEach(key => {
-        if(keys.indexOf(key) === -1) {
-          for(let i=${forStartCounter}; i <= ${forEndCounter}; i++){
-            elms[i][key].destroy && elms[i][key].destroy()
-            delete elms[i][key]
-          }
-        }
-      })
+    scope['${item}'] = collection[__index]
+  `)
+
+  // inner scope variables are part of the main forloop
+  innerScopeEffects.forEach((effect) => {
+    const key = effect.indexOf(`scope.${index}`) > -1 ? `'${interpolate(result[2], '')}'` : null
+    ctx.renderCode.push(`
+      effect(() => {
+        ${effect}
+      }, ${key})
+    `)
+  })
+
+  ctx.renderCode.push(`
+      if(elms[${forStartCounter}][0] && elms[${forStartCounter}][0].forComponent && elms[${forStartCounter}][0].forComponent.___layout) {
+        elms[${forStartCounter}][0].forComponent.___layout()
+      }
+    }
+  }`)
+
+  // generate code that destroys items
+  const destroyCode = []
+  destroyCode.push(`
+      let i = created.length
+
+      while (i--) {
+        const key = created[i]
+        if (!keys.has(key)) {
+  `)
+  const forEndCounter = counter
+
+  for (let i = forStartCounter; i <= forEndCounter; i++) {
+    destroyCode.push(`
+          elms[${i}][key] && elms[${i}][key].destroy()
+          delete elms[${i}][key]
+      `)
+  }
+  destroyCode.push(`
+       }
     }
   `)
-  this.effectsCode.push(ctx.renderCode.join('\n'))
+
+  // inject the destroy code in the correct spot
+  ctx.renderCode.splice(indexToInjectDestroyCode, 0, ...destroyCode)
+  ctx.renderCode.push(`
+    effect(() => {
+      forloop${forStartCounter}(${cast(result[2], ':for')}, elms, created${forStartCounter})
+    }, '${interpolate(result[2], '')}')
+  `)
+
+  outerScopeEffects.forEach((effect) => {
+    const matches = [...effect.matchAll(scopeRegex)]
+
+    let l = matches.length
+    const refs = []
+    while (l--) {
+      const match = matches[l]
+      const ref = `component.${match[2]}`
+      refs.indexOf(ref) === -1 && refs.push(ref)
+      effect =
+        effect.substring(0, match.index) + ref + effect.substring(match.index + match[1].length)
+    }
+
+    ctx.renderCode.push(`
+      effect(() => {
+        void ${refs.join(', ')}
+        for(let __index = 0; __index < ${interpolate(result[2])}.length; __index++) {
+          const scope = {}
+          scope['${index}'] = __index
+          scope['${item}'] = ${interpolate(result[2])}[__index]
+          scope['key'] = ${forKey || '__index'}
+    `)
+
+    ctx.renderCode.push(`
+          ${effect}
+        }
+      })
+    `)
+  })
+
+  this.renderCode.push(ctx.renderCode.join('\n'))
 }
 
 const generateCode = function (templateObject, parent = false, options = {}) {
@@ -308,8 +441,12 @@ const generateCode = function (templateObject, parent = false, options = {}) {
       } else {
         if (
           childTemplateObject[Symbol.for('componentType')] === 'Element' ||
-          childTemplateObject[Symbol.for('componentType')] === 'Slot'
+          childTemplateObject[Symbol.for('componentType')] === 'Slot' ||
+          childTemplateObject[Symbol.for('componentType')] === 'Text'
         ) {
+          if (childTemplateObject[Symbol.for('componentType')] === 'Text') {
+            childTemplateObject.__textnode = 'true'
+          }
           generateElementCode.call(this, childTemplateObject, parent, options)
         } else {
           generateComponentCode.call(this, childTemplateObject, parent, options)
@@ -319,6 +456,7 @@ const generateCode = function (templateObject, parent = false, options = {}) {
 }
 
 const interpolate = (val, component = 'component.') => {
+  if (val === undefined) return val
   const replaceString = /('.*?')+/gi
   const replaceDollar = /\$/gi
   const matches = val.matchAll(replaceString)
@@ -334,7 +472,7 @@ const interpolate = (val, component = 'component.') => {
   }
 
   // replace remaining dollar signs
-  val = val.replace(replaceDollar, component)
+  val = val.replace(replaceDollar, component || '')
 
   // restore string replacemenet
   restore.forEach((el, idx) => {

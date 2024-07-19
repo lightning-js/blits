@@ -1,5 +1,53 @@
 # Changelog
 
+## v1.0.0
+
+_15 july 2024_
+
+- Added multiple optimizations that improve the performance
+- Fixed mountY prop setting
+- Added functionality for providing custom shaders
+- Added initial support for accessing children
+- Added first version of Layout component
+- Improved test coverage
+- Refactored transitions and fixed promise resolve issues
+- Upgraded to renderer v1.0.0
+
+## v0.10.0
+
+_17 june 2024_
+
+- Updated renderer to version v0.9.1
+- Updated font generation to use the new `@lightningjs/msdf-generator`-package with required font metrics
+- Added queue mechanism to font generation to prevent hanging process
+- Added functionality to pass a component into the Component `:is` attribute
+
+Please read refer to the [breaking changes](https://github.com/lightning-js/renderer/releases/tag/v0.9.0) in the
+renderer related to MSDF fonts. When you have custom msdf fonts in your `/public` folder you may need to regenerate
+them (or remove the files and let Blits take care of [generating for you from a `.ttf`](https://lightning-js.github.io/blits/#/essentials/displaying_text?id=using-custom-fonts))
+
+
+## v0.9.9
+
+_22 may 2024_
+
+- Added support for `rtt`-attribute (Render To Texture)
+- Refactored Component for efficiency and readability
+- Improved type definitions
+- Fixed error when no settings object is supplied to Launch method
+- Fixed issue with `parent` variable being set on the global window object
+- Improved code of firing transitions
+- Bumped renderer to version 0.8.4
+
+## v0.9.8
+
+_25 apr 2024_
+
+- Fixed issue with removing children during navigation with the router
+- Added support for overflow (as an inversed alias of clipping)
+- Upgraded to latest version of renderer (0.8.3)
+- Introduced `renderMode` setting (`webgl` or `canvas`)
+
 ## v0.9.7
 
 _15 apr 2024_

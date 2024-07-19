@@ -1,13 +1,13 @@
 {
   "name": "@lightningjs/blits",
-  "version": "0.9.7",
+  "version": "1.0.0",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
     ".": "./index.js",
     "./vite": "./vite/index.js",
-    "./fontloader": "./src/fontLoader.js",
-    "./transitions": "./src/router/transitions/index.js"
+    "./transitions": "./src/router/transitions/index.js",
+    "./precompiler": "./src/lib/precompiler/precompiler.js"
   },
   "scripts": {
     "test": "c8 npm run test:run",
@@ -45,11 +45,11 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "^0.8.2",
+    "@lightningjs/msdf-generator": "^1.0.2",
+    "@lightningjs/renderer": "^1.0.0",
     "@lightningjs/vite-plugin-import-chunk-url": "^0.3.0",
     "execa": "^8.0.1",
     "kolorist": "^1.8.0",
-    "msdf-bmfont-xml": "^2.7.0",
     "ora": "^7.0.1",
     "prompts": "^2.4.2",
     "replace-in-file": "^6.1.0",

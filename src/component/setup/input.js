@@ -15,20 +15,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import compiler from '../src/lib/precompiler/precompiler.js'
-import path from 'path'
+import { Log } from '../../lib/log.js'
 
-export default function () {
-  let config
-  return {
-    name: 'preCompiler',
-    configResolved(resolvedConfig) {
-      config = resolvedConfig
-    },
-    transform(source, filePath) {
-      if (config.blits && config.blits.precompile === false) return source
-      const relativePath = path.relative(process.cwd(), filePath)
-      return compiler(source, relativePath)
-    },
-  }
+import symbols from '../../lib/symbols.js'
+
+export default (component, input) => {
+  component[symbols.inputEvents] = []
+  Object.keys(input).forEach((key) => {
+    if (typeof input[key] !== 'function') {
+      Log.warn(`${input[key]} is not a function`)
+    }
+    component[symbols.inputEvents][key] = input[key]
+  })
 }

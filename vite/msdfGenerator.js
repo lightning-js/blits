@@ -1,7 +1,25 @@
 import path from 'path'
 import * as fs from 'fs'
-import generateBMFont from 'msdf-bmfont-xml'
+import { genFont, setGeneratePaths } from '@lightningjs/msdf-generator'
+import { adjustFont } from '@lightningjs/msdf-generator/adjustFont'
 
+class TaskQueue {
+  constructor() {
+    this.currentTask = Promise.resolve()
+  }
+
+  async enqueue(task) {
+    // Wait for the current task to complete before starting a new one
+    this.currentTask = this.currentTask.then(task, this.handleError)
+    await this.currentTask
+  }
+
+  handleError(error) {
+    console.error('Error during task execution:', error)
+  }
+}
+
+const fontGenerationQueue = new TaskQueue()
 let config
 
 export default function () {
@@ -15,14 +33,13 @@ export default function () {
       config = resolvedConfig
       buildOutputPath = config.build.outDir
       publicDir = path.join(config.root, 'public')
-      msdfOutputDir = path.resolve(config.root, 'node_modules', '.tmp-msdf-fonts')
+      msdfOutputDir = path.resolve(config.root, 'node_modules', '.tmp-msdf-fonts-v2')
     },
     async configureServer(server) {
       server.middlewareMode = true
       server.middlewares.use('/', async (req, res, next) => {
         const file = req.url.substring(req.url.lastIndexOf('/') + 1)
         const match = file.match(/(.+)\.msdf\.(json|png)/)
-
         // msdf font request
         if (match) {
           const fontPath = path.dirname(req.url.split('?')[0]).replace(/^\//, '')
@@ -42,21 +59,28 @@ export default function () {
               )
               const mimeType = ext === 'png' ? 'image/png' : 'application/json'
 
-              if (!fs.existsSync(generatedFontFile)) {
-                console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`)
-                await generateFont(fontFile, targetDir, fontName)
-              }
+              await fontGenerationQueue.enqueue(async () => {
+                if (!fs.existsSync(generatedFontFile)) {
+                  // Check if generation is needed
+                  console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`)
+                  await generateSDF(fontFile, path.join(targetDir))
+                }
+              })
 
-              const fileContent = fs.readFileSync(generatedFontFile)
+              if (fs.existsSync(generatedFontFile)) {
+                const fileContent = fs.readFileSync(generatedFontFile)
 
-              // Check if headers have already been sent
-              if (!res.headersSent) {
-                res.setHeader('Content-Type', mimeType)
-                res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
-                res.end(fileContent)
+                // Check if headers have already been sent
+                if (!res.headersSent) {
+                  res.setHeader('Content-Type', mimeType)
+                  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+                  res.end(fileContent)
+                } else {
+                  // this should never happen except some edge cases
+                  console.error(`ERROR: Headers already sent for ${req.url}`, res.getHeaders())
+                }
               } else {
-                // this should never happen except some edge cases
-                console.error(`ERROR: Headers already sent for ${req.url}`, res.getHeaders())
+                next() // Handle case where generation might have failed
               }
             } else {
               next() // ttf file does not exist
@@ -71,7 +95,6 @@ export default function () {
     },
     // after build ends, the first hook is renderStart where we can modify the output
     async renderStart() {
-      // Find all TTF files under publicDir
       const ttfFiles = findAllTtfFiles(publicDir)
 
       for (const ttfFile of ttfFiles) {
@@ -83,7 +106,7 @@ export default function () {
         // Check if MSDF files are generated, if not, generate them
         if (!fs.existsSync(msdfJsonPath) || !fs.existsSync(msdfPngPath)) {
           console.log(`Generating missing MSDF files for ${ttfFile}`)
-          await generateFont(ttfFile, path.join(msdfOutputDir, relativePath), baseName)
+          await generateSDF(ttfFile, path.join(msdfOutputDir, relativePath))
         }
       }
 
@@ -94,40 +117,16 @@ export default function () {
   }
 }
 
-const generateFont = (fontFile, fontDir, fontName) => {
-  return new Promise((resolve, reject) => {
-    if (!fs.existsSync(fontDir)) {
-      fs.mkdirSync(fontDir, { recursive: true })
-    }
-    generateBMFont(
-      fontFile,
-      {
-        outputType: 'json',
-      },
-      (err, textures, font) => {
-        if (err) {
-          console.error(err)
-          reject(err)
-        } else {
-          textures.forEach((texture) => {
-            try {
-              fs.writeFileSync(path.resolve(fontDir, `${fontName}.msdf.png`), texture.texture)
-            } catch (e) {
-              console.error(e)
-              reject(e)
-            }
-          })
-          try {
-            fs.writeFileSync(path.resolve(fontDir, `${fontName}.msdf.json`), font.data)
-            resolve()
-          } catch (e) {
-            console.error(err)
-            reject(e)
-          }
-        }
-      }
-    )
-  })
+const generateSDF = async (inputFilePath, outputDirPath) => {
+  // Ensure the destination directory exists
+  fs.mkdirSync(outputDirPath, { recursive: true })
+
+  setGeneratePaths(path.dirname(inputFilePath), outputDirPath)
+
+  let font = await genFont(path.basename(inputFilePath), 'msdf')
+
+  if (font) await adjustFont(font)
+  else console.error('Failed to generate MSDF file')
 }
 
 // finds all TTF files in a directory
