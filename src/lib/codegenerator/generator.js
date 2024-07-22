@@ -29,7 +29,15 @@ export default function (templateObject = { children: [] }) {
   ctx.renderCode.push('return elms')
 
   return {
-    render: new Function('parent', 'component', 'context', 'components', ctx.renderCode.join('\n')),
+    render: new Function(
+      'parent',
+      'component',
+      'context',
+      'components',
+      'effect',
+      'getRaw',
+      ctx.renderCode.join('\n')
+    ),
     effects: ctx.effectsCode.map(
       (code) =>
         new Function('component', 'elms', 'context', 'components', 'rootComponent', 'effect', code)
@@ -83,7 +91,6 @@ const generateElementCode = function (
   Object.keys(templateObject).forEach((key) => {
     if (key === 'slot') {
       renderCode.push(`
-        console.log(component, component[Symbol.for('slots')])
         elementConfig${counter}['parent'] = component[Symbol.for('slots')].filter(slot => slot.ref === '${templateObject.slot}').shift() || component[Symbol.for('slots')][0] || parent
       `)
     }
@@ -246,6 +253,10 @@ const generateForLoopCode = function (templateObject, parent) {
   const forLoop = templateObject[':for']
   delete templateObject[':for']
 
+  const key = templateObject['key']
+  const forKey = interpolate(key, 'scope.')
+
+  delete templateObject['key']
   const regex = /(.+)\s+in\s+(.+)/gi
   //   const regex = /(:?\(*)(.+)\s+in\s+(.+)/gi
 
@@ -257,55 +268,53 @@ const generateForLoopCode = function (templateObject, parent) {
     .replace(')', '')
     .split(/\s*,\s*/)
 
+  const scopeRegex = new RegExp(`(scope\\.(?!${item}\\.|${index}|key)(\\w+))`, 'gi')
+
   // local context
   const ctx = {
-    renderCode: ['let componentType'],
+    renderCode: [],
     effectsCode: [],
     context: { props: [], components: this.components },
   }
 
   if (parent) {
-    ctx.renderCode.push(`let parent = ${parent}`)
+    ctx.renderCode.push(`parent = ${parent}`)
   }
 
   const forStartCounter = counter
 
-  // reference all reactive attributes (except those referencing the iterator item),
-  // to ensure that reactivity is registered, even when the initial array is empty
-  Object.keys(templateObject).forEach((k) => {
-    if (isReactiveKey(k) && templateObject[k].indexOf('$' + item) === -1) {
-      ctx.renderCode.push(`
-        void ${interpolate(templateObject[k], 'component.')}
-      `)
-    }
-  })
+  ctx.renderCode.push(`
+    const created${forStartCounter} = []
+    const forloop${forStartCounter} = (collection = [], elms, created) => {
+      const rawCollection = getRaw(collection)
+      const keys = new Set(rawCollection.map((${item}) => '' +  ${interpolate(key, '')}))
+  `)
+
+  // keep track of the index in the render code so we can inject
+  // the code that takes care of destroying elements (generated later on)
+  // in the right spot
+  const indexToInjectDestroyCode = ctx.renderCode.length
 
   ctx.renderCode.push(`
-    const collection = ${cast(result[2], ':for')} || []
-    const keys = new Set()
-    for(let __index = 0; __index < collection.length; __index++) {
-      parent = ${parent}
-      const scope = Object.create(component)
-      scope['key'] = __index
-      scope['${index}'] = __index
-      scope['${item}'] = collection[__index]
-    `)
-
+      created.length = 0
+      const length = collection.length
+      for(let __index = 0; __index < length; __index++) {
+        const scope = Object.create(component)
+        parent = ${parent}
+        scope['${index}'] = __index
+        scope['${item}'] = rawCollection[__index]
+        scope['key'] = ${forKey || '__index'}
+  `)
   if ('ref' in templateObject && templateObject.ref.indexOf('$') === -1) {
     // automatically map the ref for each item in the loop based on the given ref key
     ctx.renderCode.push(`
-      scope['__ref'] = '${templateObject.ref}' + __index
+        scope['__ref'] = '${templateObject.ref}' + __index
     `)
     templateObject.ref = '$__ref'
   }
 
-  if ('key' in templateObject) {
-    ctx.renderCode.push(`
-      scope.key = '' + ${interpolate(templateObject.key, 'scope.')}
-    `)
-  }
   ctx.renderCode.push(`
-    keys.add(scope.key)
+        created.push(scope.key)
   `)
 
   if (
@@ -328,48 +337,98 @@ const generateForLoopCode = function (templateObject, parent) {
     })
   }
 
-  ctx.renderCode.push(`if(!elms[${counter}][scope.key].___hasEffect) {`)
+  // separate effects that only rely on variables in the itteration
+  const innerScopeEffects = ctx.effectsCode.filter(
+    (effect) => [...effect.matchAll(scopeRegex)].length === 0
+  )
 
-  ctx.effectsCode.forEach((effect) => {
+  // separate effects that (also) rely on variables in the outer scope
+  const outerScopeEffects = ctx.effectsCode.filter(
+    (effect) => [...effect.matchAll(scopeRegex)].length !== 0
+  )
+
+  ctx.renderCode.push(`
+    scope['${item}'] = collection[__index]
+  `)
+
+  // inner scope variables are part of the main forloop
+  innerScopeEffects.forEach((effect) => {
+    const key = effect.indexOf(`scope.${index}`) > -1 ? `'${interpolate(result[2], '')}'` : null
     ctx.renderCode.push(`
-        effect(() => {
-          ${effect}
-        })
+      effect(() => {
+        ${effect}
+      }, ${key})
     `)
   })
 
   ctx.renderCode.push(`
-    elms[${counter}][scope.key].___hasEffect = true
-  }
-  `)
-
-  ctx.renderCode.push('}')
-
-  const forEndCounter = counter
-  ctx.renderCode.push(`
-   component = rootComponent
-   if(elms[${forStartCounter}]) {
-      const all = Object.keys(elms[${forStartCounter}])
-      let i = all.length
-      while (i--) {
-        const key = all[i]
-        if (!keys.has(key)) {
-    `)
-  for (let i = forStartCounter; i <= forEndCounter; i++) {
-    ctx.renderCode.push(`
-      elms[${i}][key] && elms[${i}][key].destroy()
-      delete elms[${i}][key]
-    `)
-  }
-  ctx.renderCode.push(`
-        }
-      }
       if(elms[${forStartCounter}][0] && elms[${forStartCounter}][0].forComponent && elms[${forStartCounter}][0].forComponent.___layout) {
         elms[${forStartCounter}][0].forComponent.___layout()
       }
     }
+  }`)
+
+  // generate code that destroys items
+  const destroyCode = []
+  destroyCode.push(`
+      let i = created.length
+
+      while (i--) {
+        const key = created[i]
+        if (!keys.has(key)) {
   `)
-  this.effectsCode.push(ctx.renderCode.join('\n'))
+  const forEndCounter = counter
+
+  for (let i = forStartCounter; i <= forEndCounter; i++) {
+    destroyCode.push(`
+          elms[${i}][key] && elms[${i}][key].destroy()
+          delete elms[${i}][key]
+      `)
+  }
+  destroyCode.push(`
+       }
+    }
+  `)
+
+  // inject the destroy code in the correct spot
+  ctx.renderCode.splice(indexToInjectDestroyCode, 0, ...destroyCode)
+  ctx.renderCode.push(`
+    effect(() => {
+      forloop${forStartCounter}(${cast(result[2], ':for')}, elms, created${forStartCounter})
+    }, '${interpolate(result[2], '')}')
+  `)
+
+  outerScopeEffects.forEach((effect) => {
+    const matches = [...effect.matchAll(scopeRegex)]
+
+    let l = matches.length
+    const refs = []
+    while (l--) {
+      const match = matches[l]
+      const ref = `component.${match[2]}`
+      refs.indexOf(ref) === -1 && refs.push(ref)
+      effect =
+        effect.substring(0, match.index) + ref + effect.substring(match.index + match[1].length)
+    }
+
+    ctx.renderCode.push(`
+      effect(() => {
+        void ${refs.join(', ')}
+        for(let __index = 0; __index < ${interpolate(result[2])}.length; __index++) {
+          const scope = {}
+          scope['${index}'] = __index
+          scope['${item}'] = ${interpolate(result[2])}[__index]
+          scope['key'] = ${forKey || '__index'}
+    `)
+
+    ctx.renderCode.push(`
+          ${effect}
+        }
+      })
+    `)
+  })
+
+  this.renderCode.push(ctx.renderCode.join('\n'))
 }
 
 const generateCode = function (templateObject, parent = false, options = {}) {
@@ -397,6 +456,7 @@ const generateCode = function (templateObject, parent = false, options = {}) {
 }
 
 const interpolate = (val, component = 'component.') => {
+  if (val === undefined) return val
   const replaceString = /('.*?')+/gi
   const replaceDollar = /\$/gi
   const matches = val.matchAll(replaceString)
@@ -412,7 +472,7 @@ const interpolate = (val, component = 'component.') => {
   }
 
   // replace remaining dollar signs
-  val = val.replace(replaceDollar, component)
+  val = val.replace(replaceDollar, component || '')
 
   // restore string replacemenet
   restore.forEach((el, idx) => {

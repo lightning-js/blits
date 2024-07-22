@@ -2,7 +2,7 @@ import Settings from '../../settings.js'
 import { renderer } from './launch.js'
 
 export default () => {
-  const stage = renderer.driver.stage
+  const stage = renderer.stage
   Settings.get('shaders', []).forEach((shader) => {
     stage.shManager.registerShaderType(shader.name, shader.type)
   })
