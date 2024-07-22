@@ -17,7 +17,7 @@
 
 import { RendererMain } from '@lightningjs/renderer'
 import { Log } from '../../lib/log.js'
-import { screenResolutions } from '../../lib/utils.js'
+import { SCREEN_RESOLUTIONS } from '../../constants.js'
 import colors from '../../lib/colors/colors.js'
 import fontLoader from './fontLoader.js'
 import shaderLoader from './shaderLoader.js'
@@ -42,8 +42,8 @@ You can remove the option from your \`src/index.js\`-file. And you can safely re
       fpsUpdateInterval: settings.fpsInterval || 1000,
       deviceLogicalPixelRatio:
         settings.pixelRatio ||
-        screenResolutions[settings.screenResolution] ||
-        screenResolutions[window.innerHeight] ||
+        SCREEN_RESOLUTIONS[settings.screenResolution] ||
+        SCREEN_RESOLUTIONS[window.innerHeight] ||
         1,
       numImageWorkers:
         'webWorkersLimit' in settings

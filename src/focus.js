@@ -18,7 +18,7 @@
 import symbols from './lib/symbols.js'
 import { navigating } from './router/router.js'
 import Settings from './settings.js'
-import { DEFAULT_HOLD_TIMEOUT_MS } from './utils.js'
+import { DEFAULT_HOLD_TIMEOUT_MS } from './constants.js'
 
 let focusedComponent = null
 let focusChain = []
