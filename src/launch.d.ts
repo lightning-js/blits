@@ -246,13 +246,15 @@ export interface Settings {
   renderMode?: RenderModes,
 
   /**
-   * The delay, in milliseconds, after the key is released before the selected component
-   * gains focus. This delay can be used to create a smoother transition between focused
-   * components or to prevent rapid focus changes.
+   * The time, in milliseconds, after which Blits considers a key press a _hold_ key press
+   *
+   * During a hold key press the focus delegation behaviour is different: when scrolling
+   * through a long list, focus is not handed over to each individual list item, creating a
+   * smoother experience
    *
    * Defaults to `50` (ms)
    */
-  focusHoldTimeout?: number
+  holdTimeout?: number
 }
 
 /**

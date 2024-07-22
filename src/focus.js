@@ -50,7 +50,7 @@ export default {
             focusChain = []
           }
         },
-        this.hold ? Settings.get('focusHoldTimeout', DEFAULT_HOLD_TIMEOUT_MS) : 0
+        this.hold ? Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS) : 0
       )
     }
   },
