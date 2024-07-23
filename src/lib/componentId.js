@@ -25,3 +25,12 @@ export const createHumanReadableId = (name) => {
 export const createInternalId = () => {
   return ++counter
 }
+
+/**
+ * Resets the counter value back to 0.
+ * Used in automated tests to ensure consistent results, not intended
+ * to be used in the actual framework code!
+ */
+export const resetCounter = () => {
+  counter = 0
+}

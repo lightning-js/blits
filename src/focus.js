@@ -17,6 +17,8 @@
 
 import symbols from './lib/symbols.js'
 import { navigating } from './router/router.js'
+import Settings from './settings.js'
+import { DEFAULT_HOLD_TIMEOUT_MS } from './constants.js'
 
 let focusedComponent = null
 let focusChain = []
@@ -48,8 +50,7 @@ export default {
             focusChain = []
           }
         },
-        // todo: make the hold timeout configurable?
-        this.hold ? 50 : 0
+        this.hold ? Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS) : 0
       )
     }
   },
