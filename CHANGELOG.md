@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.1.0
+
+_25 july 2024_
+
+- Made `holdTimeout` configurable and added to launch settings
+- Improved test coverage
+- Removed imporChunkUrl dependency as it’s no longer needed
+- Abstracted path from pre-compiler, to make it more reusable (in playground for example)
+- Added `defaultFont` launch setting to boilerplate example
+
 ## v1.0.0
 
 _15 july 2024_
