@@ -19,7 +19,7 @@ import Settings from './settings.js'
 import { initLog } from './lib/log.js'
 import engine from './engine.js'
 
-export let renderer
+export let renderer = {}
 export const stage = {}
 
 export default (App, target, settings) => {

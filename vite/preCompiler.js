@@ -16,6 +16,7 @@
  */
 
 import compiler from '../src/lib/precompiler/precompiler.js'
+import path from 'path'
 
 export default function () {
   let config
@@ -26,7 +27,8 @@ export default function () {
     },
     transform(source, filePath) {
       if (config.blits && config.blits.precompile === false) return source
-      return compiler(source, filePath)
+      const relativePath = path.relative(process.cwd(), filePath)
+      return compiler(source, relativePath)
     },
   }
 }

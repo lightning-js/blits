@@ -20,6 +20,7 @@ import Focus from './focus.js'
 import Settings from './settings.js'
 
 import symbols from './lib/symbols.js'
+import { DEFAULT_HOLD_TIMEOUT_MS } from './constants.js'
 
 const Application = (config) => {
   const defaultKeyMap = {
@@ -61,7 +62,7 @@ const Application = (config) => {
       clearTimeout(holdTimeout)
       holdTimeout = setTimeout(() => {
         Focus.hold = true
-      }, 50)
+      }, Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS))
     }
 
     keyUpHandler = () => {

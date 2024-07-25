@@ -243,7 +243,18 @@ export interface Settings {
    *
    * Defaults to `webgl`
    */
-  renderMode?: RenderModes
+  renderMode?: RenderModes,
+
+  /**
+   * The time, in milliseconds, after which Blits considers a key press a _hold_ key press
+   *
+   * During a hold key press the focus delegation behaviour is different: when scrolling
+   * through a long list, focus is not handed over to each individual list item, creating a
+   * smoother experience
+   *
+   * Defaults to `50` (ms)
+   */
+  holdTimeout?: number
 }
 
 /**
