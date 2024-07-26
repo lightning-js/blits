@@ -11,7 +11,7 @@ To get started with Blits, follow these simple steps to set up your development 
 2. Run the following command to start a new Blits Lightning 3 App project:
 
 ```bash
-npx @lightningjs/blits@latest
+npx blits-create@latest
 ```
 
  You will be guided through a short series of questions to generate a new project with all the boilerplate code you need to start building your own Lightning 3 App.

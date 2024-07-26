@@ -1,8 +1,0 @@
-{
-	"recommendations": [
-		"editorconfig.editorconfig",
-		"dbaeumer.vscode-eslint",
-    "naumovs.color-highlight",
-    "LightningJS.lightning-blits"
-	]
-}
