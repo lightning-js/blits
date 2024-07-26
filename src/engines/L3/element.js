@@ -126,6 +126,22 @@ const propsTransformer = {
       this.props['color'] = 0xffffffff
     }
   },
+  set fit(v) {
+    this.props['textureOptions'] = { resizeMode: {} }
+    if (typeof v === 'string' && v.indexOf('{') === -1) {
+      this.props['textureOptions']['resizeMode']['type'] = v
+    } else if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
+      if ('type' in v) {
+        this.props['textureOptions']['resizeMode']['type'] = v.type
+      }
+      if ('clipX' in v) {
+        this.props['textureOptions']['resizeMode']['clipX'] = v.clipX
+      }
+      if ('clipY' in v) {
+        this.props['textureOptions']['resizeMode']['clipY'] = v.clipY
+      }
+    }
+  },
   set rtt(v) {
     this.props['rtt'] = v
     if (v === true && this.raw.get('color') === undefined) {
