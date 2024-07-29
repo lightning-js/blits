@@ -272,7 +272,7 @@ const Element = {
 
     this.node = props.__textnode
       ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
-      : (this.node = renderer.createNode(this.props.props))
+      : renderer.createNode(this.props.props)
 
     if (props['@loaded']) {
       this.node.on('loaded', (el, { type, dimensions }) => {
