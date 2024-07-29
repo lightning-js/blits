@@ -328,6 +328,12 @@ declare namespace Component {
      * Triggers a forced update on state variables.
      */
     $trigger: (key: string) => void
+    /**
+     * @deprecated
+     *
+     * Triggers a forced update on state variables.
+     * Deprecated: use `this.$trigger()` instead
+     */
     trigger: (key: string) => void
 
     /**
