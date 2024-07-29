@@ -134,11 +134,18 @@ const propsTransformer = {
       if ('type' in v) {
         this.props['textureOptions']['resizeMode']['type'] = v.type
       }
-      if ('clipX' in v) {
-        this.props['textureOptions']['resizeMode']['clipX'] = v.clipX
-      }
-      if ('clipY' in v) {
-        this.props['textureOptions']['resizeMode']['clipY'] = v.clipY
+      if ('position' in v) {
+        if (typeof v['position'] === 'object') {
+          if ('x' in v['position']) {
+            this.props['textureOptions']['resizeMode']['clipX'] = v['position']['x']
+          }
+          if ('y' in v['position']) {
+            this.props['textureOptions']['resizeMode']['clipY'] = v['position']['y']
+          }
+        } else {
+          this.props['textureOptions']['resizeMode']['clipX'] = v['position']
+          this.props['textureOptions']['resizeMode']['clipY'] = v['position']
+        }
       }
     }
   },

@@ -159,7 +159,7 @@ test('Element - Set `texture` property', (assert) => {
   assert.end()
 })
 
-test('Element - Set `fit` property with value as String', (assert) => {
+test('Element - Set `fit` property with a string type value', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
   const el = createElement()
 
@@ -181,19 +181,15 @@ test('Element - Set `fit` property with value as String', (assert) => {
     fitVal,
     'Props textureOptions parameter should be set'
   )
-  assert.equal(
-    el.props.raw.get('fit'),
-    fitVal,
-    "Props' raw map entry should be added"
-  )
+  assert.equal(el.props.raw.get('fit'), fitVal, "Props' raw map entry should be added")
   assert.end()
 })
 
-test('Element - Set `fit` property with Object value', (assert) => {
+test('Element - Set `fit` property with an object type value', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
   const el = createElement()
 
-  const fitVal = "{type: 'cover', clipX: 0, clipY: 0}"
+  const fitVal = "{type: 'cover', position: {x: 0, y:1}}"
   el.set('fit', fitVal)
 
   assert.equal(
@@ -207,10 +203,47 @@ test('Element - Set `fit` property with Object value', (assert) => {
     'Props textureOptions parameter should be set'
   )
   assert.equal(
-    el.props.raw.get('fit'),
-    fitVal,
-    "Props' raw map entry should be added"
+    el.node['textureOptions']['resizeMode']['clipX'],
+    0,
+    'Node resizeMode "clipX" parameter should be set to correct value'
   )
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['clipY'],
+    1,
+    'Node resizeMode "clipY" parameter should be set to correct value'
+  )
+  assert.equal(el.props.raw.get('fit'), fitVal, "Props' raw map entry should be added")
+  assert.end()
+})
+
+test('Element - Set `fit` property with position key as a string type value', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  const fitVal = "{type: 'cover', position: 1}"
+  el.set('fit', fitVal)
+
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['type'],
+    'cover',
+    'Node resizeMode "type" parameter should be set'
+  )
+  assert.equal(
+    el.props.props['textureOptions']['resizeMode']['type'],
+    'cover',
+    'Props textureOptions parameter should be set'
+  )
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['clipX'],
+    1,
+    'Node resizeMode "clipX" parameter should be set to correct value'
+  )
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['clipY'],
+    1,
+    'Node resizeMode "clipY" parameter should be set to correct value'
+  )
+  assert.equal(el.props.raw.get('fit'), fitVal, "Props' raw map entry should be added")
   assert.end()
 })
 
