@@ -21,7 +21,7 @@ export default {
   $log: {
     value: log('App'),
     writable: false,
-    enumerable: false,
+    enumerable: true,
     configurable: false,
   },
 }
