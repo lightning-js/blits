@@ -16,20 +16,36 @@
  */
 
 import symbols from '../../lib/symbols.js'
+import { any, assert, type, boolean, func, object, optional, record, string } from 'superstruct'
+
+const Route = object({
+  path: string(),
+  params: record(string(), string()),
+  options: optional(type({
+    inHistory: optional(boolean()),
+    keepAlive: optional(boolean()),
+  })),
+  data: optional(record(string(), any())),
+  component: optional(func()),
+  hooks: optional(object({
+    before: optional(func())
+  }))
+})
 
 export default (component, routes) => {
   component[symbols.routes] = []
   Object.keys(routes).forEach((key) => {
-    // todo: validate routes[key] for expected format etc.
+    const route = routes[key]
+    assert(route, Route)
     component[symbols.routes][key] = {
-      ...routes[key],
+      ...route,
       ...{
         // merge default route options with route specific options
         options: {
           ...{
             inHistory: true,
           },
-          ...routes[key].options,
+          ...route.options,
         },
       },
     }
