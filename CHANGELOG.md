@@ -2,7 +2,7 @@
 
 ## v1.2.0
 
-_26 july 2024_
+_30 july 2024_
 
 - Removed blits project creation and made it into a separate package
 
