@@ -38,11 +38,7 @@ const parsePercentage = function (v, base) {
   if (typeof v !== 'string') {
     return v
   } else if (v.indexOf('%') === v.length - 1) {
-    return (
-      this.element.parent &&
-      this.element.parent[base] &&
-      this.element.parent[base] * (parseFloat(v) / 100)
-    )
+    return this.element.node && this.element.node.parent[base] * (parseFloat(v) / 100)
   }
   return v
 }
@@ -328,7 +324,13 @@ const Element = {
   },
   animate(prop, value, transition) {
     // if current value is the same as the value to animate to, instantly resolve
-    if (this.node[prop] === value) return
+    if (this.node[prop] === value) {
+      //early return transition end callback when value is the same
+      if (transition.end && typeof transition.end === 'function') {
+        transition.end.call(this.component, this, prop, this.node[prop])
+      }
+      return
+    }
     // check if a transition is already scheduled or running on the same prop
     if (this.scheduledTransitions[prop]) {
       if (this.scheduledTransitions[prop].f.state === 'running') {
@@ -415,10 +417,11 @@ export default (config, component) => {
       fontFamily: Settings.get('defaultFont', 'sans-serif'),
     }
   }
-  return Object.assign(Object.create(Element), {
+  const result = Object.assign(Object.create(Element), {
     props: Object.assign(Object.create(propsTransformer), { props: {} }),
     scheduledTransitions: {},
     config,
     component,
   })
+  return result
 }

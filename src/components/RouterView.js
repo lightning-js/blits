@@ -16,6 +16,7 @@
  */
 
 import Component from '../component.js'
+import symbols from '../lib/symbols.js'
 import Router from '../router/router.js'
 
 let handler
@@ -23,7 +24,7 @@ let handler
 export default () =>
   Component('RouterView', {
     template: `
-      <Element w="100%" height="100%"></Element>
+      <Element w="100%" h="100%"></Element>
     `,
     state() {
       return {
@@ -35,6 +36,7 @@ export default () =>
         handler = () => Router.navigate.apply(this)
         Router.navigate.apply(this)
         window.addEventListener('hashchange', handler)
+        console.log('RouterView', this[symbols.wrapper])
       },
       destroy() {
         window.removeEventListener('hashchange', handler, false)

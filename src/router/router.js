@@ -57,7 +57,8 @@ export const matchHash = (path, routes = []) => {
   let matchingRoute = false
   let i = 0
   while (!matchingRoute && i < routes.length) {
-    const route = routes[i]
+    //clone route[i] object
+    const route = Object.assign({}, routes[i])
     route.path = normalizePath(route.path)
     if (route.path === path) {
       route.params = {}
@@ -112,7 +113,8 @@ export const matchHash = (path, routes = []) => {
 export const navigate = async function () {
   navigating = true
   if (this.parent[symbols.routes]) {
-    const previousRoute = currentRoute
+    //clone object otherwise undefined
+    const previousRoute = (currentRoute && Object.assign({}, currentRoute)) || undefined
     const hash = getHash()
     let route = matchHash(hash, this.parent[symbols.routes])
     let beforeHookOutput
