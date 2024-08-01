@@ -19,7 +19,12 @@ let counter
 
 export default function (templateObject = { children: [] }) {
   const ctx = {
-    renderCode: ['const elms = []', 'let componentType', 'const rootComponent = component'],
+    renderCode: [
+      'const elms = []',
+      'let componentType',
+      'const rootComponent = component',
+      'let compData',
+    ],
     effectsCode: [],
     context: { props: [], components: this.components },
   }
@@ -194,12 +199,12 @@ const generateComponentCode = function (
         templateObject[key],
         options.component
       )}`)
-      renderCode.push(
-        `props${counter}['${key.substring(1)}'] = ${interpolate(
-          templateObject[key],
-          options.component
-        )}`
-      )
+      renderCode.push(`
+        compData = ${interpolate(templateObject[key], options.component)}
+        if (Array.isArray(compData)) {
+          compData =  [...getRaw(compData)]
+        }
+        props${counter}['${key.substring(1)}'] = compData`)
     } else {
       renderCode.push(
         `props${counter}['${key}'] = ${cast(templateObject[key], key, options.component)}`

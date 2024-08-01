@@ -100,11 +100,16 @@ const reactiveProxy = (original, _parent = null, _key) => {
       const rawValue = getRaw(value)
 
       let result = true
-      if (oldRawValue !== rawValue) {
+      const isEqual = Array.isArray(rawValue)
+        ? JSON.stringify(oldRawValue) === JSON.stringify(rawValue)
+        : oldRawValue === rawValue
+
+      if (!isEqual) {
+        value = Array.isArray(value) ? [...getRaw(value)] : value
         result = Reflect.set(target, key, value, receiver)
       }
 
-      if (result && oldRawValue !== rawValue) {
+      if (result && !isEqual) {
         // if we're assigning an array key directly trigger reactivity on the parent key as well
         if (Array.isArray(target) && key in target) {
           trigger(_parent, _key, true)
