@@ -64,9 +64,12 @@ export default {
     }
 
     if ('file' in options) {
-      loadLanguageFile(options.file)
-    }
-    if ('language' in options) {
+      loadLanguageFile(options.file).then(() => {
+        if ('language' in options) {
+          setLanguage(options.language)
+        }
+      })
+    } else if ('language' in options) {
       setLanguage(options.language)
     }
 

@@ -214,8 +214,11 @@ const Component = (name = required('name'), config = required('config')) => {
           )
         }
 
+        const plugin = plugins[pluginName]
+
         Object.defineProperty(Base, prefixedPluginName, {
-          value: plugins[pluginName](),
+          // instantiate the plugin, passing in provided options
+          value: plugin.plugin(plugin.options),
           writable: false,
           enumerable: true,
           configurable: false,
