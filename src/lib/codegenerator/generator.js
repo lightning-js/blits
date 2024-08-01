@@ -287,7 +287,9 @@ const generateForLoopCode = function (templateObject, parent) {
     const created${forStartCounter} = []
     const forloop${forStartCounter} = (collection = [], elms, created) => {
       const rawCollection = getRaw(collection)
-      const keys = new Set(rawCollection.map((${item}) => '' +  ${interpolate(key, '')}))
+      const keys = new Set(rawCollection.map((${item}, index) => ${
+    key ? interpolate(key, '') : 'index'
+  }))
   `)
 
   // keep track of the index in the render code so we can inject
