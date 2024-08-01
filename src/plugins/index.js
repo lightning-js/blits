@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Comcast Cable Communications Management, LLC
+ * Copyright 2024 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,4 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import Component from './src/component.js'
-import Application from './src/application.js'
-import Launch from './src/launch.js'
-import Plugin from './src/plugin.js'
-
-/**
- * Blits - The Lightning 3 App Development Framework
- */
-declare module Blits {
-  export { Component }
-  export { Application }
-  export { Launch }
-  export { Plugin }
-}
-
-export default Blits
+export { default as language } from './language.js'
