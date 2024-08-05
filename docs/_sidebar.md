@@ -24,3 +24,4 @@
   - [For loop](/built-in/for-loop.md)
 - Plugins
   - [Text-to-Speech / Announcer](/plugins/text-to-speech-announcer.md)
+  - [Language](/plugins/language.md)

@@ -1,13 +1,14 @@
 {
   "name": "@lightningjs/blits",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
     ".": "./index.js",
     "./vite": "./vite/index.js",
     "./transitions": "./src/router/transitions/index.js",
-    "./precompiler": "./src/lib/precompiler/precompiler.js"
+    "./precompiler": "./src/lib/precompiler/precompiler.js",
+    "./plugins": "./src/plugins/index.js"
   },
   "scripts": {
     "test": "c8 npm run test:run",
