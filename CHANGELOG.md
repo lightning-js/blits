@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.2.0
+
+_5 aug 2024_
+
+- Added plugin system for Blits
+- Added Language plugin, modeled after L2-SDK Language plugin
+- Removed unused built-in Image component
+- Marked `this.trigger()`-method as deprecated in definition file
+- Removed double assignment of `this.node` during element creation
+
 ## v1.1.0
 
 _25 july 2024_
