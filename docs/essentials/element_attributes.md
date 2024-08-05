@@ -1,12 +1,10 @@
-# Blits - Lightning 3 App Development Framework
-
-## Supported Element attributes
+# Supported Element attributes
 
 The core building block of a Blits template is the `<Element>`-tag. The Element tag corresponds directly to a node in the Lightning 3 Renderer. You can style and position Elements via _attributes_, much like you would do in plain HTML.
 
 Blits Elements have a specific set of attributes that can be used. The available attributes are loosely modeled after the properties of a Lightning 3 renderer node. In certain cases, Blits provides more developer friendly names or accepts a wider range of values, and transparently takes care of the translation into L3 renderer instructions.
 
-### Positioning and Dimensions
+## Positioning and Dimensions
 
 In order to position and set the dimensions of an Element, the following attributes can be used.
 
@@ -25,7 +23,7 @@ All positioning and dimension related attributes, when not specified, will defau
 </Element>
 ```
 
-#### Using percentages
+### Using percentages
 
 Besides using values in pixels (i.e. `w="100" h="300"`), you can also specify _percentages_ for the positioning and dimensions attributes.
 
@@ -38,7 +36,7 @@ Besides using values in pixels (i.e. `w="100" h="300"`), you can also specify _p
 The percentage value specified for `w` and `x` will be calculated as the percentage of the _width_ (`w`) of the parent element.
 And the percentage specified for `h` and `y` will use the _height_ (`h`) of the parent element as the base of the percentage calculation.
 
-### Colors
+## Colors
 
 By default, Elements have a transparent background color. The `color` attribute can be used to give an Element a color.
 
@@ -66,7 +64,7 @@ _HSL and HSLA formats are planned to be added in the future._
 <Element w="200" h="200" color="skyblue" />
 ```
 
-#### Basic linear gradients
+### Basic linear gradients
 
 The color attribute can also be used to specify basic linear gradients.
 
@@ -81,7 +79,7 @@ Again, you can use "normal" notation for the colors (like hexadecimal or rgba) a
 <Element w="200" h="200" color="{bottom: 'black'}" />
 ```
 
-### Alpha and visibility
+## Alpha and visibility
 
 The opacity of an Element can be controlled by setting the `alpha` attribute. This attribute accepts a value between `0` (fully transparent) and `1` (completely visible).
 
@@ -93,7 +91,7 @@ The value of alpha is also applied recursively to the children of the Element th
   </Element>
 ```
 
-### Rotation and scaling
+## Rotation and scaling
 
 If you want to rotate an Element, you can use the `rotation` attribute. The rotation attribute in Blits accepts values in _degrees_.
 
@@ -121,7 +119,7 @@ Similar to rotation, scale is also applied recursively to children down the tree
 <Element w="200" h="200" color="#000" scale="{x: 1, y: 3.14}" />
 ```
 
-### Mounting point
+## Mounting point
 
 For advanced positioning, the `mount` attribute can come in handy. By default when you set the `x` and `y` position of an Element, the _top-left_ corner will be set to that position. But in some cases, you may want to align the position starting at a different corner, or even any arbitrary point in between.
 
@@ -139,7 +137,7 @@ In the case where the `x` and `y` values are the same (i.e. centering with `{x: 
 <Element w="200" h="200" x="800" y="700" color="#333" mount="0.5" />
 ```
 
-### Pivot point
+## Pivot point
 
 The pivot point of an Element comes into play when it's rotated or scaled. The pivot point defaults to the _center_ of the Element, which means that when setting `rotation` it rotates around the middle. And when the Element is scaled it scales from the center out.
 
@@ -156,7 +154,7 @@ In the case where the `x` and `y` values are the same, you can also just supply 
 <Element w="200" h="200" x="800" y="700" pivot="0.9" rotation="42" />
 ```
 
-### Clipping / overflow
+## Clipping / overflow
 
 By default contents inside an Element (i.e. child Elements) will overflow the boundaries of the parent, even when you give the parent Element fixed dimensions.
 

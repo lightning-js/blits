@@ -1,10 +1,8 @@
-# Blits - Lightning 3 App Development Framework
-
-## Getting Started
+# Getting Started
 
 To get started with Blits, follow these simple steps to set up your development environment and create your first Lightning 3 App.
 
-### Installation
+## Installation
 
 1. Open your terminal or command prompt.
 
@@ -23,7 +21,7 @@ cd my_blits_app
 npm install
 ```
 
-### Running Your App
+## Running Your App
 
 4. After installing the dependencies, you can start your development server by running:
 
@@ -35,13 +33,13 @@ This command will create an application bundle and launch a development server u
 
 Once the server is up and running, open your web browser and navigate to the URL displayed in the console. Congratulations! You now have your brand new Blits Lightning 3 App up and running.
 
-### Coding environment
+## Coding environment
 
 You can use any code editor of your preference to further develop your Blits App.
 
 We recommend using VS code, since we have a dedicated [VS code extension for Blits](https://marketplace.visualstudio.com/items?itemName=LightningJS.lightning-blits) that provides better syntax highlighting, code completion, error
 checking, and other features to make working with Blits easier.
 
-### Next steps
+## Next steps
 
 You are now ready to dive into the world of App development using Blits. In the following sections, we will explore the core concepts and guide you through building your TV applications step by step.
