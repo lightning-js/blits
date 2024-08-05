@@ -106,6 +106,10 @@
       {
         "text": "Text-to-Speech / Announcer",
         "link": "/plugins/text-to-speech-announcer"
+      },
+      {
+        "text": "Language",
+        "link": "/plugins/language"
       }
     ]
   }

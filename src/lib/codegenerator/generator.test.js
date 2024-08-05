@@ -2290,3 +2290,55 @@ test('Generate code for a template with a simple for-loop on an Element with an 
 
   assert.end()
 })
+
+test('Generate code for a template with double $$ (i.e. referencing a Blits plugin)', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Text',
+        ':content': "$$language.translate('hello')",
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent, component, context, components, effect, getRaw) {
+      const elms = []
+      let componentType
+      const rootComponent = component
+      const elementConfig0 = {}
+
+      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elementConfig0['content'] = component.$language.translate('hello')
+      elementConfig0['__textnode'] = true
+      elms[0].populate(elementConfig0)
+
+      return elms
+  }
+  `
+
+  const expectedEffect1 = `
+  function anonymous(component, elms, context, components, rootComponent, effect) {
+    elms[0].set('content', component.$language.translate('hello'))
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 1,
+    'Generator should return an effects array with 1 item'
+  )
+  assert.equal(
+    normalize(actual.effects[0].toString()),
+    normalize(expectedEffect1),
+    'Generator should return first render function with the correct code'
+  )
+
+  assert.end()
+})

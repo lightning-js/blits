@@ -14,6 +14,7 @@ export default {
   level: Symbol('level'),
   methodKeys: Symbol('methodKeys'),
   originalState: Symbol('originalState'),
+  pluginsRegistered: Symbol('pluginsRegistered'),
   propKeys: Symbol('propKeys'),
   raw: Symbol('raw'),
   ready: Symbol('ready'),
