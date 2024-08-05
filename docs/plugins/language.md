@@ -127,7 +127,7 @@ The current language can be retrieved via the `this.$language.get()` method. It 
 
 ### Translating
 
-The most important functionality is the Language plugin is translating. The Language plugin exposes a `translate()` method that takes as string to translate as it's first argument. It will return the translated value in the currently set language. If either the language or the string to translate can't be found, it will return the inputed string.
+The most important functionality in the Language plugin is translating. The Language plugin exposes a `translate()` method that takes as string to translate as it's first argument. It will return the translated value in the currently set language. If either the language or the string to translate can't be found, it will return the inputed string.
 
 The translate method can be used both inside the javascript business logic, but also directly in the template.
 
