@@ -684,6 +684,138 @@ test('Generate code for a template with dynamic attributes with code to be evalu
   assert.end()
 })
 
+test('Generate code for a template with attribute (object)', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        w: '100',
+        h: '100',
+        color: '{top: 0xff0000ff, bottom: 0x008000ff, left: 0xffff00ff }',
+      },
+    ],
+  }
+
+  const expectedRender = `
+    function anonymous(parent,component,context,components,effect,getRaw) {
+      const elms = []
+      let componentType
+      const rootComponent = component
+      const elementConfig0 = {}
+
+      elms[0] = this.element({parent: parent || 'root'}, component)
+      elementConfig0['w'] = 100
+      elementConfig0['h'] = 100
+      elementConfig0['color'] = "{top: 0xff0000ff, bottom: 0x008000ff, left: 0xffff00ff}"
+      elms[0].populate(elementConfig0)
+
+      return elms
+    }
+  `
+
+  const actual = generator.call(scope, templateObject)
+  console.log(actual.render.toString())
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with dynamic attribute (object)', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        w: '100',
+        h: '100',
+        color: '{top: $colorT, bottom: $colorB, left:$colorL}',
+      },
+    ],
+  }
+
+  const expectedRender = `
+    function anonymous(parent,component,context,components,effect,getRaw) {
+      const elms = []
+      let componentType
+      const rootComponent = component
+      const elementConfig0 = {}
+
+      elms[0] = this.element({parent: parent || 'root'}, component)
+      elementConfig0['w'] = 100
+      elementConfig0['h'] = 100
+      elementConfig0['color'] =  { top: component.colorT, bottom: component.colorB, left: component.colorL }
+      elms[0].populate(elementConfig0)
+
+      return elms
+    }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with attribute (object) with mixed dynamic & static value', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        w: '100',
+        h: '100',
+        color: '{top: 0xff0000ff, bottom: $colorB, left: $colorL}',
+      },
+    ],
+  }
+
+  const expectedRender = `
+    function anonymous(parent,component,context,components,effect,getRaw) {
+      const elms = []
+      let componentType
+      const rootComponent = component
+      const elementConfig0 = {}
+
+      elms[0] = this.element({parent: parent || 'root'}, component)
+      elementConfig0['w'] = 100
+      elementConfig0['h'] = 100
+      elementConfig0['color'] =  { top: 0xff0000ff, bottom: component.colorB, left: component.colorL }
+      elms[0].populate(elementConfig0)
+
+      return elms
+    }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+
+  assert.end()
+})
+
 test('Generate code for a template with @-listeners', (assert) => {
   const templateObject = {
     children: [
