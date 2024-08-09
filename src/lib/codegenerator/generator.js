@@ -70,7 +70,7 @@ const generateElementCode = function (
   renderCode.push(`const elementConfig${counter} = {}`)
 
   if (options.forloop) {
-    renderCode.push(`if(!${elm}) {`)
+    renderCode.push(`if(${elm} === undefined) {`)
   }
 
   renderCode.push(`
@@ -256,6 +256,11 @@ const generateForLoopCode = function (templateObject, parent) {
   const key = templateObject['key']
   const forKey = interpolate(key, 'scope.')
 
+  const shallow = !!!(
+    templateObject['$shallow'] && templateObject['$shallow'].toLowerCase() === 'false'
+  )
+  delete templateObject['$shallow']
+
   delete templateObject['key']
   const regex = /(.+)\s+in\s+(.+)/gi
   //   const regex = /(:?\(*)(.+)\s+in\s+(.+)/gi
@@ -287,7 +292,12 @@ const generateForLoopCode = function (templateObject, parent) {
     const created${forStartCounter} = []
     const forloop${forStartCounter} = (collection = [], elms, created) => {
       const rawCollection = getRaw(collection)
-      const keys = new Set(rawCollection.map((${item}) => '' +  ${interpolate(key, '')}))
+      const keys = new Set()
+      let l = rawCollection.length
+      while(l--) {
+        const ${item} = rawCollection[l]
+        keys.add('' +  ${interpolate(key, '')})
+      }
   `)
 
   // keep track of the index in the render code so we can inject
@@ -303,7 +313,7 @@ const generateForLoopCode = function (templateObject, parent) {
         parent = ${parent}
         scope['${index}'] = __index
         scope['${item}'] = rawCollection[__index]
-        scope['key'] = ${forKey || '__index'}
+        scope['key'] = '' + ${forKey || '__index'}
   `)
   if ('ref' in templateObject && templateObject.ref.indexOf('$') === -1) {
     // automatically map the ref for each item in the loop based on the given ref key
@@ -347,9 +357,12 @@ const generateForLoopCode = function (templateObject, parent) {
     (effect) => [...effect.matchAll(scopeRegex)].length !== 0
   )
 
-  ctx.renderCode.push(`
-    scope['${item}'] = collection[__index]
+  if (shallow === false) {
+    ctx.renderCode.push(`
+      scope['${item}'] = null
+      scope['${item}'] = collection[__index]
   `)
+  }
 
   // inner scope variables are part of the main forloop
   innerScopeEffects.forEach((effect) => {
@@ -360,11 +373,10 @@ const generateForLoopCode = function (templateObject, parent) {
       }, ${key})
     `)
   })
-
+  // if(elms[${forStartCounter}][0] && elms[${forStartCounter}][0].forComponent && elms[${forStartCounter}][0].forComponent.___layout) {
+  //   elms[${forStartCounter}][0].forComponent.___layout()
+  // }
   ctx.renderCode.push(`
-      if(elms[${forStartCounter}][0] && elms[${forStartCounter}][0].forComponent && elms[${forStartCounter}][0].forComponent.___layout) {
-        elms[${forStartCounter}][0].forComponent.___layout()
-      }
     }
   }`)
 
@@ -374,8 +386,8 @@ const generateForLoopCode = function (templateObject, parent) {
       let i = created.length
 
       while (i--) {
-        const key = created[i]
-        if (!keys.has(key)) {
+        if (keys.has(created[i]) === false) {
+          const key = created[i]
   `)
   const forEndCounter = counter
 
