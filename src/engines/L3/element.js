@@ -265,13 +265,13 @@ const Element = {
       ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
       : renderer.createNode(this.props.props)
 
-    if ('@loaded' in props === true) {
+    if ('@loaded' in props === true && typeof props['@loaded'] === 'function') {
       this.node.on('loaded', (el, { type, dimensions }) => {
         props['@loaded']({ w: dimensions.width, h: dimensions.height, type }, this)
       })
     }
 
-    if ('@error' in props === true) {
+    if ('@error' in props === true && typeof props['@error'] === 'function') {
       this.node.on('failed', (el, error) => {
         props['@error'](error, this)
       })
