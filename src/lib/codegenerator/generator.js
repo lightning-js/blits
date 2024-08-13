@@ -99,9 +99,20 @@ const generateElementCode = function (
 
     if (isReactiveKey(key)) {
       if (options.holder && key === ':color') return
-      this.effectsCode.push(
-        `${elm}.set('${key.substring(1)}', ${interpolate(templateObject[key], options.component)})`
-      )
+      if (options.holder) {
+        this.effectsCode.push(`
+        if(typeof skip${counter} === 'undefined' ||
+          skip${counter}.indexOf('${key.substring(1)}') === -1)
+          ${elm}.set('${key.substring(1)}', ${interpolate(templateObject[key], options.component)})
+        `)
+      } else {
+        this.effectsCode.push(`
+            ${elm}.set('${key.substring(1)}', ${interpolate(
+          templateObject[key],
+          options.component
+        )})
+          `)
+      }
       renderCode.push(
         `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(
           templateObject[key],
@@ -117,16 +128,18 @@ const generateElementCode = function (
 
   if (options.holder === true) {
     renderCode.push(`
+    const skip${counter} = []
     if(typeof cmp${counter} !== 'undefined') {
       for(let key in cmp${counter}.config.props) {
         delete elementConfig${counter}[cmp${counter}.config.props[key]]
+        skip${counter}.push(cmp${counter}.config.props[key])
       }
     }
     `)
   }
 
   if (options.forloop) {
-    renderCode.push(`if(!${elm}.nodeId) {`)
+    renderCode.push(`if(${elm}.nodeId === undefined) {`)
   }
 
   renderCode.push(`${elm}.populate(elementConfig${counter})`)
@@ -187,6 +200,11 @@ const generateComponentCode = function (
   }
 
   renderCode.push(`const props${counter} = {}`)
+
+  if (options.forloop) {
+    renderCode.push(`if(${elm} === undefined) {`)
+  }
+
   Object.keys(templateObject).forEach((key) => {
     if (isReactiveKey(key)) {
       this.effectsCode.push(`
@@ -206,10 +224,6 @@ const generateComponentCode = function (
       )
     }
   })
-
-  if (options.forloop) {
-    renderCode.push(`if(!${elm}) {`)
-  }
 
   renderCode.push(`
     componentType = props${counter}['is'] || '${templateObject[Symbol.for('componentType')]}'
@@ -307,7 +321,7 @@ const generateForLoopCode = function (templateObject, parent) {
 
   ctx.renderCode.push(`
       created.length = 0
-      const length = collection.length
+      const length = rawCollection.length
       for(let __index = 0; __index < length; __index++) {
         const scope = Object.create(component)
         parent = ${parent}
@@ -367,11 +381,18 @@ const generateForLoopCode = function (templateObject, parent) {
   // inner scope variables are part of the main forloop
   innerScopeEffects.forEach((effect) => {
     const key = effect.indexOf(`scope.${index}`) > -1 ? `'${interpolate(result[2], '')}'` : null
-    ctx.renderCode.push(`
-      effect(() => {
+    if (effect.indexOf("Symbol.for('props')") === -1) {
+      ctx.renderCode.push(`
+        effect(() => {
+          ${effect}
+        }, ${key})
+      `)
+    } else {
+      // props shouldn't be wrapped in an effect, but simply passed on
+      ctx.renderCode.push(`
         ${effect}
-      }, ${key})
-    `)
+      `)
+    }
   })
   // if(elms[${forStartCounter}][0] && elms[${forStartCounter}][0].forComponent && elms[${forStartCounter}][0].forComponent.___layout) {
   //   elms[${forStartCounter}][0].forComponent.___layout()
