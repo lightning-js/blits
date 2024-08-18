@@ -18,37 +18,47 @@
 const eventsMap = new Map()
 
 export default {
-  registerListener(component, event, cb) {
-    let componentsMap = eventsMap.get(event)
-    if (!componentsMap) {
-      componentsMap = new Map()
-      eventsMap.set(event, componentsMap)
+  registerListener(component, event, cb, priority = 0) {
+    let listeners = eventsMap.get(event)
+    if (!listeners) {
+      listeners = []
+      eventsMap.set(event, listeners)
     }
 
-    let components = componentsMap.get(component)
-    if (!components) {
-      components = new Set()
-      componentsMap.set(component, components)
-    }
+    // Check if the callback already exists for this component
+    const exists = listeners.some(
+      (listener) => listener.component === component && listener.callback === cb
+    )
 
-    components.add(cb)
+    if (!exists) {
+      // Only add the listener if it doesn't already exist
+      listeners.push({ component, callback: cb, priority })
+      listeners.sort((a, b) => b.priority - a.priority)
+    }
+    // If it exists, do nothing
   },
+
   executeListeners(event, params) {
-    const componentsMap = eventsMap.get(event)
-    if (componentsMap) {
-      componentsMap.forEach((component) => {
-        component.forEach((cb) => {
-          cb(params)
-        })
-      })
+    console.log('Event:', event, 'Params:', params)
+    const listeners = eventsMap.get(event)
+    if (listeners) {
+      for (const { component, callback, priority } of listeners) {
+        const result = callback.call(component, params)
+        if (result === false) {
+          return false // Stop propagation if any listener returns false
+        }
+      }
     }
+    return true // All listeners executed
   },
+
   removeListeners(component) {
-    eventsMap.forEach((componentMap) => {
-      const cmp = componentMap.get(component)
-      if (cmp) {
-        cmp.clear()
-        componentMap.delete(cmp)
+    eventsMap.forEach((listeners, event) => {
+      const updatedListeners = listeners.filter((listener) => listener.component !== component)
+      if (updatedListeners.length === 0) {
+        eventsMap.delete(event)
+      } else {
+        eventsMap.set(event, updatedListeners)
       }
     })
   },
