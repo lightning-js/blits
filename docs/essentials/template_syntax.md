@@ -1,6 +1,4 @@
-# Blits - Lightning 3 App Development Framework
-
-## Template syntax
+# Template syntax
 
 Blits uses an easy-to-read _XML-style_ template syntax. The syntax is inspired by frameworks like VueJS, so if you are familiar with Vue, you will probably recognize certain concepts.
 
@@ -22,12 +20,12 @@ Now let's consider the following template example:
 </Element>
 ```
 
-### Hardcoded arguments
+## Hardcoded arguments
 
 In the template above, you'll observe certain arguments with hardcoded values (i.e. `w="100"` and `color="#0891b2"`).
 You can use hardcoded arguments to configure the parts of your template that you know will never change.
 
-### Dynamic arguments
+## Dynamic arguments
 
 Additionally, some arguments contain a value prefixed with a dollar sign (`$`). These are so called _dynamic_ arguments.
 
@@ -37,7 +35,7 @@ these arguments with dynamic values based on the initial state of your Component
 It's important to realize that dynamic arguments are only set _once_. Changing a value used in a dynamic argument, won't be reflected
 on screen. For that you will need to use _reactive_ arguments.
 
-### Reactive arguments
+## Reactive arguments
 
 If you look at the template example above you'll notice that certain arguments are prefixed with a colon sign (`:`). Prefixing an argument
 with a colon makes it not only dynamic but also _reactive_.
@@ -52,7 +50,7 @@ Reactive arguments also support _interpolation_. This enables the use of simple 
 
 For more complex logic, it's recommended to abstract this into a [Component method](../components/methods.md) or a [Computed property](../components/computed_properties.md).
 
-## Abstracting template portions to custom components
+# Abstracting template portions to custom components
 
 As your template grows in complexity, you may want to organize your codebase with custom components, abstracting a complex template into smaller, reusable pieces.
 

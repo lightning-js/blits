@@ -1,10 +1,8 @@
-# Blits - Lightning 3 App Development Framework
-
-## Directives
+# Directives
 
 Blits comes with a few built-in attributes that tap into specific behaviour provided by the framework - also known as _directives_. Most of them can be used in the template on both Elements and Components.
 
-### Show-directive
+## Show-directive
 
 The `show` attribute allows you to conditionally show and hide Components and Elements.
 
@@ -17,7 +15,7 @@ When passed a _truthy_ value, such as `true` or `1`, the element will be made vi
 </Element>
 ```
 
-### Is-directive
+## Is-directive
 
 The `is` directive allows you to dynamically instantiate a Component based on a `state` variable or a passed `prop`.
 
@@ -39,7 +37,7 @@ export default Blits('DynamicComponents', {
 
 At the moment it's not possible to use the `is`-attribute as a _reactive_ attribute and have a component change type after instantiation.
 
-### Ref-attribute
+## Ref-attribute
 
 The declarative coding style that is promoted in Blits components, should generally remove the need to directly interact with individual Elements or Components in your template. However, in some cases you may need to reference them directly. For example, in order to delegate the focus.
 

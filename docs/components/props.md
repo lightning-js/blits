@@ -1,12 +1,10 @@
-# Blits - Lightning 3 App Development Framework
-
-## Props
+# Props
 
 Components in Blits have their own [internal state](./component_state.md) and logic, and as such a Component is self-contained. However, as each component is part of a larger App scope, they may need to display different behaviors or appearances based on the rest of the app.
 
 To achieve this, components can receive `props` from their parent component.
 
-### Defining and passing props
+## Defining and passing props
 
 In the Component configuration object, you can specify exactly which props a component accepts. These props are passed to the component via attributes in the parent component's template. Any attributes that are not explicitly defined as a prop will be ignored.
 
@@ -27,7 +25,7 @@ there is no need to specifically reference the `props`-key. Blits automatically 
 
 Since props are used to pass information from a parent to a child, it's important not to attempt to _modify_ props inside your child component. If changes based on the prop from the parent are needed, you should probably use the prop in a so called [computed property](./computed_properties.md).
 
-### Advanced usage
+## Advanced usage
 
 For more advanced usage, you can define props using an array with an `object` for each prop, instead of just a string with the accepted name. Within each prop object, you can:
 

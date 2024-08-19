@@ -1,6 +1,4 @@
-# Blits - Lightning 3 App Development Framework
-
-## Methods
+# Methods
 
 Within a Blits component, you have quite some freedom where to put specific logic.
 

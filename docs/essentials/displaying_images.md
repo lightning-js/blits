@@ -1,6 +1,4 @@
-# Blits - Lightning 3 App Development Framework
-
-## Displaying Images
+# Displaying Images
 
 Now that we've covered the basics of creating Elements, as well as styling and positioning them, it's time to move away from these boring rectangles and explore how you can incorporate _images_ into your App.
 
@@ -15,13 +13,13 @@ Remote images are also supported and can be linked directly (e.g., `http://mycdn
 <Element src="http://mycdn.com/artists/jimi_hendrix/woodstock.jpg" w="1920" h="1080" />
 ```
 
-### Sizing and Scaling
+## Sizing and Scaling
 
 Make sure to give your Element a width (`w` ) and a height (`h`) attribute. Images will _not_ be rendered if they don't have both attributes present. The Lightning renderer will scale the image to fit these exact dimensions
 
 For the best performance, it's important to keep your source images as small as possible. If you're displaying an image at `200px x 200px`, make sure the image is exactly that size or _smaller_. The latter option may lead to some quality loss, but can positively impact the overall performance of your App.
 
-### Colorization
+## Colorization
 
 You also have the option to _colorize_ an image on the fly. Just add a `color` attribute to the Element with a `src` attribute. You can use a single color, or apply a gradient.
 
@@ -36,7 +34,7 @@ By default, all Elements with a `src` attribute get a solid white background, wi
 />
 ```
 
-### Asynchronous Loading
+## Asynchronous Loading
 
 All images are loaded asynchronously (and can possibly fail to load), even those local to your App. Blits allows you to easily hook into the `loaded` and `error` events of image Elements.
 

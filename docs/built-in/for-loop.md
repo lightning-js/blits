@@ -1,6 +1,4 @@
-# Blits - Lightning 3 App Development Framework
-
-## For loop
+# For loop
 
 The for loop is technically also a [directive](../directives.md), but such an important one that it deserves it's own section.
 
@@ -11,7 +9,7 @@ The for loop take an `Array` of data, loops over it and for each Array-item an E
 > Important: the for loop is a powerful and often used directive. Within Blits it's optimized to be as performant as possible. But if used incorrectly, it can be the cause of slow performance. So please read carefully through this entire section.
 
 
-### Basic syntax
+## Basic syntax
 
 The for-loop directive should be added as an attribute on the Element or Component that you want to repeat for each item in your Array. In the template syntax a `for ... in` construct is used. This ultimately transpiles down to a classic, optimized for loop.
 
@@ -33,7 +31,7 @@ export default Blits('ForLoop', {
 The example above will generate 3 _lime green_ elements, based on the array of `items` in the Component state. They will appear on top of each other though, since they have no `x` and `y` positioning (which default to 0).
 
 
-### Using the index
+## Using the index
 
 In order to fix the example above and make all 3 elements visible, we can use the `index` of the Array, to position each item correctly.
 
@@ -59,7 +57,7 @@ export default Blits('ForLoop', {
 You will now see that each Element is positioned next to each other, with a 50px space in between.
 
 
-### Using variables inside a for loop
+## Using variables inside a for loop
 
 When iterating over an Array in the for loop, you can reference the current Array item under the name specified in the for-in construct, prefixed with a `$`-sign. Besides this scoped Array item context, you _also_ have access to any `prop`, `state` or `computed` variable as you loop over an Array.
 
@@ -99,7 +97,7 @@ export default Blits('ForLoop', {
 
 This will generate 3 squares aligned next to each other, each with a differrent color and they will use the _alpha_ specific in the Component state.
 
-### The importance of using the key attribute
+## The importance of using the key attribute
 
 The examples above have demonstrated the basic usage of the for-loop. But they are all missing one _very important_ ingredient to make sure that for-loops that are subject to change, continue to perform well. Meet the `key`-attribute.
 
@@ -160,7 +158,7 @@ In the example above we have added the `key`-attribute in the template. Now when
 
 If we would ommit the `key`-attribute, then whenever we push a new item to the Array, the for-loop would dispose all the old Elements and create new instances for _each_ item in the array.
 
-### Referencing elements in the for loop
+## Referencing elements in the for loop
 
 When you specify a `for`-attribute on an Element or a Component, it will effectively create multiple Elements / Components depending
 on the length of the Array.
