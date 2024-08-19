@@ -492,6 +492,7 @@ const interpolate = (val, component = 'component.') => {
 }
 
 const cast = (val = '', key = false, component = 'component.') => {
+  const dynamicArgumentRegex = /\$\w+/gi
   let castedValue
 
   // inline content
@@ -542,6 +543,21 @@ const cast = (val = '', key = false, component = 'component.') => {
   else if (val.startsWith('$')) {
     castedValue = `${component}${val.replace('$', '')}`
   }
+  // dynamic value in object
+  else if (dynamicArgumentRegex.exec(val)) {
+    const rex = /\w+\s*:\s*(?:[^\s,}]+|".*?"|'.*?')/g
+    const results = val.match(rex)
+    castedValue = {}
+    if (results) {
+      for (let i = 0; i < results.length; i++) {
+        const members = results[i].split(/\s*:\s*/)
+        if (members) {
+          populateFields(members[0], members[1], component, castedValue)
+        }
+      }
+    }
+    return interpolateObject(castedValue)
+  }
   // static string
   else {
     castedValue = `"${val}"`
@@ -562,4 +578,22 @@ const parseInlineContent = (val, component) => {
     }
   }
   return val
+}
+
+// Populate value into target's prop
+const populateFields = (prop, val, component, target) => {
+  if (val.startsWith('$')) {
+    target[prop] = `${component}${val.replace('$', '')}`
+  } else {
+    target[prop] = val
+  }
+}
+
+const interpolateObject = (input) => {
+  const interpolatedResults = []
+  Object.keys(input).forEach((key) => {
+    interpolatedResults.push(`${key}: ${input[key]}`)
+  })
+
+  return ` { ${interpolatedResults.join(', ')} }`
 }
