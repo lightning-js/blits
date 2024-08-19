@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.3.0
+
+_19 aug 2024_
+
+- Fixed bug in for-loop when key is not a string but a number
+- Added `$shallow`-modifier to for-loop
+- Added several performance optimizations
+- Added support for dynamic arguments in object notation (i.e. `mount="{x: $x, y: $y}"`)
+
 ## v1.2.0
 
 _5 aug 2024_
