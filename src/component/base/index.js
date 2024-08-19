@@ -22,8 +22,11 @@ import log from './log.js'
 import router from './router.js'
 import announcer from './announcer.js'
 import utils from './utils.js'
+import symbols from '../../lib/symbols.js'
 
 export default Object.defineProperties(
-  {},
+  {
+    [symbols['pluginsRegistered']]: false,
+  },
   { ...methods, ...scheduling, ...events, ...log, ...router, ...announcer, ...utils }
 )

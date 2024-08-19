@@ -463,7 +463,7 @@ const generateCode = function (templateObject, parent = false, options = {}) {
 const interpolate = (val, component = 'component.') => {
   if (val === undefined) return val
   const replaceString = /('.*?')+/gi
-  const replaceDollar = /\$/gi
+  const replaceDollar = /\$(\$(?=\$)|\$?)/g
   const matches = val.matchAll(replaceString)
   const restore = []
 
@@ -476,10 +476,19 @@ const interpolate = (val, component = 'component.') => {
     i++
   }
 
-  // replace remaining dollar signs
-  val = val.replace(replaceDollar, component || '')
+  // replace dollar signs using the regex and function
+  val = val.replace(replaceDollar, (match, group1) => {
+    // single dollar sign
+    if (group1 === '') {
+      return component
+    }
+    // consecutive dollar sign, replace only the first $
+    else if (group1 === '$') {
+      return component + '$'
+    }
+  })
 
-  // restore string replacemenet
+  // restore string replacement
   restore.forEach((el, idx) => {
     val = val.replace(`[@@REPLACEMENT${idx}@@]`, el)
   })
