@@ -128,24 +128,22 @@ const propsTransformer = {
   },
   set fit(v) {
     this.props['textureOptions'] = { resizeMode: {} }
-    if (typeof v === 'string' && v.indexOf('{') === -1) {
+    if (typeof v === 'string' && v.startsWith('{') === false) {
       this.props['textureOptions']['resizeMode']['type'] = v
-    } else if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if ('type' in v) {
+    } else if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      if ('type' in v === true) {
         this.props['textureOptions']['resizeMode']['type'] = v.type
       }
-      if ('position' in v) {
-        if (typeof v['position'] === 'object') {
-          if ('x' in v['position']) {
-            this.props['textureOptions']['resizeMode']['clipX'] = v['position']['x']
-          }
-          if ('y' in v['position']) {
-            this.props['textureOptions']['resizeMode']['clipY'] = v['position']['y']
-          }
-        } else {
-          this.props['textureOptions']['resizeMode']['clipX'] = v['position']
-          this.props['textureOptions']['resizeMode']['clipY'] = v['position']
+      if ('position' in v === true && typeof v['position'] === 'object') {
+        if ('x' in v['position'] === true) {
+          this.props['textureOptions']['resizeMode']['clipX'] = v['position']['x']
         }
+        if ('y' in v['position'] === true) {
+          this.props['textureOptions']['resizeMode']['clipY'] = v['position']['y']
+        }
+      } else if ('position' in v === true) {
+        this.props['textureOptions']['resizeMode']['clipX'] = v['position']
+        this.props['textureOptions']['resizeMode']['clipY'] = v['position']
       }
     }
   },
