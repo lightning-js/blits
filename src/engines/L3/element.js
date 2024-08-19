@@ -232,7 +232,8 @@ const propsTransformer = {
 
 const Element = {
   populate(data) {
-    const props = { ...data, ...{ node: this.config.node, parent: this.config.parent } }
+    const props = data
+    props['node'] = this.config.node
 
     if (props[symbols.isSlot] === true) {
       this[symbols.isSlot] = true
@@ -240,13 +241,13 @@ const Element = {
 
     this.props.element = this
 
-    const propKeys = Object.keys(props)
-    const length = propKeys.length
-
-    this.props['parent'] = props.parent
+    this.props['parent'] = this.config.parent
     delete props.parent
 
     this.props.raw = data
+
+    const propKeys = Object.keys(props)
+    const length = propKeys.length
 
     for (let i = 0; i < length; i++) {
       const key = propKeys[i]
