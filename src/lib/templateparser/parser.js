@@ -28,7 +28,7 @@ export default (template = '', componentName, parentComponent, filePath = null) 
   // regular expressions
   const tagStartRegex = /^<\/?([a-zA-Z0-9_\-.]+)\s*/
   const tagEndRegex = /^\s*(\/?>)\s*/
-  const attrNameRegex = /^([A-Za-z0-9:.\-_@]+)=\s*(["'])/
+  const attrNameRegex = /^([A-Za-z0-9:.\-_@$]+)=\s*(["'])/
   const emptyTagStartRegex = /^<>\s*/
   const emptyTagEndRegex = /^\s*(<\/>)\s*/
 

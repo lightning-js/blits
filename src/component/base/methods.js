@@ -95,9 +95,8 @@ export default {
   },
   shader: {
     value: function (type, args) {
-      const target = type
       return {
-        type: target,
+        type: type,
         props: args,
       }
       // const shaders = renderer.driver.stage.shManager.getRegisteredEffects()
