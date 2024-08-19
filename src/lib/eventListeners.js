@@ -16,9 +16,10 @@
  */
 
 const eventsMap = new Map()
+const cache = new Map()
 
 export default {
-  registerListener(component, event, cb) {
+  registerListener(component, event, cb, priority = 0) {
     let componentsMap = eventsMap.get(event)
     if (!componentsMap) {
       componentsMap = new Map()
@@ -31,24 +32,46 @@ export default {
       componentsMap.set(component, components)
     }
 
-    components.add(cb)
+    components.add({ cb, priority })
+    cache.delete(event) // Invalidate the cache when a new callback is added
   },
+
   executeListeners(event, params) {
     const componentsMap = eventsMap.get(event)
-    if (componentsMap) {
-      componentsMap.forEach((component) => {
-        component.forEach((cb) => {
-          cb(params)
-        })
-      })
+    if (!componentsMap) {
+      return true // No listeners so execution can be considered successful
     }
+
+    if (!cache.has(event)) {
+      // collect all callbacks and sort them by priority
+      const allCallbacks = []
+      componentsMap.forEach((components, component) => {
+        components.forEach((callbackObj) => allCallbacks.push({ ...callbackObj, component }))
+      })
+      allCallbacks.sort((a, b) => b.priority - a.priority)
+      cache.set(event, allCallbacks) // Cache the sorted callbacks with component context
+    }
+
+    for (const { cb, component } of cache.get(event)) {
+      const result = cb.call(component, params)
+      if (result === false) {
+        return false // Stop propagation if any listener returns false
+      }
+    }
+
+    return true // All listeners executed without stopping propagation
   },
+
   removeListeners(component) {
-    eventsMap.forEach((componentMap) => {
-      const cmp = componentMap.get(component)
-      if (cmp) {
-        cmp.clear()
-        componentMap.delete(cmp)
+    eventsMap.forEach((componentsMap, event) => {
+      if (componentsMap.has(component)) {
+        componentsMap.delete(component)
+        cache.delete(event) // Invalidate the cache for this event
+
+        // If no more components for this event, remove the event entirely
+        if (componentsMap.size === 0) {
+          eventsMap.delete(event)
+        }
       }
     })
   },

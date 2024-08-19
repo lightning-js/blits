@@ -20,15 +20,16 @@ import eventListeners from '../../lib/eventListeners.js'
 export default {
   $emit: {
     value: function (event, params) {
-      eventListeners.executeListeners(event, params)
+      // returning if all listeners executed
+      return eventListeners.executeListeners(event, params)
     },
     writable: false,
     enumerable: true,
     configurable: false,
   },
   $listen: {
-    value: function (event, callback) {
-      eventListeners.registerListener(this, event, callback)
+    value: function (event, callback, priority = 0) {
+      eventListeners.registerListener(this, event, callback, priority)
     },
     writable: false,
     enumerable: true,
