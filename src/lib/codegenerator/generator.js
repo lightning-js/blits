@@ -16,6 +16,9 @@
  */
 
 let counter
+let nestedForDepth
+let scopeCounter
+let forEndCounterMap
 
 export default function (templateObject = { children: [] }) {
   const ctx = {
@@ -25,6 +28,9 @@ export default function (templateObject = { children: [] }) {
   }
 
   counter = -1
+  scopeCounter = -1
+  nestedForDepth = -1
+  forEndCounterMap = new Map()
   generateCode.call(ctx, templateObject)
   ctx.renderCode.push('return elms')
 
@@ -264,11 +270,23 @@ const generateComponentCode = function (
 }
 
 const generateForLoopCode = function (templateObject, parent) {
+  // Set actual endCounter of previous for-loop
+  if (forEndCounterMap.has(nestedForDepth) === true) {
+    forEndCounterMap.set(nestedForDepth, counter - 1)
+  }
+
+  nestedForDepth++
+
+  // Set initial endCounter of for-loop to -1
+  forEndCounterMap.set(nestedForDepth, -1)
+
   const forLoop = templateObject[':for']
   delete templateObject[':for']
 
   const key = templateObject['key']
-  const forKey = interpolate(key, 'scope.')
+
+  scopeCounter++
+  const forKey = interpolate(key, `scope${scopeCounter}.`)
 
   const shallow = !!!(
     templateObject['$shallow'] && templateObject['$shallow'].toLowerCase() === 'false'
@@ -287,7 +305,7 @@ const generateForLoopCode = function (templateObject, parent) {
     .replace(')', '')
     .split(/\s*,\s*/)
 
-  const scopeRegex = new RegExp(`(scope\\.(?!${item}\\.|${index}|key)(\\w+))`, 'gi')
+  const scopeRegex = new RegExp(`(scope${scopeCounter}\\.(?!${item}\\.|${index}|key)(\\w+))`, 'gi')
 
   // local context
   const ctx = {
@@ -323,22 +341,23 @@ const generateForLoopCode = function (templateObject, parent) {
       created.length = 0
       const length = rawCollection.length
       for(let __index = 0; __index < length; __index++) {
-        const scope = Object.create(component)
+        const scope${scopeCounter} = Object.create(component)
         parent = ${parent}
-        scope['${index}'] = __index
-        scope['${item}'] = rawCollection[__index]
-        scope['key'] = '' + ${forKey || '__index'}
+        scope${scopeCounter}['${index}'] = __index
+        scope${scopeCounter}['${item}'] = rawCollection[__index]
+        scope${scopeCounter}['key'] = '' + ${forKey || '__index'}
   `)
+
   if ('ref' in templateObject && templateObject.ref.indexOf('$') === -1) {
     // automatically map the ref for each item in the loop based on the given ref key
     ctx.renderCode.push(`
-        scope['__ref'] = '${templateObject.ref}' + __index
+        scope${scopeCounter}['__ref'] = '${templateObject.ref}' + __index
     `)
     templateObject.ref = '$__ref'
   }
 
   ctx.renderCode.push(`
-        created.push(scope.key)
+        created.push(scope${scopeCounter}.key)
   `)
 
   if (
@@ -347,15 +366,15 @@ const generateForLoopCode = function (templateObject, parent) {
     templateObject[Symbol.for('componentType')] === 'Text'
   ) {
     generateElementCode.call(ctx, templateObject, parent, {
-      key: 'scope.key',
-      component: 'scope.',
+      key: `scope${scopeCounter}.key`,
+      component: `scope${scopeCounter}.`,
       forceEffect: false,
       forloop: true,
     })
   } else {
     generateComponentCode.call(ctx, templateObject, false, {
-      key: 'scope.key',
-      component: 'scope.',
+      key: `scope${scopeCounter}.key`,
+      component: `scope${scopeCounter}.`,
       forceEffect: false,
       forloop: true,
     })
@@ -373,8 +392,8 @@ const generateForLoopCode = function (templateObject, parent) {
 
   if (shallow === false) {
     ctx.renderCode.push(`
-      scope['${item}'] = null
-      scope['${item}'] = collection[__index]
+      scope${scopeCounter}['${item}'] = null
+      scope${scopeCounter}['${item}'] = collection[__index]
   `)
   }
 
@@ -410,7 +429,11 @@ const generateForLoopCode = function (templateObject, parent) {
         if (keys.has(created[i]) === false) {
           const key = created[i]
   `)
-  const forEndCounter = counter
+  // Get endCounter from Map that was stored, for non nested for-loop
+  // endCounter would be -1 then get's real endCounter from counter
+
+  const endCounter = forEndCounterMap.get(nestedForDepth)
+  const forEndCounter = endCounter === -1 ? counter : endCounter
 
   for (let i = forStartCounter; i <= forEndCounter; i++) {
     destroyCode.push(`
@@ -427,7 +450,11 @@ const generateForLoopCode = function (templateObject, parent) {
   ctx.renderCode.splice(indexToInjectDestroyCode, 0, ...destroyCode)
   ctx.renderCode.push(`
     effect(() => {
-      forloop${forStartCounter}(${cast(result[2], ':for')}, elms, created${forStartCounter})
+      forloop${forStartCounter}(${
+    nestedForDepth == 0
+      ? cast(result[2], ':for')
+      : cast(result[2], ':for', `scope${scopeCounter - 1}.`)
+  }, elms, created${forStartCounter})
     }, '${interpolate(result[2], '')}')
   `)
 
@@ -448,10 +475,10 @@ const generateForLoopCode = function (templateObject, parent) {
       effect(() => {
         void ${refs.join(', ')}
         for(let __index = 0; __index < ${interpolate(result[2])}.length; __index++) {
-          const scope = {}
-          scope['${index}'] = __index
-          scope['${item}'] = ${interpolate(result[2])}[__index]
-          scope['key'] = ${forKey || '__index'}
+          const scope${scopeCounter} = {}
+          scope${scopeCounter}['${index}'] = __index
+          scope${scopeCounter}['${item}'] = ${interpolate(result[2])}[__index]
+          scope${scopeCounter}['key'] = ${forKey || '__index'}
     `)
 
     ctx.renderCode.push(`
@@ -460,8 +487,10 @@ const generateForLoopCode = function (templateObject, parent) {
       })
     `)
   })
-
   this.renderCode.push(ctx.renderCode.join('\n'))
+
+  // Decrement counter
+  nestedForDepth--
 }
 
 const generateCode = function (templateObject, parent = false, options = {}) {
