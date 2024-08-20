@@ -2,11 +2,17 @@
 
 import { defineConfig } from 'vite'
 import blitsVitePlugins from '@lightningjs/blits/vite'
+import legacy from '@vitejs/plugin-legacy'
 
 export default defineConfig(({ command, mode, ssrBuild }) => {
   return {
     base: '/', // Set to your base path if you are deploying to a subdirectory (example: /myApp/)
-    plugins: [...blitsVitePlugins],
+    plugins: [
+      ...blitsVitePlugins,
+      legacy({
+        targets: ['defaults', 'Chrome >= 49'],
+      }),
+    ],
     resolve: {
       mainFields: ['browser', 'module', 'jsnext:main', 'jsnext'],
     },

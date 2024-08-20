@@ -28,7 +28,9 @@
     "husky": "^7.0.4",
     "lint-staged": "^12.3.3",
     "prettier": "^2.5.1",
-    "vite": "^4.0.4"
+    "vite": "^5.4.1",
+    "@vitejs/plugin-legacy": "^5.4.2"
+
   },
   "dependencies": {
     "@lightningjs/blits": "{$blitsVersion}"
