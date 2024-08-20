@@ -37,18 +37,14 @@ export default (component, state = () => {}) => {
       Log.error(`State ${key} already exists as a method`)
     }
     component[symbols.stateKeys].push(key)
-    try {
-      Object.defineProperty(component, key, {
-        get() {
-          return this[symbols.state] && key in this[symbols.state] && this[symbols.state][key]
-        },
-        set(v) {
-          if (this[symbols.state]) this[symbols.state][key] = v
-        },
-        // enumerable: true,
-      })
-    } catch (e) {
-      Log.error(e)
-    }
+    Object.defineProperty(component, key, {
+      get() {
+        return this[symbols.state][key]
+      },
+      set(v) {
+        this[symbols.state][key] = v
+      },
+      // enumerable: true,
+    })
   })
 }

@@ -34,6 +34,8 @@ import Settings from './settings.js'
 import setupComponent from './component/setup/index.js'
 import components from './components/index.js'
 
+import { plugins } from './plugin.js'
+
 // object to store global components
 let globalComponents
 
@@ -158,16 +160,11 @@ const Component = (name = required('name'), config = required('config')) => {
 
     // setup (and execute) all the generated side effects based on the
     // reactive bindings define in the template
-    for (let i = 0; i < config.code.effects.length; i++) {
+    const effects = config.code.effects
+    for (let i = 0; i < effects.length; i++) {
+      // console.log(config.code.effects[i].toString())
       effect(() => {
-        config.code.effects[i].apply(stage, [
-          this,
-          this[symbols.children],
-          config,
-          globalComponents,
-          rootComponent,
-          effect,
-        ])
+        effects[i](this, this[symbols.children], config, globalComponents, rootComponent, effect)
       })
     }
 
@@ -202,7 +199,30 @@ const Component = (name = required('name'), config = required('config')) => {
   }
 
   const factory = (options = {}, parentEl, parentComponent, rootComponent) => {
-    // setup the component once, using Base as the prototype
+    // Register user defined plugins once on the Base object
+    if (Base[symbols['pluginsRegistered']] === false) {
+      Object.keys(plugins).forEach((pluginName) => {
+        const prefixedPluginName = `$${pluginName}`
+        if (prefixedPluginName in Base) {
+          Log.warn(
+            `"${pluginName}" (this.${prefixedPluginName}) already exists as a property or plugin on the Base Component. You may be overwriting built-in functionality. Proceed with care!`
+          )
+        }
+
+        const plugin = plugins[pluginName]
+
+        Object.defineProperty(Base, prefixedPluginName, {
+          // instantiate the plugin, passing in provided options
+          value: plugin.plugin(plugin.options),
+          writable: false,
+          enumerable: true,
+          configurable: false,
+        })
+      })
+      Base[symbols['pluginsRegistered']] = true
+    }
+
+    // setup the component once per component type, using Base as the prototype
     if (!base) {
       Log.debug(`Setting up ${name} component`)
       base = setupComponent(Object.create(Base), config)

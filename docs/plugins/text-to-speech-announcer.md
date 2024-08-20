@@ -1,10 +1,8 @@
-# Blits - Lightning 3 App Development Framework
-
-## Text-to-Speech / Announcer
+# Text-to-Speech / Announcer
 
 Blits comes with a built-in Text-to-Speech / Announcer functionality, to easily make your App more accessible. This is something that's often overlooked when developing an App, but having speech assistance integrated into your App is a huge deal for those users who are visually impaired.
 
-### Integrated with the router
+## Integrated with the router
 
 The Announcer in Blits is directly integrated with the router functionality. This means that through simple configuration, a descriptive message can be announced, when navigating from page to page, without the need for adding extra custom code.
 

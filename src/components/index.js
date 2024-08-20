@@ -15,7 +15,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import Image from './Image.js'
 import Circle from './Circle.js'
 import RouterView from './RouterView.js'
 import Sprite from './Sprite.js'
@@ -23,7 +22,6 @@ import FPScounter from './FPScounter.js'
 import Layout from './Layout.js'
 
 export default () => ({
-  Image: Image(),
   Circle: Circle(),
   RouterView: RouterView(),
   Sprite: Sprite(),

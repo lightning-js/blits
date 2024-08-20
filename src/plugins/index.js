@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Comcast Cable Communications Management, LLC
+ * Copyright 2024 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,4 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import Component from '../component.js'
-
-export default () =>
-  Component('Image', {
-    template: `
-      <Element :imageSource="$imageSource" />`,
-    props: ['src'],
-    computed: {
-      imageSource() {
-        if (/^(?:https?:)?\/\//i.test(this.src)) {
-          return this.src
-        }
-        return `${window.location.protocol}//${window.location.host}/${this.src}`
-      },
-    },
-  })
+export { default as language } from './language.js'
