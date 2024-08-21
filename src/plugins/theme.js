@@ -54,7 +54,7 @@ export default {
     if ('themes' in config === true) {
       themes = config.themes
       state.current = config.current || 'default'
-      base = config.base || 'base'
+      base = config.base || 'default'
     } else {
       themes = { default: config }
     }
