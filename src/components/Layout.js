@@ -22,7 +22,7 @@ export default () => {
       ___layout() {
         let offset = 0
 
-        this.select('slot').children.forEach((el) => {
+        this.$select('slot').children.forEach((el) => {
           el.set(this.direction === 'vertical' ? 'y' : 'x', offset)
           // todo: grab width from interface, not directly from node
           offset +=

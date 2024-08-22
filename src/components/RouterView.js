@@ -40,7 +40,7 @@ export default () =>
         window.removeEventListener('hashchange', handler, false)
       },
       focus() {
-        this.activeView && this.activeView.focus()
+        this.activeView && this.activeView.$focus()
       },
     },
     input: {
