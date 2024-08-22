@@ -77,8 +77,17 @@ export default {
   },
   trigger: {
     value: function (key) {
+      let target = this[symbols.originalState]
+      // when dot notation used, find the nested target
+      if (key.indexOf('.') > -1) {
+        const keys = key.split('.')
+        key = keys.pop(keys)
+        for (let i = 0; i < keys.length; i++) {
+          target = target[keys[i]]
+        }
+      }
       // trigger with force set to true
-      trigger(this[symbols.originalState], key, true)
+      trigger(target, key, true)
     },
     writable: false,
     enumerable: true,
