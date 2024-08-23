@@ -26,7 +26,7 @@ const getValueByDotNotation = (obj, base, path) => {
 
     if (obj !== null && key in obj === true) {
       obj = obj[key]
-      base = base[key]
+      base = base !== null && key in base === true ? base[key] : null
     }
     // see if the key is present in the base object
     else if (base !== null && key in base === true) {
@@ -34,6 +34,7 @@ const getValueByDotNotation = (obj, base, path) => {
       obj = base
     } else {
       obj = undefined
+      break
     }
   }
 
