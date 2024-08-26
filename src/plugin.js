@@ -1,4 +1,9 @@
-export const plugins = {}
+import log from './plugins/log'
+
+export const plugins = {
+  // log plugin added by default
+  log,
+}
 
 const registerPlugin = (plugin, nameOrOptions = '', options = {}) => {
   // map name and options depending on the arguments provided
