@@ -18,7 +18,6 @@
 import methods from './methods.js'
 import scheduling from './timeouts_intervals.js'
 import events from './events.js'
-import log from './log.js'
 import router from './router.js'
 import announcer from './announcer.js'
 import utils from './utils.js'
@@ -26,7 +25,7 @@ import symbols from '../../lib/symbols.js'
 
 export default Object.defineProperties(
   {
-    [symbols['pluginsRegistered']]: false,
+    [symbols['launched']]: false,
   },
-  { ...methods, ...scheduling, ...events, ...log, ...router, ...announcer, ...utils }
+  { ...methods, ...scheduling, ...events, ...router, ...announcer, ...utils }
 )
