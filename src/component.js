@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Log, default as log } from './lib/log.js'
+import { Log } from './lib/log.js'
 import parser from './lib/templateparser/parser.js'
 import codegenerator from './lib/codegenerator/generator.js'
 import { createHumanReadableId, createInternalId } from './lib/componentId.js'
