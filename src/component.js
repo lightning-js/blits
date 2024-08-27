@@ -43,6 +43,8 @@ const required = (name) => {
   throw new Error(`Parameter ${name} is required`)
 }
 
+let watchMap = new WeakMap()
+
 /**
  * Component factory function
  * @param {string} name - The name of the component
@@ -170,12 +172,44 @@ const Component = (name = required('name'), config = required('config')) => {
 
     // setup watchers if the components has watchers specified
     if (this[symbols.watchers]) {
+      const getValueOfKey = (key) => {
+        let currentCompWatchMap = watchMap.get(this)
+
+        if (!currentCompWatchMap) {
+          currentCompWatchMap = new Map()
+          watchMap.set(this, currentCompWatchMap)
+        }
+
+        let value = null
+        let target
+
+        if (key.includes('.') === true) {
+          const keys = key.split('.')
+          const numOfKeys = keys.length
+          for (let i = 0; i < numOfKeys; i++) {
+            value = value === null ? this[keys[i]] : value[keys[i]]
+            if (i === numOfKeys - 2) {
+              currentCompWatchMap.set(key, value)
+            }
+          }
+          target = keys[numOfKeys - 1]
+        } else {
+          value = this[key]
+          target = key
+        }
+        return { value, target }
+      }
+
       Object.keys(this[symbols.watchers]).forEach((watchKey) => {
-        let old = this[watchKey]
+        let { old, target } = getValueOfKey(watchKey)
         effect((force = false) => {
-          if (old !== this[watchKey] || force === true) {
-            this[symbols.watchers][watchKey].apply(this, [this[watchKey], old])
-            old = this[watchKey]
+          const newValue =
+            watchKey.includes('.') === true
+              ? watchMap.get(this).get(watchKey)[target]
+              : this[watchKey]
+          if (old !== newValue || force === true) {
+            this[symbols.watchers][watchKey].apply(this, [newValue, old])
+            old = newValue
           }
         })
       })
