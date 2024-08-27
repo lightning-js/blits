@@ -142,8 +142,8 @@ const propsTransformer = {
       }
 
       if (typeof v.position === 'object') {
-        resizeMode['clipX'] = 'x' in v.position ? v.position.x : null
-        resizeMode['clipY'] = 'y' in v.position ? v.position.y : null
+        resizeMode['clipX'] = 'x' in v.position === true ? v.position.x : null
+        resizeMode['clipY'] = 'y' in v.position === true ? v.position.y : null
       }
       this.props['textureOptions'] = { resizeMode }
     }
