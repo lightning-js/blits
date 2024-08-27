@@ -3,7 +3,7 @@
 Besides the methods that are specified in the Component configuration object, each Blits Component comes with a number of
 _utility methods_ built in.
 
-They utility methods are prefixed with a `$`-sign, to clearly indicate they are _framework provided_ methods, that are _not private_, but
+Utility methods are prefixed with a `$`-sign, to clearly indicate they are _framework provided_ methods, that are _not private_, but
 intended to be _used by the developer_. The `$`-prefix also helps prevent accidental naming collisions.
 
 ### $select
@@ -38,14 +38,14 @@ export default Blits.Component('MyComponent', {
 
 > As the `this.$select()` gives direct access to an Element or a Component, it allows the developer to directly interact with it. There are valid use cases, but direct manipulation of Elements, calling methods and changing properties on a Component comes with risks. It circumvents the whole structure of reactivity and props communication built into Blits, and can lead to unexpected situations or anti-patterns. So use with care!
 
-## $focus
+### $focus
 
 The `$focus()`-method can be used to set the focus to a Component instance. It can either be called on the instance itself, in order to "claim"
 the focus. But more often it will be used to delegate the focus from on Component to another.
 
 > It is important to understand that only a Component can receive focus in Blits. Elements don't have a focus method, and also have no way of reacting to focus changes (because they have no hooks etc.).
 
-Often focus will be passed onto  a child component, for example in the case of a list or swimlane, where you want to delegate the focus to a poster.
+Often focus will be passed onto a child component, for example in the case of a list or swimlane, where you want to delegate the focus to a poster.
 In this case the focus method will be used in combination with `this.$select()` to first select the desired child Component by ref, and subsequently call the `$focus()` method on that Component.
 
 ```js
@@ -90,7 +90,7 @@ The `$focus`-method accepts an optional `event` parameter, which is of the type 
 This can be used to _bubble up_ input events (specified in the `input` key of the component configuration object) and helps to create a smooth experience, preventing a user to click multiple times.
 
 
-## $trigger
+### $trigger
 
 Blits has reactivity built-in, which means that re-renders in the template, as well as watchers and computed properties, are automatically fired whenever a state value changes. But sometimes you may want trigger the side effects of a state values change, without actually changing the value. This often is useful when a Component first receives focus and you want to ensure that the default state values are applied.
 
@@ -120,10 +120,10 @@ export default Blits.Component('MyComponent', {
 
 ### $emit
 
-When working with Components in Blits you will often want to send data from one to another. In the case of (direct) child Cexamlomponents, using
+When working with Components in Blits you will often want to send data from one to another. In the case of (direct) child Component, using
 props is the defacto way for inter-component communication.
 
-For passing data from a child to a parent component, you may be temped to use the `this.parent` reference and change the state directly. While this works, it does create a strict dependency on the parent, meaning the child Component only works properly when tied directly to a specific parent. This reduces reusability of Components and may cause limitations or problems later on.
+For passing data from a child to a parent component, you may be tempted to use the `this.parent` reference and change the state directly. While this works, it does create a strict dependency on the parent, meaning the child Component only works properly when tied directly to a specific parent. This reduces reusability of Components and may cause limitations or problems later on.
 
 Instead the `this.$emit()` method can be used, which is available on each Component as a utility function. It's designed to easily emit data to anywhere in an App. The first argument is the `name` of the event that will be emitted (i.e. `changeBackground`) and optionally a second argument with additional `data` can be passed.
 
@@ -190,12 +190,11 @@ Blits comes with some built-in methods to register and clear timeouts. Under the
 
 The `this.$setTimeout()`-method creates a timeout, using a thin wrapper around the `window.setTimeout()` method. The first argument is the `callback` to be executed after the `delay` specified in the second argument. The method returns a `timeout id`, which can be used to mannually clear the timeout.
 
-## $clearTimeout
+### $clearTimeout
 
 The `this.$clearTimeout()`-method is a thin wrapper around the `window.clearTimeout()`-method. By passing in the `id` of a timeout, it will clear and remove the timeout.
 
-
-## $clearTimeouts
+### $clearTimeouts
 
 The `this.$clearTimeouts()`-method is a utility method that is used to clear all the timeouts created via the `this.$setTimeout()` method in one go. The method doesn't require to pass any timeout ids. This method is automatically called when destroying a Component, and with that it prevents memory leaks due to dangling timeouts.
 
@@ -240,12 +239,12 @@ For this reason Blits has 3 built-in utility methods to help registering and cle
 
 The `this.$setInterval()`-method create an interval, using a thin wrapper around the `window.setInterval()` method. The first argument is the `callback` to be executed after each interval `delay` specified in the second argument. The method returns an `interval id`, which can be used to mannually clear the interval.
 
-## $clearInterval
+### $clearInterval
 
 The `this.$clearInterval()`-method is a thin wrapper around the `window.clearInterval()`-method. By passing in the `id` of an interval, it will clear and remove the interval.
 
 
-## $clearIntervalss
+### $clearIntervals
 
 The `this.$clearIntervals()`-method is a utility method that is used to clear all the intervals created via the `this.$setInterval()` method in one go. The method doesn't require to pass any interval ids. This method is automatically called when destroying a Component, and with that it prevents memory leaks due to dangling intervals.
 
