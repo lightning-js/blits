@@ -15,13 +15,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import log from '../../lib/log.js'
+import { default as log } from '../lib/log'
 
 export default {
-  $log: {
-    value: log('App'),
-    writable: false,
-    enumerable: true,
-    configurable: false,
+  name: 'log',
+  plugin() {
+    return log('App')
   },
 }
