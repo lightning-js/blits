@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.3.1
+
+_27 aug 2024_
+
+- Moved `this.$log` functionality to a plugin, which delays the instantation and allows it to pick up launch settings (bug fix)
+
+
 ## v1.3.0
 
 _19 aug 2024_
