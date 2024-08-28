@@ -310,6 +310,7 @@ const generateForLoopCode = function (templateObject, parent) {
       let l = rawCollection.length
       while(l--) {
         const ${item} = rawCollection[l]
+        const ${index} = l
         keys.add('' +  ${interpolate(key, '') || 'l'})
       }
   `)
