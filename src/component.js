@@ -173,21 +173,22 @@ const Component = (name = required('name'), config = required('config')) => {
     // setup watchers if the components has watchers specified
     if (this[symbols.watchers]) {
       const getValueOfKey = (key) => {
-        let currentCompWatchMap = watchMap.get(this)
-
-        if (!currentCompWatchMap) {
-          currentCompWatchMap = new Map()
-          watchMap.set(this, currentCompWatchMap)
-        }
-
         let value = null
         let target
 
         if (key.includes('.') === true) {
+          let currentCompWatchMap = watchMap.get(this)
+
+          if (currentCompWatchMap === undefined) {
+            currentCompWatchMap = new Map()
+            watchMap.set(this, currentCompWatchMap)
+          }
+
           const keys = key.split('.')
           const numOfKeys = keys.length
           for (let i = 0; i < numOfKeys; i++) {
             value = value === null ? this[keys[i]] : value[keys[i]]
+            // storing parent object reference of target key
             if (i === numOfKeys - 2) {
               currentCompWatchMap.set(key, value)
             }
