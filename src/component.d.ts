@@ -300,6 +300,11 @@ declare namespace Component {
     /**
     * Set focus to the Component, optionally pass a KeyboardEvent for instant event bubbling
     */
+    $focus: (event?: KeyboardEvent) => void
+    /**
+     * @deprecated
+     * Deprecated:  use `this.$focus()` instead
+     */
     focus: (event?: KeyboardEvent) => void
 
     /**
@@ -317,6 +322,12 @@ declare namespace Component {
     * }
     * ```
     */
+    $select: (ref: string) => ComponentInstance | ElementInstance
+
+    /**
+     * @deprecated
+     * Deprecated: use `this.$select()` instead
+     */
     select: (ref: string) => ComponentInstance | ElementInstance
 
     /**
@@ -345,6 +356,7 @@ declare namespace Component {
 
   export interface ElementInstance {
     focus?: () => void
+    $focus?: () => void
   }
 
   export interface ComponentConfig<Props extends string, S, M> {

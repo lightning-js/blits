@@ -17,6 +17,7 @@
   - [Hooking into lifecycle events](/components/lifecycle_events.md)
   - [Handling User input](/components/user_input.md)
   - [Methods](/components/methods.md)
+  - [Utility methods](/components/utility_methods.md)
 - Transitions and Animations
   - [Transitions](/transitions_animations/transitions.md)
 - Built-in components

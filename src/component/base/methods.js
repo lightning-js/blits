@@ -24,6 +24,15 @@ import { Log } from '../../lib/log.js'
 export default {
   focus: {
     value: function (e) {
+      Log.warn('this.focus is deprecated, use this.$focus instead')
+      return this.$focus(e)
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
+  $focus: {
+    value: function (e) {
       this[symbols.state].hasFocus = true
       Focus.set(this, e)
     },
@@ -55,6 +64,15 @@ export default {
   },
   select: {
     value: function (ref) {
+      Log.warn('this.select is deprecated, use this.$select instead')
+      return this.$select(ref)
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
+  $select: {
+    value: function (ref) {
       let selected = null
       this[symbols.children].forEach((child) => {
         if (Array.isArray(child)) {
@@ -77,8 +95,8 @@ export default {
   },
   trigger: {
     value: function (key) {
-      // trigger with force set to true
-      trigger(this[symbols.originalState], key, true)
+      Log.warn('this.trigger is deprecated, use this.$trigger instead')
+      return this.$trigger(key)
     },
     writable: false,
     enumerable: true,
@@ -86,8 +104,17 @@ export default {
   },
   $trigger: {
     value: function (key) {
-      Log.warn('this.$trigger is deprecated, use this.trigger instead')
-      return this.trigger(key)
+      let target = this[symbols.originalState]
+      // when dot notation used, find the nested target
+      if (key.indexOf('.') > -1) {
+        const keys = key.split('.')
+        key = keys.pop(keys)
+        for (let i = 0; i < keys.length; i++) {
+          target = target[keys[i]]
+        }
+      }
+      // trigger with force set to true
+      trigger(target, key, true)
     },
     writable: false,
     enumerable: true,
