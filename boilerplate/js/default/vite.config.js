@@ -7,6 +7,9 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
   return {
     base: '/', // Set to your base path if you are deploying to a subdirectory (example: /myApp/)
     plugins: [...blitsVitePlugins],
+    esbuild: {
+      minifyIdentifiers: false,
+    },
     resolve: {
       mainFields: ['browser', 'module', 'jsnext:main', 'jsnext'],
     },
