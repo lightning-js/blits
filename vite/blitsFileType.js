@@ -39,7 +39,6 @@ export default function blitsFileType() {
 function parseBlitsFile(source) {
   const templateMatch = source.match(/<template>([\s\S]*?)<\/template>/)
   const scriptMatch = source.match(/<script>([\s\S]*?)<\/script>/)
-
   return {
     template: templateMatch ? templateMatch[1].trim() : '',
     script: scriptMatch ? scriptMatch[1].trim() : '',
@@ -48,7 +47,8 @@ function parseBlitsFile(source) {
 
 function injectTemplate(script, template) {
   const componentRegex =
-    /(Blits\.Component|Component)\s*\(\s*(['"])(.+?)\2\s*,\s*\{|Blits\.Application\s*\(\s*\{/
+    /(Blits\.Component|Component)\s*\(\s*(['"`])(?:(?=(\\?))\3.)*?\2\s*,\s*\{|Blits\.Application\s*\(\s*\{/
+
   const match = script.match(componentRegex)
 
   if (!match) {
@@ -58,8 +58,8 @@ function injectTemplate(script, template) {
     )
   }
 
-  const [fullMatch] = match
-  const insertIndex = script.indexOf(fullMatch) + fullMatch.length - 1
+  // The insertion point is right after the opening curly brace
+  const insertIndex = match.index + match[0].length
 
   // Using template literals to preserve multiline strings and escape characters
   const injection = `\n  template: \`${template.replace(/`/g, '\\`')}\`,\n`
