@@ -15,28 +15,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export default function blitsFileType() {
-  return {
-    name: 'vite-plugin-blits-file-type',
-    enforce: 'pre',
-    transform(src, id) {
-      if (id.endsWith('.blits')) {
-        try {
-          const { template, script } = parseBlitsFile(src)
-          const transformedCode = injectTemplate(script, template)
-          return {
-            code: transformedCode,
-            map: null, // no source map
-          }
-        } catch (error) {
-          this.error(error)
-        }
-      }
-    },
-  }
+export default (source) => {
+  const { template, script } = parseBlitsFile(source)
+  return injectTemplate(script, template)
 }
 
-function parseBlitsFile(source) {
+const parseBlitsFile = (source) => {
   const templateMatch = source.match(/<template>([\s\S]*?)<\/template>/)
   const scriptMatch = source.match(/<script>([\s\S]*?)<\/script>/)
   return {
@@ -45,7 +29,7 @@ function parseBlitsFile(source) {
   }
 }
 
-function injectTemplate(script, template) {
+const injectTemplate = (script, template) => {
   const componentRegex =
     /(Blits\.Component|Component)\s*\(\s*(['"`])(?:(?=(\\?))\3.)*?\2\s*,\s*\{|Blits\.Application\s*\(\s*\{/
 
