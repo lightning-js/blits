@@ -16,7 +16,7 @@
  */
 
 const eventsMap = new Map()
-const cache = new Map()
+const callbackCache = new Map()
 
 export default {
   registerListener(component, event, cb, priority = 0) {
@@ -33,7 +33,7 @@ export default {
     }
 
     components.add({ cb, priority })
-    cache.delete(event) // Invalidate the cache when a new callback is added
+    callbackCache.delete(event) // Invalidate the callbackCache when a new callback is added
   },
 
   executeListeners(event, params) {
@@ -42,7 +42,7 @@ export default {
       return true // No listeners, so execution can be considered successful
     }
 
-    if (cache.has(event) === false) {
+    if (callbackCache.has(event) === false) {
       const allCallbacks = []
       for (const [component, components] of componentsMap) {
         for (const callbackObj of components) {
@@ -50,10 +50,10 @@ export default {
         }
       }
       allCallbacks.sort((a, b) => b.priority - a.priority)
-      cache.set(event, allCallbacks) // Cache the sorted callbacks with component context
+      callbackCache.set(event, allCallbacks) // callbackCache the sorted callbacks with component context
     }
 
-    const callbacks = cache.get(event)
+    const callbacks = callbackCache.get(event)
     for (let i = 0; i < callbacks.length; i++) {
       const { cb, component } = callbacks[i]
       const result = cb.call(component, params)
@@ -69,7 +69,7 @@ export default {
     for (const [event, componentsMap] of eventsMap) {
       if (componentsMap.has(component)) {
         componentsMap.delete(component)
-        cache.delete(event) // Invalidate the cache for this event
+        callbackCache.delete(event) // Invalidate the callbackCache for this event
 
         // If no more components for this event, remove the event entirely
         if (componentsMap.size === 0) {
