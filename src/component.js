@@ -43,8 +43,6 @@ const required = (name) => {
   throw new Error(`Parameter ${name} is required`)
 }
 
-let watchMap = new WeakMap()
-
 /**
  * Component factory function
  * @param {string} name - The name of the component
@@ -173,41 +171,21 @@ const Component = (name = required('name'), config = required('config')) => {
     // setup watchers if the components has watchers specified
     if (this[symbols.watchers]) {
       const getValueOfKey = (key) => {
-        let value = null
-        let target
-
-        if (key.includes('.') === true) {
-          let currentCompWatchMap = watchMap.get(this)
-
-          if (currentCompWatchMap === undefined) {
-            currentCompWatchMap = new Map()
-            watchMap.set(this, currentCompWatchMap)
-          }
-
+        let target = this
+        if (key.indexOf('.') > -1) {
           const keys = key.split('.')
-          const numOfKeys = keys.length
-          for (let i = 0; i < numOfKeys; i++) {
-            value = value === null ? this[keys[i]] : value[keys[i]]
-            // storing parent object reference of target key
-            if (i === numOfKeys - 2) {
-              currentCompWatchMap.set(key, value)
-            }
+          key = keys.pop()
+          for (let i = 0; i < keys.length; i++) {
+            target = target[keys[i]]
           }
-          target = keys[numOfKeys - 1]
-        } else {
-          value = this[key]
-          target = key
         }
-        return { value, target }
+        return { old: target[key], target, key }
       }
 
       Object.keys(this[symbols.watchers]).forEach((watchKey) => {
-        let { old, target } = getValueOfKey(watchKey)
+        let { old, target, key } = getValueOfKey(watchKey)
         effect((force = false) => {
-          const newValue =
-            watchKey.includes('.') === true
-              ? watchMap.get(this).get(watchKey)[target]
-              : this[watchKey]
+          const newValue = target[key]
           if (old !== newValue || force === true) {
             this[symbols.watchers][watchKey].apply(this, [newValue, old])
             old = newValue
