@@ -21,13 +21,13 @@ const cache = new Map()
 export default {
   registerListener(component, event, cb, priority = 0) {
     let componentsMap = eventsMap.get(event)
-    if (!componentsMap) {
+    if (componentsMap === undefined) {
       componentsMap = new Map()
       eventsMap.set(event, componentsMap)
     }
 
     let components = componentsMap.get(component)
-    if (!components) {
+    if (components === undefined) {
       components = new Set()
       componentsMap.set(component, components)
     }
@@ -38,21 +38,24 @@ export default {
 
   executeListeners(event, params) {
     const componentsMap = eventsMap.get(event)
-    if (!componentsMap) {
-      return true // No listeners so execution can be considered successful
+    if (componentsMap === undefined || componentsMap.size === 0) {
+      return true // No listeners, so execution can be considered successful
     }
 
-    if (!cache.has(event)) {
-      // collect all callbacks and sort them by priority
+    if (cache.has(event) === false) {
       const allCallbacks = []
-      componentsMap.forEach((components, component) => {
-        components.forEach((callbackObj) => allCallbacks.push({ ...callbackObj, component }))
-      })
+      for (const [component, components] of componentsMap) {
+        for (const callbackObj of components) {
+          allCallbacks.push({ ...callbackObj, component })
+        }
+      }
       allCallbacks.sort((a, b) => b.priority - a.priority)
       cache.set(event, allCallbacks) // Cache the sorted callbacks with component context
     }
 
-    for (const { cb, component } of cache.get(event)) {
+    const callbacks = cache.get(event)
+    for (let i = 0; i < callbacks.length; i++) {
+      const { cb, component } = callbacks[i]
       const result = cb.call(component, params)
       if (result === false) {
         return false // Stop propagation if any listener returns false
@@ -63,7 +66,7 @@ export default {
   },
 
   removeListeners(component) {
-    eventsMap.forEach((componentsMap, event) => {
+    for (const [event, componentsMap] of eventsMap) {
       if (componentsMap.has(component)) {
         componentsMap.delete(component)
         cache.delete(event) // Invalidate the cache for this event
@@ -73,6 +76,6 @@ export default {
           eventsMap.delete(event)
         }
       }
-    })
+    }
   },
 }
