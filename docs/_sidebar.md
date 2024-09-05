@@ -26,3 +26,4 @@
 - Plugins
   - [Text-to-Speech / Announcer](/plugins/text-to-speech-announcer.md)
   - [Language](/plugins/language.md)
+  - [Theme](/plugins/theme.md)

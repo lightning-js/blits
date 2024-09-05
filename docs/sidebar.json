@@ -114,6 +114,10 @@
       {
         "text": "Language",
         "link": "/plugins/language"
+      },
+      {
+        "text": "Theme",
+        "link": "/plugins/theme"
       }
     ]
   }
