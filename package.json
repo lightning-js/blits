@@ -8,6 +8,7 @@
     "./vite": "./vite/index.js",
     "./transitions": "./src/router/transitions/index.js",
     "./precompiler": "./src/lib/precompiler/precompiler.js",
+    "./blitsFileConverter": "./src/lib/blitsfileconverter/blitsfileconverter.js",
     "./plugins": "./src/plugins/index.js"
   },
   "scripts": {
