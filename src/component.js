@@ -199,8 +199,8 @@ const Component = (name = required('name'), config = required('config')) => {
   }
 
   const factory = (options = {}, parentEl, parentComponent, rootComponent) => {
-    // Register user defined plugins once on the Base object
-    if (Base[symbols['pluginsRegistered']] === false) {
+    if (Base[symbols['launched']] === false) {
+      // Register user defined plugins once on the Base object (after launch)
       Object.keys(plugins).forEach((pluginName) => {
         const prefixedPluginName = `$${pluginName}`
         if (prefixedPluginName in Base) {
@@ -219,7 +219,12 @@ const Component = (name = required('name'), config = required('config')) => {
           configurable: false,
         })
       })
-      Base[symbols['pluginsRegistered']] = true
+
+      // register global components once
+      globalComponents = components()
+
+      // mark launched true
+      Base[symbols['launched']] = true
     }
 
     // setup the component once per component type, using Base as the prototype
@@ -232,11 +237,6 @@ const Component = (name = required('name'), config = required('config')) => {
     if (!config.code) {
       Log.debug(`Generating code for ${name} component`)
       config.code = codegenerator.call(config, parser(config.template, name))
-    }
-
-    // register global components once
-    if (!globalComponents) {
-      globalComponents = components()
     }
 
     // create an instance of the component, using base as the prototype (which contains Base)

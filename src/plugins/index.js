@@ -17,3 +17,4 @@
 
 export { default as language } from './language.js'
 export { default as theme } from './theme.js'
+export { default as appState } from './appstate.js'

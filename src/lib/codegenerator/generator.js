@@ -300,6 +300,14 @@ const generateForLoopCode = function (templateObject, parent) {
     ctx.renderCode.push(`parent = ${parent}`)
   }
 
+  const indexRegex = new RegExp(`\\$${index}(?!['\\w)]`)
+  const indexResult = indexRegex.exec(key)
+  if (Array.isArray(indexResult)) {
+    ctx.renderCode.push(
+      `console.warn(" Using '${index}' in the key, like key=${key},  is not recommended")`
+    )
+  }
+
   const forStartCounter = counter
 
   ctx.renderCode.push(`
@@ -310,6 +318,7 @@ const generateForLoopCode = function (templateObject, parent) {
       let l = rawCollection.length
       while(l--) {
         const ${item} = rawCollection[l]
+        const ${index} = l
         keys.add('' +  ${interpolate(key, '') || 'l'})
       }
   `)
