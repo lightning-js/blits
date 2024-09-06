@@ -170,20 +170,20 @@ const Component = (name = required('name'), config = required('config')) => {
 
     // setup watchers if the components has watchers specified
     if (this[symbols.watchers]) {
-      const getValueOfKey = (key) => {
+      Object.keys(this[symbols.watchers]).forEach((watchKey) => {
         let target = this
-        if (key.indexOf('.') > -1) {
-          const keys = key.split('.')
+        let key = watchKey
+        // when dot notation used, find the nested target
+        if (watchKey.indexOf('.') > -1) {
+          const keys = watchKey.split('.')
           key = keys.pop()
           for (let i = 0; i < keys.length; i++) {
             target = target[keys[i]]
           }
         }
-        return { old: target[key], target, key }
-      }
 
-      Object.keys(this[symbols.watchers]).forEach((watchKey) => {
-        let { old, target, key } = getValueOfKey(watchKey)
+        let old = this[key]
+
         effect((force = false) => {
           const newValue = target[key]
           if (old !== newValue || force === true) {
