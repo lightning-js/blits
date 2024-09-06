@@ -171,11 +171,24 @@ const Component = (name = required('name'), config = required('config')) => {
     // setup watchers if the components has watchers specified
     if (this[symbols.watchers]) {
       Object.keys(this[symbols.watchers]).forEach((watchKey) => {
-        let old = this[watchKey]
+        let target = this
+        let key = watchKey
+        // when dot notation used, find the nested target
+        if (watchKey.indexOf('.') > -1) {
+          const keys = watchKey.split('.')
+          key = keys.pop()
+          for (let i = 0; i < keys.length; i++) {
+            target = target[keys[i]]
+          }
+        }
+
+        let old = this[key]
+
         effect((force = false) => {
-          if (old !== this[watchKey] || force === true) {
-            this[symbols.watchers][watchKey].apply(this, [this[watchKey], old])
-            old = this[watchKey]
+          const newValue = target[key]
+          if (old !== newValue || force === true) {
+            this[symbols.watchers][watchKey].apply(this, [newValue, old])
+            old = newValue
           }
         })
       })
