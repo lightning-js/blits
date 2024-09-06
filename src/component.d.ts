@@ -265,7 +265,9 @@ declare namespace Component {
     /**
     * Listen to events emitted by other components
     */
-    $listen: (event: string, callback: (args: any) => void) => void
+    $listen: {
+      (event: string, callback: (args: any) => void, priority?: number): void;
+    }
 
     /**
     * Emit events that other components can listen to
