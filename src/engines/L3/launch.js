@@ -16,6 +16,9 @@
  */
 
 import { RendererMain } from '@lightningjs/renderer'
+import { WebGlCoreRenderer, SdfTextRenderer } from '@lightningjs/renderer/webgl'
+import { CanvasCoreRenderer, CanvasTextRenderer } from '@lightningjs/renderer/canvas'
+
 import { Log } from '../../lib/log.js'
 import { SCREEN_RESOLUTIONS } from '../../constants.js'
 import colors from '../../lib/colors/colors.js'
@@ -24,17 +27,14 @@ import shaderLoader from './shaderLoader.js'
 
 export let renderer = {}
 
+const renderEngine = (settings) => {
+  const renderMode = 'renderMode' in settings ? settings.renderMode : 'webgl'
+
+  if (renderMode === 'webgl') return WebGlCoreRenderer
+  if (renderMode === 'canvas') return CanvasCoreRenderer
+}
+
 export default (App, target, settings = {}) => {
-  if ('fontLoader' in settings) {
-    Log.warn(
-      `
-
-Starting version 0.9.0 of Blits, the Launch setting \`fontLoader\` is not supported / required anymore.
-You can remove the option from your \`src/index.js\`-file. And you can safely remove the file \`src/fontLoader.js\` from your project.
-      `
-    )
-  }
-
   renderer = new RendererMain(
     {
       appWidth: settings.w || 1920,
@@ -55,7 +55,8 @@ You can remove the option from your \`src/index.js\`-file. And you can safely re
       // gpu memory limit, converted from mb to bytes - defaults to 200mb
       txMemByteThreshold:
         'gpuMemoryLimit' in settings ? settings.gpuMemoryLimit * 1024 * 1024 : 200 * 1024 * 1024,
-      renderMode: 'renderMode' in settings ? settings.renderMode : 'webgl',
+      renderEngine: renderEngine(settings),
+      fontEngines: [SdfTextRenderer, CanvasTextRenderer],
     },
     target
   )
