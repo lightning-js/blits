@@ -300,7 +300,7 @@ const generateForLoopCode = function (templateObject, parent) {
     ctx.renderCode.push(`parent = ${parent}`)
   }
 
-  const indexRegex = new RegExp(`\\$${index}(?!['\\w)]`)
+  const indexRegex = new RegExp(`\\$${index}(?!['\\w])`)
   const indexResult = indexRegex.exec(key)
   if (Array.isArray(indexResult)) {
     ctx.renderCode.push(
