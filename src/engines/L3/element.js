@@ -205,6 +205,11 @@ const propsTransformer = {
     }
   },
   set effects(v) {
+    for (let i = 0; i < v.length; i++) {
+      if (v[i].props && v[i].props.color) {
+        v[i].props.color = colors.normalize(v[i].props.color)
+      }
+    }
     this.props['shader'] = renderer.createShader('DynamicShader', {
       effects: v,
     })
