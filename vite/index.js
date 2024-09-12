@@ -17,10 +17,8 @@
 
 import preCompiler from './preCompiler.js'
 import msdfGenerator from './msdfGenerator.js'
-import blitsFileConverter from './blitsFileConverter.js'
 
 export { default as preCompiler } from './preCompiler.js'
 export { default as msdfGenerator } from './msdfGenerator.js'
-export { default as blitsFileConverter } from './blitsFileConverter.js'
 
-export default [blitsFileConverter(), preCompiler(), msdfGenerator()]
+export default [preCompiler(), msdfGenerator()]
