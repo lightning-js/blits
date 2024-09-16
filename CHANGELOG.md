@@ -15,6 +15,12 @@ _16 sept 2024_
 - Fixed bug when using hex-colors in an effect
 - Upgraded to latest version of the renderer (2.1.1)
 
+## v1.3.1
+
+_27 aug 2024_
+
+- Moved `this.$log` functionality to a plugin, which delays the instantation and allows it to pick up launch settings (bug fix)
+
 ## v1.3.0
 
 _19 aug 2024_
