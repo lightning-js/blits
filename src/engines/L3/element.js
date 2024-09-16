@@ -125,6 +125,28 @@ const propsTransformer = {
       this.props['color'] = 0xffffffff
     }
   },
+  set fit(v) {
+    const resizeMode = {}
+
+    if (v === 'cover' || v === 'contain') {
+      this.props['textureOptions'] = { resizeMode: { type: v } }
+      return
+    }
+
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      resizeMode['type'] = v.type || 'cover'
+
+      if (typeof v.position === 'number') {
+        resizeMode['clipY'] = resizeMode['clipX'] = v.position
+      }
+
+      if (typeof v.position === 'object') {
+        resizeMode['clipX'] = 'x' in v.position === true ? v.position.x : null
+        resizeMode['clipY'] = 'y' in v.position === true ? v.position.y : null
+      }
+      this.props['textureOptions'] = { resizeMode }
+    }
+  },
   set rtt(v) {
     this.props['rtt'] = v
     if (v === true && this.raw['color'] === undefined) {
@@ -183,6 +205,11 @@ const propsTransformer = {
     }
   },
   set effects(v) {
+    for (let i = 0; i < v.length; i++) {
+      if (v[i].props && v[i].props.color) {
+        v[i].props.color = colors.normalize(v[i].props.color)
+      }
+    }
     this.props['shader'] = renderer.createShader('DynamicShader', {
       effects: v,
     })

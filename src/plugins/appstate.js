@@ -15,6 +15,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export { default as language } from './language.js'
-export { default as theme } from './theme.js'
-export { default as appState } from './appstate.js'
+import { reactive } from '../lib/reactivity/reactive'
+
+export default {
+  name: 'appState',
+  plugin(state = {}) {
+    return reactive(state)
+  },
+}

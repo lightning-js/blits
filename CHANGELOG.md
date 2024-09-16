@@ -1,11 +1,25 @@
 # Changelog
 
+## v1.4.0
+
+_16 sept 2024_
+
+- Added support for `fit` attribute to enable resizeModes for images (cover, contain)
+- Added priority parameter for event emitters + ability to stop propagation
+- Added Global App State plugin
+- Added Theme plugin
+- Standardized built-in utility methods (i.e. focus, select, setTimeout, etc.) to all be prefixed with a `$`.
+- Added support for triggering nested state variables with dot-notation (i.e `foo.bar.bla`)
+- Added support for watching nested state variables (i.e `foo.bar.bla`)
+- Fixed bug with Log plugin not picking up on `debugLevel` setting
+- Fixed bug when using hex-colors in an effect
+- Upgraded to latest version of the renderer (2.1.1)
+
 ## v1.3.1
 
 _27 aug 2024_
 
 - Moved `this.$log` functionality to a plugin, which delays the instantation and allows it to pick up launch settings (bug fix)
-
 
 ## v1.3.0
 
