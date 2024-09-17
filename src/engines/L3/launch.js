@@ -18,6 +18,7 @@
 import { RendererMain } from '@lightningjs/renderer'
 import { WebGlCoreRenderer, SdfTextRenderer } from '@lightningjs/renderer/webgl'
 import { CanvasCoreRenderer, CanvasTextRenderer } from '@lightningjs/renderer/canvas'
+import { Inspector } from '@lightningjs/renderer/inspector'
 
 import { Log } from '../../lib/log.js'
 import { SCREEN_RESOLUTIONS } from '../../constants.js'
@@ -50,7 +51,7 @@ export default (App, target, settings = {}) => {
           ? settings.webWorkersLimit
           : window.navigator.hardwareConcurrency || 2,
       clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
-      enableInspector: settings.inspector || false,
+      inspector: settings.inspector === true ? Inspector : undefined,
       boundsMargin: settings.viewportMargin || 0,
       // gpu memory limit, converted from mb to bytes - defaults to 200mb
       txMemByteThreshold:
