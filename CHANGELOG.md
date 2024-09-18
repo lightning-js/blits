@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4.1
+
+_18 sept 2024_
+
+- Fixed support for inspector, compatible with renderer 2.x changes
+
 ## v1.4.0
 
 _16 sept 2024_
