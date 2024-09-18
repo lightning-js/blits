@@ -15,9 +15,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { ImageTexture } from '@lightningjs/renderer'
 import { track, trigger, pauseTracking, resumeTracking } from './effect.js'
 import symbols from '../symbols.js'
-import { ImageTexture } from '@lightningjs/renderer'
 
 const arrayPatchMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort']
 
