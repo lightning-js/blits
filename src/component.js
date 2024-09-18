@@ -260,6 +260,9 @@ const Component = (name = required('name'), config = required('config')) => {
   // during the code generation step
   factory.config = config
 
+  // To determine whether dynamic component is actual Blits component or not
+  factory[symbols.isComponent] = true
+
   return factory
 }
 
