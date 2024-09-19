@@ -9,7 +9,7 @@ dependencies:
     specifier: ^1.0.2
     version: 1.0.2
   '@lightningjs/renderer':
-    specifier: https://github.com/lightning-js/renderer.git#7c8be363aa91960bab4301594aacb2e6ce076920
+    specifier: https://github.com/lightning-js/renderer#7c8be363aa91960bab4301594aacb2e6ce076920
     version: github.com/lightning-js/renderer/7c8be363aa91960bab4301594aacb2e6ce076920
   execa:
     specifier: ^8.0.1
