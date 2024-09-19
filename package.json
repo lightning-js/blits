@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "@lightningjs/msdf-generator": "^1.0.2",
-    "@lightningjs/renderer": "git+ssh://git@github.com:lightning-js/renderer.git#7c8be363aa91960bab4301594aacb2e6ce076920",
+    "@lightningjs/renderer": "https://github.com/lightning-js/renderer.git#7c8be363aa91960bab4301594aacb2e6ce076920",
     "execa": "^8.0.1",
     "kolorist": "^1.8.0",
     "ora": "^7.0.1",
