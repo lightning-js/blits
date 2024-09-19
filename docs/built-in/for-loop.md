@@ -14,7 +14,7 @@ The for loop take an `Array` of data, loops over it and for each Array-item an E
 The for-loop directive should be added as an attribute on the Element or Component that you want to repeat for each item in your Array. In the template syntax a `for ... in` construct is used. This ultimately transpiles down to a classic, optimized for loop.
 
 ```js
-export default Blits('ForLoop', {
+export default Blits.Component('ForLoop', {
   template: `
     <Element>
       <Element :for="item in $items" w="100" h="100" color="lime" />
@@ -40,7 +40,7 @@ All we need to do is declare the `index` in the `for`-directive and subsequently
 You may choose any name for the `index` variable (like `i` or `forIndex`). This may be useful when you already have the `index`-key specified as a `state` or `prop` variable on your component, causing a conflict.
 
 ```js
-export default Blits('ForLoop', {
+export default Blits.Component('ForLoop', {
   template: `
     <Element>
       <Element :for="(item, index) in $items" w="100" h="100" color="lime" :x="$index * 150" />
@@ -64,7 +64,7 @@ When iterating over an Array in the for loop, you can reference the current Arra
 Consider the example below, that loops over an array of _Objects_, and _also_ references the `alpha` state variable.
 
 ```js
-export default Blits('ForLoop', {
+export default Blits.Component('ForLoop', {
   template: `
     <Element>
       <Element
@@ -113,7 +113,7 @@ It's important that the `key`-attribute is _unique_ for each Array item. Also be
 
 
 ```js
-export default Blits('ForLoop', {
+export default Blits.Component('ForLoop', {
   template: `
     <Element>
       <Element
