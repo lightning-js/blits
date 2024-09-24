@@ -234,7 +234,7 @@ const generateComponentCode = function (
       if(!component${counter}) {
         throw new Error('Component "${templateObject[Symbol.for('componentType')]}" not found')
       }
-    } else if(typeof componentType === 'function' && componentType.name === 'factory') {
+    } else if(typeof componentType === 'function' && componentType[Symbol.for('isComponent')] === true) {
       component${counter} = componentType
     }
 

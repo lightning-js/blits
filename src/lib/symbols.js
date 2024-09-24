@@ -44,4 +44,6 @@ export default {
   slots: Symbol.for('slots'),
   // Symbol 'componentType' utilized within generated code
   componentType: Symbol.for('componentType'),
+  // Symbol 'isComponent' utilized within generated code
+  isComponent: Symbol.for('isComponent'),
 }
