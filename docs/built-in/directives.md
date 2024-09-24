@@ -24,7 +24,7 @@ It is very useful in combination with API driven Apps, where the type of Compone
 The `is`-component should always be used together with the built-in `Component`-tag.
 
 ```js
-export default Blits('DynamicComponents', {
+export default Blits.Component('DynamicComponents', {
   template: `
     <Element>
       <Component is="$firstComponent" />
