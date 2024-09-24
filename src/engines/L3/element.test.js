@@ -159,6 +159,118 @@ test('Element - Set `texture` property', (assert) => {
   assert.end()
 })
 
+test('Element - Set `fit` property with a string type value', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  const fitVal = 'contain'
+  el.set('fit', fitVal)
+
+  assert.ok(el.node['textureOptions'] instanceof Object, 'textureOptions should be an object')
+  assert.ok(
+    el.node['textureOptions']['resizeMode'] instanceof Object,
+    'resizeMode should be an object'
+  )
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['type'],
+    fitVal,
+    'Node resizeMode "type" parameter should be set'
+  )
+  assert.equal(
+    el.props.props['textureOptions']['resizeMode']['type'],
+    fitVal,
+    'Props textureOptions parameter should be set'
+  )
+  assert.equal(el.props.raw.get('fit'), fitVal, "Props' raw map entry should be added")
+  assert.end()
+})
+
+test('Element - Set `fit` property with an object type value', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  const fitVal = "{type: 'cover', position: {x: 0, y:1}}"
+  el.set('fit', fitVal)
+
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['type'],
+    'cover',
+    'Node resizeMode "type" parameter should be set'
+  )
+  assert.equal(
+    el.props.props['textureOptions']['resizeMode']['type'],
+    'cover',
+    'Props textureOptions parameter should be set'
+  )
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['clipX'],
+    0,
+    'Node resizeMode "clipX" parameter should be set to correct value'
+  )
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['clipY'],
+    1,
+    'Node resizeMode "clipY" parameter should be set to correct value'
+  )
+  assert.equal(el.props.raw.get('fit'), fitVal, "Props' raw map entry should be added")
+  assert.end()
+})
+
+test('Element - Set `fit` property with position key as a string type value', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  const fitVal = "{type: 'cover', position: 1}"
+  el.set('fit', fitVal)
+
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['type'],
+    'cover',
+    'Node resizeMode "type" parameter should be set'
+  )
+  assert.equal(
+    el.props.props['textureOptions']['resizeMode']['type'],
+    'cover',
+    'Props textureOptions parameter should be set'
+  )
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['clipX'],
+    1,
+    'Node resizeMode "clipX" parameter should be set to correct value'
+  )
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['clipY'],
+    1,
+    'Node resizeMode "clipY" parameter should be set to correct value'
+  )
+  assert.equal(el.props.raw.get('fit'), fitVal, "Props' raw map entry should be added")
+  assert.end()
+})
+
+test('Element - Set `fit` property should not set not required keys', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  const fitVal = "{type: 'cover', dummy1: 0, dummy2: 0}"
+  el.set('fit', fitVal)
+
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['type'],
+    'cover',
+    'Node resizeMode "type" parameter should be set'
+  )
+  assert.equal(
+    el.props.props['textureOptions']['resizeMode']['dummy1'],
+    undefined,
+    'Props resizeMode "dummy1" parameter should not be set'
+  )
+  assert.equal(
+    el.props.props['textureOptions']['resizeMode']['dummy2'],
+    undefined,
+    'Props resizeMode "dummy2" parameter should not be set'
+  )
+  assert.end()
+})
 function createElement() {
   const el = element({}, {})
   el.populate({

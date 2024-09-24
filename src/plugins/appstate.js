@@ -15,17 +15,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import methods from './methods.js'
-import scheduling from './timeouts_intervals.js'
-import events from './events.js'
-import router from './router.js'
-import announcer from './announcer.js'
-import utils from './utils.js'
-import symbols from '../../lib/symbols.js'
+import { reactive } from '../lib/reactivity/reactive'
 
-export default Object.defineProperties(
-  {
-    [symbols['launched']]: false,
+export default {
+  name: 'appState',
+  plugin(state = {}) {
+    return reactive(state)
   },
-  { ...methods, ...scheduling, ...events, ...router, ...announcer, ...utils }
-)
+}

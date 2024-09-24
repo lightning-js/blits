@@ -234,7 +234,7 @@ const generateComponentCode = function (
       if(!component${counter}) {
         throw new Error('Component "${templateObject[Symbol.for('componentType')]}" not found')
       }
-    } else if(typeof componentType === 'function' && componentType.name === 'factory') {
+    } else if(typeof componentType === 'function' && componentType[Symbol.for('isComponent')] === true) {
       component${counter} = componentType
     }
 
@@ -300,6 +300,14 @@ const generateForLoopCode = function (templateObject, parent) {
     ctx.renderCode.push(`parent = ${parent}`)
   }
 
+  const indexRegex = new RegExp(`\\$${index}(?!['\\w])`)
+  const indexResult = indexRegex.exec(key)
+  if (Array.isArray(indexResult)) {
+    ctx.renderCode.push(
+      `console.warn(" Using '${index}' in the key, like key=${key},  is not recommended")`
+    )
+  }
+
   const forStartCounter = counter
 
   ctx.renderCode.push(`
@@ -310,6 +318,7 @@ const generateForLoopCode = function (templateObject, parent) {
       let l = rawCollection.length
       while(l--) {
         const ${item} = rawCollection[l]
+        const ${index} = l
         keys.add('' +  ${interpolate(key, '') || 'l'})
       }
   `)

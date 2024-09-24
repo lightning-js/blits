@@ -11,10 +11,10 @@ export default {
   init: Symbol('init'),
   inputEvents: Symbol('inputEvents'),
   intervals: Symbol('intervals'),
+  launched: Symbol('launched'),
   level: Symbol('level'),
   methodKeys: Symbol('methodKeys'),
   originalState: Symbol('originalState'),
-  pluginsRegistered: Symbol('pluginsRegistered'),
   propKeys: Symbol('propKeys'),
   raw: Symbol('raw'),
   ready: Symbol('ready'),
@@ -44,4 +44,6 @@ export default {
   slots: Symbol.for('slots'),
   // Symbol 'componentType' utilized within generated code
   componentType: Symbol.for('componentType'),
+  // Symbol 'isComponent' utilized within generated code
+  isComponent: Symbol.for('isComponent'),
 }

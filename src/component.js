@@ -171,11 +171,24 @@ const Component = (name = required('name'), config = required('config')) => {
     // setup watchers if the components has watchers specified
     if (this[symbols.watchers]) {
       Object.keys(this[symbols.watchers]).forEach((watchKey) => {
-        let old = this[watchKey]
+        let target = this
+        let key = watchKey
+        // when dot notation used, find the nested target
+        if (watchKey.indexOf('.') > -1) {
+          const keys = watchKey.split('.')
+          key = keys.pop()
+          for (let i = 0; i < keys.length; i++) {
+            target = target[keys[i]]
+          }
+        }
+
+        let old = this[key]
+
         effect((force = false) => {
-          if (old !== this[watchKey] || force === true) {
-            this[symbols.watchers][watchKey].apply(this, [this[watchKey], old])
-            old = this[watchKey]
+          const newValue = target[key]
+          if (old !== newValue || force === true) {
+            this[symbols.watchers][watchKey].apply(this, [newValue, old])
+            old = newValue
           }
         })
       })
@@ -199,8 +212,8 @@ const Component = (name = required('name'), config = required('config')) => {
   }
 
   const factory = (options = {}, parentEl, parentComponent, rootComponent) => {
-    // Register user defined plugins once on the Base object
-    if (Base[symbols['pluginsRegistered']] === false) {
+    if (Base[symbols['launched']] === false) {
+      // Register user defined plugins once on the Base object (after launch)
       Object.keys(plugins).forEach((pluginName) => {
         const prefixedPluginName = `$${pluginName}`
         if (prefixedPluginName in Base) {
@@ -219,7 +232,12 @@ const Component = (name = required('name'), config = required('config')) => {
           configurable: false,
         })
       })
-      Base[symbols['pluginsRegistered']] = true
+
+      // register global components once
+      globalComponents = components()
+
+      // mark launched true
+      Base[symbols['launched']] = true
     }
 
     // setup the component once per component type, using Base as the prototype
@@ -234,11 +252,6 @@ const Component = (name = required('name'), config = required('config')) => {
       config.code = codegenerator.call(config, parser(config.template, name))
     }
 
-    // register global components once
-    if (!globalComponents) {
-      globalComponents = components()
-    }
-
     // create an instance of the component, using base as the prototype (which contains Base)
     return component.call(Object.create(base), options, parentEl, parentComponent, rootComponent)
   }
@@ -246,6 +259,9 @@ const Component = (name = required('name'), config = required('config')) => {
   // store the config on the factory, in order to access the config
   // during the code generation step
   factory.config = config
+
+  // To determine whether dynamic component is actual Blits component or not
+  factory[symbols.isComponent] = true
 
   return factory
 }
