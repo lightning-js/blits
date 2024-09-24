@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.4.2
+
+_24 sept 2024_
+
+- Fixed timing issue with calculation of percentages
+- Improved check to see if object is a Blits component, so it's more robust in case of code minification
+
 ## v1.4.1
 
 _18 sept 2024_
