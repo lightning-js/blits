@@ -1,0 +1,10 @@
+{
+  "editor.formatOnSave": false,
+  "eslint.validate": [
+    "javascript"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "js/ts.implicitProjectConfig.checkJs": true
+}
