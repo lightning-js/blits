@@ -62,10 +62,10 @@ export default function () {
               await fontGenerationQueue.enqueue(async () => {
                 // Check if generation is needed
                 if (!fs.existsSync(generatedFontFile)) {
-                  let charsetFilePath = createCharsetFile(targetDir, fontDir, fontName)
+                  const charsetFilePath = createCharsetFile(targetDir, fontDir, fontName)
 
-                  console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`, charsetFilePath)
-                  await generateSDF(fontFile, path.join(targetDir))
+                  console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`)
+                  await generateSDF(fontFile, path.join(targetDir), charsetFilePath)
                 }
               })
 
