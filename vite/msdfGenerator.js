@@ -60,9 +60,11 @@ export default function () {
               const mimeType = ext === 'png' ? 'image/png' : 'application/json'
 
               await fontGenerationQueue.enqueue(async () => {
+                // Check if generation is needed
                 if (!fs.existsSync(generatedFontFile)) {
-                  // Check if generation is needed
-                  console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`)
+                  let charsetFilePath = createCharsetFile(targetDir, fontDir, fontName)
+
+                  console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`, charsetFilePath)
                   await generateSDF(fontFile, path.join(targetDir))
                 }
               })
@@ -105,8 +107,11 @@ export default function () {
 
         // Check if MSDF files are generated, if not, generate them
         if (!fs.existsSync(msdfJsonPath) || !fs.existsSync(msdfPngPath)) {
+          const charsetDir = path.join(msdfOutputDir, relativePath)
+          const charsetFilePath = createCharsetFile(charsetDir, path.dirname(ttfFile), baseName)
+
           console.log(`Generating missing MSDF files for ${ttfFile}`)
-          await generateSDF(ttfFile, path.join(msdfOutputDir, relativePath))
+          await generateSDF(ttfFile, path.join(msdfOutputDir, relativePath), charsetFilePath)
         }
       }
 
@@ -117,11 +122,11 @@ export default function () {
   }
 }
 
-const generateSDF = async (inputFilePath, outputDirPath) => {
+const generateSDF = async (inputFilePath, outputDirPath, charsetFilePath) => {
   // Ensure the destination directory exists
   fs.mkdirSync(outputDirPath, { recursive: true })
 
-  setGeneratePaths(path.dirname(inputFilePath), outputDirPath)
+  setGeneratePaths(path.dirname(inputFilePath), outputDirPath, charsetFilePath)
 
   let font = await genFont(path.basename(inputFilePath), 'msdf')
 
@@ -158,6 +163,44 @@ const copyDir = (src, dest) => {
     const srcPath = path.join(src, entry.name)
     const destPath = path.join(dest, entry.name)
 
+    // Skip copying charset.txt file into dist directory
+    if (srcPath.includes('.charset.txt')) continue
+
     entry.isDirectory() ? copyDir(srcPath, destPath) : fs.copyFileSync(srcPath, destPath) // Copy files
+  }
+}
+
+const createCharsetFile = (charsetDir, ConfigDir, fontName) => {
+  const charsetFilePath = path.join(charsetDir, `${fontName}.charset.txt`)
+
+  // Check charset file already exists, if exists, return file path
+  if (fs.existsSync(charsetFilePath)) {
+    return charsetFilePath
+  }
+
+  const configFilePath = path.join(ConfigDir, `${fontName}.config.json`)
+
+  // Check if font config.json is exists
+  if (fs.existsSync(configFilePath)) {
+    if (!fs.existsSync(charsetDir)) {
+      fs.mkdirSync(charsetDir, { recursive: true })
+    }
+    const configData = JSON.parse(fs.readFileSync(configFilePath, 'utf8'))
+    let charsetContent = configData.charset
+    const presets = configData.preset
+    for (let i = 0; i < presets.length; i++) {
+      charsetContent = charsetContent + presets[i]
+    }
+
+    // write charset content into .txt file
+    try {
+      fs.writeFileSync(charsetFilePath, charsetContent)
+      return charsetFilePath
+    } catch (e) {
+      console.error(e)
+      return ''
+    }
+  } else {
+    return ''
   }
 }
