@@ -40,18 +40,13 @@ export default {
     focusedComponent && focusedComponent !== component.parent && focusedComponent.unfocus()
     focusChain.reverse().forEach((cmp) => cmp.unfocus())
     if (component !== focusedComponent) {
-      setFocusTimeout = setTimeout(
-        () => {
-          focusedComponent = component
-          focusedComponent.lifecycle.state = 'focus'
-          if (event instanceof KeyboardEvent) {
-            document.dispatchEvent(new KeyboardEvent('keydown', event))
-          } else {
-            focusChain = []
-          }
-        },
-        this.hold ? Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS) : 0
-      )
+      if (this.hold === false) {
+        focus(component, event)
+      } else {
+        setFocusTimeout = setTimeout(() => {
+          focus(component, event)
+        }, Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS))
+      }
     }
   },
   input(key, event) {
@@ -59,7 +54,10 @@ export default {
     focusChain = walkChain([focusedComponent], key)
     const componentWithInputEvent = focusChain.shift()
 
-    if (componentWithInputEvent) {
+    if (componentWithInputEvent !== undefined) {
+      if (componentWithInputEvent !== focusedComponent) {
+        this.set(componentWithInputEvent)
+      }
       if (componentWithInputEvent[symbols.inputEvents][key]) {
         componentWithInputEvent[symbols.inputEvents][key].call(componentWithInputEvent, event)
       } else if (componentWithInputEvent[symbols.inputEvents].any) {
@@ -80,4 +78,14 @@ const walkChain = (components, key) => {
     components.unshift(components[0].parent)
     return walkChain(components, key)
   } else return []
+}
+
+const focus = (component, event) => {
+  focusedComponent = component
+  focusedComponent.lifecycle.state = 'focus'
+  if (event !== undefined && event instanceof KeyboardEvent) {
+    document.dispatchEvent(new KeyboardEvent('keydown', event))
+  } else {
+    focusChain = []
+  }
 }
