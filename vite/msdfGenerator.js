@@ -161,9 +161,6 @@ const copyDir = (src, dest) => {
     const srcPath = path.join(src, entry.name)
     const destPath = path.join(dest, entry.name)
 
-    // Skip copying charset.txt file into dist directory
-    if (srcPath.includes('.charset.txt')) continue
-
     entry.isDirectory() ? copyDir(srcPath, destPath) : fs.copyFileSync(srcPath, destPath) // Copy files
   }
 }

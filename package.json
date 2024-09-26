@@ -46,7 +46,7 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/msdf-generator": "github:suresh-gangumalla/msdf-generator#main",
+    "@lightningjs/msdf-generator": "^1.0.2",
     "@lightningjs/renderer": "^2.1.2",
     "execa": "^8.0.1",
     "kolorist": "^1.8.0",
