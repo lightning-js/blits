@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.4.3
+
+_26 sept 2024_
+
+- Fixed issues with sprites in minified production build
+- Bumped renderer to v2.2.0  (with fixes for nested alpha / show issue)
+- Fixed reactivity in plugins not using reactivity mode setting
+- Fixed named slots functionality
+
 ## v1.4.2
 
 _24 sept 2024_
