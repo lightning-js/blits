@@ -16,10 +16,11 @@
  */
 
 import { reactive } from '../lib/reactivity/reactive'
+import Settings from '../settings.js'
 
 export default {
   name: 'appState',
   plugin(state = {}) {
-    return reactive(state)
+    return reactive(state, Settings.get('reactivityMode'))
   },
 }
