@@ -19,16 +19,21 @@ import fetchJson from '../helpers/fetchJson'
 import { Log } from '../lib/log'
 import { reactive } from '../lib/reactivity/reactive'
 
+import Settings from '../settings.js'
+
 export default {
   name: 'language',
   plugin(options = {}) {
     let translations = {}
     let dictionary = {}
 
-    const state = reactive({
-      language: '',
-      loaded: 0,
-    })
+    const state = reactive(
+      {
+        language: '',
+        loaded: 0,
+      },
+      Settings.get('reactivityMode')
+    )
 
     const setLanguage = (language) => {
       // define the dictionary
