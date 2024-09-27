@@ -346,13 +346,13 @@ const Element = {
   animate(prop, value, transition) {
     // if current value is the same as the value to animate to, instantly resolve
     if (this.node[prop] === value) return
-    // check if a transition is already scheduled or running on the same prop
-    if (this.scheduledTransitions[prop]) {
-      if (this.scheduledTransitions[prop].f.state === 'running') {
-        // fastforward to final value
-        this.node[prop] = this.scheduledTransitions[prop].v
-        // this.scheduledTransitions[prop].f.stop()
-      }
+    // check if a transition is already scheduled to run on the same prop
+    // and cancels it if it does
+    if (
+      this.scheduledTransitions[prop] !== undefined &&
+      this.scheduledTransitions[prop].f.state === 'scheduled'
+    ) {
+      this.scheduledTransitions[prop].f.stop()
     }
 
     const props = {}
@@ -382,7 +382,6 @@ const Element = {
     // removed if another transition for the same prop starts in the mean time
     this.scheduledTransitions[prop] = {
       v: props[prop],
-      cancel: false,
       f,
     }
 
@@ -395,7 +394,7 @@ const Element = {
 
     f.once('stopped', () => {
       // remove the prop from scheduled transitions
-      this.scheduledTransitions[prop] = null
+      this.scheduledTransitions[prop] = undefined
       // fire transition end callback when animation ends (if specified)
       if (transition.end && typeof transition.end === 'function') {
         transition.end.call(this.component, this, prop, this.node[prop])
