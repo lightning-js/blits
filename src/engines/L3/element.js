@@ -344,8 +344,6 @@ const Element = {
     // }
   },
   animate(prop, value, transition) {
-    // if current value is the same as the value to animate to, instantly resolve
-    if (this.node[prop] === value) return
     // check if a transition is already scheduled to run on the same prop
     // and cancels it if it does
     if (
@@ -354,6 +352,9 @@ const Element = {
     ) {
       this.scheduledTransitions[prop].f.stop()
     }
+
+    // if current value is the same as the value to animate to, instantly resolve
+    if (this.node[prop] === value) return
 
     const props = {}
     props[prop] = value
