@@ -268,7 +268,7 @@ const Element = {
 
     this.props.element = this
 
-    this.props['parent'] = this.config.parent
+    this.props['parent'] = props['parent'] || this.config.parent
     delete props.parent
 
     this.props.raw = data
@@ -305,7 +305,7 @@ const Element = {
       })
     }
 
-    // if (this.component && this.component.___layout) {
+    // if (this.component !== undefined && '___layout' in this.component) {
     //   this.node.on('loaded', () => {
     //     this.component.___layout()
     //   })

@@ -18,6 +18,8 @@
 import { Log } from '../lib/log'
 import { reactive } from '../lib/reactivity/reactive.js'
 
+import Settings from '../settings.js'
+
 const getValueByDotNotation = (obj, base, path) => {
   const keys = path.split('.')
 
@@ -46,9 +48,12 @@ export default {
   plugin(config = {}) {
     let themeMap = {}
 
-    const state = reactive({
-      current: 'default',
-    })
+    const state = reactive(
+      {
+        current: 'default',
+      },
+      Settings.get('reactivityMode')
+    )
 
     let themes = {}
     let base = null
