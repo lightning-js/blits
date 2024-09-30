@@ -1,6 +1,6 @@
 {
-  "name": "blits-create",
-  "version": "0.4.1",
+  "name": "@lightningjs/create-blits",
+  "version": "0.0.1",
   "description": "An easy way to create a Blits project",
   "bin": "bin/index.js",
   "scripts": {
@@ -38,6 +38,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/lightning-js/blits-create.git"
+    "url": "https://github.com/lightning-js/blits.git"
   }
 }
