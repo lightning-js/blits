@@ -68,7 +68,7 @@ const Application = (config) => {
     keyUpHandler = (e) => {
       const cb = keyUpCallbacks.get(e.code)
       if (cb !== undefined && typeof cb === 'function') {
-        keyUpCallbacks.delete(e)
+        keyUpCallbacks.delete(e.code)
         cb()
       }
       clearTimeout(holdTimeout)

@@ -68,7 +68,9 @@ export default {
       } else if (componentWithInputEvent[symbols.inputEvents].any) {
         cb = componentWithInputEvent[symbols.inputEvents].any.call(componentWithInputEvent, event)
       }
-      if (cb !== undefined) keyUpCallbacks.set(event.code, cb)
+      if (cb !== undefined && keyUpCallbacks.get(event.code) === undefined) {
+        keyUpCallbacks.set(event.code, cb)
+      }
     }
   },
 }
