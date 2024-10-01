@@ -102,6 +102,19 @@ Blits.Component('MyComponemnt', {
         console.log('Space key released')
       }
     },
+    left() {
+      // some logic on key down here ..
+      this.leftHold = true
+      // return a reference to a Component method
+      // (instead of creating a new function on the fly)
+      return this.leftKeyUp
+    }
+  },
+  methods: {
+    leftKeyUp() {
+      console.log('Left key up')
+      this.leftHold = false
+    }
   }
 }
 ```
