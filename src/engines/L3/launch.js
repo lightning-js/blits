@@ -35,6 +35,13 @@ const renderEngine = (settings) => {
   if (renderMode === 'canvas') return CanvasCoreRenderer
 }
 
+const textRenderEngines = (settings) => {
+  const renderMode = 'renderMode' in settings ? settings.renderMode : 'webgl'
+
+  if (renderMode === 'webgl') return [SdfTextRenderer, CanvasTextRenderer]
+  if (renderMode === 'canvas') return [CanvasTextRenderer]
+}
+
 export default (App, target, settings = {}) => {
   renderer = new RendererMain(
     {
@@ -57,7 +64,7 @@ export default (App, target, settings = {}) => {
       txMemByteThreshold:
         'gpuMemoryLimit' in settings ? settings.gpuMemoryLimit * 1024 * 1024 : 200 * 1024 * 1024,
       renderEngine: renderEngine(settings),
-      fontEngines: [SdfTextRenderer, CanvasTextRenderer],
+      fontEngines: textRenderEngines(settings),
     },
     target
   )
