@@ -1,7 +1,6 @@
 # Handling User Input
 
-In order to allow users to interact with your app, you will want to capture and handle _user input_. If you are developing a TV based app this will
-often be key input via a remote control.
+In order to allow users to interact with your app, you will want to capture and handle _user input_. If you are developing a TV based app this will often be key input via a remote control.
 
 Blits offers an intuitive and straightforward interface to handle key input in Components.
 
@@ -68,6 +67,40 @@ When a component handles a key press by having a corresponding function specifie
     back(e) {
       // Give focus to the parent and let the user input event bubble
       this.parent.focus(e);
+    },
+  }
+}
+```
+
+## Key-up handling
+
+The functions specified in the `input` configuration are invoked when a key is _pressed down_ (i.e. the `keydown` event listener). But sometimes you may also want to execute some logic when a key is _released_ (i.e. the `keyup` event listener).
+
+Instead of introducing a separate key on the Component configuration object for key release callbacks, Blits relies on the concept that a `keyup` event is always preceeded by a `keydown` event.
+
+Following this logic, whenever you return a function in an input (key down) handler, this function will be executed upon release (i.e. the `keyup` event) of that key .
+
+When an input key is being a hold down, it will execute the key down handler multipe times. Upon key release, only the last returned key up callback function will be executed.
+
+
+```javascript
+Blits.Component('MyComponemnt', {
+  //
+  input: {
+    enter() {
+      // execute logic on key down
+      this.pressedEnter = true
+      return () => {
+        // execute logic on key up
+        this.pressedEnter = false
+      }
+    },
+    space(e) {
+      // not logic on key down
+      return () => {
+        // only execute logic on key up
+        console.log('Space key released')
+      }
     },
   }
 }
