@@ -16,7 +16,7 @@
  */
 
 import Component from './component.js'
-import Focus from './focus.js'
+import { default as Focus, keyUpCallbacks } from './focus.js'
 import Settings from './settings.js'
 
 import symbols from './lib/symbols.js'
@@ -65,7 +65,12 @@ const Application = (config) => {
       }, Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS))
     }
 
-    keyUpHandler = () => {
+    keyUpHandler = (e) => {
+      const cb = keyUpCallbacks.get(e.code)
+      if (cb !== undefined && typeof cb === 'function') {
+        keyUpCallbacks.delete(e.code)
+        cb()
+      }
       clearTimeout(holdTimeout)
       Focus.hold = false
     }
