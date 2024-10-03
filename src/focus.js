@@ -24,6 +24,8 @@ let focusedComponent = null
 let focusChain = []
 let setFocusTimeout
 
+export const keyUpCallbacks = new Map()
+
 export default {
   _hold: false,
   set hold(v) {
@@ -60,10 +62,14 @@ export default {
     const componentWithInputEvent = focusChain.shift()
 
     if (componentWithInputEvent) {
+      let cb
       if (componentWithInputEvent[symbols.inputEvents][key]) {
-        componentWithInputEvent[symbols.inputEvents][key].call(componentWithInputEvent, event)
+        cb = componentWithInputEvent[symbols.inputEvents][key].call(componentWithInputEvent, event)
       } else if (componentWithInputEvent[symbols.inputEvents].any) {
-        componentWithInputEvent[symbols.inputEvents].any.call(componentWithInputEvent, event)
+        cb = componentWithInputEvent[symbols.inputEvents].any.call(componentWithInputEvent, event)
+      }
+      if (cb !== undefined) {
+        keyUpCallbacks.set(event.code, cb)
       }
     }
   },
