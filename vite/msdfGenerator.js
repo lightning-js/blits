@@ -1,5 +1,6 @@
 import path from 'path'
 import * as fs from 'fs'
+import { createHash } from 'crypto'
 import { genFont, setGeneratePaths } from '@lightningjs/msdf-generator'
 import { adjustFont } from '@lightningjs/msdf-generator/adjustFont'
 
@@ -21,6 +22,8 @@ class TaskQueue {
 
 const fontGenerationQueue = new TaskQueue()
 let config
+let checksumPaths = []
+let checksumData = []
 
 export default function () {
   let msdfOutputDir = ''
@@ -60,12 +63,13 @@ export default function () {
               const mimeType = ext === 'png' ? 'image/png' : 'application/json'
 
               await fontGenerationQueue.enqueue(async () => {
-                // Check if generation is needed
-                if (!fs.existsSync(generatedFontFile)) {
+                if (isGenerationRequired(fontDir, targetDir, fontName)) {
                   const configFilePath = path.join(fontDir, `${fontName}.config.json`)
 
                   console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`)
                   await generateSDF(fontFile, path.join(targetDir), configFilePath)
+
+                  saveChecksum()
                 }
               })
 
@@ -102,14 +106,15 @@ export default function () {
       for (const ttfFile of ttfFiles) {
         const relativePath = path.relative(publicDir, path.dirname(ttfFile))
         const baseName = path.basename(ttfFile).replace(/\.ttf$/i, '')
-        const msdfJsonPath = path.join(msdfOutputDir, relativePath, `${baseName}.msdf.json`)
-        const msdfPngPath = path.join(msdfOutputDir, relativePath, `${baseName}.msdf.png`)
+        const targetDir = path.join(msdfOutputDir, relativePath)
 
-        // Check if MSDF files are generated, if not, generate them
-        if (!fs.existsSync(msdfJsonPath) || !fs.existsSync(msdfPngPath)) {
+        // Check MSDF generation is required
+        if (isGenerationRequired(path.dirname(ttfFile), targetDir, baseName)) {
           const configFilePath = path.join(path.dirname(ttfFile), `${baseName}.config.json`)
           console.log(`Generating missing MSDF files for ${ttfFile}`)
           await generateSDF(ttfFile, path.join(msdfOutputDir, relativePath), configFilePath)
+
+          saveChecksum()
         }
       }
 
@@ -161,6 +166,74 @@ const copyDir = (src, dest) => {
     const srcPath = path.join(src, entry.name)
     const destPath = path.join(dest, entry.name)
 
+    // Should not copy .checksum files to dist directory
+    if (srcPath.indexOf('.checksum') !== -1) continue
+
     entry.isDirectory() ? copyDir(srcPath, destPath) : fs.copyFileSync(srcPath, destPath) // Copy files
+  }
+}
+
+// Check font config.json or ttf file modified since last generation
+const isGenerationRequired = (ttfDir, targetDir, fontName) => {
+  const ttfFilePath = path.resolve(ttfDir, fontName + '.ttf')
+  const ttfChecksumPath = path.resolve(targetDir, fontName + '.ttf.checksum')
+
+  const configJsonPath = path.resolve(ttfDir, fontName + '.config.json')
+  const configChecksumPath = path.resolve(targetDir, fontName + '.config.checksum')
+
+  // If ttf file checksum not exists, should generate msdf
+  if (!fs.existsSync(ttfChecksumPath)) {
+    checksumPaths.push(ttfChecksumPath)
+    checksumData.push(generateHash(ttfFilePath))
+
+    if (fs.existsSync(configJsonPath)) {
+      checksumPaths.push(configChecksumPath)
+      checksumData.push(generateHash(configJsonPath))
+    }
+    return true
+  }
+
+  // If config.json exists, can be newly added or modified since last generation of msdf
+  if (fs.existsSync(configJsonPath)) {
+    // If config.json checksum not exists, should generate msdf
+    if (!fs.existsSync(configChecksumPath)) {
+      checksumPaths.push(configChecksumPath)
+      checksumData.push(generateHash(configJsonPath))
+      return true
+    }
+    const isConfigModified = isInputFileModified(configJsonPath, configChecksumPath)
+
+    // If config.json is modified, should generate msdf
+    if (isConfigModified) return true
+  }
+
+  // Check .ttf file modified, if modified, should generate msdf
+  return isInputFileModified(ttfFilePath, ttfChecksumPath)
+}
+
+const isInputFileModified = (inputFilePath, targetFilePath) => {
+  const inputChecksum = generateHash(inputFilePath)
+  const targetChecksum = fs.readFileSync(targetFilePath).toString()
+  if (inputChecksum !== targetChecksum) {
+    checksumPaths.push(targetFilePath)
+    checksumData.push(inputChecksum)
+    return true
+  }
+  return false
+}
+
+const generateHash = (filePath) => {
+  const buffer = fs.readFileSync(filePath)
+  return createHash('md5').update(buffer).digest('hex')
+}
+
+const saveChecksum = () => {
+  if (checksumPaths.length > 0 && checksumData.length > 0) {
+    for (let i = 0; i < checksumPaths.length; i++) {
+      // Save checksum
+      fs.writeFileSync(checksumPaths[i], checksumData[i])
+    }
+    checksumData.length = 0
+    checksumPaths.length = 0
   }
 }
