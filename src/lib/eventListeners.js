@@ -16,40 +16,66 @@
  */
 
 const eventsMap = new Map()
+const callbackCache = new Map()
 
 export default {
-  registerListener(component, event, cb) {
+  registerListener(component, event, cb, priority = 0) {
     let componentsMap = eventsMap.get(event)
-    if (!componentsMap) {
+    if (componentsMap === undefined) {
       componentsMap = new Map()
       eventsMap.set(event, componentsMap)
     }
 
     let components = componentsMap.get(component)
-    if (!components) {
+    if (components === undefined) {
       components = new Set()
       componentsMap.set(component, components)
     }
 
-    components.add(cb)
+    components.add({ cb, priority })
+    callbackCache.delete(event) // Invalidate the callbackCache when a new callback is added
   },
+
   executeListeners(event, params) {
     const componentsMap = eventsMap.get(event)
-    if (componentsMap) {
-      componentsMap.forEach((component) => {
-        component.forEach((cb) => {
-          cb(params)
-        })
-      })
+    if (componentsMap === undefined || componentsMap.size === 0) {
+      return true // No listeners, so execution can be considered successful
     }
-  },
-  removeListeners(component) {
-    eventsMap.forEach((componentMap) => {
-      const cmp = componentMap.get(component)
-      if (cmp) {
-        cmp.clear()
-        componentMap.delete(cmp)
+
+    if (callbackCache.has(event) === false) {
+      const allCallbacks = []
+      for (const [component, components] of componentsMap) {
+        for (const callbackObj of components) {
+          allCallbacks.push({ ...callbackObj, component })
+        }
       }
-    })
+      allCallbacks.sort((a, b) => b.priority - a.priority)
+      callbackCache.set(event, allCallbacks) // callbackCache the sorted callbacks with component context
+    }
+
+    const callbacks = callbackCache.get(event)
+    for (let i = 0; i < callbacks.length; i++) {
+      const { cb, component } = callbacks[i]
+      const result = cb.call(component, params)
+      if (result === false) {
+        return false // Stop propagation if any listener returns false
+      }
+    }
+
+    return true // All listeners executed without stopping propagation
+  },
+
+  removeListeners(component) {
+    for (const [event, componentsMap] of eventsMap) {
+      if (componentsMap.has(component)) {
+        componentsMap.delete(component)
+        callbackCache.delete(event) // Invalidate the callbackCache for this event
+
+        // If no more components for this event, remove the event entirely
+        if (componentsMap.size === 0) {
+          eventsMap.delete(event)
+        }
+      }
+    }
   },
 }

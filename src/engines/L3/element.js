@@ -39,9 +39,9 @@ const parsePercentage = function (v, base) {
     return v
   } else if (v.indexOf('%') === v.length - 1) {
     return (
-      this.element.parent &&
-      this.element.parent[base] &&
-      this.element.parent[base] * (parseFloat(v) / 100)
+      (this.element.config.parent &&
+        (this.element.config.parent.node[base] || 0) * (parseFloat(v) / 100)) ||
+      0
     )
   }
   return v
@@ -205,6 +205,11 @@ const propsTransformer = {
     }
   },
   set effects(v) {
+    for (let i = 0; i < v.length; i++) {
+      if (v[i].props && v[i].props.color) {
+        v[i].props.color = colors.normalize(v[i].props.color)
+      }
+    }
     this.props['shader'] = renderer.createShader('DynamicShader', {
       effects: v,
     })
@@ -263,7 +268,7 @@ const Element = {
 
     this.props.element = this
 
-    this.props['parent'] = this.config.parent
+    this.props['parent'] = props['parent'] || this.config.parent
     delete props.parent
 
     this.props.raw = data
@@ -300,7 +305,7 @@ const Element = {
       })
     }
 
-    // if (this.component && this.component.___layout) {
+    // if (this.component !== undefined && '___layout' in this.component) {
     //   this.node.on('loaded', () => {
     //     this.component.___layout()
     //   })
@@ -339,16 +344,17 @@ const Element = {
     // }
   },
   animate(prop, value, transition) {
+    // check if a transition is already scheduled to run on the same prop
+    // and cancels it if it does
+    if (
+      this.scheduledTransitions[prop] !== undefined &&
+      this.scheduledTransitions[prop].f.state === 'scheduled'
+    ) {
+      this.scheduledTransitions[prop].f.stop()
+    }
+
     // if current value is the same as the value to animate to, instantly resolve
     if (this.node[prop] === value) return
-    // check if a transition is already scheduled or running on the same prop
-    if (this.scheduledTransitions[prop]) {
-      if (this.scheduledTransitions[prop].f.state === 'running') {
-        // fastforward to final value
-        this.node[prop] = this.scheduledTransitions[prop].v
-        // this.scheduledTransitions[prop].f.stop()
-      }
-    }
 
     const props = {}
     props[prop] = value
@@ -377,7 +383,6 @@ const Element = {
     // removed if another transition for the same prop starts in the mean time
     this.scheduledTransitions[prop] = {
       v: props[prop],
-      cancel: false,
       f,
     }
 
@@ -390,7 +395,7 @@ const Element = {
 
     f.once('stopped', () => {
       // remove the prop from scheduled transitions
-      this.scheduledTransitions[prop] = null
+      this.scheduledTransitions[prop] = undefined
       // fire transition end callback when animation ends (if specified)
       if (transition.end && typeof transition.end === 'function') {
         transition.end.call(this.component, this, prop, this.node[prop])

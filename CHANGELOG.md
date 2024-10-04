@@ -1,5 +1,56 @@
 # Changelog
 
+## v1.5.0
+
+_1 oct 2024_
+
+- Fixed issue with interupting running / scheduled transitions with a new transition on the same prop
+- Fixed issue with (incompatible) SDF text renderer being loaded when `renderMode` is set to convas
+- Added support for handling key release (i.e `keyup`) events
+
+## v1.4.3
+
+_26 sept 2024_
+
+- Fixed issues with sprites in minified production build
+- Bumped renderer to v2.2.0  (with fixes for nested alpha / show issue)
+- Fixed reactivity in plugins not using reactivity mode setting
+- Fixed named slots functionality
+
+## v1.4.2
+
+_24 sept 2024_
+
+- Fixed timing issue with calculation of percentages
+- Improved check to see if object is a Blits component, so it's more robust in case of code minification
+
+## v1.4.1
+
+_18 sept 2024_
+
+- Fixed support for inspector, compatible with renderer 2.x changes
+
+## v1.4.0
+
+_16 sept 2024_
+
+- Added support for `fit` attribute to enable resizeModes for images (cover, contain)
+- Added priority parameter for event emitters + ability to stop propagation
+- Added Global App State plugin
+- Added Theme plugin
+- Standardized built-in utility methods (i.e. focus, select, setTimeout, etc.) to all be prefixed with a `$`.
+- Added support for triggering nested state variables with dot-notation (i.e `foo.bar.bla`)
+- Added support for watching nested state variables (i.e `foo.bar.bla`)
+- Fixed bug with Log plugin not picking up on `debugLevel` setting
+- Fixed bug when using hex-colors in an effect
+- Upgraded to latest version of the renderer (2.1.1)
+
+## v1.3.1
+
+_27 aug 2024_
+
+- Moved `this.$log` functionality to a plugin, which delays the instantation and allows it to pick up launch settings (bug fix)
+
 ## v1.3.0
 
 _19 aug 2024_

@@ -75,7 +75,7 @@ Again, you can use "normal" notation for the colors (like hexadecimal or rgba) a
 ```xml
 <Element w="200" h="200" color="{top: 'red', bottom: 'blue'}" />
 <Element w="200" h="200" color="{left: 'rgba(255,255,255,.5)', right: '#000'}" />
-<Element w="200" h="200" color="{left: '#aaa333', top: 'aqua', bottom: rgb(255,100,20)'}" />
+<Element w="200" h="200" color="{left: '#aaa333', top: 'aqua', 'bottom: rgb(255,100,20)'}" />
 <Element w="200" h="200" color="{bottom: 'black'}" />
 ```
 

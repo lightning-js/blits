@@ -15,6 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { ImageTexture } from '@lightningjs/renderer'
 import { track, trigger, pauseTracking, resumeTracking } from './effect.js'
 import symbols from '../symbols.js'
 
@@ -32,7 +33,7 @@ const reactiveProxy = (original, _parent = null, _key) => {
   // is assigned to a state variable
   if (typeof original === 'object') {
     if (original[symbols.id] !== undefined) return original
-    if (original.constructor.name === '_ImageTexture') return original
+    if (original.constructor.name === ImageTexture.name) return original
   }
 
   // if original object is already a proxy, don't create a new one but return the existing one instead

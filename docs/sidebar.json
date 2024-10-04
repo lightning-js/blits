@@ -114,6 +114,14 @@
       {
         "text": "Language",
         "link": "/plugins/language"
+      },
+      {
+        "text": "Theme",
+        "link": "/plugins/theme"
+      },
+      {
+        "text": "Global App State",
+        "link": "/plugins/global_app_state"
       }
     ]
   }
