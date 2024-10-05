@@ -8,7 +8,8 @@
     "./vite": "./vite/index.js",
     "./transitions": "./src/router/transitions/index.js",
     "./precompiler": "./src/lib/precompiler/precompiler.js",
-    "./plugins": "./src/plugins/index.js"
+    "./plugins": "./src/plugins/index.js",
+    "./symbols": "./src/lib/symbols.js"
   },
   "scripts": {
     "test": "c8 npm run test:run",
