@@ -1,7 +1,6 @@
 {
 	"recommendations": [
 		"editorconfig.editorconfig",
-		"dbaeumer.vscode-eslint",
-    "LightningJS.lightning-blits"
+		"dbaeumer.vscode-eslint"
 	]
 }

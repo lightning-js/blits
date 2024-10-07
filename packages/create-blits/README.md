@@ -1,43 +1,16 @@
-# Blits-create
+# Create a new Blits App
 
-## Getting Started
+**The recommended way to start a Lightning 3 Blits App**
 
-To get started with creation of Blits application, follow these simple steps to set up your development environment and create your first Lightning 3 App.
+## Usage
 
-### Installation
+In order to create a new L3 Blits App, all you need to do is run the following command in your terminal or command prompt:
 
-1. Open your terminal or command prompt.
-
-2. Run the following command to start a new Blits Lightning 3 App project:
 
 ```bash
 npm create @lightningjs/blits@latest
 ```
 
- You will be guided through a short series of questions to generate a new project with all the boilerplate code you need to start building your own Lightning 3 App.
+You will be guided through a short series of questions to generate a new project with all the boilerplate code you need to start building your own Lightning 3 App.
 
-3. Navigate to the newly created project directory and install the project dependencies:
-
-```bash
-cd my_blits_app
-npm install
-```
-
-### Running Your App
-
-4. After installing the dependencies, you can start your development server by running:
-
-```bash
-npm run dev
-```
-
-This command will create an application bundle and launch a development server using Vite.
-
-Once the server is up and running, open your web browser and navigate to the URL displayed in the console. Congratulations! You now have your brand new Blits Lightning 3 App up and running.
-
-### Coding environment
-
-You can use any code editor of your preference to further develop your Blits App.
-
-We recommend using VS code, since we have a dedicated [VS code extension for Blits](https://marketplace.visualstudio.com/items?itemName=LightningJS.lightning-blits) that provides better syntax highlighting, code completion, error
-checking, and other features to make working with Blits easier.
+Once you're done, navigate to the newly create project folder, run `npm install` and `npm run dev` to see your fresh Lightning 3 Blits App in action.

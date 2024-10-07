@@ -1,7 +1,7 @@
 # Changelog
 
-## v0.1.0
+## v1.0.0
 
-_01 Oct 2024_
+_08 Oct 2024_
 
-Initial version of create blits app
+- Initial version, abstracted from original main Blits package

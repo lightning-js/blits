@@ -137,4 +137,4 @@ const createApp = () => {
   })
 }
 
-export default createApp()
+export default createApp
