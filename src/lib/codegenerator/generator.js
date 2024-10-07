@@ -356,6 +356,9 @@ const generateForLoopCode = function (templateObject, parent) {
     templateObject[Symbol.for('componentType')] === 'Slot' ||
     templateObject[Symbol.for('componentType')] === 'Text'
   ) {
+    if (templateObject[Symbol.for('componentType')] === 'Text') {
+      templateObject.__textnode = 'true'
+    }
     generateElementCode.call(ctx, templateObject, parent, {
       key: 'scope.key',
       component: 'scope.',
