@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
@@ -8,7 +8,8 @@
     "./vite": "./vite/index.js",
     "./transitions": "./src/router/transitions/index.js",
     "./precompiler": "./src/lib/precompiler/precompiler.js",
-    "./plugins": "./src/plugins/index.js"
+    "./plugins": "./src/plugins/index.js",
+    "./symbols": "./src/lib/symbols.js"
   },
   "scripts": {
     "test": "c8 npm run test:run",

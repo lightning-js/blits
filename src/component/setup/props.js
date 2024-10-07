@@ -29,20 +29,23 @@ export default (component, props = []) => {
     props.push('ref')
   }
   component[symbols.propKeys] = []
-  props.forEach((prop) => {
-    prop = { ...baseProp, ...(typeof prop === 'object' ? prop : { key: prop }) }
+
+  const propsLength = props.length
+
+  for (let i = 0; i < propsLength; i++) {
+    const prop = { ...baseProp, ...(typeof props[i] === 'object' ? props[i] : { key: props[i] }) }
     component[symbols.propKeys].push(prop.key)
     Object.defineProperty(component, prop.key, {
       get() {
         const value = prop.cast(
-          this[symbols.props] && prop.key in this[symbols.props]
+          this[symbols.props] !== undefined && prop.key in this[symbols.props]
             ? this[symbols.props][prop.key]
             : 'default' in prop
             ? prop.default
             : undefined
         )
 
-        if (prop.required && value === undefined) {
+        if (prop.required === true && value === undefined) {
           Log.warn(`${prop.key} is required`)
         }
 
@@ -53,5 +56,5 @@ export default (component, props = []) => {
         this[symbols.props][prop.key] = v
       },
     })
-  })
+  }
 }
