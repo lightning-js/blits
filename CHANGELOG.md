@@ -12,8 +12,8 @@ _7 oct 2024_
 
 _1 oct 2024_
 
-- Fixed issue with interupting running / scheduled transitions with a new transition on the same prop
-- Fixed issue with (incompatible) SDF text renderer being loaded when `renderMode` is set to convas
+- Fixed issue with interrupting running / scheduled transitions with a new transition on the same prop
+- Fixed issue with (incompatible) SDF text renderer being loaded when `renderMode` is set to canvas
 - Added support for handling key release (i.e `keyup`) events
 
 ## v1.4.3

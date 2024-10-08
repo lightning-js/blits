@@ -49,16 +49,10 @@ export const addESlint = (config) => {
     path.join(config.targetDir, '.editorconfig')
   )
 
-  // Copy eslintignore from common
-  fs.copyFileSync(
-    path.join(config.fixturesBase, 'common/eslint/.eslintignore'),
-    path.join(config.targetDir, '.eslintignore')
-  )
-
   // Copy eslintrc.js from fixtured specfic directory
   fs.copyFileSync(
-    path.join(config.fixturesBase, 'common/eslint/.eslintrc.cjs'),
-    path.join(config.targetDir, '.eslintrc.cjs')
+    path.join(config.fixturesBase, 'common/eslint/eslint.config.cjs'),
+    path.join(config.targetDir, 'eslint.config.cjs')
   )
 
   // Copy IDE stuff from fixture base
@@ -81,6 +75,10 @@ export const addESlint = (config) => {
           ...(origPackageJson.devDependencies || {}),
           ...(eslintPackageJson.devDependencies || {}),
         },
+        scripts: {
+          ...(origPackageJson.scripts || {}),
+          ...(eslintPackageJson.scripts || {})
+        }
       },
       null,
       2
