@@ -1,7 +1,7 @@
 {
   "name": "@lightningjs/create-blits",
   "version": "1.0.0",
-  "description": "An easy way to create a Blits project",
+  "description": "Create a new Lightning 3 Blits project",
   "bin": "bin/index.js",
   "scripts": {
     "lint": "eslint '**/*.js'",
