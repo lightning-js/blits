@@ -88,11 +88,97 @@ declare module '@lightningjs/blits' {
 
   type ComponentBase = {
     /**
+    * Listen to events emitted by other components
+    */
+    $listen: {
+      (event: string, callback: (args: any) => void, priority?: number): void;
+    }
+    /**
      * Emit events that other components can listen to
      * @param name - name of the event to be emitted
      * @param data - optional data to be passed along
      */
     $emit(name: string, data?: any): void;
+
+    /**
+    * Set a timeout that is automatically cleaned upon component destroy
+    */
+    $setTimeout: (callback: (args: any) => void, ms?: number | undefined) => ReturnType<typeof setTimeout>
+
+    /**
+    * Clear a timeout
+    */
+    $clearTimeout: (id: ReturnType<typeof setTimeout>) => void
+
+    /**
+    * Set an interval that is automatically cleaned upon component destroy
+    */
+    $setInterval: (callback: (args: any) => void, ms?: number | undefined) => ReturnType<typeof setInterval>
+
+    /**
+    * Clear a interval
+    */
+    $clearInterval: (id: ReturnType<typeof setInterval>) => void
+
+    /**
+    * Log to the console with prettier output and configurable debug levels in Settings
+    */
+    // $log: Log
+
+    /**
+    * Set focus to the Component, optionally pass a KeyboardEvent for instant event bubbling
+    */
+    $focus: (event?: KeyboardEvent) => void
+    /**
+     * @deprecated
+     * Deprecated:  use `this.$focus()` instead
+     */
+    focus: (event?: KeyboardEvent) => void
+
+    /**
+    * Select a child Element or Component by ref
+    *
+    * Elements and Components in the template can have an optional ref argument.
+    * Returns an Element Instance or Component Instance.
+    * Useful for passing on the focus to a Child component.
+    *
+    * @example
+    * ```js
+    * const menu = this.$select('Menu')
+    * if(menu) {
+    *   menu.$focus()
+    * }
+    * ```
+    */
+    $select: (ref: string) => ComponentBase
+
+    /**
+     * @deprecated
+     * Deprecated: use `this.$select()` instead
+     */
+    select: (ref: string) => ComponentContext // | ElementInstance
+
+    /**
+     * Announcer methods for screen reader support
+     */
+    // $announcer: Announcer
+
+    /**
+     * Triggers a forced update on state variables.
+     */
+    $trigger: (key: string) => void
+    /**
+     * @deprecated
+     *
+     * Triggers a forced update on state variables.
+     * Deprecated: use `this.$trigger()` instead
+     */
+    trigger: (key: string) => void
+
+    /**
+     * Router instance
+     */
+    // $router: Router
   }
 
   /**
@@ -293,7 +379,7 @@ declare module '@lightningjs/blits' {
     /**
      * Component to load when activating the route
      */
-    component: ComponentFactory // or promise returning a component instance
+    component: ComponentFactory // todo: or promise returning a component instance
     /**
      * Transition configuration for the route
      */
