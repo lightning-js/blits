@@ -125,7 +125,7 @@ const createApp = () => {
       },
       () => {
         spinnerMsg.start(`Generating new App "${config.appName}" ...`)
-        copyLightningFixtures(config).then(targetDir => (config.targetDir = targetDir)).catch(consol.error)
+        copyLightningFixtures(config).then(targetDir => (config.targetDir = targetDir)).catch(console.error)
         spinnerMsg.succeed()
       },
       () => setAppData(config),
