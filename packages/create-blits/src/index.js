@@ -96,7 +96,7 @@ const questions = [
     type: 'toggle',
     name: 'esLint',
     message: 'Do you want to enable eslint?',
-    initial: 'true',
+    initial: true,
     active: 'Yes',
     inactive: 'No',
   },
@@ -125,7 +125,7 @@ const createApp = () => {
       },
       () => {
         spinnerMsg.start(`Generating new App "${config.appName}" ...`)
-        copyLightningFixtures(config).then(targetDir => (config.targetDir = targetDir))
+        copyLightningFixtures(config).then(targetDir => (config.targetDir = targetDir)).catch(consol.error)
         spinnerMsg.succeed()
       },
       () => setAppData(config),
