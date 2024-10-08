@@ -1,5 +1,13 @@
 # Changelog
 
+
+## v1.5.1
+
+_7 oct 2024_
+
+- Added export of symbols
+- Various small performance improvements related to component creation
+
 ## v1.5.0
 
 _1 oct 2024_
