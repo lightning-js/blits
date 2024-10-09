@@ -34,14 +34,12 @@ const globalEffectsMap = new Map()
 export const removeGlobalEffects = (effectsToRemove) => {
   if (globalEffectsMap.size === 0) return
   for (const [effect, target] of globalEffectsMap) {
-    if (effectsToRemove.indexOf(effect) > -1) {
-      const effectsSet = objectMap.get(target)
-      if (effectsSet !== undefined) {
-        for (const [key, set] of effectsSet) {
-          set.delete(effect)
-          globalEffectsMap.delete(effect)
-        }
-      }
+    if (effectsToRemove.indexOf(effect) === -1) continue
+    const effectsSet = objectMap.get(target)
+    if (effectsSet === undefined) continue
+    for (const [key, set] of effectsSet) {
+      set.delete(effect)
+      globalEffectsMap.delete(effect)
     }
   }
 }
