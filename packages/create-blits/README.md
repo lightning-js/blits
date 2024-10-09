@@ -1,14 +1,13 @@
 # Create a new Blits App
 
-**The recommended way to start a Lightning 3 Blits App**
+**The recommended way to start a new Lightning 3 project**
 
 ## Usage
 
 In order to create a new L3 Blits App, all you need to do is run the following command in your terminal or command prompt:
 
-
 ```bash
-npm create @lightningjs/blits@latest
+npm create @lightningjs/app
 ```
 
 You will be guided through a short series of questions to generate a new project with all the boilerplate code you need to start building your own Lightning 3 App.
