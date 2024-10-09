@@ -57,7 +57,7 @@ export default {
       this.$clearIntervals()
       eventListeners.removeListeners(this)
       deleteChildren(this[symbols.children])
-      removeGlobalEffects(this.effects)
+      removeGlobalEffects(this[symbols.effects])
       Log.debug(`Destroyed component ${this.componentId}`)
     },
     writable: false,
