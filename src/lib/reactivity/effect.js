@@ -37,7 +37,7 @@ export const removeGlobalEffects = (effectsToRemove) => {
     if (effectsToRemove.indexOf(effect) === -1) continue
     const effectsSet = objectMap.get(target)
     if (effectsSet === undefined) continue
-    for (const [key, set] of effectsSet) {
+    for (const set of effectsSet.values()) {
       set.delete(effect)
       globalEffectsMap.delete(effect)
     }
