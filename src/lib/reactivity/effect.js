@@ -29,8 +29,24 @@ export const resumeTracking = () => {
 }
 
 const objectMap = new WeakMap()
+const globalEffectsMap = new Map()
 
-export const track = (target, key) => {
+export const removeGlobalEffects = (effectsToRemove) => {
+  if (globalEffectsMap.size === 0) return
+  for (const [effect, target] of globalEffectsMap) {
+    if (effectsToRemove.indexOf(effect) > -1) {
+      const effectsSet = objectMap.get(target)
+      if (effectsSet !== undefined) {
+        for (const [key, set] of effectsSet) {
+          set.delete(effect)
+          globalEffectsMap.delete(effect)
+        }
+      }
+    }
+  }
+}
+
+export const track = (target, key, global = false) => {
   if (currentEffect) {
     if (paused) {
       return
@@ -49,6 +65,8 @@ export const track = (target, key) => {
       effectsMap.set(key, effects)
     }
     effects.add(currentEffect)
+
+    if (global === true) globalEffectsMap.set(currentEffect, target)
   }
 }
 

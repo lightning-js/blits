@@ -20,6 +20,7 @@ import Focus from '../../focus.js'
 import eventListeners from '../../lib/eventListeners.js'
 import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
+import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
 
 export default {
   focus: {
@@ -56,6 +57,7 @@ export default {
       this.$clearIntervals()
       eventListeners.removeListeners(this)
       deleteChildren(this[symbols.children])
+      removeGlobalEffects(this.effects)
       Log.debug(`Destroyed component ${this.componentId}`)
     },
     writable: false,
