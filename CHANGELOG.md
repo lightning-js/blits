@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.6.0
+
+_9 oct 2024_
+
+- Abstracted app create functionality to separate package
+- Cleaned up dependencies
+- Fixed issue with item reference in for loop
+- Fixed issue with looping directly over `<Text>` components
 
 ## v1.5.1
 

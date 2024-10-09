@@ -121,7 +121,7 @@ Blits.Component('MyComponent', {
 
 ## Getting the current language
 
-The current language can be retrieved via the `this.$languagelanguage` property. It will return the currently set language code.
+The current language can be retrieved via the `this.$language.language` property. It will return the currently set language code.
 
 ## Translating
 

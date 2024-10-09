@@ -1,4 +1,4 @@
-import log from './plugins/log'
+import log from './plugins/log.js'
 
 export const plugins = {
   // log plugin added by default

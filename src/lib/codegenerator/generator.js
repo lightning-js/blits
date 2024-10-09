@@ -356,6 +356,9 @@ const generateForLoopCode = function (templateObject, parent) {
     templateObject[Symbol.for('componentType')] === 'Slot' ||
     templateObject[Symbol.for('componentType')] === 'Text'
   ) {
+    if (templateObject[Symbol.for('componentType')] === 'Text') {
+      templateObject.__textnode = 'true'
+    }
     generateElementCode.call(ctx, templateObject, parent, {
       key: 'scope.key',
       component: 'scope.',
@@ -450,8 +453,11 @@ const generateForLoopCode = function (templateObject, parent) {
       const match = matches[l]
       const ref = `component.${match[2]}`
       refs.indexOf(ref) === -1 && refs.push(ref)
-      effect =
-        effect.substring(0, match.index) + ref + effect.substring(match.index + match[1].length)
+      // don't update the effect to point to component, if we're referring to a scope item
+      if (match[2] !== item) {
+        effect =
+          effect.substring(0, match.index) + ref + effect.substring(match.index + match[1].length)
+      }
     }
 
     ctx.renderCode.push(`
