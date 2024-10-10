@@ -3,7 +3,6 @@ export default {
   cursorTagStart: Symbol('cursorTagStart'),
   computedKeys: Symbol('computedKeys'),
   destroy: Symbol('destroy'),
-  effects: Symbol('effects'),
   getChildren: Symbol('getChildren'),
   holder: Symbol('holder'),
   id: Symbol('id'),
@@ -47,4 +46,6 @@ export default {
   componentType: Symbol.for('componentType'),
   // Symbol 'isComponent' utilized within generated code
   isComponent: Symbol.for('isComponent'),
+  // Symbol 'effects' utilized within generated code
+  effects: Symbol.for('effects'),
 }
