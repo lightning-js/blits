@@ -46,4 +46,6 @@ export default {
   componentType: Symbol.for('componentType'),
   // Symbol 'isComponent' utilized within generated code
   isComponent: Symbol.for('isComponent'),
+  // Symbol 'effects' utilized within generated code
+  effects: Symbol.for('effects'),
 }

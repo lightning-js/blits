@@ -32,7 +32,8 @@ export default {
         language: '',
         loaded: 0,
       },
-      Settings.get('reactivityMode')
+      Settings.get('reactivityMode'),
+      true
     )
 
     const setLanguage = (language) => {

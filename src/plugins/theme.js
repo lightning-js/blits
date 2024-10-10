@@ -52,7 +52,8 @@ export default {
       {
         current: 'default',
       },
-      Settings.get('reactivityMode')
+      Settings.get('reactivityMode'),
+      true
     )
 
     let themes = {}
