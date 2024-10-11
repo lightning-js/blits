@@ -29,7 +29,7 @@ Run your App in development mode:
 npm run dev
 ```
 
-This command uses Vite to fire up a local server, with Hot Reloading support. Visit the provided link in your webbrowser to see the App in action.
+This command uses Vite to fire up a local server, with Hot Reloading support. Visit the provided link in your web browser to see the App in action.
 
 #### Build the App for production
 
