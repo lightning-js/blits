@@ -49,9 +49,19 @@ export default function () {
           if (!fs.existsSync(path.resolve(fontDir, file))) {
             const fontName = match[1]
             const ext = match[2]
-            const fontFile = path.join(fontDir, `${fontName}.ttf`)
 
-            if (fs.existsSync(fontFile)) {
+            // Attempt to find the font file with supported extensions
+            const supportedExtensions = ['ttf', 'otf', 'woff']
+            let fontFile = null
+            for (const fontExt of supportedExtensions) {
+              const potentialPath = path.join(fontDir, `${fontName}.${fontExt}`)
+              if (fs.existsSync(potentialPath)) {
+                fontFile = potentialPath
+                break
+              }
+            }
+
+            if (fontFile) {
               const generatedFontFile = path.join(
                 msdfOutputDir,
                 fontPath,
@@ -83,7 +93,7 @@ export default function () {
                 next() // Handle case where generation might have failed
               }
             } else {
-              next() // ttf file does not exist
+              next() // No supported font file found
             }
           } else {
             next() // file exists
@@ -95,18 +105,18 @@ export default function () {
     },
     // after build ends, the first hook is renderStart where we can modify the output
     async renderStart() {
-      const ttfFiles = findAllTtfFiles(publicDir)
+      const fontFiles = findAllFontFiles(publicDir)
 
-      for (const ttfFile of ttfFiles) {
-        const relativePath = path.relative(publicDir, path.dirname(ttfFile))
-        const baseName = path.basename(ttfFile).replace(/\.ttf$/i, '')
+      for (const fontFile of fontFiles) {
+        const relativePath = path.relative(publicDir, path.dirname(fontFile))
+        const baseName = path.basename(fontFile).replace(/\.(ttf|otf|woff)$/i, '')
         const msdfJsonPath = path.join(msdfOutputDir, relativePath, `${baseName}.msdf.json`)
         const msdfPngPath = path.join(msdfOutputDir, relativePath, `${baseName}.msdf.png`)
 
         // Check if MSDF files are generated, if not, generate them
         if (!fs.existsSync(msdfJsonPath) || !fs.existsSync(msdfPngPath)) {
-          console.log(`Generating missing MSDF files for ${ttfFile}`)
-          await generateSDF(ttfFile, path.join(msdfOutputDir, relativePath))
+          console.log(`Generating missing MSDF files for ${fontFile}`)
+          await generateSDF(fontFile, path.join(msdfOutputDir, relativePath))
         }
       }
 
@@ -129,17 +139,17 @@ const generateSDF = async (inputFilePath, outputDirPath) => {
   else console.error('Failed to generate MSDF file')
 }
 
-// finds all TTF files in a directory
-const findAllTtfFiles = (dir, filesList = []) => {
+// Finds all font files (.ttf, .otf, .woff) in a directory
+const findAllFontFiles = (dir, filesList = []) => {
   const files = fs.readdirSync(dir, { withFileTypes: true })
 
   files.forEach((file) => {
     if (file.isDirectory()) {
       const dirPath = path.join(dir, file.name)
-      findAllTtfFiles(dirPath, filesList)
+      findAllFontFiles(dirPath, filesList)
     } else {
-      // Check for all case variations of TTF extension
-      if (file.name.match(/\.ttf$/i)) {
+      // Check for supported font extensions
+      if (file.name.match(/\.(ttf|otf|woff)$/i)) {
         filesList.push(path.join(dir, file.name))
       }
     }
