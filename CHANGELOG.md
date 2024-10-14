@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.7.1
+
+_14 oct 2024_
+
+- Fixed support for `.otf` and `.woff` fonts files in combination with MSDF generator
+
+
 ## v1.7.0
 
 _14 oct 2024_
