@@ -21,6 +21,6 @@ import Settings from '../settings.js'
 export default {
   name: 'appState',
   plugin(state = {}) {
-    return reactive(state, Settings.get('reactivityMode'))
+    return reactive(state, Settings.get('reactivityMode'), true)
   },
 }
