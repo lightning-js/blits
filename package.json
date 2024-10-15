@@ -1,6 +1,10 @@
 {
   "name": "@lightningjs/blits",
+<<<<<<< HEAD
   "version": "1.5.1",
+=======
+  "version": "1.7.1",
+>>>>>>> dev
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
@@ -49,13 +53,7 @@
   },
   "dependencies": {
     "@lightningjs/msdf-generator": "^1.0.2",
-    "@lightningjs/renderer": "^2.3.0",
-    "execa": "^8.0.1",
-    "kolorist": "^1.8.0",
-    "ora": "^7.0.1",
-    "prompts": "^2.4.2",
-    "replace-in-file": "^6.1.0",
-    "validate-npm-package-name": "^5.0.0"
+    "@lightningjs/renderer": "^2.3.2"
   },
   "repository": {
     "type": "git",

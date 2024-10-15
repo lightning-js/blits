@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Comcast Cable Communications Management, LLC
+ * Copyright 2023 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { default as log } from '../lib/log.js'
-
-export default {
-  name: 'log',
-  plugin() {
-    return log('App')
-  },
+export default (steps) => {
+  return steps.reduce((promise, method) => {
+    return promise
+      .then(function () {
+        return method(...arguments)
+      })
+      .catch((e) => Promise.reject(e))
+  }, Promise.resolve(null))
 }

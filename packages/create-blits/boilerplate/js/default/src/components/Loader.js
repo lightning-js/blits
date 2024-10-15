@@ -1,6 +1,6 @@
 import Blits from '@lightningjs/blits'
 
-export default Blits.Component('Loading', {
+export default Blits.Component('Loader', {
   template: `
     <Element>
       <Circle size="40" color="#94a3b8" :alpha.transition="{value: $alpha, delay: 200}" />

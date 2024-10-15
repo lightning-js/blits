@@ -392,13 +392,15 @@ const generateForLoopCode = function (templateObject, parent) {
   }
 
   // inner scope variables are part of the main forloop
-  innerScopeEffects.forEach((effect) => {
+  innerScopeEffects.forEach((effect, index) => {
     const key = effect.indexOf(`scope.${index}`) > -1 ? `'${interpolate(result[2], '')}'` : null
     if (effect.indexOf("Symbol.for('props')") === -1) {
       ctx.renderCode.push(`
-        effect(() => {
+        let eff${index} = () => {
           ${effect}
-        }, ${key})
+        }
+        effect(eff${index}, ${key})
+        component[Symbol.for('effects')].push(eff${index})
       `)
     } else {
       // props shouldn't be wrapped in an effect, but simply passed on
@@ -453,8 +455,11 @@ const generateForLoopCode = function (templateObject, parent) {
       const match = matches[l]
       const ref = `component.${match[2]}`
       refs.indexOf(ref) === -1 && refs.push(ref)
-      effect =
-        effect.substring(0, match.index) + ref + effect.substring(match.index + match[1].length)
+      // don't update the effect to point to component, if we're referring to a scope item
+      if (match[2] !== item) {
+        effect =
+          effect.substring(0, match.index) + ref + effect.substring(match.index + match[1].length)
+      }
     }
 
     ctx.renderCode.push(`

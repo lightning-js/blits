@@ -161,9 +161,12 @@ const Component = (name = required('name'), config = required('config')) => {
     // reactive bindings define in the template
     const effects = config.code.effects
     for (let i = 0; i < effects.length; i++) {
-      effect(() => {
+      const eff = () => {
         effects[i](this, this[symbols.children], config, globalComponents, rootComponent, effect)
-      })
+      }
+      // store reference to the effect
+      this[symbols.effects].push(eff)
+      effect(eff)
     }
 
     // setup watchers if the components has watchers specified

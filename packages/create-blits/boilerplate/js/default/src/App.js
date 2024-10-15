@@ -7,6 +7,6 @@ export default Blits.Application({
     <Element>
       <RouterView />
     </Element>
-   `,
+  `,
   routes: [{ path: '/', component: Home }],
 })

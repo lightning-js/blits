@@ -1,0 +1,9 @@
+{
+  "name": "@lightningjs/create-app",
+  "version": "1.0.1",
+  "description": "Create a new Lightning 3 Blits App",
+  "author": "Michiel van der Geest <hello@michielvandergeest.com>",
+  "license": "Apache-2.0",
+  "bin": "bin/index.js",
+  "type": "module"
+}
