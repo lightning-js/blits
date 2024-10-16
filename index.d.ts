@@ -192,19 +192,19 @@ declare module '@lightningjs/blits' {
   };
 
   // Props Array
-  type PropsArray = (string | PropObject)[];
+  type Props = (string | PropObject)[];
 
   // Extract the prop names from the props array
-  type ExtractPropNames<P extends PropsArray> = {
+  type ExtractPropNames<P extends Props> = {
       readonly [K in P[number] as K extends string ? K : K extends { key: infer Key } ? Key : never]: any;
   };
 
   // Update the PropsDefinition to handle props as strings or objects
-  type PropsDefinition<P extends PropsArray> = ExtractPropNames<P>;
+  type PropsDefinition<P extends Props> = ExtractPropNames<P>;
 
-  type ComponentContext<P extends PropsArray, S, M, C> = ThisType<PropsDefinition<P> & S & M & C & ComponentBase>
+  type ComponentContext<P extends Props, S, M, C> = ThisType<PropsDefinition<P> & S & M & C & ComponentBase & Plugins>
 
-  interface ComponentOptions<P extends PropsArray, S, M, C, W> {
+  interface ComponentConfig<P extends Props, S, M, C, W> {
     components?: {
         [key: string]: ComponentFactory,
     },
@@ -283,7 +283,7 @@ declare module '@lightningjs/blits' {
     watch?: W & ComponentContext<P, S, M, C>
   }
 
-  interface ApplicationOptions<P extends PropsArray, S, M, C, W> extends ComponentOptions<P, S, M, C, W> {
+  interface ApplicationConfig<P extends Props, S, M, C, W> extends ComponentConfig<P, S, M, C, W> {
     /**
      * Routes definition
      *
@@ -661,26 +661,93 @@ declare module '@lightningjs/blits' {
     holdTimeout?: number
   }
 
+  interface State {
+    [key: string]: any
+  }
+
+  interface Methods {
+    [key: string]: any
+  }
+
+  interface Watch {
+    [key: string]: any
+  }
+
+  interface Computed {
+    [key: string]: any
+  }
+
+
+  interface Plugin {
+    /**
+     * Name of the plugin. The plugin will be accessible on each Component's
+     * `this` scope under this name, prefixed with a `$` (i.e. myplugin => `this.$myplugin`)
+     */
+    name: string,
+    /**
+     * Singleton function that will be used to instantiate the plugin.
+     * Should do all necessary setup and ideally return an object with
+     * properties or methods that can be used in the App
+     */
+    plugin: () => any
+  }
+
+
   /**
    * Blits App Framework
    */
   export interface Blits {
     /**
      * Blits Application
+     * @param {ApplicationConfig} config - Application Configuration object
      */
-    Application<P extends PropsArray, S, M, C, W>(options: ApplicationOptions<P, S, M, C, W>) : ComponentFactory
+    Application<
+      P extends Props,
+      S extends State,
+      M extends Methods,
+      C extends Computed,
+      W extends Watch>(config: ApplicationConfig<P, S, M, C, W>) : ComponentFactory
       /**
      * Blits Component
+     * @param {string} name - The name of the Component
+     * @param {ComponentConfig} config - Component Configuration object
      */
-    Component<P extends PropsArray, S, M, C, W>(name: string, options: ComponentOptions<P, S, M, C, W>) : ComponentFactory
+    Component<
+      P extends Props,
+      S extends State,
+      M extends Methods,
+      C extends Computed,
+      W extends Watch>(name: string, config: ComponentConfig<P, S, M, C, W>) : ComponentFactory
     /**
      * Blits Launch
      */
     Launch(App: ComponentFactory, target: HTMLElement | String, settings?: Settings) : void
     /**
      * Blits Plugin
+     *
+     * @param plugin
+     * Plugin object or singleton function that will be used to instantiate the
+     * plugin. Should do all necessary setup and ideally return an object with
+     * properties or methods that can be used in the App
+     *
+     * @param nameOrOptions
+     * Name of the plugin or options object, to be passed into the plugin instantiation.
+     *
+     * When passing a string, the value will be used as **name** of the plugin. The plugin
+     * will be accessible on each Component's `this` scope under this name, prefixed with a `$`
+     * (i.e. myplugin => `this.$myplugin`)
+     *
+     * Passing a name is **required** when `plugin` argument is a singleton function
+     *
+     * When passing an object, the value will be considered to be an `options` object.
+     * The options object will be passed into the plugin instantiation method. Can
+     * be used to set default values
+     *
+     * @param options
+     * Object with options to be passed into the plugin instantiation method.
+     * Can be used to set default values
      */
-    Plugin() : void
+    Plugin(plugin: Plugin, nameOrOptions?: string | object , options?: object) : void
   }
 
   const Blits: Blits;
