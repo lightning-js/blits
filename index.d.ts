@@ -158,7 +158,7 @@ declare module '@lightningjs/blits' {
      * @deprecated
      * Deprecated: use `this.$select()` instead
      */
-    select: (ref: string) => ComponentContext // | ElementInstance
+    select: (ref: string) => ComponentBase
 
     /**
      * Announcer methods for screen reader support
@@ -202,7 +202,7 @@ declare module '@lightningjs/blits' {
   // Update the PropsDefinition to handle props as strings or objects
   type PropsDefinition<P extends Props> = ExtractPropNames<P>;
 
-  type ComponentContext<P extends Props, S, M, C> = ThisType<PropsDefinition<P> & S & M & C & ComponentBase & Plugins>
+  type ComponentContext<P extends Props, S, M, C> = ThisType<PropsDefinition<P> & S & M & C & ComponentBase>
 
   interface ComponentConfig<P extends Props, S, M, C, W> {
     components?: {
