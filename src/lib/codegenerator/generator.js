@@ -491,10 +491,14 @@ const generateCode = function (templateObject, parent = false, options = {}) {
         if (
           childTemplateObject[Symbol.for('componentType')] === 'Element' ||
           childTemplateObject[Symbol.for('componentType')] === 'Slot' ||
-          childTemplateObject[Symbol.for('componentType')] === 'Text'
+          childTemplateObject[Symbol.for('componentType')] === 'Text' ||
+          childTemplateObject[Symbol.for('componentType')] === 'Layout'
         ) {
           if (childTemplateObject[Symbol.for('componentType')] === 'Text') {
             childTemplateObject.__textnode = 'true'
+          }
+          if (childTemplateObject[Symbol.for('componentType')] === 'Layout') {
+            childTemplateObject.__layout = 'true'
           }
           generateElementCode.call(this, childTemplateObject, parent, options)
         } else {
