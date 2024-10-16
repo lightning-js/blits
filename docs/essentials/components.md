@@ -35,7 +35,7 @@ A basic Blits component will then look something like this:
 
 ```js
 // src/components/Loader.js
-export default Blits('Loader', {
+export default Blits.Component('Loader', {
   template: `
     <Element x="880" y="500" :show="$active">
       <Element x="$offset" w="40" h="40" color="#94a3b8" :alpha="$alpha" />

@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "1.4.2",
+  "version": "1.7.1",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
@@ -8,7 +8,8 @@
     "./vite": "./vite/index.js",
     "./transitions": "./src/router/transitions/index.js",
     "./precompiler": "./src/lib/precompiler/precompiler.js",
-    "./plugins": "./src/plugins/index.js"
+    "./plugins": "./src/plugins/index.js",
+    "./symbols": "./src/lib/symbols.js"
   },
   "scripts": {
     "test": "c8 npm run test:run",
@@ -47,13 +48,7 @@
   },
   "dependencies": {
     "@lightningjs/msdf-generator": "^1.0.2",
-    "@lightningjs/renderer": "^2.1.2",
-    "execa": "^8.0.1",
-    "kolorist": "^1.8.0",
-    "ora": "^7.0.1",
-    "prompts": "^2.4.2",
-    "replace-in-file": "^6.1.0",
-    "validate-npm-package-name": "^5.0.0"
+    "@lightningjs/renderer": "^2.3.2"
   },
   "repository": {
     "type": "git",

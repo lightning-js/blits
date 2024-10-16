@@ -6,7 +6,7 @@ been rather static so far.
 We did learn how to _reactively_ changes values and trigger rerenders based on that. So if you try the example below, you'll see that indeed our golden element changes position. But it just jumps from one place to another:
 
 ```js
-export default Blits('Gold', {
+export default Blits.Component('Gold', {
   template: `
     <Element color="gold" w="100" h="100" :x="$x" :y="$y" />
   `,
@@ -31,7 +31,7 @@ Using _transitions_ we really make our App come alive.
 Blits offers an easy and intuitive way to apply transitions. All you need to do is add the `.transition` modifier to a reactive attribute, and now whenever you change the value referenced in the attribute, it will automatically _smooth_ into the new value.
 
 ```js
-export default Blits('Gold', {
+export default Blits.Component('Gold', {
   template: `
     <Element color="gold" w="100" h="100" :x.transition="$x" :y.transition="$y" />
   `,
@@ -111,7 +111,7 @@ You can easily hook into these transition events by adding a `start` and `end` k
 The `start` function will be called when the transition actually starts (after a possible specified delay) and the `end` function is called as soon as the transition is finished.
 
 ```js
-export default Blits('Gold', {
+export default Blits.Component('Gold', {
   template: `
     <Element color="gold" w="100" h="100"
       :x.transition="{value: $x, start: $transitionBegin, end: $transitionEnd}"

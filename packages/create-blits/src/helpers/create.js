@@ -24,6 +24,17 @@ export const copyLightningFixtures = (config) => {
       recursive: true,
     })
 
+    // Copy readme
+    fs.copyFileSync(
+      path.join(config.fixturesBase, 'common/README.md'),
+      path.join(targetDir, 'README.md')
+    )
+
+    // Copy IDE stuff from fixture base
+    fs.cpSync(path.join(config.fixturesBase, 'common/ide'), path.join(targetDir), {
+      recursive: true,
+    })
+
     resolve(targetDir)
   })
 }
@@ -49,22 +60,11 @@ export const addESlint = (config) => {
     path.join(config.targetDir, '.editorconfig')
   )
 
-  // Copy eslintignore from common
-  fs.copyFileSync(
-    path.join(config.fixturesBase, 'common/eslint/.eslintignore'),
-    path.join(config.targetDir, '.eslintignore')
-  )
-
   // Copy eslintrc.js from fixtured specfic directory
   fs.copyFileSync(
-    path.join(config.fixturesBase, 'common/eslint/.eslintrc.cjs'),
-    path.join(config.targetDir, '.eslintrc.cjs')
+    path.join(config.fixturesBase, 'common/eslint/eslint.config.cjs'),
+    path.join(config.targetDir, 'eslint.config.cjs')
   )
-
-  // Copy IDE stuff from fixture base
-  fs.cpSync(path.join(config.fixturesBase, 'common/ide'), path.join(config.targetDir), {
-    recursive: true,
-  })
 
   // Copy and merge fixture specific package.json
   const origPackageJson = JSON.parse(fs.readFileSync(path.join(config.targetDir, 'package.json')))
@@ -80,6 +80,10 @@ export const addESlint = (config) => {
         devDependencies: {
           ...(origPackageJson.devDependencies || {}),
           ...(eslintPackageJson.devDependencies || {}),
+        },
+        scripts: {
+          ...(origPackageJson.scripts || {}),
+          ...(eslintPackageJson.scripts || {}),
         },
       },
       null,

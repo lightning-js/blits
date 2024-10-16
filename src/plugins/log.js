@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { default as log } from '../lib/log'
+import { default as log } from '../lib/log.js'
 
 export default {
   name: 'log',
