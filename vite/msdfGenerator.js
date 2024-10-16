@@ -56,10 +56,12 @@ export default function () {
             // Attempt to find the font file with supported extensions
             const supportedExtensions = ['ttf', 'otf', 'woff']
             let fontFile = null
+            let fontType = null
             for (const fontExt of supportedExtensions) {
               const potentialPath = path.join(fontDir, `${fontName}.${fontExt}`)
               if (fs.existsSync(potentialPath)) {
                 fontFile = potentialPath
+                fontType = '.' + fontExt
                 break
               }
             }
@@ -73,7 +75,7 @@ export default function () {
               const mimeType = ext === 'png' ? 'image/png' : 'application/json'
 
               await fontGenerationQueue.enqueue(async () => {
-                if (isGenerationRequired(fontDir, targetDir, fontName)) {
+                if (isGenerationRequired(fontDir, targetDir, fontName, fontType)) {
                   const configFilePath = path.join(fontDir, `${fontName}.config.json`)
 
                   console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`)
@@ -115,11 +117,12 @@ export default function () {
 
       for (const fontFile of fontFiles) {
         const relativePath = path.relative(publicDir, path.dirname(fontFile))
+        const fontExt = path.extname(fontFile)
         const baseName = path.basename(fontFile).replace(/\.(ttf|otf|woff)$/i, '')
         const targetDir = path.join(msdfOutputDir, relativePath)
 
         // Check MSDF generation is required
-        if (isGenerationRequired(path.dirname(fontFile), targetDir, baseName)) {
+        if (isGenerationRequired(path.dirname(fontFile), targetDir, baseName, fontExt)) {
           const configFilePath = path.join(path.dirname(fontFile), `${baseName}.config.json`)
           console.log(`Generating missing MSDF files for ${fontFile}`)
           await generateSDF(fontFile, path.join(msdfOutputDir, relativePath), configFilePath)
@@ -184,17 +187,17 @@ const copyDir = (src, dest) => {
 }
 
 // Check font config.json or ttf file modified since last generation
-const isGenerationRequired = (ttfDir, targetDir, fontName) => {
-  const ttfFilePath = path.resolve(ttfDir, fontName + '.ttf')
-  const ttfChecksumPath = path.resolve(targetDir, fontName + '.ttf.checksum')
+const isGenerationRequired = (ttfDir, targetDir, fontName, fontExt) => {
+  const fontFilePath = path.resolve(ttfDir, fontName + fontExt)
+  const fontChecksumPath = path.resolve(targetDir, fontName + fontExt + '.checksum')
 
   const configJsonPath = path.resolve(ttfDir, fontName + '.config.json')
   const configChecksumPath = path.resolve(targetDir, fontName + '.config.checksum')
 
   // If ttf file checksum not exists, should generate msdf
-  if (!fs.existsSync(ttfChecksumPath)) {
-    checksumPaths.push(ttfChecksumPath)
-    checksumData.push(generateHash(ttfFilePath))
+  if (!fs.existsSync(fontChecksumPath)) {
+    checksumPaths.push(fontChecksumPath)
+    checksumData.push(generateHash(fontFilePath))
 
     if (fs.existsSync(configJsonPath)) {
       checksumPaths.push(configChecksumPath)
@@ -218,7 +221,7 @@ const isGenerationRequired = (ttfDir, targetDir, fontName) => {
   }
 
   // Check .ttf file modified, if modified, should generate msdf
-  return isInputFileModified(ttfFilePath, ttfChecksumPath)
+  return isInputFileModified(fontFilePath, fontChecksumPath)
 }
 
 const isInputFileModified = (inputFilePath, targetFilePath) => {
