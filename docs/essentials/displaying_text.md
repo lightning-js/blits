@@ -32,6 +32,40 @@ The Text-tag accepts the following attributes:
 - `contain` - the strategy for containing text within the bounds, can be `none` (default), `width`, or `both`. In most cases, the value of this attribute will automatically be set by Blits, based on the other specified attributes
 - `textoverflow` - the suffix to be added when text is cropped due to bounds limits, defaults to `...`
 
+## Text dimensions
+
+When you want to center your Text element, or properly position other Elements around your text, it is useful know the exact dimensions of your text.
+
+Similar to the Image element (i.e. an Element with a `src`), Text elements also accept the `@loaded` attribute. This event is called, as soon as the text is rendered, and passes in the dimensions of the generated text texture.
+
+The example below shows how to use the `@loaded`-attribute to position an Element as an underline, under a piece of text.
+
+```js
+export default Blits.Component('MyComponent', {
+  template: `
+    <Element>
+      <Text :content="$myText" @loaded="$textLoaded" />
+      <!-- gray underline -->
+      <Element :w="$w" h="2" y="$y" color="#333" />
+    </Element>
+  `,
+  props: ['myText'],
+  state() {
+    return {
+      w: 0,
+      y: 0,
+    }
+  },
+  methods: {
+    textLoaded(dimensions) {
+      console.log(`The text has a width of ${dimensions.w} and a height of ${dimensions.h}`)
+      // set the underline width to the exact width of the text
+      this.w = dimensions.w
+      // position the underline 8px below the text
+      this.y = dimensions.h + 8
+    }
+  }
+```
 
 ## SDF and Canvas2d
 
