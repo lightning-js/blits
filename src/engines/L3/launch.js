@@ -69,9 +69,24 @@ export default (App, target, settings = {}) => {
     target
   )
 
+  if(settings.autoResize) {
+    const resizeApp = (event) => {
+      console.log('resize', event.target.innerWidth, window.devicePixelRatio)
+      renderer.updateAppDimensions({
+        width: event.target.innerWidth,
+        height: event.target.innerHeight
+      })
+    }
+
+    window.addEventListener("resize", resizeApp)
+  }
+
   const initApp = () => {
     let app = App()
     app.quit = () => {
+      if(settings.autoResize) {
+        window.removeEventListener("resize", resizeApp);
+      }
       Log.info('Closing App')
       app.destroy()
       app = null

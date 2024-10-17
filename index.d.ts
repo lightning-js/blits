@@ -19,6 +19,7 @@ import Component from './src/component.js'
 import Application from './src/application.js'
 import Launch from './src/launch.js'
 import Plugin from './src/plugin.js'
+export {reactive} from './src/lib/reactivity/reactive.js'
 
 /**
  * Blits - The Lightning 3 App Development Framework

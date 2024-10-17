@@ -99,6 +99,10 @@ export interface Settings {
    */
   h?: number,
   /**
+   * Automatically resize Application based on window.(innerWitdh | innderHeight)
+   */
+  autoResize?: boolean,
+  /**
    * Whether to enable multithreaded
    */
   multithreaded?: boolean,

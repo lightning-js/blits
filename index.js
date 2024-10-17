@@ -19,6 +19,8 @@ import Component from './src/component.js'
 import Application from './src/application.js'
 import Launch from './src/launch.js'
 import Plugin from './src/plugin.js'
+export { reactive } from './src/lib/reactivity/reactive.js'
+
 
 export default {
   Component,
