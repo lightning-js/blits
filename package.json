@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "@lightningjs/msdf-generator": "^1.0.2",
-    "@lightningjs/renderer": "file:../renderer"
+    "@lightningjs/renderer": "lightning-js/renderer#feat/updatable-app-size"
   },
   "repository": {
     "type": "git",
