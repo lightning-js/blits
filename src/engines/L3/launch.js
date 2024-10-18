@@ -42,6 +42,8 @@ const textRenderEngines = (settings) => {
   if (renderMode === 'canvas') return [CanvasTextRenderer]
 }
 
+let resizeAppHandler = undefined
+
 export default (App, target, settings = {}) => {
   renderer = new RendererMain(
     {
@@ -69,23 +71,22 @@ export default (App, target, settings = {}) => {
     target
   )
 
-  if(settings.autoResize) {
-    const resizeApp = (event) => {
-      console.log('resize', event.target.innerWidth, window.devicePixelRatio)
+  if (settings.autoResize) {
+    resizeAppHandler = (event) => {
       renderer.updateAppDimensions({
         width: event.target.innerWidth,
-        height: event.target.innerHeight
+        height: event.target.innerHeight,
       })
     }
 
-    window.addEventListener("resize", resizeApp)
+    window.addEventListener('resize', resizeAppHandler)
   }
 
   const initApp = () => {
     let app = App()
     app.quit = () => {
-      if(settings.autoResize) {
-        window.removeEventListener("resize", resizeApp);
+      if (resizeAppHandler !== undefined) {
+        window.removeEventListener('resize', resizeAppHandler)
       }
       Log.info('Closing App')
       app.destroy()
