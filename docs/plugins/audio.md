@@ -1,7 +1,10 @@
 
 # Audio Plugin
 
-The Blits Audio Plugin allows developers to integrate audio playback into their Blits application. This plugin provides a simple API for preloading, playing, controlling, and managing audio tracks, including managing volume, playback rate (pitch), and other settings.
+The Blits Audio Plugin allows developers to integrate audio playback into their Blits applications. This plugin provides a simple API for preloading, playing, controlling, and managing audio tracks, including managing volume, playback rate (pitch), and other settings.
+
+**Note:** When testing or developing on Chrome, audio may not start immediately due to browser restrictions on `AudioContext`. You might see the following error:
+`The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu`. This issue occurs on desktop during development but is **not** an issue on Smart TVs, STBs, or Game Consoles. Once you interact with the application (e.g., click or press a key), the error will go away, and sound playback will function properly.
 
 ## Registering the Plugin
 
@@ -42,10 +45,10 @@ Blits.Component('MyComponent', {
   hooks: {
     ready() {
       // Play a preloaded track and get a track controller
-      const bgMusic = this.$audio.playTrack('background', { volume: 0.5 })
+      const bgMusic = this.$audio.playTrack('background', { volume: 0.5 }, 'bg-music')
 
       // Play a track from URL and get its controller
-      const effect = this.$audio.playUrl('/assets/audio/victory.mp3', { volume: 0.8 }, 'victory')
+      const effect = this.$audio.playUrl('/assets/audio/victory.mp3', { volume: 0.8 })
     },
   },
 })
@@ -54,6 +57,8 @@ Blits.Component('MyComponent', {
 The `playTrack()` method allows you to play an audio track from the preloaded library, while `playUrl()` allows you to play a track from a specified URL. Both methods return a track controller object.
 
 ### Track Controller Methods:
+- `pause()`: Pauses the track.
+- `resume()`: Resumes the paused track.
 - `stop()`: Stops the track and removes it from the active list.
 - `setVolume(volume)`: Adjusts the playback volume for the track.
 
@@ -64,31 +69,15 @@ Blits.Component('MyComponent', {
     ready() {
       const bgMusic = this.$audio.playTrack('background', { volume: 0.5 }, 'bg-music')
 
-      // set volume on the track
+      // Pause, resume, and set volume on the track
+      bgMusic.pause()
+      bgMusic.resume()
       bgMusic.setVolume(0.8)
-      // stop the track
       bgMusic.stop()
     },
   },
 })
 ```
-
-## Removing Preloaded Audio Tracks
-
-In some cases, you might want to remove a preloaded audio track from the library, freeing up memory or resources. You can do this using the `removeTrack()` method:
-
-```js
-Blits.Component('MyComponent', {
-  input: {
-    removeJumpTrack() {
-      // Remove the 'jump' track from the preloaded library
-      this.$audio.removeTrack('jump')
-    },
-  },
-})
-```
-
-The `removeTrack(key)` method deletes the specified track from the internal `tracks` object, preventing further access to it.
 
 ## Preloading Audio Files
 
@@ -108,6 +97,23 @@ Blits.Component('MyComponent', {
 ```
 
 Preloaded audio files are stored in an internal library, which you can reference when calling `playTrack()`.
+
+## Removing Preloaded Audio Tracks
+
+In some cases, you might want to remove a preloaded audio track from the library, freeing up memory or resources. You can do this using the `removeTrack()` method:
+
+```js
+Blits.Component('MyComponent', {
+  input: {
+    removeJumpTrack() {
+      // Remove the 'jump' track from the preloaded library
+      this.$audio.removeTrack('jump')
+    },
+  },
+})
+```
+
+The `removeTrack(key)` method deletes the specified track from the internal `tracks` object, preventing further access to it.
 
 ## Error Handling
 
@@ -135,17 +141,16 @@ The Audio Plugin provides the following methods and properties:
 
 - `playTrack(key, { volume, pitch }, trackId)`: Plays a preloaded audio track and returns a track controller.
 - `playUrl(url, { volume, pitch }, trackId)`: Plays an audio track from a URL and returns a track controller.
-- `pause()`: Pauses the current audio context.
-- `resume()`: Resumes the current audio context.
+- `pause()`: Pauses the current audio track.
+- `resume()`: Resumes the current audio track.
 - `stop(trackId)`: Stops a specific audio track by its ID.
 - `stopAll()`: Stops all currently playing audio tracks.
 - `setVolume(trackId, volume)`: Sets the volume for a specific track by its ID.
 - `preload(tracks)`: Preloads a set of audio tracks into the internal library.
 - `removeTrack(key)`: Removes a preloaded track from the library.
 - `destroy()`: Destroys the audio context and stops all tracks.
-- `get activeTracks` : Return an Object of Active Track Controllers currently being played
+- `getActiveTrackById(trackId)`: Get an active track by its ID, returns `null` if not found (or stopped).
 - `get audioEnabled`: Returns `true` if the `AudioContext` is available and audio is enabled.
-- `get tracks` : Return an Object of preloaded Tracks
 
 ## Destroying the Plugin
 

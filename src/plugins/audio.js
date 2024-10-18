@@ -22,16 +22,31 @@ export default {
   plugin(options = {}) {
     let audioContext = undefined
     let audioEnabled = true
-    let activeTracks = {} // Store all active track controllers
+    const activeTracks = {} // Store all active track controllers
+    const tracks = {}
 
-    try {
-      audioContext = new AudioContext()
-    } catch (e) {
-      Log.error('AudioContext is not supported or failed to initialize. Audio will be disabled.')
-      audioEnabled = false
+    const init = () => {
+      if (audioEnabled === false) return
+
+      try {
+        audioContext = new AudioContext()
+        const testSource = audioContext.createBufferSource()
+        audioEnabled = true
+      } catch (e) {
+        Log.error('AudioContext is not supported or failed to initialize. Audio will be disabled.')
+        audioEnabled = false
+
+        // Attempt to re-initialize on a user gesture (e.g., a click)
+        window.onclick = () => {
+          init()
+        }
+      }
+
+      // Preload tracks if options.preload is provided
+      if (audioEnabled && options.preload && typeof options.preload === 'object') {
+        preloadTracks(options.preload)
+      }
     }
-
-    let tracks = {}
 
     const loadAudioData = async (url) => {
       if (audioEnabled === false) return
@@ -50,17 +65,18 @@ export default {
     }
 
     const preloadTracks = async (trackList) => {
-      if (audioEnabled === false) return
+      Log.info('Preloading tracks...')
       for (const [key, url] of Object.entries(trackList)) {
         const audioData = await loadAudioData(url)
         if (audioData) {
           tracks[key] = audioData
         }
       }
+      Log.info('Preloading completed.')
     }
 
-    const createTrackController = (source, gainNode, trackId) => {
-      return {
+    const createTrackController = (source, gainNode, trackId, options = {}) => {
+      const trackController = {
         stop() {
           try {
             source.stop()
@@ -80,9 +96,28 @@ export default {
           return gainNode
         },
       }
+
+      // Handle loop option
+      if (options.loop === true) {
+        source.loop = true
+      }
+
+      // Always remove from activeTracks on 'ended', then call the provided callback (if any)
+      source.onended = () => {
+        delete activeTracks[trackId]
+        if (typeof options.onEnded === 'function') {
+          options.onEnded()
+        }
+      }
+
+      return trackController
     }
 
-    const playAudioBuffer = (buffer, trackId, { volume = 1, pitch = 1 } = {}) => {
+    const playAudioBuffer = (
+      buffer,
+      trackId,
+      { volume = 1, pitch = 1, loop = false, onEnded = null } = {}
+    ) => {
       if (audioEnabled === false || audioContext === undefined) {
         Log.warn('AudioContext not available. Cannot play audio.')
         return
@@ -98,13 +133,8 @@ export default {
       source.connect(gainNode)
       gainNode.connect(audioContext.destination)
 
-      source.onended = () => {
-        delete activeTracks[trackId]
-        Log.info(`Track ${trackId} finished playing.`)
-      }
-
       // Create and store the track controller
-      const trackController = createTrackController(source, gainNode, trackId)
+      const trackController = createTrackController(source, gainNode, trackId, { loop, onEnded })
       activeTracks[trackId] = trackController
 
       source.start()
@@ -117,11 +147,13 @@ export default {
         Log.warn('AudioContext not available. Cannot play track.')
         return
       }
+
       if (tracks[key] !== undefined) {
         return playAudioBuffer(tracks[key], trackId, options)
-      } else {
-        Log.warn(`Track ${key} not found in the library.`)
       }
+
+      Log.warn(`Track ${key} not found in the library.`)
+      return null
     }
 
     const playUrl = async (url, options = {}, trackId = url) => {
@@ -159,23 +191,23 @@ export default {
       }
     }
 
+    const getActiveTrackById = (trackId) => {
+      return activeTracks[trackId] || null
+    }
+
     const destroy = () => {
       if (audioEnabled === false) return
       stopAll() // Stop all active tracks before destroying
       audioContext.close()
     }
 
-    if (options.preload === true && audioEnabled === true) {
-      preloadTracks(options.preload)
-    }
+    // Attempt initialization and preload
+    init()
 
     // Public API for the Audio Plugin
     return {
       get audioEnabled() {
         return audioEnabled
-      },
-      get activeTracks() {
-        return activeTracks
       },
       get tracks() {
         return tracks
@@ -183,6 +215,7 @@ export default {
       get state() {
         return audioContext.state
       },
+      getActiveTrackById, // Return active track by its ID or null
       destroy, // Destroy the audio context and stop all tracks
       pause() {
         return audioContext.suspend()

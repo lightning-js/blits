@@ -99,7 +99,7 @@ test('Audio Plugin - Play a preloaded track', async (assert) => {
   })
 
   const track = plugin.playTrack('track1', { volume: 0.5 }, 'track1')
-  assert.equal(Object.keys(plugin.activeTracks).length, 1, 'Active Tracks should be 1')
+  assert.equal(plugin.getActiveTrackById('track1') !== null, true, 'Active track should exist')
 
   assert.ok(track.stop, 'Track controller should have stop method')
   assert.end()
@@ -109,7 +109,11 @@ test('Audio Plugin - Play a track from URL', async (assert) => {
   const plugin = audio.plugin()
 
   const track = await plugin.playUrl('/audio/test.wav', { volume: 0.8 })
-  assert.equal(Object.keys(plugin.activeTracks).length, 1, 'Active Tracks should be 1')
+  assert.equal(
+    plugin.getActiveTrackById('/audio/test.wav') !== null,
+    true,
+    'Active track should exist'
+  )
 
   assert.ok(track.stop, 'Track controller should have stop method')
   assert.end()
@@ -123,7 +127,7 @@ test('Audio Plugin - Pause, Resume, and Stop', async (assert) => {
   })
 
   const track = plugin.playTrack('track1', { volume: 0.5 }, 'track1')
-  assert.equal(Object.keys(plugin.activeTracks).length, 1, 'Active Tracks should be 1')
+  assert.equal(plugin.getActiveTrackById('track1') !== null, true, 'Active track should exist')
 
   // Pause
   plugin.pause()
@@ -135,6 +139,11 @@ test('Audio Plugin - Pause, Resume, and Stop', async (assert) => {
 
   // Stop
   track.stop()
+  assert.equal(
+    plugin.getActiveTrackById('track1'),
+    null,
+    'Track should be removed from active tracks after stopping'
+  )
   assert.pass('Track should stop successfully')
   assert.end()
 })
@@ -150,11 +159,19 @@ test('Audio Plugin - Stop all tracks', async (assert) => {
   plugin.playTrack('track1', { volume: 0.5 }, 'track1')
   plugin.playTrack('track2', { volume: 0.5 }, 'track2')
 
-  assert.equal(Object.keys(plugin.activeTracks).length, 2, 'Active Tracks should be 2')
+  assert.equal(
+    plugin.getActiveTrackById('track1') !== null && plugin.getActiveTrackById('track2') !== null,
+    true,
+    'Both tracks should be playing'
+  )
 
   plugin.stopAll()
 
-  assert.equal(Object.keys(plugin.activeTracks).length, 0, 'Active Tracks should be 0')
+  assert.equal(
+    plugin.getActiveTrackById('track1') === null && plugin.getActiveTrackById('track2') === null,
+    true,
+    'Both tracks should be stopped'
+  )
   assert.pass('All tracks should stop successfully')
   assert.end()
 })
@@ -171,7 +188,7 @@ test('Audio Plugin - Remove a preloaded track', async (assert) => {
   const preloadedTracks = plugin.tracks
 
   assert.equal(preloadedTracks.track1, undefined, 'Track 1 should be removed from preloaded Tracks')
-  assert.equal(plugin.playTrack('track1'), undefined, 'Preloaded track should be removed')
+  assert.equal(plugin.playTrack('track1'), null, 'Preloaded track should be removed')
   assert.end()
 })
 
