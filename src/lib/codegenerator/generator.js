@@ -107,7 +107,7 @@ const generateElementCode = function (
         `)
       } else {
         this.effectsCode.push(`
-            ${elm}.set('${key.substring(1)}', ${interpolate(
+            if(${elm} !== undefined) ${elm}.set('${key.substring(1)}', ${interpolate(
           templateObject[key],
           options.component
         )})
