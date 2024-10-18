@@ -260,7 +260,7 @@ declare module '@lightningjs/blits' {
      * }
      * ```
      */
-    state?: () => S;
+    state?: (this: PropsDefinition<P>) => S;
     /**
      * Methods for abstracting more complex business logic into separate function
      */
