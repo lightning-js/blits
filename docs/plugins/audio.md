@@ -149,6 +149,7 @@ The Audio Plugin provides the following methods and properties:
 - `preload(tracks)`: Preloads a set of audio tracks into the internal library.
 - `removeTrack(key)`: Removes a preloaded track from the library.
 - `destroy()`: Destroys the audio context and stops all tracks.
+- `getActiveTracks`: Return a list of active track IDs
 - `getActiveTrackById(trackId)`: Get an active track by its ID, returns `null` if not found (or stopped).
 - `get audioEnabled`: Returns `true` if the `AudioContext` is available and audio is enabled.
 

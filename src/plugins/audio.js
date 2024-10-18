@@ -191,6 +191,10 @@ export default {
       }
     }
 
+    const getActiveTracks = () => {
+      return Object.keys(activeTracks)
+    }
+
     const getActiveTrackById = (trackId) => {
       return activeTracks[trackId] || null
     }
@@ -215,6 +219,7 @@ export default {
       get state() {
         return audioContext.state
       },
+      getActiveTracks, // Return a list of active track IDs
       getActiveTrackById, // Return active track by its ID or null
       destroy, // Destroy the audio context and stop all tracks
       pause() {
