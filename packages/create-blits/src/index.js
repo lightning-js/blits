@@ -94,6 +94,14 @@ const questions = [
   },
   {
     type: 'toggle',
+    name: 'tsProject',
+    message: 'Do you want to create typescript project',
+    initial: '',
+    active: 'Yes',
+    inactive: 'No'
+  },
+  {
+    type: 'toggle',
     name: 'esLint',
     message: 'Do you want to enable eslint?',
     initial: true,
