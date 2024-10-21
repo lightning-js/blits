@@ -186,15 +186,15 @@ const copyDir = (src, dest) => {
   }
 }
 
-// Check font config.json or ttf file modified since last generation
-const isGenerationRequired = (ttfDir, targetDir, fontName, fontExt) => {
-  const fontFilePath = path.resolve(ttfDir, fontName + fontExt)
+// Check font config.json or font file modified since last generation
+const isGenerationRequired = (fontDir, targetDir, fontName, fontExt) => {
+  const fontFilePath = path.resolve(fontDir, fontName + fontExt)
   const fontChecksumPath = path.resolve(targetDir, fontName + fontExt + '.checksum')
 
-  const configJsonPath = path.resolve(ttfDir, fontName + '.config.json')
+  const configJsonPath = path.resolve(fontDir, fontName + '.config.json')
   const configChecksumPath = path.resolve(targetDir, fontName + '.config.checksum')
 
-  // If ttf file checksum not exists, should generate msdf
+  // If font file checksum not exists, should generate msdf
   if (!fs.existsSync(fontChecksumPath)) {
     checksumPaths.push(fontChecksumPath)
     checksumData.push(generateHash(fontFilePath))
@@ -220,7 +220,7 @@ const isGenerationRequired = (ttfDir, targetDir, fontName, fontExt) => {
     if (isConfigModified) return true
   }
 
-  // Check .ttf file modified, if modified, should generate msdf
+  // Check font file modified, if modified, should generate msdf
   return isInputFileModified(fontFilePath, fontChecksumPath)
 }
 
