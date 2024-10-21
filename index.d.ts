@@ -246,9 +246,31 @@ declare module '@lightningjs/blits' {
   /**
    * Prop object
    */
-  type PropObject<T = any> = {
-      key: string;
-      type?: T;
+  type PropObject = {
+    /**
+     * Name of the prop
+     */
+    key: string,
+    /**
+     * Whether the prop is required to be passed
+     */
+    required?: boolean,
+    /**
+     * Default value for the prop when omited
+     */
+    default?: any,
+    /**
+     * Cast the value of the prop
+     *
+     * @example
+     * ```js
+     * {
+     *   cast: Number, // casts to a number
+     *   cast: (v) => v.toUpperCase() // casts to uppercase
+     * }
+     * ```
+     */
+    cast?: () => any
   };
 
   // Props Array
