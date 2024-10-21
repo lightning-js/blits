@@ -88,6 +88,66 @@ declare module '@lightningjs/blits' {
     any?: (event: KeyboardEvent) => void
   }
 
+  interface Log {
+    /**
+    * Log an info message
+    */
+    info(...args): typeof console.info
+    /**
+    * Log an error message
+    */
+    error(...args): typeof console.error
+    /**
+    * Log a warning
+    */
+    warn(...args): typeof console.warn
+    /**
+    * Log a debug message
+    */
+    debug(...args): typeof console.debug
+  }
+
+
+
+  interface RouteData {
+    [key: string]: any
+  }
+
+  // todo: specify valid route options
+  interface RouteOptions {
+    [key: string]: any
+  }
+
+  interface Router {
+    /**
+     * Navigate to a different location
+     *
+     * @param {string}
+    */
+    to(location: string, data?: RouteData, options?: RouteOptions): void;
+
+    /**
+     * Navigate to the previous location
+    */
+    back(): boolean;
+
+    /**
+     * Get the current route read-only
+    */
+    readonly currentRoute: Route;
+
+    /**
+     * Get the list of all routes
+     */
+    readonly routes: Route[];
+
+    /**
+     * Get navigating state
+     */
+    readonly navigating: boolean;
+
+  }
+
   type ComponentBase = {
     /**
     * Listen to events emitted by other components
@@ -125,7 +185,7 @@ declare module '@lightningjs/blits' {
     /**
     * Log to the console with prettier output and configurable debug levels in Settings
     */
-    // $log: Log
+    $log: Log
 
     /**
     * Set focus to the Component, optionally pass a KeyboardEvent for instant event bubbling
@@ -180,7 +240,7 @@ declare module '@lightningjs/blits' {
     /**
      * Router instance
      */
-    // $router: Router
+    $router: Router
   }
 
   /**
