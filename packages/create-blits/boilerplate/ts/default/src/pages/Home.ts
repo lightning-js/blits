@@ -2,6 +2,8 @@ import Blits from '@lightningjs/blits'
 
 import Loader from '../components/Loader.js'
 
+const colors = ['#f5f3ff', '#ede9fe', '#ddd6fe', '#c4b5fd', '#a78bfa']
+
 export default Blits.Component('Home', {
   components: {
     Loader,
@@ -20,7 +22,7 @@ export default Blits.Component('Home', {
           y="320"
           :effects="[$shader('radius', {radius: 8})]"
         />
-        <Loader :x="1920 / 2" mount="{x: 0.5}" y="600" w="160" :alpha.transition="$loaderAlpha" />
+        <Loader :x="1920 / 2" mount="{x: 0.5}" y="600" w="160" :alpha.transition="$loaderAlpha" :loaderColor="$color" />
         <Element y="600" :alpha.transition="$textAlpha">
           <Text size="80" align="center" wordwrap="1920">Hello!</Text>
           <Text
@@ -37,19 +39,43 @@ export default Blits.Component('Home', {
         </Element>
       </Element>
     </Element>
-  `,
+    `,
   state() {
     return {
-      y: 0,
-      x: -1000,
-      rotation: 0,
-      scale: 1,
-      loaderAlpha: 0,
-      textAlpha: 0.00001,
+      /**
+       * Y-position of the entire page contents
+       */
+      y: 0 as number,
+      /**
+       * X-position of the logo, used to create slide in transition
+       */
+      x: -1000 as number,
+      /**
+       * Rotation of the logo, used to create a spinning transition
+       */
+      rotation: 0 as number,
+      /**
+       * Scale of the logo, used to create a zoom-in / zoom-out transition
+       */
+      scale: 1 as number,
+      /**
+       * Alpha of the loader component, used to create a fade-in / fade-out transition
+       */
+      loaderAlpha: 0 as number,
+      /**
+       * Alpha of the text, used to create a fade-in transition
+       */
+      textAlpha: 0 as number,
+      /**
+       * Color passed into the loader component
+       */
+      color: '' as string,
     }
   },
   hooks: {
     ready() {
+      this.rotateColors(200)
+
       this.loaderAlpha = 1
       this.x = 1920 / 2
 
@@ -67,7 +93,20 @@ export default Blits.Component('Home', {
         this.loaderAlpha = 0
         this.scale = 1
         this.textAlpha = 1
-      }, 3800)
+      }, 6000)
+    },
+  },
+  methods: {
+    /**
+     * Method to rotate the colors of the loader
+     */
+    rotateColors(interval: number): void {
+      let i = 0
+      this.$setInterval(() => {
+        i++
+        if (i >= colors.length) i = 0
+        this.color = colors[i]
+      }, interval)
     },
   },
 })
