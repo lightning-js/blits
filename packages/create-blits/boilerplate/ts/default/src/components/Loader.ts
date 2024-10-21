@@ -21,7 +21,6 @@ export default Blits.Component('Loader', {
   hooks: {
     ready() {
       this.start()
-      this.alpha
     },
   },
   methods: {
