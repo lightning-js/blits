@@ -2,6 +2,8 @@ import Blits from '@lightningjs/blits'
 
 import Loader from '../components/Loader.js'
 
+const colors = ['#f5f3ff', '#ede9fe', '#ddd6fe', '#c4b5fd', '#a78bfa']
+
 export default Blits.Component('Home', {
   components: {
     Loader,
@@ -20,7 +22,7 @@ export default Blits.Component('Home', {
           y="320"
           :effects="[$shader('radius', {radius: 8})]"
         />
-        <Loader :x="1920 / 2" mount="{x: 0.5}" y="600" w="160" :alpha.transition="$loaderAlpha" />
+        <Loader :x="1920 / 2" mount="{x: 0.5}" y="600" w="160" :alpha.transition="$loaderAlpha" :loaderColor="$color" />
         <Element y="600" :alpha.transition="$textAlpha">
           <Text size="80" align="center" wordwrap="1920">Hello!</Text>
           <Text
@@ -62,16 +64,25 @@ export default Blits.Component('Home', {
       scale: 1,
       /**
        * Alpha of the loader component, used to create a fade-in / fade-out transition
+       * @type {number}
        */
       loaderAlpha: 0,
       /**
        * Alpha of the text, used to create a fade-in transition
+       * @type {number}
        */
       textAlpha: 0,
+      /**
+       * Color passed into the loader component
+       * @type {string}
+       */
+      color: '',
     }
   },
   hooks: {
     ready() {
+      this.rotateColors(200)
+
       this.loaderAlpha = 1
       this.x = 1920 / 2
 
@@ -89,7 +100,21 @@ export default Blits.Component('Home', {
         this.loaderAlpha = 0
         this.scale = 1
         this.textAlpha = 1
-      }, 3800)
+      }, 6000)
+    },
+  },
+  methods: {
+    /**
+     * Method to rotate the colors of the loader
+     * @param {number} interval - interval in ms
+     */
+    rotateColors(interval) {
+      let i = 0
+      this.$setInterval(() => {
+        i++
+        if (i >= colors.length) i = 0
+        this.color = colors[i]
+      }, interval)
     },
   },
 })
