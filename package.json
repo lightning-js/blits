@@ -19,6 +19,7 @@
     "prepublishOnly": "node scripts/prepublishOnly.js",
     "postpublish": "node scripts/postpublish.js"
   },
+  "types": "./index.d.ts",
   "lint-staged": {
     "*.js": [
       "eslint --fix"
