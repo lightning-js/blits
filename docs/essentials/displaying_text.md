@@ -83,7 +83,7 @@ When you create a new Blits app using the available [getting started boilerplate
 
 But of course, you can also use any custom font that you want, to give your App the unique look and feel that fits with the design.
 
-Adding is custom font to a Blits App is quite straightforward. First, you'll need to place a `.ttf` version of your font in the `public` folder (i.e. `public/fonts/comic-sans.ttf`).
+Adding is custom font to a Blits App is quite straightforward. First, you'll need to place a `.ttf`, `.woff` or `.otf` version of your font in the `public` folder (i.e. `public/fonts/comic-sans.ttf`).
 
 Then you'll need to register the custom font in the Launch settings of your app (in `src/index.js`). The `fonts`-key in the settings is an `Array` that specifies all available fonts in your App.
 
@@ -107,3 +107,21 @@ From this moment on you'll be able to use the font `ComicSans` anywhere in your 
 <Text font="ComicSans" content="I'm Comic Sans font!" />
 ```
 
+### Custom characters
+
+For MSDF font, a font atlas is created. By default this atlas includes all ASCII characters. If you know before hand that you won't need certain characters, it would be more optimal to generate only those characters that are actually needed.
+
+Similarly, if you need characters outside of the default set, like accents or other special characters, then these will need to be included in the generated font atlas.
+
+In order to control which characters are generated for a specific font, you can add a _font config file_ per font inside the `assets/fonts` folder. Its name should match the name of the font file, like so: `myfont.config.json`.
+
+The config file should look something like this:
+
+```json
+{
+  "charset": "0123456789éåaü"
+}
+```
+With the configuration above, only numbers and the specified letters with accents will be generated (i.e. the default characterset is overwritten).
+
+> Please note that only special characters and accents that are part of the original font can be added to the generated font atlas. Other characters will show up as a `?`.
