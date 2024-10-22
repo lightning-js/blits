@@ -109,7 +109,7 @@ From this moment on you'll be able to use the font `ComicSans` anywhere in your 
 
 ### Custom characters
 
-For MSDF font, a font atlas is created. By default this atlas includes all ASCII characters. If you know before hand that you won't need certain characters, it would be more optimal to generate only those characters that are actually needed.
+For MSDF font, a font atlas is created. By default this atlas includes all printable main ASCII characters. If you know before hand that you won't need certain characters, it would be more optimal to generate only those characters that are actually needed.
 
 Similarly, if you need characters outside of the default set, like accents or other special characters, then these will need to be included in the generated font atlas.
 
@@ -122,6 +122,6 @@ The config file should look something like this:
   "charset": "0123456789éåaü"
 }
 ```
-With the configuration above, only numbers and the specified letters with accents will be generated (i.e. the default characterset is overwritten).
+With the configuration above, only numbers and the specified letters with accents will be generated (i.e. the default character set is overwritten).
 
 > Please note that only special characters and accents that are part of the original font can be added to the generated font atlas. Other characters will show up as a `?`.
