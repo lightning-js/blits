@@ -386,10 +386,18 @@ const Element = {
       f,
     }
 
-    if (transition.start && typeof transition.start === 'function') {
+    if (transition.start !== undefined && typeof transition.start === 'function') {
       // fire transition start callback when animation really starts (depending on specified delay)
       f.once('animating', () => {
         transition.start.call(this.component, this, prop, startValue)
+      })
+    }
+
+    if (transition.progress !== undefined && typeof transition.progress === 'function') {
+      let prevProgress = 0
+      f.on('tick', (_node, { progress }) => {
+        transition.progress.call(this.component, this, prop, progress, prevProgress)
+        prevProgress = progress
       })
     }
 
