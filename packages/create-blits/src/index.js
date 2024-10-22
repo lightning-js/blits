@@ -93,6 +93,16 @@ const questions = [
     initial: (prev, val) => val.appPackage,
   },
   {
+    type: 'select',
+    name: 'projectType',
+    message: 'What kind of project do you want to create?',
+    choices: [
+      { title: 'Javascript', description: 'JS based project (with JSDoc for type checking and autocompletion)', value: 'js' },
+      { title: 'TypeScript', description: 'TS based project', value: 'ts' },
+    ],
+    initial: 0
+  },
+  {
     type: 'toggle',
     name: 'esLint',
     message: 'Do you want to enable eslint?',
@@ -103,7 +113,7 @@ const questions = [
   {
     type: 'toggle',
     name: 'gitInit',
-    message: 'Do you want to generate an git repository?',
+    message: 'Do you want to generate a git repository?',
     initial: 'true',
     active: 'Yes',
     inactive: 'No',

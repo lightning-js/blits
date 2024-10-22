@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
@@ -19,6 +19,7 @@
     "prepublishOnly": "node scripts/prepublishOnly.js",
     "postpublish": "node scripts/postpublish.js"
   },
+  "types": "./index.d.ts",
   "lint-staged": {
     "*.js": [
       "eslint --fix"
@@ -47,8 +48,8 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/msdf-generator": "^1.0.2",
-    "@lightningjs/renderer": "^2.3.2"
+    "@lightningjs/msdf-generator": "^1.1.0",
+    "@lightningjs/renderer": "^2.4.0"
   },
   "repository": {
     "type": "git",

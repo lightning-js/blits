@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.8.0
+
+_22 oct 2024_
+
+- Refactored TypeScript definitions to give better autocompletion and general TS support for business logic
+- Added option for custom characters in MSDF generated fonts
+- Added export for symbols
+- Upgraded renderer to 2.4.0
+- Added transition progress event
+
+
 ## v1.7.1
 
 _14 oct 2024_

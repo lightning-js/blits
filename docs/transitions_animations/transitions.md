@@ -104,7 +104,7 @@ Besides a reference to the `value`, you can also use dynamic values for the othe
 
 ## Listening to transition events
 
-Sometimes you may want to perform an action when a transition ends or when it starts.
+Sometimes you may want to perform an action when a transition _ends_ or when it _starts_.
 
 You can easily hook into these transition events by adding a `start` and `end` key to the transition object. Both values should be a function (or a reference to a `method` on your component).
 
@@ -128,3 +128,23 @@ export default Blits.Component('Gold', {
   }
 ```
 
+It is also possible to keep track of the entire progress of a transition. Every frametick during a transition (ideally once every 1.6ms), the renderer reports the progress of the transition. You can hook into this event by specifying a `progress` key on the transition configuration object, with a function to excute.
+
+This function is executed _every_ frametick, and receives the current progress and the previous progress as its arguments. The progress is indicated as a value between `0` and `1`, where 0 means start and 1 means finished.
+
+```js
+export default Blits.Component('Gold', {
+  template: `
+    <Element color="gold" w="100" h="100"
+      :x.transition="{value: $x, progress: $transitionProgress}"
+    />
+  `,
+  ///
+  methods: {
+    transitionprogress(progress, previousProgress) {
+      if(progress >= 0.5 && previousProgress < 0.5) {
+        // halfway through the transition
+      }
+    },
+  }
+```
