@@ -1,6 +1,4 @@
-# Blits - Lightning 3 App Development Framework
-
-## Computed properties
+# Computed properties
 
 So far we've learned how to utilize a Component's [internal state](./component_state.md) and [props](./props.md) passed by a parent into a child component.
 
@@ -10,7 +8,7 @@ However, as these operations become more complex it's more clear and more mainta
 Computed properties are a powerful tool for enhancing the readability of your component code. By abstracting complex or frequently used calculations from your template into computed properties, you can make your code more concise and easier to understand.
 
 
-### Defining computed properties
+## Defining computed properties
 
 Within the `computed`-key of the Component configuration object, you can specify an object of `functions`. Each function name you define (`offset()` for example) becomes accessible as a _computed property_.
 
@@ -35,7 +33,7 @@ export default Blits.Component('MyComponent', {
 })
 ```
 
-### Reactivity
+## Reactivity
 
 Within a computed property, you can reference one or more state variables or props and _return_ a value based on calculations or logical operations.
 

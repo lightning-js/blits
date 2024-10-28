@@ -27,28 +27,33 @@ export default (component, state = () => {}) => {
     writable: false,
   })
 
-  const stateKeys = Object.keys(state.apply(component) || {}).concat(['hasFocus'])
+  const stateKeys = Object.keys(state.apply(component) || {})
+  // add built-in hasFocus key
+  stateKeys.push(['hasFocus'])
+  const stateKeysLength = stateKeys.length
 
-  stateKeys.forEach((key) => {
-    if (component[symbols.propKeys] && component[symbols.propKeys].indexOf(key) > -1) {
+  for (let i = 0; i < stateKeysLength; i++) {
+    const key = stateKeys[i]
+    if (
+      component[symbols.propKeys] !== undefined &&
+      component[symbols.propKeys].indexOf(key) > -1
+    ) {
       Log.error(`State ${key} already exists as a prop`)
     }
-    if (component[symbols.methodKeys] && component[symbols.methodKeys].indexOf(key) > -1) {
+    if (
+      component[symbols.methodKeys] !== undefined &&
+      component[symbols.methodKeys].indexOf(key) > -1
+    ) {
       Log.error(`State ${key} already exists as a method`)
     }
     component[symbols.stateKeys].push(key)
-    try {
-      Object.defineProperty(component, key, {
-        get() {
-          return this[symbols.state] && key in this[symbols.state] && this[symbols.state][key]
-        },
-        set(v) {
-          if (this[symbols.state]) this[symbols.state][key] = v
-        },
-        // enumerable: true,
-      })
-    } catch (e) {
-      Log.error(e)
-    }
-  })
+    Object.defineProperty(component, key, {
+      get() {
+        return this[symbols.state][key]
+      },
+      set(v) {
+        this[symbols.state][key] = v
+      },
+    })
+  }
 }

@@ -75,7 +75,7 @@ const generateElementCode = function (
   renderCode.push(`const elementConfig${counter} = {}`)
 
   if (options.forloop) {
-    renderCode.push(`if(!${elm}) {`)
+    renderCode.push(`if(${elm} === undefined) {`)
   }
 
   renderCode.push(`
@@ -96,7 +96,7 @@ const generateElementCode = function (
   Object.keys(templateObject).forEach((key) => {
     if (key === 'slot') {
       renderCode.push(`
-        elementConfig${counter}['parent'] = component[Symbol.for('slots')].filter(slot => slot.ref === '${templateObject.slot}').shift() || component[Symbol.for('slots')][0] || parent
+        elementConfig${counter}['parent'] = component[Symbol.for('slots')].filter(slot => slot.ref === '${templateObject.slot}').shift() || parent
       `)
     }
 
@@ -104,9 +104,20 @@ const generateElementCode = function (
 
     if (isReactiveKey(key)) {
       if (options.holder && key === ':color') return
-      this.effectsCode.push(
-        `${elm}.set('${key.substring(1)}', ${interpolate(templateObject[key], options.component)})`
-      )
+      if (options.holder) {
+        this.effectsCode.push(`
+        if(typeof skip${counter} === 'undefined' ||
+          skip${counter}.indexOf('${key.substring(1)}') === -1)
+          ${elm}.set('${key.substring(1)}', ${interpolate(templateObject[key], options.component)})
+        `)
+      } else {
+        this.effectsCode.push(`
+            ${elm}.set('${key.substring(1)}', ${interpolate(
+          templateObject[key],
+          options.component
+        )})
+          `)
+      }
       renderCode.push(
         `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(
           templateObject[key],
@@ -122,16 +133,18 @@ const generateElementCode = function (
 
   if (options.holder === true) {
     renderCode.push(`
+    const skip${counter} = []
     if(typeof cmp${counter} !== 'undefined') {
       for(let key in cmp${counter}.config.props) {
         delete elementConfig${counter}[cmp${counter}.config.props[key]]
+        skip${counter}.push(cmp${counter}.config.props[key])
       }
     }
     `)
   }
 
   if (options.forloop) {
-    renderCode.push(`if(!${elm}.nodeId) {`)
+    renderCode.push(`if(${elm}.nodeId === undefined) {`)
   }
 
   renderCode.push(`${elm}.populate(elementConfig${counter})`)
@@ -192,6 +205,11 @@ const generateComponentCode = function (
   }
 
   renderCode.push(`const props${counter} = {}`)
+
+  if (options.forloop) {
+    renderCode.push(`if(${elm} === undefined) {`)
+  }
+
   Object.keys(templateObject).forEach((key) => {
     if (isReactiveKey(key)) {
       this.effectsCode.push(`
@@ -212,10 +230,6 @@ const generateComponentCode = function (
     }
   })
 
-  if (options.forloop) {
-    renderCode.push(`if(!${elm}) {`)
-  }
-
   renderCode.push(`
     componentType = props${counter}['is'] || '${templateObject[Symbol.for('componentType')]}'
 
@@ -225,7 +239,7 @@ const generateComponentCode = function (
       if(!component${counter}) {
         throw new Error('Component "${templateObject[Symbol.for('componentType')]}" not found')
       }
-    } else if(typeof componentType === 'function' && componentType.name === 'factory') {
+    } else if(typeof componentType === 'function' && componentType[Symbol.for('isComponent')] === true) {
       component${counter} = componentType
     }
 
@@ -249,6 +263,7 @@ const generateComponentCode = function (
   }
   // if (!options.forloop) {
   //   renderCode.push(`
+  //     // console.log('here', component, rootComponent)
   //   component = rootComponent
   // `)
   // }
@@ -260,6 +275,11 @@ const generateForLoopCode = function (templateObject, parent) {
 
   const key = templateObject['key']
   const forKey = interpolate(key, 'scope.')
+
+  const shallow = !!!(
+    templateObject['$shallow'] && templateObject['$shallow'].toLowerCase() === 'false'
+  )
+  delete templateObject['$shallow']
 
   delete templateObject['key']
   const regex = /(.+)\s+in\s+(.+)/gi
@@ -286,13 +306,27 @@ const generateForLoopCode = function (templateObject, parent) {
     ctx.renderCode.push(`parent = ${parent}`)
   }
 
+  const indexRegex = new RegExp(`\\$${index}(?!['\\w])`)
+  const indexResult = indexRegex.exec(key)
+  if (Array.isArray(indexResult)) {
+    ctx.renderCode.push(
+      `console.warn(" Using '${index}' in the key, like key=${key},  is not recommended")`
+    )
+  }
+
   const forStartCounter = counter
 
   ctx.renderCode.push(`
     const created${forStartCounter} = []
     const forloop${forStartCounter} = (collection = [], elms, created) => {
       const rawCollection = getRaw(collection)
-      const keys = new Set(rawCollection.map((${item}) => '' +  ${interpolate(key, '')}))
+      const keys = new Set()
+      let l = rawCollection.length
+      while(l--) {
+        const ${item} = rawCollection[l]
+        const ${index} = l
+        keys.add('' +  ${interpolate(key, '') || 'l'})
+      }
   `)
 
   // keep track of the index in the render code so we can inject
@@ -302,13 +336,13 @@ const generateForLoopCode = function (templateObject, parent) {
 
   ctx.renderCode.push(`
       created.length = 0
-      const length = collection.length
+      const length = rawCollection.length
       for(let __index = 0; __index < length; __index++) {
         const scope = Object.create(component)
         parent = ${parent}
         scope['${index}'] = __index
         scope['${item}'] = rawCollection[__index]
-        scope['key'] = ${forKey || '__index'}
+        scope['key'] = '' + ${forKey || '__index'}
   `)
   if ('ref' in templateObject && templateObject.ref.indexOf('$') === -1) {
     // automatically map the ref for each item in the loop based on the given ref key
@@ -327,6 +361,9 @@ const generateForLoopCode = function (templateObject, parent) {
     templateObject[Symbol.for('componentType')] === 'Slot' ||
     templateObject[Symbol.for('componentType')] === 'Text'
   ) {
+    if (templateObject[Symbol.for('componentType')] === 'Text') {
+      templateObject.__textnode = 'true'
+    }
     generateElementCode.call(ctx, templateObject, parent, {
       key: 'scope.key',
       component: 'scope.',
@@ -352,24 +389,35 @@ const generateForLoopCode = function (templateObject, parent) {
     (effect) => [...effect.matchAll(scopeRegex)].length !== 0
   )
 
-  ctx.renderCode.push(`
-    scope['${item}'] = collection[__index]
+  if (shallow === false) {
+    ctx.renderCode.push(`
+      scope['${item}'] = null
+      scope['${item}'] = collection[__index]
   `)
+  }
 
   // inner scope variables are part of the main forloop
-  innerScopeEffects.forEach((effect) => {
+  innerScopeEffects.forEach((effect, index) => {
     const key = effect.indexOf(`scope.${index}`) > -1 ? `'${interpolate(result[2], '')}'` : null
-    ctx.renderCode.push(`
-      effect(() => {
+    if (effect.indexOf("Symbol.for('props')") === -1) {
+      ctx.renderCode.push(`
+        let eff${index} = () => {
+          ${effect}
+        }
+        effect(eff${index}, ${key})
+        component[Symbol.for('effects')].push(eff${index})
+      `)
+    } else {
+      // props shouldn't be wrapped in an effect, but simply passed on
+      ctx.renderCode.push(`
         ${effect}
-      }, ${key})
-    `)
+      `)
+    }
   })
-
+  // if(elms[${forStartCounter}][0] && elms[${forStartCounter}][0].forComponent && elms[${forStartCounter}][0].forComponent.___layout) {
+  //   elms[${forStartCounter}][0].forComponent.___layout()
+  // }
   ctx.renderCode.push(`
-      if(elms[${forStartCounter}][0] && elms[${forStartCounter}][0].forComponent && elms[${forStartCounter}][0].forComponent.___layout) {
-        elms[${forStartCounter}][0].forComponent.___layout()
-      }
     }
   }`)
 
@@ -379,8 +427,8 @@ const generateForLoopCode = function (templateObject, parent) {
       let i = created.length
 
       while (i--) {
-        const key = created[i]
-        if (!keys.has(key)) {
+        if (keys.has(created[i]) === false) {
+          const key = created[i]
   `)
   const forEndCounter = counter
 
@@ -412,8 +460,11 @@ const generateForLoopCode = function (templateObject, parent) {
       const match = matches[l]
       const ref = `component.${match[2]}`
       refs.indexOf(ref) === -1 && refs.push(ref)
-      effect =
-        effect.substring(0, match.index) + ref + effect.substring(match.index + match[1].length)
+      // don't update the effect to point to component, if we're referring to a scope item
+      if (match[2] !== item) {
+        effect =
+          effect.substring(0, match.index) + ref + effect.substring(match.index + match[1].length)
+      }
     }
 
     ctx.renderCode.push(`
@@ -497,6 +548,7 @@ const interpolate = (val, component = 'component.') => {
 }
 
 const cast = (val = '', key = false, component = 'component.') => {
+  const dynamicArgumentRegex = /\$\w+/gi
   let castedValue
 
   // inline content
@@ -547,6 +599,21 @@ const cast = (val = '', key = false, component = 'component.') => {
   else if (val.startsWith('$')) {
     castedValue = `${component}${val.replace('$', '')}`
   }
+  // dynamic value in object
+  else if (dynamicArgumentRegex.exec(val)) {
+    const rex = /\w+\s*:\s*(?:[^\s,}]+|".*?"|'.*?')/g
+    const results = val.match(rex)
+    castedValue = {}
+    if (results) {
+      for (let i = 0; i < results.length; i++) {
+        const members = results[i].split(/\s*:\s*/)
+        if (members) {
+          populateFields(members[0], members[1], component, castedValue)
+        }
+      }
+    }
+    return interpolateObject(castedValue)
+  }
   // static string
   else {
     castedValue = `"${val}"`
@@ -567,4 +634,22 @@ const parseInlineContent = (val, component) => {
     }
   }
   return val
+}
+
+// Populate value into target's prop
+const populateFields = (prop, val, component, target) => {
+  if (val.startsWith('$')) {
+    target[prop] = `${component}${val.replace('$', '')}`
+  } else {
+    target[prop] = val
+  }
+}
+
+const interpolateObject = (input) => {
+  const interpolatedResults = []
+  Object.keys(input).forEach((key) => {
+    interpolatedResults.push(`${key}: ${input[key]}`)
+  })
+
+  return ` { ${interpolatedResults.join(', ')} }`
 }

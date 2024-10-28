@@ -17,6 +17,7 @@
   - [Hooking into lifecycle events](/components/lifecycle_events.md)
   - [Handling User input](/components/user_input.md)
   - [Methods](/components/methods.md)
+  - [Utility methods](/components/utility_methods.md)
 - Transitions and Animations
   - [Transitions](/transitions_animations/transitions.md)
 - Built-in components
@@ -25,3 +26,5 @@
 - Plugins
   - [Text-to-Speech / Announcer](/plugins/text-to-speech-announcer.md)
   - [Language](/plugins/language.md)
+  - [Theme](/plugins/theme.md)
+  - [Global App State](/plugins/global_app_state.md)

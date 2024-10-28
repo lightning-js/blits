@@ -23,7 +23,7 @@ import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 
 const isTransition = (value) => {
-  return value !== null && typeof value === 'object' && 'transition' in value
+  return value !== null && typeof value === 'object' && 'transition' in value === true
 }
 
 const isObjectString = (str) => {
@@ -39,22 +39,21 @@ const parsePercentage = function (v, base) {
     return v
   } else if (v.indexOf('%') === v.length - 1) {
     return (
-      this.element.parent &&
-      this.element.parent[base] &&
-      this.element.parent[base] * (parseFloat(v) / 100)
+      (this.element.config.parent &&
+        (this.element.config.parent.node[base] || 0) * (parseFloat(v) / 100)) ||
+      0
     )
   }
   return v
 }
 
 const unpackTransition = (v) => {
-  if (v === null) return v
-  if (typeof v === 'string') return v
-  else if (typeof v === 'number') return v
-  else if (typeof v === 'object' && v.constructor === Object) {
-    if ('value' in v) {
+  if (typeof v !== 'object' || v === null) return v
+  if (v.constructor === Object) {
+    if ('value' in v === true) {
       return v.value
-    } else if ('transition' in v) {
+    }
+    if ('transition' in v === true) {
       return unpackTransition(v.transition)
     }
   }
@@ -68,7 +67,7 @@ const colorMap = {
   right: 'colorRight',
 }
 
-let textDefaults
+let textDefaults = null
 
 const propsTransformer = {
   set parent(v) {
@@ -102,9 +101,9 @@ const propsTransformer = {
     this.props['zIndex'] = v
   },
   set color(v) {
-    if (typeof v === 'string' && v.indexOf('{') === -1) {
+    if (typeof v === 'string' && v.startsWith('{') === false) {
       this.props['color'] = colors.normalize(v)
-    } else if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
+    } else if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
       this.props['color'] = 0
       Object.entries(v).forEach((color) => {
         this.props[colorMap[color[0]]] = colors.normalize(color[1])
@@ -113,31 +112,53 @@ const propsTransformer = {
   },
   set src(v) {
     this.props['src'] = v
-    if (this.raw.get('color') === undefined) {
+    if (this.raw['color'] === undefined) {
       this.props['color'] = 0xffffffff
     }
   },
   set texture(v) {
     this.props['texture'] = v
 
-    if (this.raw.get('color') === undefined && (v === null || v === undefined)) {
+    if (this.raw['color'] === undefined && (v === null || v === undefined)) {
       this.props['color'] = 0x00000000
-    } else if (this.raw.get('color') === undefined) {
+    } else if (this.raw['color'] === undefined) {
       this.props['color'] = 0xffffffff
+    }
+  },
+  set fit(v) {
+    const resizeMode = {}
+
+    if (v === 'cover' || v === 'contain') {
+      this.props['textureOptions'] = { resizeMode: { type: v } }
+      return
+    }
+
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      resizeMode['type'] = v.type || 'cover'
+
+      if (typeof v.position === 'number') {
+        resizeMode['clipY'] = resizeMode['clipX'] = v.position
+      }
+
+      if (typeof v.position === 'object') {
+        resizeMode['clipX'] = 'x' in v.position === true ? v.position.x : null
+        resizeMode['clipY'] = 'y' in v.position === true ? v.position.y : null
+      }
+      this.props['textureOptions'] = { resizeMode }
     }
   },
   set rtt(v) {
     this.props['rtt'] = v
-    if (v === true && this.raw.get('color') === undefined) {
+    if (v === true && this.raw['color'] === undefined) {
       this.props['color'] = 0xffffffff
     }
   },
   set mount(v) {
-    if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if ('x' in v) {
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      if ('x' in v === true) {
         this.props['mountX'] = v.x
       }
-      if ('y' in v) {
+      if ('y' in v === true) {
         this.props['mountY'] = v.y
       }
     } else {
@@ -146,11 +167,11 @@ const propsTransformer = {
     }
   },
   set pivot(v) {
-    if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if ('x' in v) {
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      if ('x' in v === true) {
         this.props['pivotX'] = v.x
       }
-      if ('y' in v) {
+      if ('y' in v === true) {
         this.props['pivotY'] = v.y
       }
     } else {
@@ -159,11 +180,11 @@ const propsTransformer = {
     }
   },
   set scale(v) {
-    if (typeof v === 'object' || (isObjectString(v) && (v = parseToObject(v)))) {
-      if ('x' in v) {
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      if ('x' in v === true) {
         this.props['scaleX'] = v.x
       }
-      if ('y' in v) {
+      if ('y' in v === true) {
         this.props['scaleY'] = v.y
       }
     } else {
@@ -184,13 +205,13 @@ const propsTransformer = {
     }
   },
   set effects(v) {
+    for (let i = 0; i < v.length; i++) {
+      if (v[i].props && v[i].props.color) {
+        v[i].props.color = colors.normalize(v[i].props.color)
+      }
+    }
     this.props['shader'] = renderer.createShader('DynamicShader', {
-      effects: v.map((eff) => {
-        if (eff.props && eff.props.color) {
-          eff.props.color = colors.normalize(eff.props.color)
-        }
-        return eff
-      }),
+      effects: v,
     })
   },
   set clipping(v) {
@@ -238,24 +259,22 @@ const propsTransformer = {
 
 const Element = {
   populate(data) {
-    const props = {
-      ...this.config,
-      ...data,
-    }
+    const props = data
+    props['node'] = this.config.node
 
-    if (props[symbols.isSlot]) {
+    if (props[symbols.isSlot] === true) {
       this[symbols.isSlot] = true
     }
 
     this.props.element = this
 
-    const propKeys = Object.keys(props)
-    const length = propKeys.length
-
-    this.props['parent'] = props.parent
+    this.props['parent'] = props['parent'] || this.config.parent
     delete props.parent
 
-    this.props.raw = new Map(Object.entries(props))
+    this.props.raw = data
+
+    const propKeys = Object.keys(props)
+    const length = propKeys.length
 
     for (let i = 0; i < length; i++) {
       const key = propKeys[i]
@@ -266,7 +285,7 @@ const Element = {
     }
 
     // correct for default white nodes (but not for text nodes)
-    if (this.props.props['color'] === undefined && !('__textnode' in props)) {
+    if (this.props.props['color'] === undefined && '__textnode' in props === false) {
       this.props.props['color'] = 0
     }
 
@@ -274,69 +293,68 @@ const Element = {
       ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
       : renderer.createNode(this.props.props)
 
-    if (props['@loaded']) {
+    if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
       this.node.on('loaded', (el, { type, dimensions }) => {
         props['@loaded']({ w: dimensions.width, h: dimensions.height, type }, this)
       })
     }
 
-    if (props['@error']) {
+    if (props['@error'] !== undefined && typeof props['@error'] === 'function') {
       this.node.on('failed', (el, error) => {
         props['@error'](error, this)
       })
     }
 
-    if (this.component && this.component.___layout) {
-      this.node.on('loaded', () => {
-        this.component.___layout()
-      })
-    }
+    // if (this.component !== undefined && '___layout' in this.component) {
+    //   this.node.on('loaded', () => {
+    //     this.component.___layout()
+    //   })
+    // }
   },
   set(prop, value) {
     if (value === undefined) return
-    if (this.props.raw.get(prop) === value) return
-
-    this.props.raw.set(prop, value)
+    if (this.props.raw[prop] === value) return
+    this.props.raw[prop] = value
 
     this.props.props = {}
     this.props[prop] = unpackTransition(value)
-    const props = Object.entries(this.props.props)
 
-    if (props.length === 1) {
-      const [p, v] = props[0]
-      if (isTransition(value)) {
-        return this.animate(p, v, value.transition)
+    const propsKeys = Object.keys(this.props.props)
+
+    if (propsKeys.length === 1) {
+      if (isTransition(value) === true) {
+        return this.animate(propsKeys[0], this.props.props[propsKeys[0]], value.transition)
       }
       // set the prop to the value on the node
-      this.node[p] = v
+      this.node[propsKeys[0]] = this.props.props[propsKeys[0]]
     } else {
-      for (let i = 0; i < props.length; i++) {
+      for (let i = 0; i < propsKeys.length; i++) {
         // todo: fix code duplication
-        const [p, v] = props[i]
-        if (isTransition(value)) {
-          return this.animate(p, v, value.transition)
+        if (isTransition(value) === true) {
+          return this.animate(propsKeys[i], this.props.props[propsKeys[i]], value.transition)
         }
         // set the prop to the value on the node
-        this.node[p] = v
+        this.node[propsKeys[i]] = this.props.props[propsKeys[i]]
       }
     }
 
     // todo: review naming
-    if (this.component && this.component.___layout) {
-      this.component.___layout()
-    }
+    // if (this.component && this.component.___layout) {
+    //   this.component.___layout()
+    // }
   },
   animate(prop, value, transition) {
+    // check if a transition is already scheduled to run on the same prop
+    // and cancels it if it does
+    if (
+      this.scheduledTransitions[prop] !== undefined &&
+      this.scheduledTransitions[prop].f.state === 'scheduled'
+    ) {
+      this.scheduledTransitions[prop].f.stop()
+    }
+
     // if current value is the same as the value to animate to, instantly resolve
     if (this.node[prop] === value) return
-    // check if a transition is already scheduled or running on the same prop
-    if (this.scheduledTransitions[prop]) {
-      if (this.scheduledTransitions[prop].f.state === 'running') {
-        // fastforward to final value
-        this.node[prop] = this.scheduledTransitions[prop].v
-        // this.scheduledTransitions[prop].f.stop()
-      }
-    }
 
     const props = {}
     props[prop] = value
@@ -365,20 +383,27 @@ const Element = {
     // removed if another transition for the same prop starts in the mean time
     this.scheduledTransitions[prop] = {
       v: props[prop],
-      cancel: false,
       f,
     }
 
-    if (transition.start && typeof transition.start === 'function') {
+    if (transition.start !== undefined && typeof transition.start === 'function') {
       // fire transition start callback when animation really starts (depending on specified delay)
       f.once('animating', () => {
         transition.start.call(this.component, this, prop, startValue)
       })
     }
 
+    if (transition.progress !== undefined && typeof transition.progress === 'function') {
+      let prevProgress = 0
+      f.on('tick', (_node, { progress }) => {
+        transition.progress.call(this.component, this, prop, progress, prevProgress)
+        prevProgress = progress
+      })
+    }
+
     f.once('stopped', () => {
       // remove the prop from scheduled transitions
-      this.scheduledTransitions[prop] = null
+      this.scheduledTransitions[prop] = undefined
       // fire transition end callback when animation ends (if specified)
       if (transition.end && typeof transition.end === 'function') {
         transition.end.call(this.component, this, prop, this.node[prop])
@@ -409,7 +434,7 @@ const Element = {
 }
 
 export default (config, component) => {
-  if (!textDefaults) {
+  if (textDefaults === null) {
     textDefaults = {
       fontSize: 32,
       fontFamily: Settings.get('defaultFont', 'sans-serif'),

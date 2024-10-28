@@ -1,0 +1,20 @@
+{
+  "name": "{$appPackage}",
+  "version": "0.1.0",
+  "description": "{$appName}",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "npm run dev",
+    "lint": "eslint '**/*.js'",
+    "lint:fix": "eslint '**/*.js' --fix",
+    "build": "vite build",
+    "dev": "vite dev --host"
+  },
+  "devDependencies": {
+    "vite": "^5.4.8"
+  },
+  "dependencies": {
+    "@lightningjs/blits": "{$blitsVersion}"
+  }
+}

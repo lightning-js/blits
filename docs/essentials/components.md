@@ -1,6 +1,4 @@
-# Blits - Lightning 3 App Development Framework
-
-## Components
+# Components
 
 Like any modern front-end framework, Blits is built around the concept of Components. Components allow you to split the UI of your App into
 reusable pieces of code and logic.
@@ -14,7 +12,7 @@ Components in Blits follow a clearly defined structure, which helps keep your co
 
 This universal structure is also valuable for creating drop-in components that can be easily shared across projects.
 
-### Creating a new Component
+## Creating a new Component
 
 Let's see how to create a new component and explore the basic anatomy of a component.
 
@@ -37,7 +35,7 @@ A basic Blits component will then look something like this:
 
 ```js
 // src/components/Loader.js
-export default Blits('Loader', {
+export default Blits.Component('Loader', {
   template: `
     <Element x="880" y="500" :show="$active">
       <Element x="$offset" w="40" h="40" color="#94a3b8" :alpha="$alpha" />

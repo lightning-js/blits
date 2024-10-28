@@ -1,6 +1,4 @@
-# Blits - Lightning 3 App Development Framework
-
-## Transitions
+# Transitions
 
 So far we have explored how to create components and draw elements on the screen. But everything has
 been rather static so far.
@@ -8,7 +6,7 @@ been rather static so far.
 We did learn how to _reactively_ changes values and trigger rerenders based on that. So if you try the example below, you'll see that indeed our golden element changes position. But it just jumps from one place to another:
 
 ```js
-export default Blits('Gold', {
+export default Blits.Component('Gold', {
   template: `
     <Element color="gold" w="100" h="100" :x="$x" :y="$y" />
   `,
@@ -28,12 +26,12 @@ export default Blits('Gold', {
 
 Using _transitions_ we really make our App come alive.
 
-### Applying a transition
+## Applying a transition
 
 Blits offers an easy and intuitive way to apply transitions. All you need to do is add the `.transition` modifier to a reactive attribute, and now whenever you change the value referenced in the attribute, it will automatically _smooth_ into the new value.
 
 ```js
-export default Blits('Gold', {
+export default Blits.Component('Gold', {
   template: `
     <Element color="gold" w="100" h="100" :x.transition="$x" :y.transition="$y" />
   `,
@@ -55,7 +53,7 @@ If we try out the modified example above, you'll notice how much difference addi
 
 When the `.transition`-modifier is added to a reactive attribute, a default `ease-in` transition with a duration of `300ms` is applied
 
-### Customizing transitions
+## Customizing transitions
 
 While the default transition will look pretty good out of the box and is great for quickly improving the look of your App, you may want to customize specific transitions.
 
@@ -86,7 +84,7 @@ Besides a reference to the `value`, you can also use dynamic values for the othe
 </Element>
 ```
 
-#### Available easing functions
+### Available easing functions
 
 - `ease-in`
 - `ease-out`
@@ -104,16 +102,16 @@ Besides a reference to the `value`, you can also use dynamic values for the othe
 - `ease-out-back`
 - `ease-in-out-back`
 
-### Listening to transition events
+## Listening to transition events
 
-Sometimes you may want to perform an action when a transition ends or when it starts.
+Sometimes you may want to perform an action when a transition _ends_ or when it _starts_.
 
 You can easily hook into these transition events by adding a `start` and `end` key to the transition object. Both values should be a function (or a reference to a `method` on your component).
 
 The `start` function will be called when the transition actually starts (after a possible specified delay) and the `end` function is called as soon as the transition is finished.
 
 ```js
-export default Blits('Gold', {
+export default Blits.Component('Gold', {
   template: `
     <Element color="gold" w="100" h="100"
       :x.transition="{value: $x, start: $transitionBegin, end: $transitionEnd}"
@@ -130,3 +128,23 @@ export default Blits('Gold', {
   }
 ```
 
+It is also possible to keep track of the entire progress of a transition. Every frametick during a transition (ideally once every 1.6ms), the renderer reports the progress of the transition. You can hook into this event by specifying a `progress` key on the transition configuration object, with a function to excute.
+
+This function is executed _every_ frametick, and receives the current progress and the previous progress as its arguments. The progress is indicated as a value between `0` and `1`, where 0 means start and 1 means finished.
+
+```js
+export default Blits.Component('Gold', {
+  template: `
+    <Element color="gold" w="100" h="100"
+      :x.transition="{value: $x, progress: $transitionProgress}"
+    />
+  `,
+  ///
+  methods: {
+    transitionprogress(progress, previousProgress) {
+      if(progress >= 0.5 && previousProgress < 0.5) {
+        // halfway through the transition
+      }
+    },
+  }
+```

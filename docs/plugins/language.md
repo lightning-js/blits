@@ -1,12 +1,10 @@
-# Blits - Lightning 3 App Development Framework
-
-## Language plugin
+# Language plugin
 
 Blits comes with a built-in Language plugin, that can be used to add internationalization (i18n) to your App.
 
 The Blits Language plugin is a simple and lightweight implementation, closely modeled after the tried and tested Language plugin in the Lightning-SDK (for Lightning 2). It is designed to provide a flexible and easy way of translating texts to multiple languages, in a performant way.
 
-### Registering the plugin
+## Registering the plugin
 
 While the Language plugin is provided in the core Blits package, it's an _optional_ plugin that needs to be registered before you're able to use it. As such the Language plugin is _tree-shakable_, i.e. for Apps that don't have a need for translation functionality, the Language plugin will not be part of the final App bundle.
 
@@ -43,7 +41,7 @@ The Language plugin accepts an optional configuration object with 2 keys:
 
 After registration of the Language plugin, it will be availabe in each Blits Component as `this.$language`.
 
-### Translations file
+## Translations file
 
 The most common way of defining a set of translations, is to use a dedicated JSON file, modeled after
 the following format:
@@ -80,7 +78,7 @@ When the JSON file is specified in the Plugin registration method, the language 
 
 In case you want to load the file with translations manually, you can use the `this.$language.load()`-method anywhere in a Component and pass in the path to the JSON file as the first argument.
 
-### Defining translations manualy
+## Defining translations manualy
 
 As an alternative to a JSON file with translations, you can also define translations directly via an object, using the `translations()`-method.
 
@@ -106,7 +104,7 @@ Blits.Component('MyComponent', {
 })
 ```
 
-### Setting the language
+## Setting the language
 
 In order to set (or change) the current language, the `this.$language.set()`-method can be used, passing in the new language code (matching one of the languages defined in the translations).
 
@@ -121,11 +119,11 @@ Blits.Component('MyComponent', {
 })
 ```
 
-### Getting the current language
+## Getting the current language
 
-The current language can be retrieved via the `this.$language.get()` method. It will return the currently set language code.
+The current language can be retrieved via the `this.$language.language` property. It will return the currently set language code.
 
-### Translating
+## Translating
 
 The most important functionality in the Language plugin is translating. The Language plugin exposes a `translate()` method that takes as string to translate as it's first argument. It will return the translated value in the currently set language. If either the language or the string to translate can't be found, it will return the inputed string.
 
@@ -153,7 +151,7 @@ to refer to the Component scope, as with any other state variable or computed pr
 The second `$`-sign is needed, since the Language plugin itself is prefixed with a dollar sign on the Component scope as well (i.e `this.$language`).
 
 
-#### Dynamic replacements
+### Dynamic replacements
 
 The `tranlate()`-method also supports dynamic replacements. This allows you to specify variables inside your translation string, and replace them with dynamic values passed into the `translate()`-method.
 

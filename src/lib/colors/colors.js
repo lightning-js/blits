@@ -39,15 +39,14 @@ export default {
   normalize: (color = '', defaultColor = '0xffffffff') => {
     color = color.toString()
 
-    // its mappable, map it
-    if (colorsMap[color] !== undefined) {
-      return colorsMap[color]
+    // it is a 0xRRGGBBAA color, return it
+    if (color.startsWith('0x') && color.length === 10) {
+      return color
     }
 
-    // its a 0xRRGGBBAA color, store it and return it
-    if (color.startsWith('0x') && color.length === 10) {
-      colorsMap[color] = color
-      return color
+    // it is a previously mapped color, return it
+    if (colorsMap[color] !== undefined) {
+      return colorsMap[color]
     }
 
     // check for hex color

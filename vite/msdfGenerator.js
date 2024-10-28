@@ -1,5 +1,6 @@
 import path from 'path'
 import * as fs from 'fs'
+import { createHash } from 'crypto'
 import { genFont, setGeneratePaths } from '@lightningjs/msdf-generator'
 import { adjustFont } from '@lightningjs/msdf-generator/adjustFont'
 
@@ -21,6 +22,8 @@ class TaskQueue {
 
 const fontGenerationQueue = new TaskQueue()
 let config
+let checksumPaths = []
+let checksumData = []
 
 export default function () {
   let msdfOutputDir = ''
@@ -49,9 +52,21 @@ export default function () {
           if (!fs.existsSync(path.resolve(fontDir, file))) {
             const fontName = match[1]
             const ext = match[2]
-            const fontFile = path.join(fontDir, `${fontName}.ttf`)
 
-            if (fs.existsSync(fontFile)) {
+            // Attempt to find the font file with supported extensions
+            const supportedExtensions = ['ttf', 'otf', 'woff']
+            let fontFile = null
+            let fontType = null
+            for (const fontExt of supportedExtensions) {
+              const potentialPath = path.join(fontDir, `${fontName}.${fontExt}`)
+              if (fs.existsSync(potentialPath)) {
+                fontFile = potentialPath
+                fontType = '.' + fontExt
+                break
+              }
+            }
+
+            if (fontFile) {
               const generatedFontFile = path.join(
                 msdfOutputDir,
                 fontPath,
@@ -60,10 +75,13 @@ export default function () {
               const mimeType = ext === 'png' ? 'image/png' : 'application/json'
 
               await fontGenerationQueue.enqueue(async () => {
-                if (!fs.existsSync(generatedFontFile)) {
-                  // Check if generation is needed
+                if (isGenerationRequired(fontDir, targetDir, fontName, fontType)) {
+                  const configFilePath = path.join(fontDir, `${fontName}.config.json`)
+
                   console.log(`\nGenerating ${targetDir}/${fontName}.msdf.${ext}`)
-                  await generateSDF(fontFile, path.join(targetDir))
+                  await generateSDF(fontFile, path.join(targetDir), configFilePath)
+
+                  saveChecksum()
                 }
               })
 
@@ -83,7 +101,7 @@ export default function () {
                 next() // Handle case where generation might have failed
               }
             } else {
-              next() // ttf file does not exist
+              next() // No supported font file found
             }
           } else {
             next() // file exists
@@ -95,18 +113,21 @@ export default function () {
     },
     // after build ends, the first hook is renderStart where we can modify the output
     async renderStart() {
-      const ttfFiles = findAllTtfFiles(publicDir)
+      const fontFiles = findAllFontFiles(publicDir)
 
-      for (const ttfFile of ttfFiles) {
-        const relativePath = path.relative(publicDir, path.dirname(ttfFile))
-        const baseName = path.basename(ttfFile).replace(/\.ttf$/i, '')
-        const msdfJsonPath = path.join(msdfOutputDir, relativePath, `${baseName}.msdf.json`)
-        const msdfPngPath = path.join(msdfOutputDir, relativePath, `${baseName}.msdf.png`)
+      for (const fontFile of fontFiles) {
+        const relativePath = path.relative(publicDir, path.dirname(fontFile))
+        const fontExt = path.extname(fontFile)
+        const baseName = path.basename(fontFile).replace(/\.(ttf|otf|woff)$/i, '')
+        const targetDir = path.join(msdfOutputDir, relativePath)
 
-        // Check if MSDF files are generated, if not, generate them
-        if (!fs.existsSync(msdfJsonPath) || !fs.existsSync(msdfPngPath)) {
-          console.log(`Generating missing MSDF files for ${ttfFile}`)
-          await generateSDF(ttfFile, path.join(msdfOutputDir, relativePath))
+        // Check MSDF generation is required
+        if (isGenerationRequired(path.dirname(fontFile), targetDir, baseName, fontExt)) {
+          const configFilePath = path.join(path.dirname(fontFile), `${baseName}.config.json`)
+          console.log(`Generating missing MSDF files for ${fontFile}`)
+          await generateSDF(fontFile, path.join(msdfOutputDir, relativePath), configFilePath)
+
+          saveChecksum()
         }
       }
 
@@ -117,11 +138,11 @@ export default function () {
   }
 }
 
-const generateSDF = async (inputFilePath, outputDirPath) => {
+const generateSDF = async (inputFilePath, outputDirPath, configFilePath) => {
   // Ensure the destination directory exists
   fs.mkdirSync(outputDirPath, { recursive: true })
 
-  setGeneratePaths(path.dirname(inputFilePath), outputDirPath)
+  setGeneratePaths(path.dirname(inputFilePath), outputDirPath, configFilePath)
 
   let font = await genFont(path.basename(inputFilePath), 'msdf')
 
@@ -129,17 +150,17 @@ const generateSDF = async (inputFilePath, outputDirPath) => {
   else console.error('Failed to generate MSDF file')
 }
 
-// finds all TTF files in a directory
-const findAllTtfFiles = (dir, filesList = []) => {
+// Finds all font files (.ttf, .otf, .woff) in a directory
+const findAllFontFiles = (dir, filesList = []) => {
   const files = fs.readdirSync(dir, { withFileTypes: true })
 
   files.forEach((file) => {
     if (file.isDirectory()) {
       const dirPath = path.join(dir, file.name)
-      findAllTtfFiles(dirPath, filesList)
+      findAllFontFiles(dirPath, filesList)
     } else {
-      // Check for all case variations of TTF extension
-      if (file.name.match(/\.ttf$/i)) {
+      // Check for supported font extensions
+      if (file.name.match(/\.(ttf|otf|woff)$/i)) {
         filesList.push(path.join(dir, file.name))
       }
     }
@@ -158,6 +179,74 @@ const copyDir = (src, dest) => {
     const srcPath = path.join(src, entry.name)
     const destPath = path.join(dest, entry.name)
 
+    // Should not copy .checksum files to dist directory
+    if (srcPath.indexOf('.checksum') !== -1) continue
+
     entry.isDirectory() ? copyDir(srcPath, destPath) : fs.copyFileSync(srcPath, destPath) // Copy files
+  }
+}
+
+// Check font config.json or font file modified since last generation
+const isGenerationRequired = (fontDir, targetDir, fontName, fontExt) => {
+  const fontFilePath = path.resolve(fontDir, fontName + fontExt)
+  const fontChecksumPath = path.resolve(targetDir, fontName + fontExt + '.checksum')
+
+  const configJsonPath = path.resolve(fontDir, fontName + '.config.json')
+  const configChecksumPath = path.resolve(targetDir, fontName + '.config.checksum')
+
+  // If font file checksum not exists, should generate msdf
+  if (!fs.existsSync(fontChecksumPath)) {
+    checksumPaths.push(fontChecksumPath)
+    checksumData.push(generateHash(fontFilePath))
+
+    if (fs.existsSync(configJsonPath)) {
+      checksumPaths.push(configChecksumPath)
+      checksumData.push(generateHash(configJsonPath))
+    }
+    return true
+  }
+
+  // If config.json exists, can be newly added or modified since last generation of msdf
+  if (fs.existsSync(configJsonPath)) {
+    // If config.json checksum not exists, should generate msdf
+    if (!fs.existsSync(configChecksumPath)) {
+      checksumPaths.push(configChecksumPath)
+      checksumData.push(generateHash(configJsonPath))
+      return true
+    }
+    const isConfigModified = isInputFileModified(configJsonPath, configChecksumPath)
+
+    // If config.json is modified, should generate msdf
+    if (isConfigModified) return true
+  }
+
+  // Check font file modified, if modified, should generate msdf
+  return isInputFileModified(fontFilePath, fontChecksumPath)
+}
+
+const isInputFileModified = (inputFilePath, targetFilePath) => {
+  const inputChecksum = generateHash(inputFilePath)
+  const targetChecksum = fs.readFileSync(targetFilePath).toString()
+  if (inputChecksum !== targetChecksum) {
+    checksumPaths.push(targetFilePath)
+    checksumData.push(inputChecksum)
+    return true
+  }
+  return false
+}
+
+const generateHash = (filePath) => {
+  const buffer = fs.readFileSync(filePath)
+  return createHash('md5').update(buffer).digest('hex')
+}
+
+const saveChecksum = () => {
+  if (checksumPaths.length > 0 && checksumData.length > 0) {
+    for (let i = 0; i < checksumPaths.length; i++) {
+      // Save checksum
+      fs.writeFileSync(checksumPaths[i], checksumData[i])
+    }
+    checksumData.length = 0
+    checksumPaths.length = 0
   }
 }

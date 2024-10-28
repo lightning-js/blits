@@ -51,7 +51,7 @@ const required = (name) => {
  *
  */
 const Component = (name = required('name'), config = required('config')) => {
-  let base
+  let base = undefined
 
   const component = function (opts, parentEl, parentComponent, rootComponent) {
     // generate a human readable ID for the component instance (i.e. Blits::ComponentName1)
@@ -89,11 +89,10 @@ const Component = (name = required('name'), config = required('config')) => {
 
     // apply the state function (passing in the this reference to utilize configured props)
     // and store a reference to this original state
-    // hasFocus key is sprinkled in
-    this[symbols.originalState] = {
-      ...((config.state && typeof config.state === 'function' && config.state.apply(this)) || {}),
-      ...{ hasFocus: false },
-    }
+    this[symbols.originalState] =
+      (config.state && typeof config.state === 'function' && config.state.apply(this)) || {}
+    // add hasFocus key in
+    this[symbols.originalState]['hasFocus'] = false
 
     // generate a reactive state (using the result of previously execute state function)
     // and store it
@@ -160,41 +159,43 @@ const Component = (name = required('name'), config = required('config')) => {
 
     // setup (and execute) all the generated side effects based on the
     // reactive bindings define in the template
-    for (let i = 0; i < config.code.effects.length; i++) {
-      effect(() => {
-        config.code.effects[i].apply(stage, [
-          this,
-          this[symbols.children],
-          config,
-          globalComponents,
-          rootComponent,
-          effect,
-        ])
-      })
+    const effects = config.code.effects
+    for (let i = 0; i < effects.length; i++) {
+      const eff = () => {
+        effects[i](this, this[symbols.children], config, globalComponents, rootComponent, effect)
+      }
+      // store reference to the effect
+      this[symbols.effects].push(eff)
+      effect(eff)
     }
 
     // setup watchers if the components has watchers specified
     if (this[symbols.watchers]) {
-      Object.keys(this[symbols.watchers]).forEach((watchKey) => {
-        let old = this[watchKey]
+      const watcherkeys = Object.keys(this[symbols.watchers])
+      const watcherkeysLength = watcherkeys.length
+      for (let i = 0; i < watcherkeysLength; i++) {
+        let target = this
+        let key = watcherkeys[i]
+        // when dot notation used, find the nested target
+        if (key.indexOf('.') > -1) {
+          const keys = key.split('.')
+          key = keys.pop()
+          for (let i = 0; i < keys.length; i++) {
+            target = target[keys[i]]
+          }
+        }
+
+        let old = this[key]
+
         effect((force = false) => {
-          if (old !== this[watchKey] || force === true) {
-            this[symbols.watchers][watchKey].apply(this, [this[watchKey], old])
-            old = this[watchKey]
+          const newValue = target[key]
+          if (old !== newValue || force === true) {
+            this[symbols.watchers][key].apply(this, [newValue, old])
+            old = newValue
           }
         })
-      })
+      }
     }
-
-    // set all symbol based properties to non-enumerable and non-configurable
-    Object.getOwnPropertySymbols(this).forEach((property) => {
-      Object.defineProperties(this, {
-        [property]: {
-          enumerable: false,
-          configurable: false,
-        },
-      })
-    })
 
     // finaly set the lifecycle state to ready (in the next tick)
     setTimeout(() => (this.lifecycle.state = 'ready'))
@@ -204,9 +205,12 @@ const Component = (name = required('name'), config = required('config')) => {
   }
 
   const factory = (options = {}, parentEl, parentComponent, rootComponent) => {
-    // Register user defined plugins once on the Base object
-    if (Base[symbols['pluginsRegistered']] === false) {
-      Object.keys(plugins).forEach((pluginName) => {
+    if (Base[symbols['launched']] === false) {
+      // Register user defined plugins once on the Base object (after launch)
+      const pluginKeys = Object.keys(plugins)
+      const pluginKeysLength = pluginKeys.length
+      for (let i = 0; i < pluginKeysLength; i++) {
+        const pluginName = pluginKeys[i]
         const prefixedPluginName = `$${pluginName}`
         if (prefixedPluginName in Base) {
           Log.warn(
@@ -223,25 +227,25 @@ const Component = (name = required('name'), config = required('config')) => {
           enumerable: true,
           configurable: false,
         })
-      })
-      Base[symbols['pluginsRegistered']] = true
+      }
+
+      // register global components once
+      globalComponents = components()
+
+      // mark launched true
+      Base[symbols['launched']] = true
     }
 
     // setup the component once per component type, using Base as the prototype
-    if (!base) {
+    if (base === undefined) {
       Log.debug(`Setting up ${name} component`)
       base = setupComponent(Object.create(Base), config)
     }
 
     // one time code generation (only if precompilation is turned off)
-    if (!config.code) {
+    if (config.code === undefined) {
       Log.debug(`Generating code for ${name} component`)
       config.code = codegenerator.call(config, parser(config.template, name))
-    }
-
-    // register global components once
-    if (!globalComponents) {
-      globalComponents = components()
     }
 
     // create an instance of the component, using base as the prototype (which contains Base)
@@ -251,6 +255,9 @@ const Component = (name = required('name'), config = required('config')) => {
   // store the config on the factory, in order to access the config
   // during the code generation step
   factory.config = config
+
+  // To determine whether dynamic component is actual Blits component or not
+  factory[symbols.isComponent] = true
 
   return factory
 }
