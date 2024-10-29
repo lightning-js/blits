@@ -37,20 +37,43 @@ export default {
     )
 
     const setLanguage = (language) => {
-      // define the dictionary
-      dictionary = translations[language] || {}
-      // set the current language in the reactive state
-      state.language = language
-
-      // warnings
-      if (Object.keys(translations).length === 0) {
-        Log.warn(
-          'No translations loaded. Please load a file with translations or specify a translations object manually'
-        )
-      }
       if (language in translations === false) {
+        // Translations have not yet been provided
+        if (Object.keys(translations).length === 0) {
+          Log.warn(
+            'No translations loaded. Please load a file with translations or specify a translations object manually'
+          )
+        }
         Log.warn(`Language ${language} not available in the loaded translations`)
+        // set the current language in the reactive state
+        state.language = language
+      } else {
+        setDict(language).then(() => {
+          state.language = language
+        })
       }
+    }
+
+    const setDict = (language) => {
+      return new Promise((resolve) => {
+        const translationObj = translations[language]
+        if (typeof translationObj === 'object') {
+          dictionary = translationObj
+          resolve()
+        } else if (typeof translationObj === 'string') {
+          fetchJson(translationObj)
+            .then((result) => {
+              // save the translations for this language (to prevent loading twice)
+              translations[language] = result
+              // define the dictionary
+              dictionary = result
+              resolve()
+            })
+            .catch((e) => {
+              Log.error(e)
+            })
+        }
+      })
     }
 
     const loadLanguageFile = (filePath) => {
@@ -65,8 +88,9 @@ export default {
 
     const setTranslations = (translationsObject) => {
       translations = translationsObject
-      dictionary = translations[state.language] || {}
-      state.loaded++
+      setDict(state.language).then(() => {
+        state.loaded++
+      })
     }
 
     if ('file' in options) {
