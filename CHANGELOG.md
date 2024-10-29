@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.8.1
+
+_29 oct 2024_
+
+- Fixed issue with array based props not triggering reactivity
+- Upgraded renderer to 2.5.1
+
+
 ## v1.8.0
 
 _22 oct 2024_

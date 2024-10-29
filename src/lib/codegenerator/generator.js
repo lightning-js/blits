@@ -212,12 +212,11 @@ const generateComponentCode = function (
         templateObject[key],
         options.component
       )}`)
-      renderCode.push(
-        `props${counter}['${key.substring(1)}'] = ${interpolate(
-          templateObject[key],
-          options.component
-        )}`
-      )
+      renderCode.push(`
+        props${counter}['${key.substring(1)}']=  ${interpolate(
+        templateObject[key],
+        options.component
+      )}`)
     } else {
       renderCode.push(
         `props${counter}['${key}'] = ${cast(templateObject[key], key, options.component)}`

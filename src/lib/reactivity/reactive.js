@@ -18,6 +18,7 @@
 import { ImageTexture } from '@lightningjs/renderer'
 import { track, trigger, pauseTracking, resumeTracking } from './effect.js'
 import symbols from '../symbols.js'
+import deepEqualArray from '../../helpers/deepEqualArray.js'
 
 const arrayPatchMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort']
 
@@ -38,7 +39,7 @@ const reactiveProxy = (original, _parent = null, _key, global) => {
 
   // if original object is already a proxy, don't create a new one but return the existing one instead
   const existingProxy = proxyMap.get(original)
-  if (existingProxy) {
+  if (existingProxy !== undefined) {
     return existingProxy
   }
 
@@ -50,9 +51,9 @@ const reactiveProxy = (original, _parent = null, _key, global) => {
       }
 
       // handling arrays
-      if (Array.isArray(target)) {
+      if (Array.isArray(target) === true) {
         if (typeof target[key] === 'object' && target[key] !== null) {
-          if (Array.isArray(target[key])) {
+          if (Array.isArray(target[key]) === true) {
             track(target, key, global)
           }
           // create a new reactive proxy
@@ -80,7 +81,7 @@ const reactiveProxy = (original, _parent = null, _key, global) => {
 
       // handling objects (but not null values, which have object type in JS)
       if (typeof target[key] === 'object' && target[key] !== null) {
-        if (Array.isArray(target[key])) {
+        if (Array.isArray(target[key]) === true) {
           track(target, key, global)
         }
         // create a new reactive proxy
@@ -99,13 +100,19 @@ const reactiveProxy = (original, _parent = null, _key, global) => {
       const rawValue = getRaw(value)
 
       let result = true
-      if (oldRawValue !== rawValue) {
+      const isEqual =
+        Array.isArray(rawValue) === true
+          ? deepEqualArray(oldRawValue, rawValue)
+          : oldRawValue === rawValue
+
+      if (isEqual === false) {
+        if (Array.isArray(value) === true) value = getRaw(value).slice(0)
         result = Reflect.set(target, key, value, receiver)
       }
 
-      if (result && oldRawValue !== rawValue) {
+      if (result === true && isEqual === false) {
         // if we're assigning an array key directly trigger reactivity on the parent key as well
-        if (Array.isArray(target) && key in target) {
+        if (Array.isArray(target) === true && key in target === true) {
           trigger(_parent, _key, true)
         }
         trigger(target, key, true)
@@ -126,7 +133,7 @@ const reactiveDefineProperty = (target, global) => {
     if (target[key] !== null && typeof target[key] === 'object') {
       if (Object.getPrototypeOf(target[key]) === Object.prototype) {
         return reactiveDefineProperty(target[key])
-      } else if (Array.isArray(target[key])) {
+      } else if (Array.isArray(target[key]) === true) {
         for (let i = 0; i < arrayPatchMethods.length - 1; i++) {
           target[key][arrayPatchMethods[i]] = function (v) {
             Array.prototype[arrayPatchMethods[i]].call(this, v)
