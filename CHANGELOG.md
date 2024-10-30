@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.8.2
+
+_30 oct 2024_
+
+- Fixed edgecase issue with array based props not triggering reactivity
+
+
 ## v1.8.1
 
 _29 oct 2024_
