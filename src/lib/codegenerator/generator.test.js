@@ -84,6 +84,7 @@ test('Generate render and effect code for an empty template', (assert) => {
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       return elms
   }
   `
@@ -116,6 +117,7 @@ test('Generate render and effect code for a template with a single simple elemen
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
       elms[0] = this.element({ parent: parent || 'root' }, component)
       elms[0].populate(elementConfig0)
@@ -156,6 +158,7 @@ test('Generate code for a template with a simple element and a simple nested ele
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
       elms[0] = this.element({ parent: parent || 'root' }, component)
       elms[0].populate(elementConfig0)
@@ -197,6 +200,7 @@ test('Generate code for a template with a single element with attributes', (asse
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
       elms[0] = this.element({ parent: parent || 'root' }, component)
 
@@ -237,6 +241,7 @@ test('Generate code for a template with a single element with attributes with a 
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
       elms[0] = this.element({ parent: parent || 'root' }, component)
       elementConfig0['one'] = true
@@ -283,6 +288,7 @@ test('Generate code for a template with attributes and a nested element with att
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({ parent: parent || 'root' }, component)
@@ -347,6 +353,7 @@ test('Generate code for a template with attributes and 2 nested elements with at
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({ parent: parent || 'root' }, component)
@@ -432,6 +439,7 @@ test('Generate code for a template with attributes and deep nested elements with
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({ parent: parent || 'root' }, component)
@@ -512,6 +520,7 @@ test('Generate code for a template with simple dynamic attributes', (assert) => 
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({ parent: parent || 'root' }, component)
@@ -580,6 +589,7 @@ test('Generate code for a template with an attribute with a dash', (assert) => {
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({ parent: parent || 'root' }, component)
@@ -624,6 +634,7 @@ test('Generate code for a template with dynamic attributes with code to be evalu
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({ parent: parent || 'root' }, component)
@@ -701,6 +712,7 @@ test('Generate code for a template with attribute (object)', (assert) => {
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({parent: parent || 'root'}, component)
@@ -744,6 +756,7 @@ test('Generate code for a template with dynamic attribute (object)', (assert) =>
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({parent: parent || 'root'}, component)
@@ -788,6 +801,7 @@ test('Generate code for a template with attribute (object) with mixed dynamic & 
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({parent: parent || 'root'}, component)
@@ -832,6 +846,7 @@ test('Generate code for a template with @-listeners', (assert) => {
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({ parent: parent || 'root' }, component)
@@ -886,6 +901,7 @@ test('Generate code for a template with custom components', (assert) => {
     const elms = []
     let componentType
     const rootComponent = component
+    let propData
     const elementConfig0 = {}
 
     elms[0] = this.element({ parent: parent || 'root' }, component)
@@ -1017,6 +1033,7 @@ test('Generate code for a template with an unregistered custom component', (asse
     const elms = []
     let componentType
     const rootComponent = component
+    let propData
     const elementConfig0 = {}
     elms[0] = this.element({ parent: parent || 'root' }, component)
     elms[0].populate(elementConfig0)
@@ -1132,6 +1149,7 @@ test('Generate code for a template with custom components with arguments', (asse
     const elms = []
     let componentType
     const rootComponent = component
+    let propData
     const elementConfig0 = {}
     elms[0] = this.element({ parent: parent || 'root' }, component)
     elms[0].populate(elementConfig0)
@@ -1250,82 +1268,91 @@ test('Generate code for a template with custom components with reactive props', 
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent,component,context,components,effect,getRaw) {
     const elms = []
     let componentType
     const rootComponent = component
+    let propData
     const elementConfig0 = {}
-    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0] = this.element({parent: parent || 'root'}, component)
     elms[0].populate(elementConfig0)
     const cmp1 = (context.components && context.components['Poster']) || components['Poster']
     parent = elms[0]
     const elementConfig1 = {}
-    elms[1] = this.element({ parent: parent || 'root' }, component)
+    elms[1] = this.element({parent: parent || 'root'}, component)
     elementConfig1['x'] = 10
     elementConfig1['img'] = component.image
     const skip1 = []
-    if (typeof cmp1 !== 'undefined') {
-        for (let key in cmp1.config.props) {
-            delete elementConfig1[cmp1.config.props[key]]
-            skip1.push(cmp1.config.props[key])
-        }
+    if(typeof cmp1 !== 'undefined') {
+      for(let key in cmp1.config.props) {
+        delete elementConfig1[cmp1.config.props[key]]
+        skip1.push(cmp1.config.props[key])
+      }
     }
     elms[1].populate(elementConfig1)
     parent = elms[1]
     const props2 = {}
     props2['x'] = 10
-    props2['img'] = component.image
+    propData = component.image
+    if (Array.isArray(propData) === true) {
+      propData = getRaw(propData).slice(0)
+    }
+    props2['img'] = propData
     componentType = props2['is'] || 'Poster'
     let component2
-    if (typeof componentType === 'string') {
-        component2 = context.components && context.components[componentType] || components[componentType]
-        if (!component2) {
-            throw new Error('Component "Poster" not found')
-        }
-    } else if (typeof componentType === 'function' && componentType[Symbol.for('isComponent')] === true) {
-        component2 = componentType
+    if(typeof componentType === 'string') {
+      component2 = context.components && context.components[componentType] || components[componentType]
+      if(!component2) {
+        throw new Error('Component "Poster" not found')
+      }
+    } else if(typeof componentType === 'function' && componentType[Symbol.for('isComponent')] === true) {
+      component2 = componentType
     }
-    elms[2] = component2.call(null, { props: props2 }, elms[1], component)
+    elms[2] = component2.call(null, {props: props2}, elms[1], component)
     if (elms[2][Symbol.for('slots')][0]) {
-        parent = elms[2][Symbol.for('slots')][0]
-        component = elms[2]
+      parent = elms[2][Symbol.for('slots')][0]
+      component = elms[2]
     } else {
-        parent = elms[2][Symbol.for('children')][0]
+      parent = elms[2][Symbol.for('children')][0]
     }
     const cmp3 = (context.components && context.components['Poster']) || components['Poster']
     parent = elms[0]
     const elementConfig3 = {}
-    elms[3] = this.element({ parent: parent || 'root' }, component)
+    elms[3] = this.element({parent: parent || 'root'}, component)
     elementConfig3['x'] = 100
     elementConfig3['img'] = component.image
     const skip3 = []
-    if (typeof cmp3 !== 'undefined') {
-        for (let key in cmp3.config.props) {
-            delete elementConfig3[cmp3.config.props[key]]
-            skip3.push(cmp3.config.props[key])
-        }
+    if(typeof cmp3 !== 'undefined') {
+      for(let key in cmp3.config.props) {
+        delete elementConfig3[cmp3.config.props[key]]
+        skip3.push(cmp3.config.props[key])
+      }
     }
     elms[3].populate(elementConfig3)
     parent = elms[3]
     const props4 = {}
     props4['x'] = 100
-    props4['img'] = component.image
+    propData = component.image
+    if (Array.isArray(propData) === true) {
+      propData = getRaw(propData).slice(0)
+    }
+    props4['img'] = propData
     componentType = props4['is'] || 'Poster'
     let component4
-    if (typeof componentType === 'string') {
-        component4 = context.components && context.components[componentType] || components[componentType]
-        if (!component4) {
-            throw new Error('Component "Poster" not found')
-        }
-    } else if (typeof componentType === 'function' && componentType[Symbol.for('isComponent')] === true) {
-        component4 = componentType
+    if(typeof componentType === 'string') {
+      component4 = context.components && context.components[componentType] || components[componentType]
+      if(!component4) {
+        throw new Error('Component "Poster" not found')
+      }
+    } else if(typeof componentType === 'function' && componentType[Symbol.for('isComponent')] === true) {
+      component4 = componentType
     }
-    elms[4] = component4.call(null, { props: props4 }, elms[3], component)
+    elms[4] = component4.call(null, {props: props4}, elms[3], component)
     if (elms[4][Symbol.for('slots')][0]) {
-        parent = elms[4][Symbol.for('slots')][0]
-        component = elms[4]
+      parent = elms[4][Symbol.for('slots')][0]
+      component = elms[4]
     } else {
-        parent = elms[4][Symbol.for('children')][0]
+      parent = elms[4][Symbol.for('children')][0]
     }
     return elms
   }
@@ -1413,6 +1440,7 @@ test('Generate code for a template with a transition attributes', (assert) => {
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({ parent: parent || 'root' }, component)
@@ -1471,6 +1499,7 @@ test('Generate code for a template with slot content', (assert) => {
     const elms = []
     let componentType
     const rootComponent = component
+    let propData
     const elementConfig0 = {}
     elms[0] = this.element({ parent: parent || 'root' }, component)
     elms[0].populate(elementConfig0)
@@ -1586,6 +1615,7 @@ test('Generate code for a template with slot content, using a named slot', (asse
     const elms = []
     let componentType
     const rootComponent = component
+    let propData
     const elementConfig0 = {}
     elms[0] = this.element({ parent: parent || 'root' }, component)
     elms[0].populate(elementConfig0)
@@ -1683,6 +1713,7 @@ test('Generate code for a template with a slot', (assert) => {
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({ parent: parent || 'root' }, component)
@@ -1743,6 +1774,7 @@ test('Generate code for a template with inline Text', (assert) => {
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({ parent: parent || 'root' }, component)
@@ -1793,6 +1825,7 @@ test('Generate code for a template with inline dynamic Text', (assert) => {
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({ parent: parent || 'root' }, component)
@@ -1843,6 +1876,7 @@ test('Generate code for a template with inline dynamic Text embedded in static t
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({ parent: parent || 'root' }, component)
@@ -1898,6 +1932,7 @@ test('Generate code for a template with a single element with attributes with pe
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({ parent: parent || 'root' }, component)
@@ -1952,6 +1987,7 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
     const elms = []
     let componentType
     const rootComponent = component
+    let propData
     const elementConfig0 = {}
     elms[0] = this.element({ parent: parent || 'root' }, component)
     elms[0].populate(elementConfig0)
@@ -2039,6 +2075,7 @@ test('Generate code for a template with a simple for-loop on an Element with a c
     const elms = []
     let componentType
     const rootComponent = component
+    let propData
     const elementConfig0 = {}
     elms[0] = this.element({ parent: parent || 'root' }, component)
     elms[0].populate(elementConfig0)
@@ -2127,6 +2164,7 @@ test('Generate code for a template with a simple for-loop on an Element with a k
     const elms = []
     let componentType
     const rootComponent = component
+    let propData
     const elementConfig0 = {}
     elms[0] = this.element({ parent: parent || 'root' }, component)
     elms[0].populate(elementConfig0)
@@ -2215,6 +2253,7 @@ test('Generate code for a template with a simple for-loop on a Component with a 
     const elms = []
     let componentType
     const rootComponent = component
+    let propData
     const elementConfig0 = {}
     elms[0] = this.element({ parent: parent || 'root' }, component)
     elms[0].populate(elementConfig0)
@@ -2337,6 +2376,7 @@ test('Generate code for a template with a simple for-loop on an Element with an 
     const elms = []
     let componentType
     const rootComponent = component
+    let propData
     const elementConfig0 = {}
     elms[0] = this.element({ parent: parent || 'root' }, component)
     elms[0].populate(elementConfig0)
@@ -2421,6 +2461,7 @@ test('Generate code for a template with double $$ (i.e. referencing a Blits plug
       const elms = []
       let componentType
       const rootComponent = component
+      let propData
       const elementConfig0 = {}
 
       elms[0] = this.element({ parent: parent || 'root' }, component)
