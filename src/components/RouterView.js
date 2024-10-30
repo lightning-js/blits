@@ -44,8 +44,11 @@ export default () =>
       },
     },
     input: {
-      back() {
-        Router.back()
+      back(e) {
+        const navigating = Router.back()
+        if (navigating === false) {
+          this.parent.$focus(e)
+        }
       },
     },
   })
