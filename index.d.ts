@@ -19,7 +19,7 @@ import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader} from '@
 
 declare module '@lightningjs/blits' {
 
-  interface Hooks {
+  export interface Hooks {
     /**
     * Fires when the Component is being instantiated
     * At this moment child elements will not be available yet
@@ -77,7 +77,7 @@ declare module '@lightningjs/blits' {
     exit?: () => void;
   }
 
-  interface Input {
+  export interface Input {
     [key: string]: (event: KeyboardEvent) => void | undefined,
     /**
      * Catch all input function
@@ -88,7 +88,7 @@ declare module '@lightningjs/blits' {
     any?: (event: KeyboardEvent) => void
   }
 
-  interface Log {
+  export interface Log {
     /**
     * Log an info message
     */
@@ -109,16 +109,16 @@ declare module '@lightningjs/blits' {
 
 
 
-  interface RouteData {
+  export interface RouteData {
     [key: string]: any
   }
 
   // todo: specify valid route options
-  interface RouteOptions {
+  export interface RouteOptions {
     [key: string]: any
   }
 
-  interface Router {
+  export interface Router {
     /**
      * Navigate to a different location
      *
@@ -148,7 +148,7 @@ declare module '@lightningjs/blits' {
 
   }
 
-  type ComponentBase = {
+  export type ComponentBase = {
     /**
     * Listen to events emitted by other components
     */
@@ -246,7 +246,7 @@ declare module '@lightningjs/blits' {
   /**
    * Prop object
    */
-  type PropObject = {
+  export type PropObject = {
     /**
      * Name of the prop
      */
@@ -274,7 +274,7 @@ declare module '@lightningjs/blits' {
   };
 
   // Props Array
-  type Props = (string | PropObject)[];
+  export type Props = (string | PropObject)[];
 
   // Extract the prop names from the props array
   type ExtractPropNames<P extends Props> = {
@@ -282,11 +282,11 @@ declare module '@lightningjs/blits' {
   };
 
   // Update the PropsDefinition to handle props as strings or objects
-  type PropsDefinition<P extends Props> = ExtractPropNames<P>;
+  export type PropsDefinition<P extends Props> = ExtractPropNames<P>;
 
-  type ComponentContext<P extends Props, S, M, C> = ThisType<PropsDefinition<P> & S & M & C & ComponentBase>
+  export type ComponentContext<P extends Props, S, M, C> = ThisType<PropsDefinition<P> & S & M & C & ComponentBase>
 
-  interface ComponentConfig<P extends Props, S, M, C, W> {
+  export interface ComponentConfig<P extends Props, S, M, C, W> {
     components?: {
         [key: string]: ComponentFactory,
     },
@@ -365,7 +365,7 @@ declare module '@lightningjs/blits' {
     watch?: W & ComponentContext<P, S, M, C>
   }
 
-  interface ApplicationConfig<P extends Props, S, M, C, W> extends ComponentConfig<P, S, M, C, W> {
+  export interface ApplicationConfig<P extends Props, S, M, C, W> extends ComponentConfig<P, S, M, C, W> {
     /**
      * Routes definition
      *
@@ -383,7 +383,7 @@ declare module '@lightningjs/blits' {
   }
 
 
-  interface Transition {
+  export interface Transition {
     /**
      * Name of the prop to transition (i.e. 'x', 'y', 'alpha', 'color')
      */
@@ -406,7 +406,7 @@ declare module '@lightningjs/blits' {
     delay?: number
   }
 
-  interface Before {
+  export interface Before {
     /**
     * Name of the prop to set before the transition starts
     */
@@ -417,7 +417,7 @@ declare module '@lightningjs/blits' {
     value: any,
   }
 
-  interface RouteTransition {
+  export interface RouteTransition {
     /**
      * Setting or Array of Settings before new view enters into the router view
      */
@@ -432,9 +432,9 @@ declare module '@lightningjs/blits' {
     out: Transition | Transition[],
   }
 
-  type RouteTransitionFunction = (previousRoute: Route, currentRoute: Route) => RequireAtLeastOne<RouteTransition>
+  export type RouteTransitionFunction = (previousRoute: Route, currentRoute: Route) => RequireAtLeastOne<RouteTransition>
 
-  interface RouteAnnounce {
+  export interface RouteAnnounce {
     /**
      * Message to be announced
      */
@@ -447,15 +447,15 @@ declare module '@lightningjs/blits' {
     politeness?: 'off' | 'polite' | 'assertive'
   }
 
-  type RequireAtLeastOne<T> = {
+  export type RequireAtLeastOne<T> = {
     [K in keyof T]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<keyof T, K>>>
   }[keyof T]
 
-  interface RouteHooks {
-    before?: (to: Route, from: Route) => string | Route;
+  export interface RouteHooks {
+    before?: (to: Route, from: Route) => string | Route | Promise<string | Route>;
   }
 
-  type Route = {
+  export type Route = {
     /**
      * URI path for the route
      */
@@ -575,7 +575,7 @@ declare module '@lightningjs/blits' {
    * Launcher function that sets up the Lightning renderer and instantiates
    * the Blits App
    */
-  interface Settings {
+  export interface Settings {
     /**
      * Width of the Application
      */
