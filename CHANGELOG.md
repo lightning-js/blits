@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.8.3
+
+_31 oct 2024_
+
+- Exported TS interfaces and improved return type of before route hook
+
+
 ## v1.8.2
 
 _30 oct 2024_
