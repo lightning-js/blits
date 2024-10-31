@@ -1,10 +1,18 @@
 # Changelog
 
+## v1.8.3
+
+_31 oct 2024_
+
+- Exported TS interfaces and improved return type of before route hook
+- Fixed test cases for codegenerator
+
+
 ## v1.8.2
 
 _30 oct 2024_
 
-- Fixed edgecase issue with array based props not triggering reactivity
+- Fixed edge case issue with array based props not triggering reactivity
 
 
 ## v1.8.1
