@@ -34,7 +34,8 @@ const layoutFn = function (config) {
   for (let i = 0; i < childrenLength; i++) {
     const node = children[i]
     node[xy] = offset
-    offset += node[wh] + (config.gap || 0)
+    // todo: temporary text check, due to 1px width of empty text node
+    offset += node[wh] + ((node[wh] !== ('text' in node ? 1 : 0) && config.gap) || 0)
     otherDimension = Math.max(otherDimension, node[opositeWh])
   }
   // adjust the size of the layout container
