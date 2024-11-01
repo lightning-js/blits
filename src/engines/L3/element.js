@@ -26,14 +26,20 @@ const layoutFn = function (config) {
   let offset = 0
   const xy = config.direction === 'vertical' ? 'y' : 'x'
   const wh = config.direction === 'vertical' ? 'height' : 'width'
+  const opositeWh = config.direction === 'vertical' ? 'width' : 'height'
 
   const children = this.children
   const childrenLength = children.length
+  let otherDimension = 0
   for (let i = 0; i < childrenLength; i++) {
     const node = children[i]
     node[xy] = offset
     offset += node[wh] + (config.gap || 0)
+    otherDimension = Math.max(otherDimension, node[opositeWh])
   }
+  // adjust the size of the layout container
+  this[wh] = offset - (config.gap || 0)
+  this[opositeWh] = otherDimension
 }
 
 const isTransition = (value) => {
@@ -323,8 +329,11 @@ const Element = {
       this.triggerLayout = layoutFn.bind(this.node)
     }
 
-    if (this.config.parent.props && this.config.parent.props.__layout === true) {
+    if (this.config.parent.props !== undefined && this.config.parent.props.__layout === true) {
       this.config.parent.triggerLayout(this.config.parent.props)
+      this.node.on('loaded', () => {
+        this.config.parent.triggerLayout(this.config.parent.props)
+      })
     }
   },
   set(prop, value) {

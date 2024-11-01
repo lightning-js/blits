@@ -414,9 +414,6 @@ const generateForLoopCode = function (templateObject, parent) {
       `)
     }
   })
-  // if(elms[${forStartCounter}][0] && elms[${forStartCounter}][0].forComponent && elms[${forStartCounter}][0].forComponent.___layout) {
-  //   elms[${forStartCounter}][0].forComponent.___layout()
-  // }
   ctx.renderCode.push(`
     }
   }`)
