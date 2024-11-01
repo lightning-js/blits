@@ -125,9 +125,9 @@ Blits comes with a default keycode mapping. This mapping is a sensible default t
 
 But it's possible that the keycodes and mapping of your target device are slightly or even completely different.
 
-In Blits, you can easily configure the key mapping to match your needs. In the `src/index.js` file where we instantiate the App via the `Blits.Launch` function, we can add an extra key, called `keys`, to the _settings object_.
+In Blits, you can easily configure the key mapping to match your needs. In the `src/index.js` file where we instantiate the App via the `Blits.Launch` function, we can add an extra key, called `keymap`, to the _settings object_.
 
-The `keys` item should be an object literal, where you map a `key` or `keyCode` (from the `KeyboardEvent`) to an event name that you can use in your Components.
+The `keymap` should contain an object literal, where you map a `key` or `keyCode` (from the `KeyboardEvent`) to an event name that you can use in your Components.
 
 > You can use a site like [keyjs.dev](https://keyjs.dev/) to find the appropriate key and keyCode for your device
 
@@ -137,7 +137,7 @@ Blits.Launch(App, 'app', {
   w: 1920,
   h: 1080,
   //...
-  keys: {
+  keymap: {
     // switch left and right using the key
     ArrowLeft: 'right',
     ArrowRight: 'left',
@@ -152,7 +152,7 @@ Blits.Launch(App, 'app', {
 })
 ```
 
-The custom keys object will be merged with the default key mapping, that looks like this:
+The custom keymap object will be merged with the default key mapping, that looks like this:
 
 ```js
 const defaultKeyMap = {

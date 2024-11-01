@@ -401,7 +401,7 @@ const Element = {
       f,
     }
 
-    if (transition.start && typeof transition.start === 'function') {
+    if (transition.start !== undefined && typeof transition.start === 'function') {
       // fire transition start callback when animation really starts (depending on specified delay)
       f.once('animating', () => {
         transition.start.call(this.component, this, prop, startValue)
@@ -409,8 +409,16 @@ const Element = {
     }
 
     if (this.config.parent.props && this.config.parent.props.__layout === true) {
-      f.on('tick', (node, progress) => {
+      f.on('tick', () => {
         this.config.parent.triggerLayout(this.config.parent.props)
+      })
+    }
+
+    if (transition.progress !== undefined && typeof transition.progress === 'function') {
+      let prevProgress = 0
+      f.on('tick', (_node, { progress }) => {
+        transition.progress.call(this.component, this, prop, progress, prevProgress)
+        prevProgress = progress
       })
     }
 

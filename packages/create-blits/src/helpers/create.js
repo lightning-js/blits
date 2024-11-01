@@ -16,11 +16,27 @@ export const copyLightningFixtures = (config) => {
     if (config.appFolder && fs.existsSync(targetDir)) {
       exit(red(bold('The target directory ' + targetDir + ' already exists')))
     }
-    //this will be removed once ts support is added
-    fs.cpSync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir, {
+    if (config.projectType === 'ts') {
+      fs.cpSync(path.join(path.join(config.fixturesBase, 'ts'), 'default'), targetDir, {
+        recursive: true,
+      })
+    } else {
+      fs.cpSync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir, {
+        recursive: true,
+      })
+    }
+    fs.cpSync(path.join(config.fixturesBase, 'common/public'), path.join(targetDir, 'public'), {
       recursive: true,
     })
-    fs.cpSync(path.join(config.fixturesBase, 'common/public'), path.join(targetDir, 'public'), {
+
+    // Copy readme
+    fs.copyFileSync(
+      path.join(config.fixturesBase, 'common/README.md'),
+      path.join(targetDir, 'README.md')
+    )
+
+    // Copy IDE stuff from fixture base
+    fs.cpSync(path.join(config.fixturesBase, 'common/ide'), path.join(targetDir), {
       recursive: true,
     })
 
@@ -55,11 +71,6 @@ export const addESlint = (config) => {
     path.join(config.targetDir, 'eslint.config.cjs')
   )
 
-  // Copy IDE stuff from fixture base
-  fs.cpSync(path.join(config.fixturesBase, 'common/ide'), path.join(config.targetDir), {
-    recursive: true,
-  })
-
   // Copy and merge fixture specific package.json
   const origPackageJson = JSON.parse(fs.readFileSync(path.join(config.targetDir, 'package.json')))
   const eslintPackageJson = JSON.parse(
@@ -77,8 +88,8 @@ export const addESlint = (config) => {
         },
         scripts: {
           ...(origPackageJson.scripts || {}),
-          ...(eslintPackageJson.scripts || {})
-        }
+          ...(eslintPackageJson.scripts || {}),
+        },
       },
       null,
       2

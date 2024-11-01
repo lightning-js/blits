@@ -1,5 +1,6 @@
 import Blits from '@lightningjs/blits'
 
+
 export default Blits.Component('Loader', {
   template: `
     <Element>
@@ -8,16 +9,13 @@ export default Blits.Component('Loader', {
       <Circle size="40" :color="$loaderColor || '#94a3b8'" x="120" :alpha.transition="{value: $alpha, delay: 400}" />
     </Element>
     `,
-  /**
-   * @type {['loaderColor']}
-   */
-  props: ['loaderColor'],
+  props: ['loaderColor'] as const,
   state() {
     return {
       /**
        * Alpha of the circles, used to create a fade-in / fade-out transition
        */
-      alpha: 0,
+      alpha: 0 as number,
     }
   },
   hooks: {
@@ -28,9 +26,8 @@ export default Blits.Component('Loader', {
   methods: {
     /**
      * Starts the loading transition in an interval
-     * @returns {void}
      */
-    start() {
+    start(): void {
       this.$setInterval(() => {
         this.alpha = this.alpha === 1 ? 0 : 1
       }, 800)

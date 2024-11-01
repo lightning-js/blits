@@ -18,6 +18,7 @@
 import { ImageTexture } from '@lightningjs/renderer'
 import { track, trigger, pauseTracking, resumeTracking } from './effect.js'
 import symbols from '../symbols.js'
+import deepEqualArray from '../../helpers/deepEqualArray.js'
 
 const arrayPatchMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort']
 
@@ -28,7 +29,7 @@ export const getRaw = (value) => {
   return raw ? getRaw(raw) : value
 }
 
-const reactiveProxy = (original, _parent = null, _key) => {
+const reactiveProxy = (original, _parent = null, _key, global) => {
   // don't create a proxy when a Blits component or an Image Texture
   // is assigned to a state variable
   if (typeof original === 'object') {
@@ -38,7 +39,7 @@ const reactiveProxy = (original, _parent = null, _key) => {
 
   // if original object is already a proxy, don't create a new one but return the existing one instead
   const existingProxy = proxyMap.get(original)
-  if (existingProxy) {
+  if (existingProxy !== undefined) {
     return existingProxy
   }
 
@@ -50,10 +51,10 @@ const reactiveProxy = (original, _parent = null, _key) => {
       }
 
       // handling arrays
-      if (Array.isArray(target)) {
+      if (Array.isArray(target) === true) {
         if (typeof target[key] === 'object' && target[key] !== null) {
-          if (Array.isArray(target[key])) {
-            track(target, key)
+          if (Array.isArray(target[key]) === true) {
+            track(target, key, global)
           }
           // create a new reactive proxy
           return reactiveProxy(getRaw(target[key]), target, key)
@@ -80,8 +81,8 @@ const reactiveProxy = (original, _parent = null, _key) => {
 
       // handling objects (but not null values, which have object type in JS)
       if (typeof target[key] === 'object' && target[key] !== null) {
-        if (Array.isArray(target[key])) {
-          track(target, key)
+        if (Array.isArray(target[key]) === true) {
+          track(target, key, global)
         }
         // create a new reactive proxy
         return reactiveProxy(getRaw(target[key]), target, key)
@@ -89,7 +90,7 @@ const reactiveProxy = (original, _parent = null, _key) => {
 
       // handling all other types
       // track the key on the target
-      track(target, key)
+      track(target, key, global)
       // return the reflected value
       return Reflect.get(target, key, receiver)
     },
@@ -99,13 +100,19 @@ const reactiveProxy = (original, _parent = null, _key) => {
       const rawValue = getRaw(value)
 
       let result = true
-      if (oldRawValue !== rawValue) {
+      const isEqual =
+        Array.isArray(rawValue) === true
+          ? deepEqualArray(oldRawValue, rawValue)
+          : oldRawValue === rawValue
+
+      if (isEqual === false) {
+        if (Array.isArray(value) === true) value = getRaw(value).slice(0)
         result = Reflect.set(target, key, value, receiver)
       }
 
-      if (result && oldRawValue !== rawValue) {
+      if (result === true && isEqual === false) {
         // if we're assigning an array key directly trigger reactivity on the parent key as well
-        if (Array.isArray(target) && key in target) {
+        if (Array.isArray(target) === true && key in target === true) {
           trigger(_parent, _key, true)
         }
         trigger(target, key, true)
@@ -119,14 +126,14 @@ const reactiveProxy = (original, _parent = null, _key) => {
   return proxy
 }
 
-const reactiveDefineProperty = (target) => {
+const reactiveDefineProperty = (target, global) => {
   Object.keys(target).forEach((key) => {
     let internalValue = target[key]
 
     if (target[key] !== null && typeof target[key] === 'object') {
       if (Object.getPrototypeOf(target[key]) === Object.prototype) {
         return reactiveDefineProperty(target[key])
-      } else if (Array.isArray(target[key])) {
+      } else if (Array.isArray(target[key]) === true) {
         for (let i = 0; i < arrayPatchMethods.length - 1; i++) {
           target[key][arrayPatchMethods[i]] = function (v) {
             Array.prototype[arrayPatchMethods[i]].call(this, v)
@@ -140,7 +147,7 @@ const reactiveDefineProperty = (target) => {
       enumerable: true,
       configurable: true,
       get() {
-        track(target, key)
+        track(target, key, global)
         return internalValue
       },
       set(newValue) {
@@ -157,8 +164,10 @@ const reactiveDefineProperty = (target) => {
   return target
 }
 
-export const reactive = (target, mode = 'Proxy') => {
-  return mode === 'defineProperty' ? reactiveDefineProperty(target) : reactiveProxy(target)
+export const reactive = (target, mode = 'Proxy', global = false) => {
+  return mode === 'defineProperty'
+    ? reactiveDefineProperty(target, global)
+    : reactiveProxy(target, undefined, undefined, global)
 }
 
 export const memo = (raw) => {

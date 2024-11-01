@@ -44,39 +44,32 @@ export default Blits.Component('Home', {
     return {
       /**
        * Y-position of the entire page contents
-       * @type {number}
        */
-      y: 0,
+      y: 0 as number,
       /**
        * X-position of the logo, used to create slide in transition
-       * @type {number}
        */
-      x: -1000,
+      x: -1000 as number,
       /**
        * Rotation of the logo, used to create a spinning transition
-       * @type {number}
        */
-      rotation: 0,
+      rotation: 0 as number,
       /**
        * Scale of the logo, used to create a zoom-in / zoom-out transition
-       * @type {number}
        */
-      scale: 1,
+      scale: 1 as number,
       /**
        * Alpha of the loader component, used to create a fade-in / fade-out transition
-       * @type {number}
        */
-      loaderAlpha: 0,
+      loaderAlpha: 0 as number,
       /**
        * Alpha of the text, used to create a fade-in transition
-       * @type {number}
        */
-      textAlpha: 0,
+      textAlpha: 0 as number,
       /**
        * Color passed into the loader component
-       * @type {string}
        */
-      color: '',
+      color: '' as string,
     }
   },
   hooks: {
@@ -106,9 +99,8 @@ export default Blits.Component('Home', {
   methods: {
     /**
      * Method to rotate the colors of the loader
-     * @param {number} interval - interval in ms
      */
-    rotateColors(interval) {
+    rotateColors(interval: number): void {
       let i = 0
       this.$setInterval(() => {
         i++
