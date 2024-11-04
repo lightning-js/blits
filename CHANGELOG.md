@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.9.1
+
+_4 nov 2024_
+
+- Added fix for omitting gap-attribute in Layout component
+
 ## v1.9.0
 
 _4 nov 2024_
