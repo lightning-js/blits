@@ -31,26 +31,27 @@ const layoutFn = function (config) {
   const children = this.children
   const childrenLength = children.length
   let otherDimension = 0
+  const gap = config.gap || 0
   for (let i = 0; i < childrenLength; i++) {
     const node = children[i]
     node[xy] = offset
     // todo: temporary text check, due to 1px width of empty text node
     if (wh === 'width') {
-      offset += node.width + (node.width !== ('text' in node ? 1 : 0) ? config.gap : 0)
+      offset += node.width + (node.width !== ('text' in node ? 1 : 0) ? gap : 0)
     } else if (wh === 'height') {
       offset +=
         'text' in node
           ? node.width > 1
-            ? node.height + config.gap
+            ? node.height + gap
             : 0
           : node.height !== 0
-          ? node.height + config.gap
+          ? node.height + gap
           : 0
     }
     otherDimension = Math.max(otherDimension, node[opositeWh])
   }
   // adjust the size of the layout container
-  this[wh] = offset - (config.gap || 0)
+  this[wh] = offset - gap
   this[opositeWh] = otherDimension
 }
 
