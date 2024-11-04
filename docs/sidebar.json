@@ -101,6 +101,10 @@
       {
         "text": "For loop",
         "link": "/built-in/for-loop"
+      },
+      {
+        "text": "Layout",
+        "link": "/built-in/layout.md"
       }
     ]
   },
