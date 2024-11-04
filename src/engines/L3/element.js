@@ -22,6 +22,38 @@ import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 
+const layoutFn = function (config) {
+  let offset = 0
+  const xy = config.direction === 'vertical' ? 'y' : 'x'
+  const wh = config.direction === 'vertical' ? 'height' : 'width'
+  const opositeWh = config.direction === 'vertical' ? 'width' : 'height'
+
+  const children = this.children
+  const childrenLength = children.length
+  let otherDimension = 0
+  for (let i = 0; i < childrenLength; i++) {
+    const node = children[i]
+    node[xy] = offset
+    // todo: temporary text check, due to 1px width of empty text node
+    if (wh === 'width') {
+      offset += node.width + (node.width !== ('text' in node ? 1 : 0) ? config.gap : 0)
+    } else if (wh === 'height') {
+      offset +=
+        'text' in node
+          ? node.width > 1
+            ? node.height + config.gap
+            : 0
+          : node.height !== 0
+          ? node.height + config.gap
+          : 0
+    }
+    otherDimension = Math.max(otherDimension, node[opositeWh])
+  }
+  // adjust the size of the layout container
+  this[wh] = offset - (config.gap || 0)
+  this[opositeWh] = otherDimension
+}
+
 const isTransition = (value) => {
   return value !== null && typeof value === 'object' && 'transition' in value === true
 }
@@ -305,11 +337,16 @@ const Element = {
       })
     }
 
-    // if (this.component !== undefined && '___layout' in this.component) {
-    //   this.node.on('loaded', () => {
-    //     this.component.___layout()
-    //   })
-    // }
+    if (props.__layout === true) {
+      this.triggerLayout = layoutFn.bind(this.node)
+    }
+
+    if (this.config.parent.props !== undefined && this.config.parent.props.__layout === true) {
+      this.config.parent.triggerLayout(this.config.parent.props)
+      this.node.on('loaded', () => {
+        this.config.parent.triggerLayout(this.config.parent.props)
+      })
+    }
   },
   set(prop, value) {
     if (value === undefined) return
@@ -338,10 +375,9 @@ const Element = {
       }
     }
 
-    // todo: review naming
-    // if (this.component && this.component.___layout) {
-    //   this.component.___layout()
-    // }
+    if (this.config.parent.props && this.config.parent.props.__layout === true) {
+      this.config.parent.triggerLayout(this.config.parent.props)
+    }
   },
   animate(prop, value, transition) {
     // check if a transition is already scheduled to run on the same prop
@@ -390,6 +426,12 @@ const Element = {
       // fire transition start callback when animation really starts (depending on specified delay)
       f.once('animating', () => {
         transition.start.call(this.component, this, prop, startValue)
+      })
+    }
+
+    if (this.config.parent.props && this.config.parent.props.__layout === true) {
+      f.on('tick', () => {
+        this.config.parent.triggerLayout(this.config.parent.props)
       })
     }
 

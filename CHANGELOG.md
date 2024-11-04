@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.9.0
+
+_4 nov 2024_
+
+- Added Layout component
+
 ## v1.8.3
 
 _31 oct 2024_
