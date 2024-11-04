@@ -2,7 +2,7 @@
 
 A big portion of building a pixel perfect App is all about correctly positioning Elements and Components on screen. In Lightning and Blits _absolute_ positions are used. This fits the whole concept of building a TV app where the viewport dimensions are known and fixed. Absolute positioning (versus spacing Elements relative to each other) is also more performant.
 
-Imagine a complex design with several nested layers. Relying solely on _relative_ positioning and elements automatically floating as space is available, may lead to heavy and recursive calculations. Then throw some dynamicly changing dimensions and animations in the mix as well, and your App may be starting to noticably drop frames due to expensive re-calculations.
+Imagine a complex design with several nested layers. Relying solely on _relative_ positioning and elements automatically floating as space is available, may lead to heavy and recursive calculations. Then throw some dynamically changing dimensions and animations in the mix as well, and your App may be starting to noticeably drop frames due to expensive re-calculations.
 
 That being said, there are often cases where it becomes very cumbersome to calculate all the positions manually. Especially when dimensions are not known in advance and elements may load asynchronously.
 
@@ -12,7 +12,7 @@ In order to address the core problem "_how do I easily position a bunch of Eleme
 
 ## How to use
 
-Since the Layout-component is a built-in component, there is no need to register it seperately. You can use the `<Layout>`-tag anywhere in your templates, just as you would use `<Element>` and `<Text>`.
+Since the Layout-component is a built-in component, there is no need to register it separately. You can use the `<Layout>`-tag anywhere in your templates, just as you would use `<Element>` and `<Text>`.
 
 The Layout component is a wrapper component, that encloses a number of children. All the direct children that are wrapped in a `<Layout>`-tag are automatically positioned in order, one next to the other.
 
@@ -49,7 +49,7 @@ When the children of the Layout-component have _reactive_ dimensions (i.e. `<Ele
 
 ### Nesting Layouts
 
-It's also possible to nest layouts. Simple place a new `<Layout>`-tag, with it's own children in between the children of another Layout-component. The Layout-component itself will grow automatically with the dimensions of it's children. In other words, it's not required to specify a width (`w`) or height (`h`) on the `<Layout>`-tag itself.
+It's also possible to nest layouts. Simply place a new `<Layout>`-tag, with it's own children in between the children of another Layout-component. The Layout-component itself will grow automatically with the dimensions of it's children. In other words, it's not required to specify a width (`w`) or height (`h`) on the `<Layout>`-tag itself.
 
 And of course you can nest _vertical_ Layouts inside a _horizontal_ one - and vice versa.
 
@@ -61,7 +61,7 @@ The `<Layout>`-component can also take into account when dimensions of children 
 
 The Layout-component is a very useful utility, that will make it a lot easier to put together complex layouts. It will reduce the code required, it means less hardcoding of values and removes the need to manually wire up `@loaded` events when working with dynamic / asynchronous elements.
 
-We've done our best to make the Component as performant as possible, by deliberately keeping it simple and straight forward. But it's important to understand that the Layout component does come at a cost. Depending on the use case these costs may be negligable, but there are cases where the Layout component might prove to be a bottle-neck.
+We've done our best to make the Component as performant as possible, by deliberately keeping it simple and straight forward. But it's important to understand that the Layout component does come at a cost. Depending on the use case these costs may be negligible, but there are cases where the Layout component might prove to be a bottle-neck.
 
 The performance costs may always be there to some degree. Whether it's the Layout component that does the complex calculations, or you do it in your custom code. So please feel encouraged to use the `<Layout>`-tag!
 
@@ -71,6 +71,6 @@ Some pointers to keep in mind, though:
 
 - The Layout component support transitions, but beware that when transitioning child dimensions a recalculation happens every frame-tick. If you see frame-drops in your App, you may want to see if the `<Layout>`-tag has an impact on this.
 
-- Be mindful to not apply uncessary deep nesting of Layout tags. Each change in a deep child, will trigger recalculations up the tree of Layout tags.
+- Be mindful to not apply unnecessary deep nesting of Layout tags. Each change in a deep child, will trigger recalculations up the tree of Layout tags.
 
 - When using the `<Layout>`-tag with a for-loop, it may be more performant to use the `$index` of the for-loop and manually position the elements yourself (i.e. `<Element :for="(item, index) in $items" :$x="$item * 200" w="150" h="150" />`). Especially if the dimensions are know before hand and possibly are the same for each child.
