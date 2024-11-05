@@ -9,7 +9,8 @@
     "./transitions": "./src/router/transitions/index.js",
     "./precompiler": "./src/lib/precompiler/precompiler.js",
     "./plugins": "./src/plugins/index.js",
-    "./symbols": "./src/lib/symbols.js"
+    "./symbols": "./src/lib/symbols.js",
+    "./blitsFileConverter": "./src/lib/blitsfileconverter/blitsfileconverter.js"
   },
   "scripts": {
     "test": "c8 npm run test:run",
