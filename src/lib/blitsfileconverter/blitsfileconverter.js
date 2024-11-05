@@ -22,7 +22,8 @@ export default (source) => {
 
 const parseBlitsFile = (source) => {
   const templateMatch = source.match(/<template>([\s\S]*?)<\/template>/)
-  const scriptMatch = source.match(/<script>([\s\S]*?)<\/script>/)
+  const scriptMatch = source.match(/<script(?:\s+lang=["'](?:js|ts)["'])?\s*>([\s\S]*?)<\/script>/)
+
   return {
     template: templateMatch ? templateMatch[1].trim() : '',
     script: scriptMatch ? scriptMatch[1].trim() : '',
