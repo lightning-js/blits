@@ -15,12 +15,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import preCompiler from './preCompiler.js'
-import msdfGenerator from './msdfGenerator.js'
-import blitsFileConverter from './blitsFileConverter.js'
+import blitsfileconverter from '../src/lib/blitsfileconverter/blitsfileconverter.js'
 
-export { default as preCompiler } from './preCompiler.js'
-export { default as msdfGenerator } from './msdfGenerator.js'
-export { default as blitsFileConverter } from './blitsFileConverter.js'
-
-export default [blitsFileConverter(), preCompiler(), msdfGenerator()]
+export default function blitsFileType() {
+  return {
+    name: 'vite-plugin-blits-file-type',
+    enforce: 'pre',
+    transform(src, id) {
+      if (id.endsWith('.blits')) {
+        try {
+          const transformedCode = blitsfileconverter(src)
+          return {
+            code: transformedCode,
+            map: null, // no source map
+          }
+        } catch (error) {
+          this.error(error)
+        }
+      }
+    },
+  }
+}
