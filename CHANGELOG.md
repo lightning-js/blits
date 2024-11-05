@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.9.2
+
+_5 nov 2024_
+
+- Fixed Element related tests
+- Bumped renderer to version 2.6.0
+
 ## v1.9.1
 
 _4 nov 2024_
