@@ -101,7 +101,7 @@ test('Element - Set `w` property', (assert) => {
 
   assert.equal(el.node['width'], 100, 'Node width parameter should be set')
   assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
-  assert.equal(el.props.raw.get('w'), 100, "Props' raw map entry should be added")
+  assert.equal(el.props.raw['w'], 100, "Props' raw map entry should be added")
   assert.end()
 })
 
@@ -116,7 +116,7 @@ test('Element - Set `mount` property', (assert) => {
   assert.equal(el.node['mountY'], 20, 'Node mountY parameter should be set')
   assert.equal(el.props.props['mountX'], 10, 'Props mountX parameter should be set')
   assert.equal(el.props.props['mountY'], 20, 'Props mountY parameter should be set')
-  assert.equal(el.props.raw.get('mount'), value, "Props' raw map entry should be added")
+  assert.equal(el.props.raw['mount'], value, "Props' raw map entry should be added")
   assert.end()
 })
 
@@ -128,7 +128,7 @@ test('Element - Set `color` property', (assert) => {
 
   assert.equal(el.node['color'], '0xf0ffffff', 'Node color parameter should be set')
   assert.equal(el.props.props['color'], '0xf0ffffff', 'Props color parameter should be set')
-  assert.equal(el.props.raw.get('color'), 'azure', "Props' raw map entry should be added")
+  assert.equal(el.props.raw['color'], 'azure', "Props' raw map entry should be added")
   assert.end()
 })
 
@@ -141,7 +141,7 @@ test('Element - Set `src` property', (assert) => {
 
   assert.equal(el.node['src'], value, 'Node src parameter should be set')
   assert.equal(el.props.props['src'], value, 'Props src parameter should be set')
-  assert.equal(el.props.raw.get('src'), value, "Props' raw map entry should be added")
+  assert.equal(el.props.raw['src'], value, "Props' raw map entry should be added")
   assert.equal(el.props.props['color'], 0xffffffff, 'Props default color parameter should be set')
   assert.end()
 })
@@ -154,7 +154,7 @@ test('Element - Set `texture` property', (assert) => {
 
   assert.equal(el.node['texture'], 'foo', 'Node texture parameter should be set')
   assert.equal(el.props.props['texture'], 'foo', 'Props texture parameter should be set')
-  assert.equal(el.props.raw.get('texture'), 'foo', "Props' raw map entry should be added")
+  assert.equal(el.props.raw['texture'], 'foo', "Props' raw map entry should be added")
   assert.equal(el.props.props['color'], 0xffffffff, 'Props default color parameter should be set')
   assert.end()
 })
@@ -181,7 +181,7 @@ test('Element - Set `fit` property with a string type value', (assert) => {
     fitVal,
     'Props textureOptions parameter should be set'
   )
-  assert.equal(el.props.raw.get('fit'), fitVal, "Props' raw map entry should be added")
+  assert.equal(el.props.raw['fit'], fitVal, "Props' raw map entry should be added")
   assert.end()
 })
 
@@ -212,7 +212,7 @@ test('Element - Set `fit` property with an object type value', (assert) => {
     1,
     'Node resizeMode "clipY" parameter should be set to correct value'
   )
-  assert.equal(el.props.raw.get('fit'), fitVal, "Props' raw map entry should be added")
+  assert.equal(el.props.raw['fit'], fitVal, "Props' raw map entry should be added")
   assert.end()
 })
 
@@ -243,7 +243,7 @@ test('Element - Set `fit` property with position key as a string type value', (a
     1,
     'Node resizeMode "clipY" parameter should be set to correct value'
   )
-  assert.equal(el.props.raw.get('fit'), fitVal, "Props' raw map entry should be added")
+  assert.equal(el.props.raw['fit'], fitVal, "Props' raw map entry should be added")
   assert.end()
 })
 

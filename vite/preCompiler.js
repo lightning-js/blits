@@ -27,6 +27,13 @@ export default function () {
     },
     transform(source, filePath) {
       if (config.blits && config.blits.precompile === false) return source
+
+      const fileExtension = path.extname(filePath)
+
+      // we should only precompile .js and .ts files
+      if (fileExtension === '.js' || fileExtension === '.ts') {
+        return compiler(source, filePath)
+      }
       const relativePath = path.relative(process.cwd(), filePath)
       return compiler(source, relativePath)
     },

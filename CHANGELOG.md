@@ -1,5 +1,39 @@
 # Changelog
 
+## v1.9.2
+
+_5 nov 2024_
+
+- Fixed Element related tests
+- Bumped renderer to version 2.6.0
+
+## v1.9.1
+
+_4 nov 2024_
+
+- Added fix for omitting gap-attribute in Layout component
+
+## v1.9.0
+
+_4 nov 2024_
+
+- Added Layout component
+
+## v1.8.3
+
+_31 oct 2024_
+
+- Exported TS interfaces and improved return type of before route hook
+- Fixed test cases for codegenerator
+
+
+## v1.8.2
+
+_30 oct 2024_
+
+- Fixed edge case issue with array based props not triggering reactivity
+
+
 ## v1.8.1
 
 _29 oct 2024_

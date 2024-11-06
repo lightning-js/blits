@@ -19,7 +19,12 @@ let counter
 
 export default function (templateObject = { children: [] }) {
   const ctx = {
-    renderCode: ['const elms = []', 'let componentType', 'const rootComponent = component'],
+    renderCode: [
+      'const elms = []',
+      'let componentType',
+      'const rootComponent = component',
+      'let propData',
+    ],
     effectsCode: [],
     context: { props: [], components: this.components },
   }
@@ -213,10 +218,11 @@ const generateComponentCode = function (
         options.component
       )}`)
       renderCode.push(`
-        props${counter}['${key.substring(1)}']=  ${interpolate(
-        templateObject[key],
-        options.component
-      )}`)
+        propData = ${interpolate(templateObject[key], options.component)}
+        if (Array.isArray(propData) === true) {
+          propData = getRaw(propData).slice(0)
+        }
+        props${counter}['${key.substring(1)}'] = propData`)
     } else {
       renderCode.push(
         `props${counter}['${key}'] = ${cast(templateObject[key], key, options.component)}`
@@ -408,9 +414,6 @@ const generateForLoopCode = function (templateObject, parent) {
       `)
     }
   })
-  // if(elms[${forStartCounter}][0] && elms[${forStartCounter}][0].forComponent && elms[${forStartCounter}][0].forComponent.___layout) {
-  //   elms[${forStartCounter}][0].forComponent.___layout()
-  // }
   ctx.renderCode.push(`
     }
   }`)
@@ -492,10 +495,14 @@ const generateCode = function (templateObject, parent = false, options = {}) {
         if (
           childTemplateObject[Symbol.for('componentType')] === 'Element' ||
           childTemplateObject[Symbol.for('componentType')] === 'Slot' ||
-          childTemplateObject[Symbol.for('componentType')] === 'Text'
+          childTemplateObject[Symbol.for('componentType')] === 'Text' ||
+          childTemplateObject[Symbol.for('componentType')] === 'Layout'
         ) {
           if (childTemplateObject[Symbol.for('componentType')] === 'Text') {
             childTemplateObject.__textnode = 'true'
+          }
+          if (childTemplateObject[Symbol.for('componentType')] === 'Layout') {
+            childTemplateObject.__layout = 'true'
           }
           generateElementCode.call(this, childTemplateObject, parent, options)
         } else {
