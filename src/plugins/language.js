@@ -37,14 +37,14 @@ export default {
     )
 
     const setLanguage = (language) => {
-      if (language in translations === false) {
-        // Translations have not yet been provided
-        if (Object.keys(translations).length === 0) {
-          Log.warn(
-            'No translations loaded. Please load a file with translations or specify a translations object manually'
-          )
-        }
-        Log.warn(`Language ${language} not available in the loaded translations`)
+      const warningMsg =
+        Object.keys(translations).length === 0
+          ? 'No translations loaded. Please load a file with translations or specify a translations object manually'
+          : language in translations === false
+          ? `Language ${language} not available in the loaded translations`
+          : false
+      if (warningMsg) {
+        Log.warn(warningMsg)
         // set the current language in the reactive state
         state.language = language
       } else {
