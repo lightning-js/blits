@@ -246,7 +246,15 @@ const propsTransformer = {
     }
   },
   set show(v) {
-    this.props['alpha'] = v ? 1 : 0
+    if (v) {
+      this.props['alpha'] = 1
+      this.props['width'] = this.raw['w'] || this.raw['width']
+      this.props['height'] = this.raw['h'] || this.raw['height']
+    } else {
+      this.props['alpha'] = 0
+      this.props['width'] = 0
+      this.props['height'] = 0
+    }
   },
   set alpha(v) {
     this.props['alpha'] = v
