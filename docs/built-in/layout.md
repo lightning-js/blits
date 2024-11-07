@@ -37,6 +37,14 @@ In order to align vertically use `<Layout direction="vertical"></Layout>`. And u
 
 By default the Layout-component places each Element directly besides (or below) the previous one. By adding the `gap`-attribute you can control how much space will be added between each Element or Component. The `gap`-attribute accepts a number in pixels.
 
+### Aligning items
+
+The layout component positions its children based on the provided direction (`horizontal` or `vertical`). With the `align-items`-attribute you can specify how to align the children on the opposite axis:
+
+- `start` (the default value) - aligns the children in the _top_ for horizontal layouts, and on the _left_ for vertical layouts
+- `center` - align the children in the center
+- `end` - aligns the children in the _bottom_ for horizontal layouts, and on the _right_ for vertical layouts
+
 ### Dynamic dimensions
 
 For the Layout component to work properly, the direct children all need to have dimensions (i.e `w` and `h` attributes). The exception here being Text elements.
