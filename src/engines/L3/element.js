@@ -26,6 +26,7 @@ const layoutFn = function (config) {
   let offset = 0
   const position = config.direction === 'vertical' ? 'y' : 'x'
   const oppositePosition = config.direction === 'vertical' ? 'x' : 'y'
+  const oppositeMount = config.direction === 'vertical' ? 'mountX' : 'mountY'
   const dimension = config.direction === 'vertical' ? 'height' : 'width'
   const oppositeDimension = config.direction === 'vertical' ? 'width' : 'height'
 
@@ -59,19 +60,13 @@ const layoutFn = function (config) {
     start: 0,
     end: 1,
     center: 0.5,
-  }[config['align-items']]
+  }[config['align-items'] || 'start']
 
   if (align !== 0) {
     for (let i = 0; i < childrenLength; i++) {
       const node = children[i]
-      if (align === 1) {
-        node[oppositePosition] = otherDimension - node[oppositeDimension]
-        continue
-      }
-      if (align === 0.5) {
-        node[oppositePosition] = otherDimension - node[oppositeDimension] / 2
-        continue
-      }
+      node[oppositePosition] = otherDimension
+      node[oppositeMount] = align
     }
   }
 }
