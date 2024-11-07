@@ -162,7 +162,7 @@ const propsTransformer = {
   set src(v) {
     this.props['src'] = v
     if (this.raw['color'] === undefined) {
-      this.props['color'] = 0xffffffff
+      this.props['color'] = this.props['src'] ? 0xffffffff : 0x00000000
     }
   },
   set texture(v) {
