@@ -24,9 +24,11 @@ import Settings from '../../settings.js'
 
 const layoutFn = function (config) {
   let offset = 0
-  const xy = config.direction === 'vertical' ? 'y' : 'x'
-  const wh = config.direction === 'vertical' ? 'height' : 'width'
-  const opositeWh = config.direction === 'vertical' ? 'width' : 'height'
+  const position = config.direction === 'vertical' ? 'y' : 'x'
+  const oppositePosition = config.direction === 'vertical' ? 'x' : 'y'
+  const oppositeMount = config.direction === 'vertical' ? 'mountX' : 'mountY'
+  const dimension = config.direction === 'vertical' ? 'height' : 'width'
+  const oppositeDimension = config.direction === 'vertical' ? 'width' : 'height'
 
   const children = this.children
   const childrenLength = children.length
@@ -34,11 +36,11 @@ const layoutFn = function (config) {
   const gap = config.gap || 0
   for (let i = 0; i < childrenLength; i++) {
     const node = children[i]
-    node[xy] = offset
+    node[position] = offset
     // todo: temporary text check, due to 1px width of empty text node
-    if (wh === 'width') {
+    if (dimension === 'width') {
       offset += node.width + (node.width !== ('text' in node ? 1 : 0) ? gap : 0)
-    } else if (wh === 'height') {
+    } else if (dimension === 'height') {
       offset +=
         'text' in node
           ? node.width > 1
@@ -48,11 +50,25 @@ const layoutFn = function (config) {
           ? node.height + gap
           : 0
     }
-    otherDimension = Math.max(otherDimension, node[opositeWh])
+    otherDimension = Math.max(otherDimension, node[oppositeDimension])
   }
   // adjust the size of the layout container
-  this[wh] = offset - gap
-  this[opositeWh] = otherDimension
+  this[dimension] = offset - gap
+  this[oppositeDimension] = otherDimension
+
+  const align = {
+    start: 0,
+    end: 1,
+    center: 0.5,
+  }[config['align-items'] || 'start']
+
+  if (align !== 0) {
+    for (let i = 0; i < childrenLength; i++) {
+      const node = children[i]
+      node[oppositePosition] = otherDimension
+      node[oppositeMount] = align
+    }
+  }
 }
 
 const isTransition = (value) => {
@@ -146,7 +162,7 @@ const propsTransformer = {
   set src(v) {
     this.props['src'] = v
     if (this.raw['color'] === undefined) {
-      this.props['color'] = 0xffffffff
+      this.props['color'] = this.props['src'] ? 0xffffffff : 0x00000000
     }
   },
   set texture(v) {
@@ -225,7 +241,15 @@ const propsTransformer = {
     }
   },
   set show(v) {
-    this.props['alpha'] = v ? 1 : 0
+    if (v) {
+      this.props['alpha'] = 1
+      this.props['width'] = this.raw['w'] || this.raw['width']
+      this.props['height'] = this.raw['h'] || this.raw['height']
+    } else {
+      this.props['alpha'] = 0
+      this.props['width'] = 0
+      this.props['height'] = 0
+    }
   },
   set alpha(v) {
     this.props['alpha'] = v

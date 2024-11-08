@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.3.0
+
+_08 Nov 2024_
+
+- Added favicon to boilerplate project
+
 ## v1.2.0
 
 _22 Oct 2024_

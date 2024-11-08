@@ -176,6 +176,7 @@ const Component = (name = required('name'), config = required('config')) => {
       for (let i = 0; i < watcherkeysLength; i++) {
         let target = this
         let key = watcherkeys[i]
+        const watchKey = key
         // when dot notation used, find the nested target
         if (key.indexOf('.') > -1) {
           const keys = key.split('.')
@@ -190,7 +191,7 @@ const Component = (name = required('name'), config = required('config')) => {
         effect((force = false) => {
           const newValue = target[key]
           if (old !== newValue || force === true) {
-            this[symbols.watchers][key].apply(this, [newValue, old])
+            this[symbols.watchers][watchKey].apply(this, [newValue, old])
             old = newValue
           }
         })
