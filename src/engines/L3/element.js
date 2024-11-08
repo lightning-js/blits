@@ -307,7 +307,7 @@ const propsTransformer = {
     this.props['lineHeight'] = v
   },
   set align(v) {
-    if (this.__textnode === true) this.props['textAlign'] = v
+    this.props['textAlign'] = v
   },
   set content(v) {
     this.props['text'] = '' + v
