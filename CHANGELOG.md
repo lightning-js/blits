@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.10.0
+
+_8 nov 2024_
+
+- Fixed issue with back button not bubbling to App component after last page in router history is popped
+- Added `align-items` attribute to Layout component
+- Fixed issue with watching nested state variables and global state
+- Upgraded to renderer 2.6.2
+- Fixed issue with white background for Elements with falsy src attribute
+- Fixed issue with calling focus on component that already is focussed
+
+
 ## v1.9.2
 
 _5 nov 2024_
