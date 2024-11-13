@@ -109,6 +109,15 @@
     ]
   },
   {
+    "text": "Router",
+    "items": [
+      {
+        "text": "Basics",
+        "link": "/router/basics"
+      }
+    ]
+  },
+  {
     "text": "Plugins",
     "items": [
       {
