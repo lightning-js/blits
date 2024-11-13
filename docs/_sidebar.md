@@ -26,6 +26,7 @@
   - [Layout](/built-in/layout.md)
 - Router
   - [Basics](/router/basics.md)
+  - [Hooks](/router/hooks.md)
 - Plugins
   - [Text-to-Speech / Announcer](/plugins/text-to-speech-announcer.md)
   - [Language](/plugins/language.md)

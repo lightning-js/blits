@@ -114,6 +114,10 @@
       {
         "text": "Basics",
         "link": "/router/basics"
+      },
+      {
+        "text": "Hooks",
+        "link": "/router/hooks"
       }
     ]
   },
