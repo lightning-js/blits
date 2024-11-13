@@ -24,6 +24,8 @@
   - [Directives](/built-in/directives.md)
   - [For loop](/built-in/for-loop.md)
   - [Layout](/built-in/layout.md)
+- Router
+  - [Basics](/router/basics.md)
 - Plugins
   - [Text-to-Speech / Announcer](/plugins/text-to-speech-announcer.md)
   - [Language](/plugins/language.md)
