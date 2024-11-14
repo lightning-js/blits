@@ -16,6 +16,9 @@
  */
 
 let counter
+let forRelativeDepth
+let forCounter
+let forMetadataMap
 
 export default function (templateObject = { children: [] }) {
   const ctx = {
@@ -30,6 +33,9 @@ export default function (templateObject = { children: [] }) {
   }
 
   counter = -1
+  forCounter = -1
+  forRelativeDepth = -1
+  forMetadataMap = new Map()
   generateCode.call(ctx, templateObject)
   ctx.renderCode.push('return elms')
 
@@ -270,11 +276,22 @@ const generateComponentCode = function (
 }
 
 const generateForLoopCode = function (templateObject, parent) {
+  // This is to handle number of elements created by previous forloop in nested case
+  if (forMetadataMap.has(forRelativeDepth) === true) {
+    forMetadataMap.get(forRelativeDepth).set('endCounter', counter - 1)
+  }
+
+  // Increment forloop relative depth by 1
+  forRelativeDepth++
+
   const forLoop = templateObject[':for']
   delete templateObject[':for']
 
   const key = templateObject['key']
-  const forKey = interpolate(key, 'scope.')
+
+  // Increment forCounter to make sure scope, __index variables always get unique names
+  forCounter++
+  const forKey = interpolate(key, `scope${forCounter}.`)
 
   const shallow = !!!(
     templateObject['$shallow'] && templateObject['$shallow'].toLowerCase() === 'false'
@@ -287,13 +304,27 @@ const generateForLoopCode = function (templateObject, parent) {
 
   const result = regex.exec(forLoop)
 
+  // Get previous for-loop data member path, like component.data
+  const pathPrefix = forMetadataMap.has(forRelativeDepth - 1)
+    ? forMetadataMap.get(forRelativeDepth - 1).get('path')
+    : 'component.'
+
+  const loopingOverProp = result[2].replace('$', '').split('.').pop()
+  const path = `${pathPrefix}${loopingOverProp}[__index${forCounter}].`
+
+  const currentForInfo = new Map()
+  currentForInfo.set('path', path)
+  currentForInfo.set('endCounter', -1)
+
+  forMetadataMap.set(forRelativeDepth, currentForInfo)
+
   // can be improved with a smarter regex
   const [item, index = 'index'] = result[1]
     .replace('(', '')
     .replace(')', '')
     .split(/\s*,\s*/)
 
-  const scopeRegex = new RegExp(`(scope\\.(?!${item}\\.|${index}|key)(\\w+))`, 'gi')
+  const scopeRegex = new RegExp(`(scope${forCounter}\\.(?!${item}\\.|${index}|key)(\\w+))`, 'gi')
 
   // local context
   const ctx = {
@@ -337,23 +368,24 @@ const generateForLoopCode = function (templateObject, parent) {
   ctx.renderCode.push(`
       created.length = 0
       const length = rawCollection.length
-      for(let __index = 0; __index < length; __index++) {
-        const scope = Object.create(component)
+      for(let __index${forCounter} = 0; __index${forCounter} < length; __index${forCounter}++) {
+        const scope${forCounter} = Object.create(component)
         parent = ${parent}
-        scope['${index}'] = __index
-        scope['${item}'] = rawCollection[__index]
-        scope['key'] = '' + ${forKey || '__index'}
+        scope${forCounter}['${index}'] = __index${forCounter}
+        scope${forCounter}['${item}'] = rawCollection[__index${forCounter}]
+        scope${forCounter}['key'] = '' + ${forKey || '__index' + forCounter}
   `)
+
   if ('ref' in templateObject && templateObject.ref.indexOf('$') === -1) {
     // automatically map the ref for each item in the loop based on the given ref key
     ctx.renderCode.push(`
-        scope['__ref'] = '${templateObject.ref}' + __index
+        scope${forCounter}['__ref'] = '${templateObject.ref}' + __index${forCounter}
     `)
     templateObject.ref = '$__ref'
   }
 
   ctx.renderCode.push(`
-        created.push(scope.key)
+        created.push(scope${forCounter}.key)
   `)
 
   if (
@@ -365,15 +397,15 @@ const generateForLoopCode = function (templateObject, parent) {
       templateObject.__textnode = 'true'
     }
     generateElementCode.call(ctx, templateObject, parent, {
-      key: 'scope.key',
-      component: 'scope.',
+      key: `scope${forCounter}.key`,
+      component: `scope${forCounter}.`,
       forceEffect: false,
       forloop: true,
     })
   } else {
     generateComponentCode.call(ctx, templateObject, false, {
-      key: 'scope.key',
-      component: 'scope.',
+      key: `scope${forCounter}.key`,
+      component: `scope${forCounter}.`,
       forceEffect: false,
       forloop: true,
     })
@@ -391,8 +423,8 @@ const generateForLoopCode = function (templateObject, parent) {
 
   if (shallow === false) {
     ctx.renderCode.push(`
-      scope['${item}'] = null
-      scope['${item}'] = collection[__index]
+      scope${forCounter}['${item}'] = null
+      scope${forCounter}['${item}'] = collection[__index${forCounter}]
   `)
   }
 
@@ -427,7 +459,13 @@ const generateForLoopCode = function (templateObject, parent) {
         if (keys.has(created[i]) === false) {
           const key = created[i]
   `)
-  const forEndCounter = counter
+  // const forEndCounter = counter
+
+  const currentForStoredInfo = forMetadataMap.get(forRelativeDepth)
+  const forEndCounter =
+    currentForStoredInfo && currentForStoredInfo.get('endCounter') === -1
+      ? counter
+      : currentForStoredInfo.get('endCounter')
 
   for (let i = forStartCounter; i <= forEndCounter; i++) {
     destroyCode.push(`
@@ -442,10 +480,16 @@ const generateForLoopCode = function (templateObject, parent) {
 
   // inject the destroy code in the correct spot
   ctx.renderCode.splice(indexToInjectDestroyCode, 0, ...destroyCode)
+
+  const dataArr =
+    forRelativeDepth == 0
+      ? cast(result[2], ':for')
+      : cast(`$${loopingOverProp}`, ':for', forMetadataMap.get(forRelativeDepth - 1).get('path'))
+
   ctx.renderCode.push(`
     effect(() => {
-      forloop${forStartCounter}(${cast(result[2], ':for')}, elms, created${forStartCounter})
-    }, '${interpolate(result[2], '')}')
+      forloop${forStartCounter}(${dataArr}, elms, created${forStartCounter})
+    }, '${forRelativeDepth == 0 ? interpolate(result[2], '') : loopingOverProp}')
   `)
 
   outerScopeEffects.forEach((effect) => {
@@ -467,11 +511,11 @@ const generateForLoopCode = function (templateObject, parent) {
     ctx.renderCode.push(`
       effect(() => {
         void ${refs.join(', ')}
-        for(let __index = 0; __index < ${interpolate(result[2])}.length; __index++) {
-          const scope = {}
-          scope['${index}'] = __index
-          scope['${item}'] = ${interpolate(result[2])}[__index]
-          scope['key'] = ${forKey || '__index'}
+        for(let __index${forCounter} = 0; __index${forCounter} < ${dataArr}.length; __index${forCounter}++) {
+          const scope${forCounter} = {}
+          scope${forCounter}['${index}'] = __index${forCounter}
+          scope${forCounter}['${item}'] = ${dataArr}[__index${forCounter}]
+          scope${forCounter}['key'] = ${forKey || '__index' + forCounter}
     `)
 
     ctx.renderCode.push(`
@@ -480,8 +524,9 @@ const generateForLoopCode = function (templateObject, parent) {
       })
     `)
   })
-
   this.renderCode.push(ctx.renderCode.join('\n'))
+
+  forRelativeDepth--
 }
 
 const generateCode = function (templateObject, parent = false, options = {}) {
