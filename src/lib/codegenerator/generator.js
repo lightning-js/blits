@@ -442,10 +442,18 @@ const generateForLoopCode = function (templateObject, parent) {
 
   // inject the destroy code in the correct spot
   ctx.renderCode.splice(indexToInjectDestroyCode, 0, ...destroyCode)
+
+  let effectKey = `${interpolate(result[2], '')}`
+
+  // Get the last property from nested path
+  if (effectKey && effectKey.includes('.')) {
+    effectKey = effectKey.match(/[^.]+$/)[0]
+  }
+
   ctx.renderCode.push(`
     effect(() => {
       forloop${forStartCounter}(${cast(result[2], ':for')}, elms, created${forStartCounter})
-    }, '${interpolate(result[2], '')}')
+    }, '${effectKey}' )
   `)
 
   outerScopeEffects.forEach((effect) => {
