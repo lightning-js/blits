@@ -168,6 +168,27 @@ export const navigate = async function () {
         }
       } else {
         holder = view[symbols.holder]
+
+        // Check, whether cached view holder's alpha prop is exists in transition or not
+        let isAlphaPropExists = false
+        if (route.transition.before) {
+          if (Array.isArray(route.transition.before)) {
+            for (let i = 0; i < route.transition.before.length; i++) {
+              if (route.transition.before[i].prop === 'alpha') {
+                isAlphaPropExists = true
+                break
+              }
+            }
+          } else {
+            if (route.transition.before.prop === 'alpha') {
+              isAlphaPropExists = true
+            }
+          }
+        }
+        // set holder alpha when alpha prop is not exists in route transition
+        if (!isAlphaPropExists) {
+          holder.set('alpha', 1)
+        }
       }
 
       this[symbols.children].push(view)
