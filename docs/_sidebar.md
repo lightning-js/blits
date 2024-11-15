@@ -27,6 +27,7 @@
 - Router
   - [Basics](/router/basics.md)
   - [Hooks](/router/hooks.md)
+  - [Transitions](/router/transitions.md)
 - Plugins
   - [Text-to-Speech / Announcer](/plugins/text-to-speech-announcer.md)
   - [Language](/plugins/language.md)

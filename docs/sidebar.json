@@ -118,6 +118,10 @@
       {
         "text": "Hooks",
         "link": "/router/hooks"
+      },
+      {
+        "text": "Transitions",
+        "link": "/router/transitions"
       }
     ]
   },
