@@ -139,7 +139,7 @@ const pageTransition = {
     prop: 'y',
     value: -1080
   },{
-    propt: 'rotate',
+    prop: 'rotate',
     value: 720
   }]
 }
