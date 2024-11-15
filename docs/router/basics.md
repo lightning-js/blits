@@ -1,6 +1,6 @@
 # Router Basics
 
-The Blits framework comes with a built-in, performant router that eliminates the need for to pull in any additional dependencies into your App.
+The Blits framework comes with a built-in, performant router that eliminates the need to pull in any additional dependencies into your App.
 
 Before we dive into the details, let's first touch base on some key concepts.
 
