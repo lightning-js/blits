@@ -2055,6 +2055,182 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
   assert.end()
 })
 
+test('Generate code for a template with a simple for-loop on an Element, Using data from appState plugin', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        children: [
+          {
+            [Symbol.for('componentType')]: 'Element',
+            ':for': 'item in $$appState.list',
+          },
+        ],
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent, component, context, components, effect, getRaw) {
+    const elms = []
+    let componentType
+    const rootComponent = component
+    let propData
+    const elementConfig0 = {}
+    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0].populate(elementConfig0)
+    parent = elms[0]
+    const created1 = []
+    const forloop1 = (collection = [], elms, created) => {
+        const rawCollection = getRaw(collection)
+        const keys = new Set()
+        let l = rawCollection.length
+        while (l--) {
+            const item = rawCollection[l]
+            const index = l
+            keys.add('' + l)
+        }
+        let i = created.length
+        while (i--) {
+            if (keys.has(created[i]) === false) {
+                const key = created[i]
+                elms[1][key] && elms[1][key].destroy()
+                delete elms[1][key]
+            }
+        }
+        created.length = 0
+        const length = rawCollection.length
+        for (let __index = 0; __index < length; __index++) {
+            const scope = Object.create(component)
+            parent = elms[0]
+            scope['index'] = __index
+            scope['item'] = rawCollection[__index]
+            scope['key'] = '' + __index
+            created.push(scope.key)
+            parent = elms[0]
+            if (elms[1] === undefined) {
+                elms[1] = {}
+            }
+            const elementConfig1 = {}
+            if (elms[1][scope.key] === undefined) {
+                elms[1][scope.key] = this.element({ parent: parent || 'root' }, component)
+            }
+            if (elms[1][scope.key].nodeId === undefined) {
+                elms[1][scope.key].populate(elementConfig1)
+            }
+        }
+    }
+    effect(() => {
+        forloop1(component.$appState.list, elms, created1)
+    }, 'list')
+    return elms
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code using data from appState plugin'
+  )
+
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effect array'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with a simple for-loop on an Element, Using data from nested state property', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        children: [
+          {
+            [Symbol.for('componentType')]: 'Element',
+            ':for': 'item in $content.data',
+          },
+        ],
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent, component, context, components, effect, getRaw) {
+    const elms = []
+    let componentType
+    const rootComponent = component
+    let propData
+    const elementConfig0 = {}
+    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0].populate(elementConfig0)
+    parent = elms[0]
+    const created1 = []
+    const forloop1 = (collection = [], elms, created) => {
+        const rawCollection = getRaw(collection)
+        const keys = new Set()
+        let l = rawCollection.length
+        while (l--) {
+            const item = rawCollection[l]
+            const index = l
+            keys.add('' + l)
+        }
+        let i = created.length
+        while (i--) {
+            if (keys.has(created[i]) === false) {
+                const key = created[i]
+                elms[1][key] && elms[1][key].destroy()
+                delete elms[1][key]
+            }
+        }
+        created.length = 0
+        const length = rawCollection.length
+        for (let __index = 0; __index < length; __index++) {
+            const scope = Object.create(component)
+            parent = elms[0]
+            scope['index'] = __index
+            scope['item'] = rawCollection[__index]
+            scope['key'] = '' + __index
+            created.push(scope.key)
+            parent = elms[0]
+            if (elms[1] === undefined) {
+                elms[1] = {}
+            }
+            const elementConfig1 = {}
+            if (elms[1][scope.key] === undefined) {
+                elms[1][scope.key] = this.element({ parent: parent || 'root' }, component)
+            }
+            if (elms[1][scope.key].nodeId === undefined) {
+                elms[1][scope.key].populate(elementConfig1)
+            }
+        }
+    }
+    effect(() => {
+        forloop1(component.content.data, elms, created1)
+    }, 'data')
+    return elms
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code using data from nested state property'
+  )
+
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effect array'
+  )
+
+  assert.end()
+})
+
 test('Generate code for a template with a simple for-loop on an Element with a custom index key', (assert) => {
   const templateObject = {
     children: [
