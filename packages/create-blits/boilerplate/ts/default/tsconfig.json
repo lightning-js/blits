@@ -6,6 +6,10 @@
     "checkJs": true,
     "noEmit": true,
     "strict": true,
-    "noImplicitThis": true
+    "noImplicitThis": true,
+    "baseUrl": ".",
+    "paths": {
+      "*.blits": ["blits.d.ts"]
+    }
   }
 }
