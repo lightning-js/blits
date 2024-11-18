@@ -150,6 +150,11 @@ declare module '@lightningjs/blits' {
 
   export type ComponentBase = {
     /**
+    * Check if a component has focus
+    */
+    hasFocus: boolean,
+
+    /**
     * Listen to events emitted by other components
     */
     $listen: {
