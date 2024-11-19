@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.10.1
+
+_15 nov 2024_
+
+- Upgraded to renderer 2.7.1
+- Added documentation on Router
+
 ## v1.10.0
 
 _8 nov 2024_

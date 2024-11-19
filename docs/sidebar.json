@@ -109,6 +109,23 @@
     ]
   },
   {
+    "text": "Router",
+    "items": [
+      {
+        "text": "Basics",
+        "link": "/router/basics"
+      },
+      {
+        "text": "Hooks",
+        "link": "/router/hooks"
+      },
+      {
+        "text": "Transitions",
+        "link": "/router/transitions"
+      }
+    ]
+  },
+  {
     "text": "Plugins",
     "items": [
       {
