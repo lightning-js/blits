@@ -170,23 +170,23 @@ export const navigate = async function () {
         holder = view[symbols.holder]
 
         // Check, whether cached view holder's alpha prop is exists in transition or not
-        let isAlphaPropExists = false
+        let hasAlphaProp = false
         if (route.transition.before) {
           if (Array.isArray(route.transition.before)) {
             for (let i = 0; i < route.transition.before.length; i++) {
               if (route.transition.before[i].prop === 'alpha') {
-                isAlphaPropExists = true
+                hasAlphaProp = true
                 break
               }
             }
           } else {
             if (route.transition.before.prop === 'alpha') {
-              isAlphaPropExists = true
+              hasAlphaProp = true
             }
           }
         }
         // set holder alpha when alpha prop is not exists in route transition
-        if (!isAlphaPropExists) {
+        if (!hasAlphaProp) {
           holder.set('alpha', 1)
         }
       }
