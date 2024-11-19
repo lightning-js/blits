@@ -1,11 +1,21 @@
 # Changelog
 
+## v1.11.0
+
+_19 nov 2024_
+
+- Added support for splitting up translation file per language
+- Added hasFocus property to ComponentBase type
+- Fixed issue with alpha during router transitions
+
+
 ## v1.10.1
 
 _15 nov 2024_
 
 - Upgraded to renderer 2.7.1
 - Added documentation on Router
+
 
 ## v1.10.0
 
