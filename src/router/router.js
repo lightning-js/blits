@@ -179,14 +179,12 @@ export const navigate = async function () {
                 break
               }
             }
-          } else {
-            if (route.transition.before.prop === 'alpha') {
-              hasAlphaProp = true
-            }
+          } else if (route.transition.before.prop === 'alpha') {
+            hasAlphaProp = true
           }
         }
         // set holder alpha when alpha prop is not exists in route transition
-        if (!hasAlphaProp) {
+        if (hasAlphaProp === false) {
           holder.set('alpha', 1)
         }
       }
