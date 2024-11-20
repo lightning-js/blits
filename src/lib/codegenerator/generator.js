@@ -24,6 +24,9 @@ export default function (templateObject = { children: [] }) {
       'let componentType',
       'const rootComponent = component',
       'let propData',
+      'let slotComponent',
+      'let inSlot = false',
+      'let slotChildCounter = 0',
     ],
     effectsCode: [],
     context: { props: [], components: this.components },
@@ -79,7 +82,7 @@ const generateElementCode = function (
   }
 
   renderCode.push(`
-    ${elm} = this.element({parent: parent || 'root'}, component)
+    ${elm} = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
   `)
 
   if (options.forloop) {
@@ -148,6 +151,12 @@ const generateElementCode = function (
   }
 
   renderCode.push(`${elm}.populate(elementConfig${counter})`)
+
+  renderCode.push(`
+    if(inSlot === true) {
+      slotChildCounter -= 1
+    }
+  `)
 
   if (options.forloop) {
     renderCode.push('}')
@@ -247,7 +256,9 @@ const generateComponentCode = function (
 
     if (${elm}[Symbol.for('slots')][0]) {
       parent = ${elm}[Symbol.for('slots')][0]
-      component = ${elm}
+      slotComponent = ${elm}
+      inSlot = true
+      //component = ${elm}
     } else {
       parent = ${elm}[Symbol.for('children')][0]
     }
@@ -258,9 +269,25 @@ const generateComponentCode = function (
   }
 
   if (children) {
+    if (!options.forloop) {
+      renderCode.push(`
+        if(inSlot === true) {
+          slotChildCounter = ${children.length}  + 1
+        }
+      `)
+    }
     counter++
     generateElementCode.call(this, { children }, false, { ...options })
   }
+
+  if (!options.forloop) {
+    renderCode.push(`
+      if (inSlot === true && slotChildCounter === 0) {
+        inSlot = false
+      }
+    `)
+  }
+
   // if (!options.forloop) {
   //   renderCode.push(`
   //     // console.log('here', component, rootComponent)
