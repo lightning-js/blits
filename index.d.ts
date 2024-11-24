@@ -15,6 +15,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// blits file type reference
+/// <reference path="./blits.d.ts" />
+
 import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader} from '@lightningjs/renderer'
 
 declare module '@lightningjs/blits' {
