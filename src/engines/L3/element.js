@@ -30,7 +30,7 @@ const layoutFn = function (config) {
   const dimension = config.direction === 'vertical' ? 'height' : 'width'
   const oppositeDimension = config.direction === 'vertical' ? 'width' : 'height'
 
-  const children = this.children
+  const children = this.node.children
   const childrenLength = children.length
   let otherDimension = 0
   const gap = config.gap || 0
@@ -53,8 +53,8 @@ const layoutFn = function (config) {
     otherDimension = Math.max(otherDimension, node[oppositeDimension])
   }
   // adjust the size of the layout container
-  this[dimension] = offset - gap
-  this[oppositeDimension] = otherDimension
+  this.node[dimension] = offset - gap
+  this.node[oppositeDimension] = otherDimension
 
   const align = {
     start: 0,
@@ -68,6 +68,11 @@ const layoutFn = function (config) {
       node[oppositePosition] = otherDimension
       node[oppositeMount] = align
     }
+  }
+
+  // emit an updated event
+  if (config['@updated'] !== undefined) {
+    config['@updated']({ w: this.node.width, h: this.node.height }, this)
   }
 }
 
@@ -363,7 +368,7 @@ const Element = {
     }
 
     if (props.__layout === true) {
-      this.triggerLayout = layoutFn.bind(this.node)
+      this.triggerLayout = layoutFn.bind(this)
     }
 
     if (this.config.parent.props !== undefined && this.config.parent.props.__layout === true) {
