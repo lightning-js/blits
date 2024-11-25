@@ -91,7 +91,7 @@ export default Blits.Component('LayoutUpdate', {
 })
 ```
 
-> Please be aware that the `@updated` event can fire multiple times. The size of the Layout-tag is recalculated for each change in children. Also note that the `@updated` event does not gaurantee a change in dimensions. It is possible that it fires for a children update but remains the same size.
+> Please be aware that the `@updated` event can fire multiple times. The size of the Layout-tag is recalculated for each change in children. Also note that the `@updated` event does not guarantee a change in dimensions. It is possible that it fires for a children update, but remains the same size.
 
 ## Performance
 
