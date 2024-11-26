@@ -22,13 +22,45 @@ import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 
+const createPaddingObject = (padding, direction) => {
+  if (padding === undefined) {
+    return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
+  }
+
+  if (typeof padding === 'number') {
+    return { start: padding, end: padding, oppositeStart: padding, oppositeEnd: padding }
+  }
+
+  if (typeof padding === 'object') {
+    const { top = 0, right = 0, bottom = 0, left = 0, x = 0, y = 0 } = padding
+
+    // use specific values if provided, otherwise fall back to x or y
+    return direction === 'vertical'
+      ? {
+          start: top || y,
+          end: bottom || y,
+          oppositeStart: left || x,
+          oppositeEnd: right || x,
+        }
+      : {
+          start: left || x,
+          end: right || x,
+          oppositeStart: left || y,
+          oppositeEnd: bottom || y,
+        }
+  }
+  return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
+}
+
 const layoutFn = function (config) {
-  let offset = 0
   const position = config.direction === 'vertical' ? 'y' : 'x'
   const oppositePosition = config.direction === 'vertical' ? 'x' : 'y'
   const oppositeMount = config.direction === 'vertical' ? 'mountX' : 'mountY'
   const dimension = config.direction === 'vertical' ? 'height' : 'width'
   const oppositeDimension = config.direction === 'vertical' ? 'width' : 'height'
+  const padding = createPaddingObject(config.padding, config.direction)
+
+  let offset = padding.start
 
   const children = this.node.children
   const childrenLength = children.length
@@ -37,10 +69,11 @@ const layoutFn = function (config) {
   for (let i = 0; i < childrenLength; i++) {
     const node = children[i]
     node[position] = offset
+    node[oppositePosition] = padding.oppositeStart
     // todo: temporary text check, due to 1px width of empty text node
     if (dimension === 'width') {
       offset += node.width + (node.width !== ('text' in node ? 1 : 0) ? gap : 0)
-    } else if (dimension === 'height') {
+    } else {
       offset +=
         'text' in node
           ? node.width > 1
@@ -50,10 +83,13 @@ const layoutFn = function (config) {
           ? node.height + gap
           : 0
     }
-    otherDimension = Math.max(otherDimension, node[oppositeDimension])
+    otherDimension = Math.max(
+      otherDimension,
+      node[oppositeDimension] + padding.oppositeStart + padding.oppositeEnd
+    )
   }
   // adjust the size of the layout container
-  this.node[dimension] = offset - gap
+  this.node[dimension] = offset - gap + padding.end
   this.node[oppositeDimension] = otherDimension
 
   const align = {
