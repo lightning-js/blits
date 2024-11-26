@@ -63,7 +63,35 @@ And of course you can nest _vertical_ Layouts inside a _horizontal_ one - and vi
 
 ### Transitioning layouts
 
-The `<Layout>`-component can also take into account when dimensions of children change with a transition applied to it. The component will recalculate the position of its children as the transition progresses, making sure that elements are always perfectly positioned relative to one another.
+The `<Layout>`-component can also take into account when dimensions of children change with a transition applied to it (i.e. `<Element :w.transition="$myWidth">`). The component will recalculate the position of its children as the transition progresses, making sure that elements are always perfectly positioned relative to one another.
+
+### Updated event
+
+The `<Layout>`-tag automatically updates its dimensions based on the dimensions of its children. After each update in the children, the an `updated`-event is emitted on the `<Layout>`-tag. It will receive the current dimensions of the layout.
+
+You can tap into this event by adding an `@updated`-attribute to the `<Layout />`-tag and refer to a method in your Component logic.
+
+
+```js
+export default Blits.Component('LayoutUpdate', {
+  template: `
+    <Element>
+      <Layout @updated="$layoutUpdate">
+        <Element :w="$width" h="40" color="red" />
+        <Element :w="$width" h="40" color="blue" />
+        <Element :w="$width" h="40" color="green" />
+      </Layout>
+    </Element>
+  `,
+  methods: {
+    layoutUpdate(dimensions, el) {
+      console.log(`Layout (${el.nodeId}) dimensions updated! Width: ${dimensions.w}, Height: ${dimensions.h}`)
+    }
+  }
+})
+```
+
+> Please be aware that the `@updated` event can fire multiple times. The size of the Layout-tag is recalculated for each change in children. Also note that the `@updated` event does not guarantee a change in dimensions. It is possible that it fires for a children update, but remains the same size.
 
 ## Performance
 

@@ -195,7 +195,7 @@ export const navigate = async function () {
       previousFocus = Focus.get()
 
       // set focus to the view that we're routing to
-      focus ? Focus.set(focus) : Focus.set(view)
+      focus ? focus.$focus() : view.$focus()
 
       // apply before settings to holder element
       if (route.transition.before) {

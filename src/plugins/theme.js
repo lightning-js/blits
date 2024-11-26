@@ -72,7 +72,7 @@ export default {
         // theme get function when current theme is modified
         state.current
         if (themeMap[key] !== undefined) return themeMap[key]
-        const value = getValueByDotNotation(themes[state.current], themes[base], key)
+        const value = getValueByDotNotation(themes[state.current], themes[base] || null, key)
         if (value !== undefined) {
           // store the value for next time
           themeMap[key] = value

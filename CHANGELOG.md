@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.12.0
+
+- Fixed `$hasFocus` state variable not being set when navigating back to a page with `keepAlive` enabled
+- Added `@updated`-event to Layout component
+- Fixed issue with simple config for Theme plugin
+
+
 ## v1.11.0
 
 _19 nov 2024_
