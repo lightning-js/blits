@@ -61,6 +61,30 @@ It's also possible to nest layouts. Simply place a new `<Layout>`-tag, with it's
 
 And of course you can nest _vertical_ Layouts inside a _horizontal_ one - and vice versa.
 
+### Padding
+
+By default a `<Layout />`-tag will be resized to the exact dimensions as the content it is containing. The `padding`-attribute can be used to add spacing between the content and the edges of the Layout Component.
+
+The `padding`-attribute accepts a `number` or an `object`. When passed a number, that padding will be applied equally to all sides. With an object value, the padding can be controlled for each side individually.
+
+Valid keys in the _padding-object_ are: `top`, `bottom`, `left`, `right`, `x` and `y`. The `x` and `y` keys can be used to define the same values for `top` and `bottom`, and `left` and `right` in one go. When a value is not specified for a side, it will default to `0`.
+
+```xml
+<Layout color="silver" padding="10" >
+  <Element w="40" h="40" color="red" />
+  <Element w="80" h="40" color="blue" />
+  <Element w="40" h="40" color="green" />
+</Layout>
+```
+
+```xml
+<Layout color="silver" padding="{x: 20, top: 30, bottom: 10}">
+  <Element w="40" h="40" color="red" />
+  <Element w="80" h="40" color="blue" />
+  <Element w="40" h="40" color="green" />
+</Layout>
+```
+
 ### Transitioning layouts
 
 The `<Layout>`-component can also take into account when dimensions of children change with a transition applied to it (i.e. `<Element :w.transition="$myWidth">`). The component will recalculate the position of its children as the transition progresses, making sure that elements are always perfectly positioned relative to one another.
