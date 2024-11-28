@@ -31,6 +31,11 @@ const createPaddingObject = (padding, direction) => {
     return { start: padding, end: padding, oppositeStart: padding, oppositeEnd: padding }
   }
 
+  // todo: do we need to do this runtime every time? or can we optimize this?
+  if (isObjectString(padding) === true) {
+    padding = parseToObject(padding)
+  }
+
   if (typeof padding === 'object') {
     const { top = 0, right = 0, bottom = 0, left = 0, x = 0, y = 0 } = padding
 
