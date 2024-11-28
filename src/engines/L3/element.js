@@ -37,21 +37,28 @@ const createPaddingObject = (padding, direction) => {
   }
 
   if (typeof padding === 'object') {
-    const { top = 0, right = 0, bottom = 0, left = 0, x = 0, y = 0 } = padding
+    const {
+      top = undefined,
+      right = undefined,
+      bottom = undefined,
+      left = undefined,
+      x = 0,
+      y = 0,
+    } = padding
 
     // use specific values if provided, otherwise fall back to x or y
     return direction === 'vertical'
       ? {
-          start: top || y,
-          end: bottom || y,
-          oppositeStart: left || x,
-          oppositeEnd: right || x,
+          start: top !== undefined ? top : y,
+          end: bottom !== undefined ? bottom : y,
+          oppositeStart: left !== undefined ? left : x,
+          oppositeEnd: right !== undefined ? right : x,
         }
       : {
-          start: left || x,
-          end: right || x,
-          oppositeStart: left || y,
-          oppositeEnd: bottom || y,
+          start: left !== undefined ? left : x,
+          end: right !== undefined ? right : x,
+          oppositeStart: top !== undefined ? top : y,
+          oppositeEnd: bottom !== undefined ? bottom : y,
         }
   }
   return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
