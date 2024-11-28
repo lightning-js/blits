@@ -365,6 +365,15 @@ const propsTransformer = {
   set content(v) {
     this.props['text'] = '' + v
   },
+  set float(v) {
+    if (v === 'center') {
+      this.x = '50%'
+      this.props['mountX'] = 0.5
+    } else if (v === 'right') {
+      this.x = '100%'
+      this.props['mountX'] = 1
+    }
+  },
 }
 
 const Element = {
