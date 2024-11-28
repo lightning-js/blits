@@ -22,13 +22,57 @@ import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 
+const createPaddingObject = (padding, direction) => {
+  if (padding === undefined) {
+    return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
+  }
+
+  if (typeof padding === 'number') {
+    return { start: padding, end: padding, oppositeStart: padding, oppositeEnd: padding }
+  }
+
+  // todo: do we need to do this runtime every time? or can we optimize this?
+  if (isObjectString(padding) === true) {
+    padding = parseToObject(padding)
+  }
+
+  if (typeof padding === 'object') {
+    const {
+      top = undefined,
+      right = undefined,
+      bottom = undefined,
+      left = undefined,
+      x = 0,
+      y = 0,
+    } = padding
+
+    // use specific values if provided, otherwise fall back to x or y
+    return direction === 'vertical'
+      ? {
+          start: top !== undefined ? top : y,
+          end: bottom !== undefined ? bottom : y,
+          oppositeStart: left !== undefined ? left : x,
+          oppositeEnd: right !== undefined ? right : x,
+        }
+      : {
+          start: left !== undefined ? left : x,
+          end: right !== undefined ? right : x,
+          oppositeStart: top !== undefined ? top : y,
+          oppositeEnd: bottom !== undefined ? bottom : y,
+        }
+  }
+  return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
+}
+
 const layoutFn = function (config) {
-  let offset = 0
   const position = config.direction === 'vertical' ? 'y' : 'x'
   const oppositePosition = config.direction === 'vertical' ? 'x' : 'y'
   const oppositeMount = config.direction === 'vertical' ? 'mountX' : 'mountY'
   const dimension = config.direction === 'vertical' ? 'height' : 'width'
   const oppositeDimension = config.direction === 'vertical' ? 'width' : 'height'
+  const padding = createPaddingObject(config.padding, config.direction)
+
+  let offset = padding.start
 
   const children = this.node.children
   const childrenLength = children.length
@@ -37,10 +81,11 @@ const layoutFn = function (config) {
   for (let i = 0; i < childrenLength; i++) {
     const node = children[i]
     node[position] = offset
+    node[oppositePosition] = padding.oppositeStart
     // todo: temporary text check, due to 1px width of empty text node
     if (dimension === 'width') {
       offset += node.width + (node.width !== ('text' in node ? 1 : 0) ? gap : 0)
-    } else if (dimension === 'height') {
+    } else {
       offset +=
         'text' in node
           ? node.width > 1
@@ -50,10 +95,13 @@ const layoutFn = function (config) {
           ? node.height + gap
           : 0
     }
-    otherDimension = Math.max(otherDimension, node[oppositeDimension])
+    otherDimension = Math.max(
+      otherDimension,
+      node[oppositeDimension] + padding.oppositeStart + padding.oppositeEnd
+    )
   }
   // adjust the size of the layout container
-  this.node[dimension] = offset - gap
+  this.node[dimension] = offset - gap + padding.end
   this.node[oppositeDimension] = otherDimension
 
   const align = {
