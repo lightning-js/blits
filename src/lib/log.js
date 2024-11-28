@@ -103,4 +103,5 @@ export let Log
 // review this pattern
 export const initLog = () => {
   Log = logger('Blits')
+  return Log
 }
