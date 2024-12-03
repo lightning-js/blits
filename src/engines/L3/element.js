@@ -296,8 +296,8 @@ const propsTransformer = {
   set show(v) {
     if (v) {
       this.props['alpha'] = 1
-      this.props['width'] = this.raw['w'] || this.raw['width']
-      this.props['height'] = this.raw['h'] || this.raw['height']
+      this.props['width'] = this.raw['w'] || this.raw['width'] || 0
+      this.props['height'] = this.raw['h'] || this.raw['height'] || 0
     } else {
       this.props['alpha'] = 0
       this.props['width'] = 0
