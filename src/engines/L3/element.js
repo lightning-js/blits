@@ -320,9 +320,23 @@ const propsTransformer = {
         v[i].props.color = colors.normalize(v[i].props.color)
       }
     }
-    this.props['shader'] = renderer.createShader('DynamicShader', {
-      effects: v,
-    })
+
+    if (this.element.node === undefined) {
+      this.props['shader'] = renderer.createShader('DynamicShader', {
+        effects: v.map((effect) => {
+          return renderer.createEffect(effect.type, effect.props, effect.type)
+        }),
+      })
+    } else {
+      for (let i = 0; i < v.length; i++) {
+        const target = this.element.node.shader.props[v[i].type]
+        const props = Object.keys(v[i].props)
+
+        for (let j = 0; j < props.length; j++) {
+          target[props[j]] = v[i].props[props[j]]
+        }
+      }
+    }
   },
   set clipping(v) {
     this.props['clipping'] = v
