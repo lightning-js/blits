@@ -24,6 +24,8 @@ export default function (templateObject = { children: [] }) {
       'let componentType',
       'const rootComponent = component',
       'let propData',
+      'let propObj',
+      'let propKeys = []',
     ],
     effectsCode: [],
     context: { props: [], components: this.components },
@@ -105,29 +107,70 @@ const generateElementCode = function (
     if (isReactiveKey(key)) {
       if (options.holder && key === ':color') return
       if (options.holder) {
-        this.effectsCode.push(`
-        if(typeof skip${counter} === 'undefined' ||
-          skip${counter}.indexOf('${key.substring(1)}') === -1)
-          ${elm}.set('${key.substring(1)}', ${interpolate(templateObject[key], options.component)})
-        `)
+        if (isPropsObjectReactiveKey(key)) {
+          this.effectsCode.push(`
+            let propObj = ${interpolate(templateObject[key], options.component)}
+            let propKeys = Object.keys(propObj)
+
+            for(let i=0; i< propKeys.length; i++) {
+             if(typeof skip${counter} === 'undefined' ||
+              skip${counter}.indexOf(propKeys[i]) === -1)
+              ${elm}.set(propKeys[i], propObj[propKeys[i]])
+            }
+          `)
+
+          renderCode.push(`
+            propObj = ${interpolate(templateObject[key], options.component)}
+            propKeys = Object.keys(propObj)
+            for(let i=0; i< propKeys.length; i++) {
+              elementConfig${counter}[propKeys[i]] = propObj[propKeys[i]]
+            }
+          `)
+        } else {
+          this.effectsCode.push(`
+            if(typeof skip${counter} === 'undefined' ||
+              skip${counter}.indexOf('${key.substring(1)}') === -1)
+              ${elm}.set('${key.substring(1)}', ${interpolate(
+            templateObject[key],
+            options.component
+          )})
+            `)
+
+          renderCode.push(
+            `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(
+              templateObject[key],
+              options.component
+            )}`
+          )
+        }
       } else {
         this.effectsCode.push(`
             ${elm}.set('${key.substring(1)}', ${interpolate(
           templateObject[key],
           options.component
         )})
-          `)
+       `)
+        renderCode.push(
+          `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(
+            templateObject[key],
+            options.component
+          )}`
+        )
       }
-      renderCode.push(
-        `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(
-          templateObject[key],
-          options.component
-        )}`
-      )
     } else {
-      renderCode.push(
-        `elementConfig${counter}['${key}'] = ${cast(templateObject[key], key, options.component)}`
-      )
+      if (isPropsObjectKey(key)) {
+        renderCode.push(`
+          propObj = ${cast(templateObject[key], key, options.component)}
+          propKeys = Object.keys(propObj)
+          for(let i=0; i<propKeys.length; i++) {
+             elementConfig${counter}[propKeys[i]] = propObj[propKeys[i]]
+          }
+        `)
+      } else {
+        renderCode.push(
+          `elementConfig${counter}['${key}'] = ${cast(templateObject[key], key, options.component)}`
+        )
+      }
     }
   })
 
@@ -212,21 +255,50 @@ const generateComponentCode = function (
 
   Object.keys(templateObject).forEach((key) => {
     if (isReactiveKey(key)) {
-      this.effectsCode.push(`
-        ${elm}[Symbol.for('props')]['${key.substring(1)}'] = ${interpolate(
-        templateObject[key],
-        options.component
-      )}`)
-      renderCode.push(`
-        propData = ${interpolate(templateObject[key], options.component)}
-        if (Array.isArray(propData) === true) {
-          propData = getRaw(propData).slice(0)
-        }
-        props${counter}['${key.substring(1)}'] = propData`)
+      if (isPropsObjectReactiveKey(key)) {
+        this.effectsCode.push(`
+          let propObj = ${interpolate(templateObject[key], options.component)}
+          let propKeys = Object.keys(propObj)
+
+          for(let i=0; i< propKeys.length; i++) {
+              ${elm}[Symbol.for('props')][propKeys[i]] = propObj[propKeys[i]]
+          }
+        `)
+
+        renderCode.push(`
+          for(let i=0; i< propKeys.length; i++) {
+            propData = propObj[propKeys[i]]
+            if (Array.isArray(propData) === true) {
+              propData = getRaw(propData).slice(0)
+            }
+            props${counter}[propKeys[i]] = propData
+          }
+        `)
+      } else {
+        this.effectsCode.push(`
+          ${elm}[Symbol.for('props')]['${key.substring(1)}'] = ${interpolate(
+          templateObject[key],
+          options.component
+        )}`)
+        renderCode.push(`
+          propData = ${interpolate(templateObject[key], options.component)}
+          if (Array.isArray(propData) === true) {
+            propData = getRaw(propData).slice(0)
+          }
+          props${counter}['${key.substring(1)}'] = propData`)
+      }
     } else {
-      renderCode.push(
-        `props${counter}['${key}'] = ${cast(templateObject[key], key, options.component)}`
-      )
+      if (isPropsObjectKey(key)) {
+        renderCode.push(`
+          for(let i=0; i< propKeys.length; i++) {
+            props${counter}[propKeys[i]] = propObj[propKeys[i]]
+          }
+        `)
+      } else {
+        renderCode.push(
+          `props${counter}['${key}'] = ${cast(templateObject[key], key, options.component)}`
+        )
+      }
     }
   })
 
@@ -640,6 +712,10 @@ const cast = (val = '', key = false, component = 'component.') => {
 }
 
 const isReactiveKey = (str) => str.startsWith(':')
+
+const isPropsObjectKey = (str) => str === 'props'
+
+const isPropsObjectReactiveKey = (str) => str === ':props'
 
 const parseInlineContent = (val, component) => {
   const dynamicParts = /\{\{\s*(\$\S+)\s*\}\}/g
