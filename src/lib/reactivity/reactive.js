@@ -164,7 +164,13 @@ const reactiveDefineProperty = (target, global) => {
   return target
 }
 
+const hasProxySupport = typeof Proxy !== 'undefined'
+
 export const reactive = (target, mode = 'Proxy', global = false) => {
+  // force defineProperty reactivity mode when no proxy support
+  if (hasProxySupport === false) {
+    mode = 'defineProperty'
+  }
   return mode === 'defineProperty'
     ? reactiveDefineProperty(target, global)
     : reactiveProxy(target, undefined, undefined, global)

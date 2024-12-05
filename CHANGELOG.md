@@ -1,6 +1,21 @@
 # Changelog
 
+## v1.13.0
+
+_5 dec 2024_
+
+- Added `padding` attribute to Layout component
+- Added logging of Blits and Renderer version used in App
+- Fixed show attribute for elements without predefined width and height
+- Added automatic proxy fallback (when no browser support) for reactivity
+- Fixed and added tests related to Blits Element
+- Fixed memory issue with effects used in for-loop
+- Fixed memory issue when changing props in dynamic shader effects
+- Updated renderer to v2.8.0
+
 ## v1.12.0
+
+_26 nov 2024_
 
 - Fixed `$hasFocus` state variable not being set when navigating back to a page with `keepAlive` enabled
 - Added `@updated`-event to Layout component

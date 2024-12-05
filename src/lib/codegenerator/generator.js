@@ -337,6 +337,7 @@ const generateForLoopCode = function (templateObject, parent) {
   ctx.renderCode.push(`
       created.length = 0
       const length = rawCollection.length
+      const effects = []
       for(let __index = 0; __index < length; __index++) {
         const scope = Object.create(component)
         parent = ${parent}
@@ -405,7 +406,7 @@ const generateForLoopCode = function (templateObject, parent) {
           ${effect}
         }
         effect(eff${index}, ${key})
-        component[Symbol.for('effects')].push(eff${index})
+        effects.push(eff${index})
       `)
     } else {
       // props shouldn't be wrapped in an effect, but simply passed on
@@ -416,6 +417,7 @@ const generateForLoopCode = function (templateObject, parent) {
   })
   ctx.renderCode.push(`
     }
+    return effects
   }`)
 
   // generate code that destroys items
@@ -436,7 +438,7 @@ const generateForLoopCode = function (templateObject, parent) {
       `)
   }
   destroyCode.push(`
-       }
+      }
     }
   `)
 
@@ -451,8 +453,14 @@ const generateForLoopCode = function (templateObject, parent) {
   }
 
   ctx.renderCode.push(`
+    let forEffects${forStartCounter}
     effect(() => {
-      forloop${forStartCounter}(${cast(result[2], ':for')}, elms, created${forStartCounter})
+      component[Symbol.for('removeGlobalEffects')](forEffects${forStartCounter})
+      forEffects${forStartCounter} = null
+      forEffects${forStartCounter} = forloop${forStartCounter}(${cast(
+    result[2],
+    ':for'
+  )}, elms, created${forStartCounter})
     }, '${effectKey}' )
   `)
 
