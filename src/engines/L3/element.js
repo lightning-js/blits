@@ -251,8 +251,8 @@ const propsTransformer = {
   },
   set rtt(v) {
     this.props['rtt'] = v
-    if (v === true && this.raw['color'] === undefined) {
-      this.props['color'] = 0xffffffff
+    if (this.raw['color'] === undefined) {
+      this.props['color'] = v === true ? 0xffffffff : 0x00000000
     }
   },
   set mount(v) {
