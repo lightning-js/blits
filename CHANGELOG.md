@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.13.1
+
+_9 dec 2024_
+
+- Fixed setting of correct color when turning off rtt on an element
+- Added check for txManager in reactivity
+- Fixed reference to correct `this`-scope in router before hook
+
 ## v1.13.0
 
 _5 dec 2024_
