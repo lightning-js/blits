@@ -119,7 +119,7 @@ export const navigate = async function () {
     if (route) {
       if (route.hooks) {
         if (route.hooks.before) {
-          beforeHookOutput = await route.hooks.before(route, previousRoute)
+          beforeHookOutput = await route.hooks.before.call(this.parent, route, previousRoute)
           if (isString(beforeHookOutput)) {
             currentRoute = previousRoute
             to(beforeHookOutput)
