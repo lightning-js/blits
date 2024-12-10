@@ -404,6 +404,21 @@ declare module '@lightningjs/blits' {
      * Router configuration
      */
     router?: RouterConfig
+
+    /**
+     * Routes definition
+     *
+     * @example
+     *
+     * ```js
+     * routes: [
+     *  { path: '/', component: Home },
+     *  { path: '/details', component: Details },
+     *  { path: '/account', component: Account },
+     * ]
+     * ```
+     */
+    routes?: Route[]
   }
 
   export interface Transition {

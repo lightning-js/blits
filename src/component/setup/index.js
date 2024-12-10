@@ -54,7 +54,7 @@ export default function (component, config) {
   if (config.watch) setupWatch(component, config.watch)
 
   // // setup router
-  if (config.router) setupRouter(component, config.router)
+  if (config.router || config.routes) setupRouter(component, config.router || config.routes)
 
   // // setup input
   if (config.input) setupInput(component, config.input)

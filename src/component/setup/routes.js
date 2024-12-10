@@ -17,20 +17,24 @@
 
 import symbols from '../../lib/symbols.js'
 
-export default (component, router) => {
-  component[symbols.routerHooks] = router.hooks
+export default (component, data) => {
+  let routes = data
+  if (Array.isArray(data) === false) {
+    component[symbols.routerHooks] = data.hooks
+    routes = data.routes
+  }
   component[symbols.routes] = []
-  Object.keys(router.routes).forEach((key) => {
+  Object.keys(routes).forEach((key) => {
     // todo: validate routes[key] for expected format etc.
     component[symbols.routes][key] = {
-      ...router.routes[key],
+      ...routes[key],
       ...{
         // merge default route options with route specific options
         options: {
           ...{
             inHistory: true,
           },
-          ...router.routes[key].options,
+          ...routes[key].options,
         },
       },
     }
