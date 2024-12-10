@@ -17,7 +17,12 @@
 
 import symbols from '../../lib/symbols.js'
 
-export default (component, routes) => {
+export default (component, data) => {
+  let routes = data
+  if (Array.isArray(data) === false) {
+    component[symbols.routerHooks] = data.hooks
+    routes = data.routes
+  }
   component[symbols.routes] = []
   Object.keys(routes).forEach((key) => {
     // todo: validate routes[key] for expected format etc.
