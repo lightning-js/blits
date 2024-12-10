@@ -177,6 +177,42 @@ export default Blits.Component('MyComponent', {
 })
 ```
 
+### $removeListener
+
+The `$removeListener` utility method (which is available on each Blits Component) is designed to remove event listeners that were previously registered using `$listen()`. This method helps in managing event listeners manually when needed.
+
+The first argument of the `$removeListener()` method is the event `name` to stop listening for. This ensures that all listeners for the specified event are removed from the component.
+
+Generally, you might not need to call `$removeListener()` manually, as Blits automatically deregisters listeners when a Component is destroyed. However, it can be useful in scenarios where you need to stop listening for events before the Component is destroyed.
+
+```js
+export default Blits.Component('MyComponent', {
+  hooks: {
+    init() {
+      this.activateListener = () => {
+        console.log('activated')
+        this.text = 'We are active!'
+      }
+
+      this.changeBackgroundListener = (data) => {
+        setTimeout(() => {
+          this.backgroundImage = data.img
+        }, data.delay)
+      }
+
+      // Register listeners
+      this.$listen('activate', this.activateListener)
+      this.$listen('changeBackground', this.changeBackgroundListener)
+    },
+    unfocus() {
+      // Remove listeners when Component is unfocused
+      this.$removeListener('activate')
+      this.$removeListener('changeBackground')
+    }
+  }
+})
+```
+
 ## Timeouts
 
 Setting a timeout is a typical way in JS to execute functionality with a delay. But timeouts can also be a common cause of

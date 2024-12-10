@@ -36,6 +36,19 @@ export default {
     callbackCache.delete(event) // Invalidate the callbackCache when a new callback is added
   },
 
+  deregisterListener(component, event) {
+    let componentsMap = eventsMap.get(event)
+    if (componentsMap === undefined) {
+      return;
+    }
+
+    if (componentsMap.contains(component)) {
+      componentsMap.delete(component);
+      eventsMap.set(event, componentsMap)
+      callbackCache.delete(event)
+    }
+  },
+
   executeListeners(event, params) {
     const componentsMap = eventsMap.get(event)
     if (componentsMap === undefined || componentsMap.size === 0) {

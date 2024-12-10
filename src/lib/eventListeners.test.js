@@ -130,6 +130,26 @@ test('executeListeners - stop propagation', (t) => {
   t.end()
 })
 
+test('deregisterListener', (t) => {
+  resetModule()
+
+  const component = 'testComponent'
+  const event = 'testEvent'
+  let callCount = 0
+  const cb = () => {
+    callCount++
+  }
+
+  eventListener.registerListener(component, event, cb)
+  eventListener.deregisterListener(component, event)
+
+  const result = eventListener.executeListeners(event)
+  t.equal(result, true, 'Should return true when no listeners are registered after deregistration')
+  t.equal(callCount, 0, 'Should not call deregistered callback')
+
+  t.end()
+})
+
 test('removeListeners', (t) => {
   resetModule()
 
