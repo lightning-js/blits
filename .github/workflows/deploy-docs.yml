@@ -1,0 +1,27 @@
+name: Trigger Website Docs Update
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'docs/**'
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Deployment
+        timeout-minutes: 5
+        run: |
+          response=$(curl -X POST -d {} -H "Content-Type:application/json" -w "%{http_code}" -s -o /dev/null \
+            --max-time 30 \
+            --connect-timeout 10 \
+            --retry 2 \
+            --retry-delay 5 \
+            "${{ secrets.WEBSITE_DEPLOY_URL }}")
+          if [ "$response" -ge 200 ] && [ "$response" -lt 300 ]; then
+            echo "Deployment triggered successfully"
+          else
+            echo "Failed to trigger deployment. Status code: $response"
+            exit 1
+          fi

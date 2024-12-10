@@ -49,4 +49,6 @@ export default {
   isComponent: Symbol.for('isComponent'),
   // Symbol 'effects' utilized within generated code
   effects: Symbol.for('effects'),
+  // Symbol 'removeGlobalEffects' utilized within generated code
+  removeGlobalEffects: Symbol.for('removeGlobalEffects'),
 }

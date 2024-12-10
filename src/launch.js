@@ -16,8 +16,9 @@
  */
 
 import Settings from './settings.js'
-import { initLog } from './lib/log.js'
+import { initLog, Log } from './lib/log.js'
 import engine from './engine.js'
+import packageInfo from '../package.json'
 
 export let renderer = {}
 export const stage = {}
@@ -26,6 +27,8 @@ export default (App, target, settings) => {
   Settings.set(settings)
 
   initLog()
+  Log.info('Blits Version ', packageInfo.version)
+  Log.info('Renderer Version ', packageInfo.dependencies['@lightningjs/renderer'])
 
   stage.element = engine.Element
 
