@@ -35,7 +35,7 @@ export default {
     enumerable: true,
     configurable: false,
   },
-  $removeListener: {
+  $unlisten: {
     value: function (event) {
       eventListeners.deregisterListener(this, event)
     },

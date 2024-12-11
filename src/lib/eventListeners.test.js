@@ -150,6 +150,33 @@ test('deregisterListener', (t) => {
   t.end()
 })
 
+test('deregisterListener - only deregisters specified component listener', (t) => {
+  resetModule()
+
+  const componentA = 'testComponent'
+  const componentB = 'testComponentB'
+  const event = 'testEvent'
+  let callCount1 = 0
+  let callCount2 = 0
+
+  eventListener.registerListener(componentA, event, () => {
+    callCount1++
+  })
+
+  eventListener.registerListener(componentB, event, () => {
+    callCount2++
+  })
+
+  eventListener.deregisterListener(componentA, event)
+
+  const result = eventListener.executeListeners(event)
+  t.equal(result, true, 'Should return true when listeners are still registered after deregistering one')
+  t.equal(callCount1, 0, 'Should not call deregistered callback')
+  t.equal(callCount2, 1, 'Should call remaining registered callback')
+
+  t.end()
+})
+
 test('removeListeners', (t) => {
   resetModule()
 
