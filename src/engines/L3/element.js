@@ -217,6 +217,10 @@ const propsTransformer = {
     if (this.raw['color'] === undefined) {
       this.props['color'] = this.props['src'] ? 0xffffffff : 0x00000000
     }
+    // apply auto sizing when no width or height specified
+    if (!('w' in this.raw) && !('w' in this.raw) && !('h' in this.raw) && !('height' in this.raw)) {
+      this.props['autosize'] = true
+    }
   },
   set texture(v) {
     this.props['texture'] = v
