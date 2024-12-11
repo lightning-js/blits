@@ -33,3 +33,4 @@
   - [Language](/plugins/language.md)
   - [Theme](/plugins/theme.md)
   - [Global App State](/plugins/global_app_state.md)
+  - [Audio](/plugins/audio.md)
