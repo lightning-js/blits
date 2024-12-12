@@ -24,6 +24,8 @@ import symbols from '../../lib/symbols.js'
 
 initLog()
 
+let elementRef
+
 test('Type', (assert) => {
   assert.ok(element instanceof Function, 'Element should be a factory function')
   assert.end()
@@ -105,10 +107,98 @@ test('Element - Set `w` property', (assert) => {
   assert.end()
 })
 
+test('Element- Set `w` property in percentage', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('w', '50%')
+
+  assert.equal(el.node['width'], 960, 'Node width parameter should be set to 960')
+  assert.equal(el.props.props['width'], 960, 'Props width parameter should be set')
+  assert.equal(el.props.raw['w'], '50%', "Props' raw map entry should be added")
+
+  assert.end()
+})
+
+test('Element - Set `h` property', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('h', 100)
+
+  assert.equal(el.node['height'], 100, 'Node height parameter should be set')
+  assert.equal(el.props.props['height'], 100, 'Props height parameter should be set')
+  assert.equal(el.props.raw['h'], 100, "Props' raw map entry should be added")
+  assert.end()
+})
+
+test('Element- Set `h` property in percentage', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('h', '50%')
+
+  assert.equal(el.node['height'], 540, 'Node width parameter should be set to 540')
+  assert.equal(el.props.props['height'], 540, 'Props width parameter should be set')
+  assert.equal(el.props.raw['h'], '50%', "Props' raw map entry should be added")
+
+  assert.end()
+})
+
+test('Element - Set `x` property', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('x', 100)
+
+  assert.equal(el.node['x'], 100, 'Node x parameter should be set')
+  assert.equal(el.props.props['x'], 100, 'Props x parameter should be set')
+  assert.equal(el.props.raw['x'], 100, "Props' raw map entry should be added")
+  assert.end()
+})
+
+test('Element- Set `x` property in percentage', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('x', '50%')
+
+  assert.equal(el.node['x'], 960, 'Node x parameter should be set to 960')
+  assert.equal(el.props.props['x'], 960, 'Props x parameter should be set')
+  assert.equal(el.props.raw['x'], '50%', "Props' raw map entry should be added")
+
+  assert.end()
+})
+
+test('Element - Set `y` property', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('y', 100)
+
+  assert.equal(el.node['y'], 100, 'Node y parameter should be set')
+  assert.equal(el.props.props['y'], 100, 'Props y parameter should be set')
+  assert.equal(el.props.raw['y'], 100, "Props' raw map entry should be added")
+  assert.end()
+})
+
+test('Element- Set `y` property in percentage', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('y', '50%')
+
+  assert.equal(el.node['y'], 540, 'Node y parameter should be set to 540')
+  assert.equal(el.props.props['y'], 540, 'Props y parameter should be set')
+  assert.equal(el.props.raw['y'], '50%', "Props' raw map entry should be added")
+
+  assert.end()
+})
+
 test('Element - Set `mount` property', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
   const el = createElement()
-  const value = { x: 10, y: 20 }
+  const value = '{ x: 10, y: 20 }'
 
   el.set('mount', value)
 
@@ -271,8 +361,87 @@ test('Element - Set `fit` property should not set not required keys', (assert) =
   )
   assert.end()
 })
+
+test('Element - Set `float` property with value `center`', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('float', 'center')
+
+  assert.equal(el.node['mountX'], 0.5, 'Node mountX parameter should set to 0.5')
+  assert.equal(el.props.props['mountX'], 0.5, 'Props mountX parameter should set to 0.5')
+  assert.equal(el.node['x'], 960, 'Node x parameter should set to half of parent node width, 960')
+  assert.equal(el.props.props['x'], 960, 'props x parameter should be set to 960')
+
+  assert.end()
+})
+
+test('Element - Set `float` property with value `right`', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('float', 'right')
+
+  assert.equal(el.node['mountX'], 1, 'Node mountX parameter should set to 1')
+  assert.equal(el.props.props['mountX'], 1, 'Props mountX parameter should set to 1')
+  assert.equal(el.node['x'], 1920, 'Node x parameter should set to parent node full width, 1920')
+  assert.equal(el.props.props['x'], 1920, 'props x parameter should be set to 1920')
+
+  assert.end()
+})
+
+test('Element - Set `float` property with value `unknown`', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('float', 'unknown')
+
+  assert.equal(el.node['mountX'], undefined, 'Node mountX parameter should not be changed')
+  assert.equal(el.props.props['mountX'], undefined, 'Props mountX parameter should not be changed')
+  assert.equal(el.node['x'], undefined, 'Node x parameter should not get updated')
+  assert.equal(el.props.props['x'], undefined, 'props x parameter should not be changed')
+
+  assert.end()
+})
+
+test('Element - Set `show` property as false', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('w', 960)
+  el.set('h', 540)
+
+  el.set('show', false)
+
+  elementRef = el
+
+  assert.equal(el.node['alpha'], 0, 'Node alpha parameter should set to 0')
+  assert.equal(el.props.props['alpha'], 0, 'Props alpha parameter should set')
+  assert.equal(el.node['width'], 0, 'Node width parameter should set to 0')
+  assert.equal(el.props.props['width'], 0, 'props width parameter should set to 0')
+  assert.equal(el.node['height'], 0, 'Node height parameter should set to 0')
+  assert.equal(el.props.props['height'], 0, 'props height parameter should set to 0')
+
+  assert.end()
+})
+
+test('Element - Set `show` property as false', (assert) => {
+  const el = elementRef
+
+  el.set('show', true)
+
+  assert.equal(el.node['alpha'], 1, 'Node alpha parameter should be set')
+  assert.equal(el.props.props['alpha'], 1, 'Props alpha parameter should be set')
+  assert.equal(el.node['width'], 960, 'Node width parameter should be set')
+  assert.equal(el.props.props['width'], 960, 'props width parameter should be set')
+  assert.equal(el.node['height'], 540, 'Node height parameter should be set')
+  assert.equal(el.props.props['height'], 540, 'props height parameter should be set')
+
+  assert.end()
+})
+
 function createElement() {
-  const el = element({}, {})
+  const el = element({ parent: { node: { width: 1920, height: 1080 } } }, {})
   el.populate({
     parent: {
       node: new EventEmitter(),

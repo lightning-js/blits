@@ -35,4 +35,12 @@ export default {
     enumerable: true,
     configurable: false,
   },
+  $unlisten: {
+    value: function (event) {
+      eventListeners.deregisterListener(this, event)
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
 }

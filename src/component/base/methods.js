@@ -64,6 +64,14 @@ export default {
     enumerable: true,
     configurable: false,
   },
+  [symbols.removeGlobalEffects]: {
+    value: function (effects = []) {
+      removeGlobalEffects(effects)
+    },
+    writable: false,
+    enumerable: false,
+    configurable: false,
+  },
   select: {
     value: function (ref) {
       Log.warn('this.select is deprecated, use this.$select instead')
