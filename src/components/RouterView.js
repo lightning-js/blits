@@ -32,9 +32,11 @@ export default () =>
     },
     hooks: {
       ready() {
-        handler = () => Router.navigate.apply(this)
+        handler = (e) => {
+          if (e.newURL.slice(-7) !== '#.!.!.!') Router.navigate.apply(this)
+        }
         Router.navigate.apply(this)
-        window.addEventListener('hashchange', handler)
+        window.addEventListener('hashchange', (e) => handler(e))
       },
       destroy() {
         window.removeEventListener('hashchange', handler, false)

@@ -300,6 +300,8 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
 export const to = (location, data = {}, options = {}) => {
   navigationData = data
   overrideOptions = options
+  // maybe make this conditional (reload option)
+  window.location.hash = '#.!.!.!'
   window.location.hash = `#${location}`
 }
 
