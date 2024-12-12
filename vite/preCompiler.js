@@ -34,8 +34,9 @@ export default function () {
       if (fileExtension === '.js' || fileExtension === '.ts') {
         return compiler(source, filePath)
       }
-      const relativePath = path.relative(process.cwd(), filePath)
-      return compiler(source, relativePath)
+
+      // vite expects null if there is no modification
+      return null
     },
   }
 }
