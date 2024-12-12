@@ -20,7 +20,7 @@ import path from 'node:path'
 import fs from 'node:fs'
 import { createRequire } from 'module'
 
-export default function blitsFileTypePlugin() {
+export default function blitsFileType() {
   return {
     name: 'vite-plugin-blits-file-type',
     enforce: 'pre',
