@@ -383,13 +383,35 @@ const propsTransformer = {
   set content(v) {
     this.props['text'] = '' + v
   },
-  set float(v) {
-    if (v === 'center') {
+  set placement(v) {
+    let x, y
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      if ('x' in v === true) {
+        x = v.x
+      }
+      if ('y' in v === true) {
+        y = v.y
+      }
+    } else {
+      v === 'center' || v === 'right' ? (x = v) : (y = v)
+    }
+
+    // Set X position
+    if (x === 'center') {
       this.x = '50%'
       this.props['mountX'] = 0.5
-    } else if (v === 'right') {
+    } else if (x === 'right') {
       this.x = '100%'
       this.props['mountX'] = 1
+    }
+
+    // Set Y position
+    if (y === 'middle') {
+      this.y = '50%'
+      this.props['mountY'] = 0.5
+    } else if (y === 'bottom') {
+      this.y = '100%'
+      this.props['mountY'] = 1
     }
   },
 }
