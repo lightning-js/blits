@@ -362,30 +362,164 @@ test('Element - Set `fit` property should not set not required keys', (assert) =
   assert.end()
 })
 
-test('Element - Set `float` property with value `center`', (assert) => {
+test('Element - Set `placement` property with value `center`', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
   const el = createElement()
 
-  el.set('float', 'center')
+  el.set('placement', 'center')
 
   assert.equal(el.node['mountX'], 0.5, 'Node mountX parameter should set to 0.5')
   assert.equal(el.props.props['mountX'], 0.5, 'Props mountX parameter should set to 0.5')
   assert.equal(el.node['x'], 960, 'Node x parameter should set to half of parent node width, 960')
   assert.equal(el.props.props['x'], 960, 'props x parameter should be set to 960')
+  assert.equal(
+    el.node['y'],
+    undefined,
+    'Node Y parameter should not be modified from default value'
+  )
 
   assert.end()
 })
 
-test('Element - Set `float` property with value `right`', (assert) => {
+test('Element - Set `placement` property with value `right`', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
   const el = createElement()
 
-  el.set('float', 'right')
+  el.set('placement', 'right')
 
   assert.equal(el.node['mountX'], 1, 'Node mountX parameter should set to 1')
   assert.equal(el.props.props['mountX'], 1, 'Props mountX parameter should set to 1')
   assert.equal(el.node['x'], 1920, 'Node x parameter should set to parent node full width, 1920')
   assert.equal(el.props.props['x'], 1920, 'props x parameter should be set to 1920')
+  assert.equal(
+    el.node['y'],
+    undefined,
+    'Node Y parameter should not be modified from default value'
+  )
+
+  assert.end()
+})
+
+test('Element - Set `placement` property with value `middle`', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('placement', 'middle')
+
+  assert.equal(el.node['mountY'], 0.5, 'Node mountY parameter should set to 0.5')
+  assert.equal(el.props.props['mountY'], 0.5, 'Props mountY parameter should set to 0.5')
+  assert.equal(el.node['y'], 540, 'Node Y parameter should set to half of parent node height, 540')
+  assert.equal(el.props.props['y'], 540, 'props Y parameter should be set to 540')
+  assert.equal(
+    el.node['x'],
+    undefined,
+    'Node X parameter should not be modified from default value'
+  )
+
+  assert.end()
+})
+
+test('Element - Set `placement` property with value `bottom`', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('placement', 'bottom')
+
+  assert.equal(el.node['mountY'], 1, 'Node mountY parameter should set to 1')
+  assert.equal(el.props.props['mountY'], 1, 'Props mountY parameter should set to 1')
+  assert.equal(el.node['y'], 1080, 'Node Y parameter should set to parent node full height, 1080')
+  assert.equal(el.props.props['y'], 1080, 'props Y parameter should be set to 1080')
+  assert.equal(
+    el.node['x'],
+    undefined,
+    'Node X parameter should not be modified from default value'
+  )
+
+  assert.end()
+})
+
+test('Element - Set `placement` property with value `bottom` & x = 300', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('placement', 'bottom')
+
+  assert.equal(el.node['mountY'], 1, 'Node mountY parameter should set to 1')
+  assert.equal(el.props.props['mountY'], 1, 'Props mountY parameter should set to 1')
+  assert.equal(el.node['y'], 1080, 'Node Y parameter should set to parent node full height, 1080')
+  assert.equal(el.props.props['y'], 1080, 'props Y parameter should be set to 1080')
+
+  el.set('x', 300)
+
+  assert.equal(el.node['x'], 300, 'Node x parameter should set custom value 300')
+
+  assert.end()
+})
+
+test('Element - Set `placement` property with object value `{x:"center", y:"middle"}`', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('placement', "{x:'center', y:'middle'}")
+
+  assert.equal(el.node['mountX'], 0.5, 'Node mountX parameter should set to 0.5')
+  assert.equal(el.props.props['mountX'], 0.5, 'Props mountX parameter should set to 0.5')
+  assert.equal(el.node['x'], 960, 'Node x parameter should set to half of parent node width, 960')
+
+  assert.equal(el.node['mountY'], 0.5, 'Node mountY parameter should set to 0.5')
+  assert.equal(el.props.props['mountY'], 0.5, 'Props mountY parameter should set to 0.5')
+  assert.equal(el.node['y'], 540, 'Node Y parameter should set to half of parent node height, 540')
+
+  assert.end()
+})
+
+test('Element - Set `placement` property with object value `{x:"center", y:"bottom"}`', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('placement', "{x:'center', y:'bottom'}")
+
+  assert.equal(el.node['mountX'], 0.5, 'Node mountX parameter should set to 0.5')
+  assert.equal(el.props.props['mountX'], 0.5, 'Props mountX parameter should set to 0.5')
+  assert.equal(el.node['x'], 960, 'Node x parameter should set to half of parent node width, 960')
+
+  assert.equal(el.node['mountY'], 1, 'Node mountY parameter should set to 1')
+  assert.equal(el.props.props['mountY'], 1, 'Props mountY parameter should set to 1')
+  assert.equal(el.node['y'], 1080, 'Node Y parameter should set to parent node full height , 1080')
+
+  assert.end()
+})
+
+test('Element - Set `placement` property with object value `{x:"right", y:"middle"}`', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('placement', "{x:'right', y:'middle'}")
+
+  assert.equal(el.node['mountX'], 1, 'Node mountX parameter should set to 1')
+  assert.equal(el.props.props['mountX'], 1, 'Props mountX parameter should set to 1')
+  assert.equal(el.node['x'], 1920, 'Node x parameter should set to parent node full width, 1920')
+
+  assert.equal(el.node['mountY'], 0.5, 'Node mountY parameter should set to 0.5')
+  assert.equal(el.props.props['mountY'], 0.5, 'Props mountY parameter should set to 0.5')
+  assert.equal(el.node['y'], 540, 'Node Y parameter should set to half of parent node height, 540')
+
+  assert.end()
+})
+
+test('Element - Set `placement` property with object value `{x:"right", y:"bottom"}`', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('placement', "{x:'right', y:'bottom'}")
+
+  assert.equal(el.node['mountX'], 1, 'Node mountX parameter should set to 1')
+  assert.equal(el.props.props['mountX'], 1, 'Props mountX parameter should set to 1')
+  assert.equal(el.node['x'], 1920, 'Node x parameter should set to parent node full width, 1920')
+
+  assert.equal(el.node['mountY'], 1, 'Node mountY parameter should set to 1')
+  assert.equal(el.props.props['mountY'], 1, 'Props mountY parameter should set to 1')
+  assert.equal(el.node['y'], 1080, 'Node Y parameter should set to parent node height, 1080')
 
   assert.end()
 })
