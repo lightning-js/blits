@@ -16,23 +16,52 @@
  */
 
 import blitsfileconverter from '../src/lib/blitsfileconverter/blitsfileconverter.js'
+import path from 'node:path'
+import fs from 'node:fs'
+import { createRequire } from 'module'
 
 export default function blitsFileType() {
   return {
     name: 'vite-plugin-blits-file-type',
     enforce: 'pre',
-    transform(src, id) {
+
+    resolveId(source, importer) {
+      if (source.endsWith('.blits')) {
+        return importer ? path.resolve(path.dirname(importer), source) : path.resolve(source)
+      }
+      return null
+    },
+
+    load(id) {
       if (id.endsWith('.blits')) {
-        try {
-          const transformedCode = blitsfileconverter(src)
-          return {
-            code: transformedCode,
-            map: null, // no source map
+        const source = fs.readFileSync(id, 'utf-8')
+        let code = blitsfileconverter(source)
+
+        // Check for TypeScript and transpile to JS if needed
+        if (/<script\s+lang=["']ts["']/.test(source)) {
+          // Resolve the local typescript dependency
+          const userRequire = createRequire(process.cwd() + '/')
+          let ts
+          try {
+            ts = userRequire('typescript')
+          } catch (err) {
+            throw new Error(
+              `\n\nThe file "${id}" contains \`lang="ts"\`, indicating it uses TypeScript. \nTo enable TypeScript support, please install the 'typescript' package as a dev dependency by running:\n\n` +
+                '  npm install --save-dev typescript\n\n'
+            )
           }
-        } catch (error) {
-          this.error(error)
+          const transpiled = ts.transpileModule(code, {
+            compilerOptions: { target: ts.ScriptTarget.ESNext, module: ts.ModuleKind.ESNext },
+          })
+          code = transpiled.outputText
+        }
+
+        return {
+          code,
+          map: null,
         }
       }
+      return null
     },
   }
 }
