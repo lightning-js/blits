@@ -88,7 +88,17 @@ declare module '@lightningjs/blits' {
      * Will be invoked when there is no dedicated function for a certain key
     */
     // @ts-ignore
-    any?: (event: KeyboardEvent) => void
+    any?: (event: KeyboardEvent) => void,
+    /**
+     * Intercept key presses on the root Application component before being handled
+     * by the currently focussed component.
+     *
+     * Only when a KeyboardEvent (the original one, or a modified one) is returned from the
+     * intercept function, the Input event is passed on to the Component with focus.
+     *
+     * The intercept function can be asynchronous.
+     */
+    intercept?: (event: KeyboardEvent) => KeyboardEvent | Promise<KeyboardEvent | any> | any
   }
 
   export interface Log {
