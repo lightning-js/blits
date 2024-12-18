@@ -91,7 +91,7 @@ declare module '@lightningjs/blits' {
     any?: (event: KeyboardEvent) => void,
     /**
      * Intercept key presses on the root Application component before being handled
-     * by the currently focussed component.
+     * by the currently focused component.
      *
      * Only when a KeyboardEvent (the original one, or a modified one) is returned from the
      * intercept function, the Input event is passed on to the Component with focus.
