@@ -30,10 +30,19 @@ Each route in this array, is an Object literal that includes the following key p
 
 Besides static routes such as `/account` and `/settings/wifi/advanced`, the Blits router also supports dynamic routes where URI parts can contain params.
 
-To define a param in a route path prefix a string with a colon (`:`), followed by the name of the param, e.g. `/movies/:genre/:id`. This route path will match a URI hash such as `#/movies/sci-fi/65281918`. The router will take the params and inject them as a `prop` into the Page that's being navigated to.
+To define a param in a route path, prefix a string with a colon (`:`), followed by the name of the param, e.g. `/movies/:genre/:id`. This route path will match a URI hash such as `#/movies/sci-fi/65281918`. The router will take the params and inject them as a `prop` into the Page that's being navigated to.
 
-To access these props in the Page component, they must first be defined in the Component first (i.e. `props: ['genre', 'id']`). Once defined, the values (`sci-fi` and `65281918`) in this case, will be available on the `this` scope, as with any regular Component.
+To access these props in the Page component, they must first be defined in the Page component as _props_ first (i.e. `props: ['genre', 'id']`). Once defined, the values (`sci-fi` and `65281918`) in this case, will be available on the `this` scope as `this.genre` and `this.id` (or as `$genre` and `$id` when used in the template), as with any regular Component.
 
+#### Using query parameters in routes
+
+According to the browser specifications, query parameters are not part of a URL hash. This means that query parameters should be placed _before_ the URL hash (i.e. `http://localhost:5173?id=100&name=john#/my/page/hash`) and implies that "real" query parameters are _not_ part of the route paths.
+
+In this case `id` and `name` won't automatically be made available as props inside a Blits component. They can however be retrieved using `document.location.search` in combination with `new URLSearchParams`, and can be used in an App's `index.js` to set dynamic launch settings for example.
+
+Sometimes you may actually want pass custom data into a Blits component, without it being part of the dynamic route path or `data`-object during navigation. For these cases Blits allows you to use query parameters as part of a route (i.e. `#/series/simpsons/5/10?id=100&name=john`).
+
+This URL hash will match the route `/series/:show/:season/:episode` and it will pass `id` and `name` as additional props into the Page component. Note: similar to dynamic path params, route query params should also be be defined in the Page component as _props_ first (i.e. `props: ['id', 'name']`) in order to be accessed on the `this`-scope.
 
 ## Router view
 
