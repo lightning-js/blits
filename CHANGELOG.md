@@ -56,7 +56,7 @@ _8 nov 2024_
 - Fixed issue with watching nested state variables and global state
 - Upgraded to renderer 2.6.2
 - Fixed issue with white background for Elements with falsy src attribute
-- Fixed issue with calling focus on component that already is focussed
+- Fixed issue with calling focus on component that already is focused
 
 
 ## v1.9.2
