@@ -81,7 +81,7 @@ declare module '@lightningjs/blits' {
   }
 
   export interface Input {
-    [key: string]: (event: KeyboardEvent) => void | undefined,
+    [key: string]: (event: KeyboardEvent) => void | undefined | unknown,
     /**
      * Catch all input function
      *
