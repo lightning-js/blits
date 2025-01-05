@@ -541,12 +541,18 @@ const Element = {
     }
 
     f.once('stopped', () => {
-      // remove the prop from scheduled transitions
-      delete this.scheduledTransitions[prop]
+      if (
+        this.scheduledTransitions[prop] !== undefined &&
+        this.scheduledTransitions[prop].transition === undefined
+      ) {
+        return
+      }
       // fire transition end callback when animation ends (if specified)
       if (transition.end && typeof transition.end === 'function') {
         transition.end.call(this.component, this, prop, this.node[prop])
       }
+      // remove the prop from scheduled transitions
+      this.scheduledTransitions[prop] = undefined
     })
 
     // start animation
@@ -557,11 +563,12 @@ const Element = {
     this.node.destroy()
 
     // Clearing transition end callback functions
-    const props = Object.keys(this.scheduledTransitions)
-    for (let i = 0; i < props.length; i++) {
-      const obj = this.scheduledTransitions[props[i]]
-      if (obj && obj.transition.end) {
-        obj.transition.end = undefined
+    const transitionProps = Object.keys(this.scheduledTransitions)
+    for (let i = 0; i < transitionProps.length; i++) {
+      const transition = this.scheduledTransitions[transitionProps[i]]
+      if (transition !== undefined) {
+        transition.transition = undefined
+        if (transition.f !== undefined) transition.f.stop()
       }
     }
   },
