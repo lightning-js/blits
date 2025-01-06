@@ -516,7 +516,6 @@ const Element = {
     this.scheduledTransitions[prop] = {
       v: props[prop],
       f,
-      transition,
     }
 
     if (transition.start !== undefined && typeof transition.start === 'function') {
@@ -543,7 +542,7 @@ const Element = {
     f.once('stopped', () => {
       if (
         this.scheduledTransitions[prop] !== undefined &&
-        this.scheduledTransitions[prop].transition === undefined
+        this.scheduledTransitions[prop].canceled === true
       ) {
         return
       }
@@ -567,7 +566,7 @@ const Element = {
     for (let i = 0; i < transitionProps.length; i++) {
       const transition = this.scheduledTransitions[transitionProps[i]]
       if (transition !== undefined) {
-        transition.transition = undefined
+        transition.canceled = true
         if (transition.f !== undefined) transition.f.stop()
       }
     }
