@@ -74,13 +74,13 @@ When a component handles a key press by having a corresponding function specifie
 
 ## Intercepting key input
 
-In addition to the Event handling chain explained above. Blits offers the option to _intercept_ key presses at the root level of the Application, before they reach a the focused Component. This can be useful in certains situation where you want to globally disable all key presses, or when implementing an override key press handler.
+In addition to the Event handling chain explained above. Blits offers the option to _intercept_ key presses at the root level of the Application, before they reach the currently focused Component. This can be useful in certain situation where you want to globally disable all key presses, or when implementing an override key press handler.
 
 The `intercept()` input-method can only be implemented in the `Blits.Application`-component. When present, the method acts as a _catch-all_ method, and will be executed for _all_ key presses. It receives the `KeyboardEvent` as its argument, allowing you to execute logic based on the key being pressed.
 
-Only when the `intercept()` input-method returns the `KeyboardEvent` (possibly modified), the keypress will continue to be handled (by the currently focused) Component.
+Only when the `intercept()` input-method returns the `KeyboardEvent` (possibly modified), the keypress will continue to be handled (by the currently focused Component).
 
-The `intercept`-method can als be an asynchronous method.
+The `intercept`-method can also be an asynchronous method.
 
 ## Key-up handling
 
