@@ -23,7 +23,7 @@ export default {
   $size: {
     value: function (dimensions = { w: 0, h: 0 }) {
       this[symbols.holder].set('w', dimensions.w || 0)
-      this[symbols.holder].set('height', dimensions.h || 0)
+      this[symbols.holder].set('h', dimensions.h || 0)
     },
     writable: false,
     enumerable: true,
