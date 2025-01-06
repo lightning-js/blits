@@ -97,6 +97,8 @@ declare module '@lightningjs/blits' {
      * intercept function, the Input event is passed on to the Component with focus.
      *
      * The intercept function can be asynchronous.
+     *
+     * Note: the intercept input handler is only available on the Root App component (i.e. Blits.Application)
      */
     intercept?: (event: KeyboardEvent) => KeyboardEvent | Promise<KeyboardEvent | any> | any
   }
