@@ -153,7 +153,9 @@ declare module '@lightningjs/blits' {
 
   export type ComponentBase = {
     /**
-    * Check if a component has focus
+    * Indicates whether the component currently has focus
+    *
+    * @returns Boolean
     */
     hasFocus: boolean,
 
@@ -244,11 +246,23 @@ declare module '@lightningjs/blits' {
      * Deprecated: use `this.$trigger()` instead
      */
     trigger: (key: string) => void
-
     /**
      * Router instance
      */
     $router: Router
+    /**
+     * Dynamically set the size of a component holder node
+     */
+    $size: (dimensions: {
+      /**
+       * Component width
+       */
+      w: number,
+      /**
+       * Component height
+       */
+      h: number
+    }) => void
   }
 
   /**
