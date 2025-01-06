@@ -55,6 +55,38 @@ The Layout component also uses this event, to execute its calculation and positi
 
 When the children of the Layout-component have _reactive_ dimensions (i.e. `<Element :w="$mywidth" :h="$myheight" />), the Layout component ensures that all child elements are properly re-positioned whenever a dimension changes.
 
+### Components inside a Layout
+
+It is also possible to place Components inside of a Layout, but there is a small _gotcha_ there. By default a Component does not have any dimensions - it has a width and height of `0`, regardless of the contents of the Component. Normally, when using absolute positioning, this isn't a problem. But in the context of a Layout, each child needs to have dimensions.
+
+If the Component has fixed dimensions, you can just add a `w` and a `h` attribute to the Component tag (i.e. `<MyButton w="100" h="40" />`). This is the most performant way to supply dimensions to a Component and should be used whenever possible.
+
+If the Component has dynamic dimensions that are not known upfront, you can dynamically update the dimensions from inside the Component by calling the `this.$size()`-method. This method accepts an object as its argument with a `w` property for setting the _width_ and a `h` property for setting the _height_.
+
+```js
+export default Blits.Component('MyButton', {
+  template: ``,
+  props: ['type'],
+  hooks: {
+    ready() {
+      if(this.type === 'large') {
+        this.$size({
+          w: 200,
+          h: 80
+        })
+      } else {
+        this.$size({
+          w: 100,
+          h: 40
+        })
+      }
+
+    }
+  }
+})
+```
+At this moment Blits does not have support for automatically growing the dimensions of a Component based on it's contents, because of the performance impact that this functionality has.
+
 ### Nesting Layouts
 
 It's also possible to nest layouts. Simply place a new `<Layout>`-tag, with it's own children in between the children of another Layout-component. The Layout-component itself will grow automatically with the dimensions of it's children. In other words, it's not required to specify a width (`w`) or height (`h`) on the `<Layout>`-tag itself.

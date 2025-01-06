@@ -217,6 +217,10 @@ const propsTransformer = {
     if (this.raw['color'] === undefined) {
       this.props['color'] = this.props['src'] ? 0xffffffff : 0x00000000
     }
+    // apply auto sizing when no width or height specified
+    if (!('w' in this.raw) && !('w' in this.raw) && !('h' in this.raw) && !('height' in this.raw)) {
+      this.props['autosize'] = true
+    }
   },
   set texture(v) {
     this.props['texture'] = v
@@ -536,12 +540,18 @@ const Element = {
     }
 
     f.once('stopped', () => {
-      // remove the prop from scheduled transitions
-      this.scheduledTransitions[prop] = undefined
+      if (
+        this.scheduledTransitions[prop] !== undefined &&
+        this.scheduledTransitions[prop].canceled === true
+      ) {
+        return
+      }
       // fire transition end callback when animation ends (if specified)
       if (transition.end && typeof transition.end === 'function') {
         transition.end.call(this.component, this, prop, this.node[prop])
       }
+      // remove the prop from scheduled transitions
+      delete this.scheduledTransitions[prop]
     })
 
     // start animation
@@ -550,6 +560,16 @@ const Element = {
   destroy() {
     Log.debug('Deleting  Node', this.nodeId)
     this.node.destroy()
+
+    // Clearing transition end callback functions
+    const transitionProps = Object.keys(this.scheduledTransitions)
+    for (let i = 0; i < transitionProps.length; i++) {
+      const transition = this.scheduledTransitions[transitionProps[i]]
+      if (transition !== undefined) {
+        transition.canceled = true
+        if (transition.f !== undefined) transition.f.stop()
+      }
+    }
   },
   get nodeId() {
     return this.node && this.node.id
