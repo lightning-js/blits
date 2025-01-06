@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.14.0
+
+_6 jan 2025_
+
+- Added ability to deregister listeners (`this.$unlisten()`)
+- Added autosize to images without `w` and `h` attributes
+- Fixed cleanup of transitions and end-callbacks when Elements are destroyed
+- Added support for reactively updating an entire object (instead of having to update each object key individually)
+- Added `this.$size()` method to set the dimensions of a Component
+- Added `intercept` input method to handle key presses before they reach the currently focused Component
+- Added support for query-parameters in routes (in addition to regular query params)
+
+
 ## v1.13.1
 
 _9 dec 2024_
