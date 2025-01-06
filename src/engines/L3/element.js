@@ -552,7 +552,7 @@ const Element = {
         transition.end.call(this.component, this, prop, this.node[prop])
       }
       // remove the prop from scheduled transitions
-      this.scheduledTransitions[prop] = undefined
+      delete this.scheduledTransitions[prop]
     })
 
     // start animation
