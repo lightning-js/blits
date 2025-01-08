@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.14.1
+
+_8 jan 2025_
+
+- Fixed `undefined`-error with intercept method, when no input object is specified on root App component
+
+
 ## v1.14.0
 
 _6 jan 2025_
