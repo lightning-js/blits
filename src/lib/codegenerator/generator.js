@@ -288,7 +288,7 @@ const generateForLoopCode = function (templateObject, parent) {
   const result = regex.exec(forLoop)
 
   // can be improved with a smarter regex
-  const [item, index = 'index'] = result[1]
+  const [item, index] = result[1]
     .replace('(', '')
     .replace(')', '')
     .split(/\s*,\s*/)
@@ -306,12 +306,15 @@ const generateForLoopCode = function (templateObject, parent) {
     ctx.renderCode.push(`parent = ${parent}`)
   }
 
-  const indexRegex = new RegExp(`\\$${index}(?!['\\w])`)
-  const indexResult = indexRegex.exec(key)
-  if (Array.isArray(indexResult)) {
-    ctx.renderCode.push(
-      `console.warn(" Using '${index}' in the key, like key=${key},  is not recommended")`
-    )
+  //If the index variable is not defined, the key attribute would not reference it.
+  if (index !== '') {
+    const indexRegex = new RegExp(`\\$${index}(?!['\\w])`)
+    const indexResult = indexRegex.exec(key)
+    if (Array.isArray(indexResult)) {
+      ctx.renderCode.push(
+        `console.warn(" Using '${index}' in the key, like key=${key},  is not recommended")`
+      )
+    }
   }
 
   const forStartCounter = counter
@@ -324,7 +327,14 @@ const generateForLoopCode = function (templateObject, parent) {
       let l = rawCollection.length
       while(l--) {
         const ${item} = rawCollection[l]
+  `)
+  // push reference of index variable
+  if (index !== '') {
+    ctx.renderCode.push(`
         const ${index} = l
+    `)
+  }
+  ctx.renderCode.push(`
         keys.add('' +  ${interpolate(key, '') || 'l'})
       }
   `)
@@ -341,8 +351,15 @@ const generateForLoopCode = function (templateObject, parent) {
       for(let __index = 0; __index < length; __index++) {
         const scope = Object.create(component)
         parent = ${parent}
-        scope['${index}'] = __index
         scope['${item}'] = rawCollection[__index]
+  `)
+  // If the index variable is declared, include it in the scope object
+  if (index !== '') {
+    ctx.renderCode.push(`
+        scope['${index}'] = __index
+    `)
+  }
+  ctx.renderCode.push(`
         scope['key'] = '' + ${forKey || '__index'}
   `)
   if ('ref' in templateObject && templateObject.ref.indexOf('$') === -1) {
