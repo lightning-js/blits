@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.15.0
+
+_14 jan 2025_
+
+- Added `placement`-attribute for easily aligning Elements to predefined locations (i.e. `center`, `right`, `middle`, `bottom`)
+- Removed automatic injection of `index` variable into forloop-scope to prevent unexpected naming collisions
+
+
 ## v1.14.1
 
 _8 jan 2025_
