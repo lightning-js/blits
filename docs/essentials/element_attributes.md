@@ -38,7 +38,8 @@ And the percentage specified for `h` and `y` will use the _height_ (`h`) of the 
 
 ### Predefined placement options
 
-In addition to the absolute positions that Blits and Lightning use, there are a few predefined placement options available. By adding the `placement`-attribute to an Element we can easily _center_ or align an Element to a corner, without adding custom calculations.
+In addition to the absolute positions that Blits and Lightning use, there are a few predefined placement options available. By adding the `placement`-attribute to an Element we can easily align it to the _center_, _left_, _right_, _top_, _bottom_, or even a combination like `{y: 'middle', x: 'left'}`, without having to calculate the positions yourself.
+
 
 On the `x`-axis the following _placement_ options can be used: `left` (default), `center` and `right`. On the `y`-axis the _placement_ attribute accepts `top` (default), `middle` and `bottom`.
 
@@ -65,7 +66,7 @@ The placement of an Element is calculated based on the dimensions of it's direct
 </Element>
 ```
 
-> note: the `x` or `y` attribute is ignored for those axes defined in the `placement`-attribute
+> note: the `x` or `y` attributes on the Element are ignored for those axes defined in the `placement`-attribute
 
 ## Colors
 
