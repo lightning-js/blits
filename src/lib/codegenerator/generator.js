@@ -306,8 +306,8 @@ const generateForLoopCode = function (templateObject, parent) {
     ctx.renderCode.push(`parent = ${parent}`)
   }
 
-  //If the index variable is not defined, the key attribute would not reference it.
-  if (index !== '') {
+  // If the index variable is not defined, the key attribute would not reference it.
+  if (index !== undefined) {
     const indexRegex = new RegExp(`\\$${index}(?!['\\w])`)
     const indexResult = indexRegex.exec(key)
     if (Array.isArray(indexResult)) {
@@ -329,7 +329,7 @@ const generateForLoopCode = function (templateObject, parent) {
         const ${item} = rawCollection[l]
   `)
   // push reference of index variable
-  if (index !== '') {
+  if (index !== undefined) {
     ctx.renderCode.push(`
         const ${index} = l
     `)
