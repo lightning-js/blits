@@ -258,7 +258,6 @@ const generateComponentCode = function (
       parent = ${elm}[Symbol.for('slots')][0]
       slotComponent = ${elm}
       inSlot = true
-      //component = ${elm}
     } else {
       parent = ${elm}[Symbol.for('children')][0]
     }
@@ -287,13 +286,6 @@ const generateComponentCode = function (
       }
     `)
   }
-
-  // if (!options.forloop) {
-  //   renderCode.push(`
-  //     // console.log('here', component, rootComponent)
-  //   component = rootComponent
-  // `)
-  // }
 }
 
 const generateForLoopCode = function (templateObject, parent) {
