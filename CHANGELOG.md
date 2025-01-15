@@ -1,5 +1,63 @@
 # Changelog
 
+## v1.15.0
+
+_14 jan 2025_
+
+- Added `placement`-attribute for easily aligning Elements to predefined locations (i.e. `center`, `right`, `middle`, `bottom`)
+- Removed automatic injection of `index` variable into forloop-scope to prevent unexpected naming collisions
+
+
+## v1.14.1
+
+_8 jan 2025_
+
+- Fixed `undefined`-error with intercept method, when no input object is specified on root App component
+
+
+## v1.14.0
+
+_6 jan 2025_
+
+- Added ability to deregister listeners (`this.$unlisten()`)
+- Added autosize to images without `w` and `h` attributes
+- Fixed cleanup of transitions and end-callbacks when Elements are destroyed
+- Added support for reactively updating an entire object (instead of having to update each object key individually)
+- Added `this.$size()` method to set the dimensions of a Component
+- Added `intercept` input method to handle key presses before they reach the currently focused Component
+- Added support for query-parameters in routes (in addition to regular query params)
+
+
+## v1.13.1
+
+_9 dec 2024_
+
+- Fixed setting of correct color when turning off rtt on an element
+- Added check for txManager in reactivity
+- Fixed reference to correct `this`-scope in router before hook
+
+## v1.13.0
+
+_5 dec 2024_
+
+- Added `padding` attribute to Layout component
+- Added logging of Blits and Renderer version used in App
+- Fixed show attribute for elements without predefined width and height
+- Added automatic proxy fallback (when no browser support) for reactivity
+- Fixed and added tests related to Blits Element
+- Fixed memory issue with effects used in for-loop
+- Fixed memory issue when changing props in dynamic shader effects
+- Updated renderer to v2.8.0
+
+## v1.12.0
+
+_26 nov 2024_
+
+- Fixed `$hasFocus` state variable not being set when navigating back to a page with `keepAlive` enabled
+- Added `@updated`-event to Layout component
+- Fixed issue with simple config for Theme plugin
+
+
 ## v1.11.0
 
 _19 nov 2024_
@@ -26,7 +84,7 @@ _8 nov 2024_
 - Fixed issue with watching nested state variables and global state
 - Upgraded to renderer 2.6.2
 - Fixed issue with white background for Elements with falsy src attribute
-- Fixed issue with calling focus on component that already is focussed
+- Fixed issue with calling focus on component that already is focused
 
 
 ## v1.9.2

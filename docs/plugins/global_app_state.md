@@ -75,3 +75,24 @@ The second `$`-sign is needed, since the appState plugin itself is prefixed with
 
 In order to read or update variables on the global app state inside the component logic, you can access the entire state via `this.$appState`.
 
+### Watching global state
+
+Similar to component state, you can watch for changes in the global state as well. You can to refer to global state variables using _dot-notation_ in the watcher function name, and _prefixing_ it with `$appState`. This means that you need to define your watcher as a `String`, matching one of the examples below, depending on your style preference.
+
+```js
+Blits.Component('MyComponent', {
+  template: `
+    <Element>
+      <Text :content="$$appState.loggedIn ? $$appState.user.name : 'Not logged in'" />
+    </Element>
+  `,
+  watch: {
+    '$appState.fooBar'(v, old) {
+      console.log(`$appState.fooBar changed from ${old} to ${v}`)
+    },
+    '$appState.my.nested.data': function(v, old) {
+      console.log(`My nested App state data changed!`)
+    }
+  },
+})
+```

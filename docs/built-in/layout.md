@@ -55,15 +55,99 @@ The Layout component also uses this event, to execute its calculation and positi
 
 When the children of the Layout-component have _reactive_ dimensions (i.e. `<Element :w="$mywidth" :h="$myheight" />), the Layout component ensures that all child elements are properly re-positioned whenever a dimension changes.
 
+### Components inside a Layout
+
+It is also possible to place Components inside of a Layout, but there is a small _gotcha_ there. By default a Component does not have any dimensions - it has a width and height of `0`, regardless of the contents of the Component. Normally, when using absolute positioning, this isn't a problem. But in the context of a Layout, each child needs to have dimensions.
+
+If the Component has fixed dimensions, you can just add a `w` and a `h` attribute to the Component tag (i.e. `<MyButton w="100" h="40" />`). This is the most performant way to supply dimensions to a Component and should be used whenever possible.
+
+If the Component has dynamic dimensions that are not known upfront, you can dynamically update the dimensions from inside the Component by calling the `this.$size()`-method. This method accepts an object as its argument with a `w` property for setting the _width_ and a `h` property for setting the _height_.
+
+```js
+export default Blits.Component('MyButton', {
+  template: ``,
+  props: ['type'],
+  hooks: {
+    ready() {
+      if(this.type === 'large') {
+        this.$size({
+          w: 200,
+          h: 80
+        })
+      } else {
+        this.$size({
+          w: 100,
+          h: 40
+        })
+      }
+
+    }
+  }
+})
+```
+At this moment Blits does not have support for automatically growing the dimensions of a Component based on it's contents, because of the performance impact that this functionality has.
+
 ### Nesting Layouts
 
 It's also possible to nest layouts. Simply place a new `<Layout>`-tag, with it's own children in between the children of another Layout-component. The Layout-component itself will grow automatically with the dimensions of it's children. In other words, it's not required to specify a width (`w`) or height (`h`) on the `<Layout>`-tag itself.
 
 And of course you can nest _vertical_ Layouts inside a _horizontal_ one - and vice versa.
 
+### Padding
+
+By default a `<Layout />`-tag will be resized to the exact dimensions as the content it is containing. The `padding`-attribute can be used to add spacing between the content and the edges of the Layout Component.
+
+The `padding`-attribute accepts a `number` or an `object`. When passed a number, that padding will be applied equally to all sides. With an object value, the padding can be controlled for each side individually.
+
+Valid keys in the _padding-object_ are: `top`, `bottom`, `left`, `right`, `x` and `y`. The `x` and `y` keys can be used to define the same values for `top` and `bottom`, and `left` and `right` in one go. When a value is not specified for a side, it will default to `0`.
+
+```xml
+<Layout color="silver" padding="10" >
+  <Element w="40" h="40" color="red" />
+  <Element w="80" h="40" color="blue" />
+  <Element w="40" h="40" color="green" />
+</Layout>
+```
+
+```xml
+<Layout color="silver" padding="{x: 20, top: 30, bottom: 10}">
+  <Element w="40" h="40" color="red" />
+  <Element w="80" h="40" color="blue" />
+  <Element w="40" h="40" color="green" />
+</Layout>
+```
+
 ### Transitioning layouts
 
-The `<Layout>`-component can also take into account when dimensions of children change with a transition applied to it. The component will recalculate the position of its children as the transition progresses, making sure that elements are always perfectly positioned relative to one another.
+The `<Layout>`-component can also take into account when dimensions of children change with a transition applied to it (i.e. `<Element :w.transition="$myWidth">`). The component will recalculate the position of its children as the transition progresses, making sure that elements are always perfectly positioned relative to one another.
+
+### Updated event
+
+The `<Layout>`-tag automatically updates its dimensions based on the dimensions of its children. After each update in the children, the an `updated`-event is emitted on the `<Layout>`-tag. It will receive the current dimensions of the layout.
+
+You can tap into this event by adding an `@updated`-attribute to the `<Layout />`-tag and refer to a method in your Component logic.
+
+
+```js
+export default Blits.Component('LayoutUpdate', {
+  template: `
+    <Element>
+      <Layout @updated="$layoutUpdate">
+        <Element :w="$width" h="40" color="red" />
+        <Element :w="$width" h="40" color="blue" />
+        <Element :w="$width" h="40" color="green" />
+      </Layout>
+    </Element>
+  `,
+  methods: {
+    layoutUpdate(dimensions, el) {
+      console.log(`Layout (${el.nodeId}) dimensions updated! Width: ${dimensions.w}, Height: ${dimensions.h}`)
+    }
+  }
+})
+```
+
+> Please be aware that the `@updated` event can fire multiple times. The size of the Layout-tag is recalculated for each change in children. Also note that the `@updated` event does not guarantee a change in dimensions. It is possible that it fires for a children update, but remains the same size.
 
 ## Performance
 

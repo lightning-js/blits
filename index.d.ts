@@ -15,6 +15,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// blits file type reference
+/// <reference path="./blits.d.ts" />
+
 import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader} from '@lightningjs/renderer'
 
 declare module '@lightningjs/blits' {
@@ -78,14 +81,26 @@ declare module '@lightningjs/blits' {
   }
 
   export interface Input {
-    [key: string]: (event: KeyboardEvent) => void | undefined,
+    [key: string]: (event: KeyboardEvent) => void | undefined | unknown,
     /**
      * Catch all input function
      *
      * Will be invoked when there is no dedicated function for a certain key
     */
     // @ts-ignore
-    any?: (event: KeyboardEvent) => void
+    any?: (event: KeyboardEvent) => void,
+    /**
+     * Intercept key presses on the root Application component before being handled
+     * by the currently focused component.
+     *
+     * Only when a KeyboardEvent (the original one, or a modified one) is returned from the
+     * intercept function, the Input event is passed on to the Component with focus.
+     *
+     * The intercept function can be asynchronous.
+     *
+     * Note: the intercept input handler is only available on the Root App component (i.e. Blits.Application)
+     */
+    intercept?: (event: KeyboardEvent) => KeyboardEvent | Promise<KeyboardEvent | any> | any
   }
 
   export interface Log {
@@ -150,7 +165,9 @@ declare module '@lightningjs/blits' {
 
   export type ComponentBase = {
     /**
-    * Check if a component has focus
+    * Indicates whether the component currently has focus
+    *
+    * @returns Boolean
     */
     hasFocus: boolean,
 
@@ -241,11 +258,23 @@ declare module '@lightningjs/blits' {
      * Deprecated: use `this.$trigger()` instead
      */
     trigger: (key: string) => void
-
     /**
      * Router instance
      */
     $router: Router
+    /**
+     * Dynamically set the size of a component holder node
+     */
+    $size: (dimensions: {
+      /**
+       * Component width
+       */
+      w: number,
+      /**
+       * Component height
+       */
+      h: number
+    }) => void
   }
 
   /**

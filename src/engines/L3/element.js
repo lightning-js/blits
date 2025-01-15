@@ -22,25 +22,70 @@ import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 
+const createPaddingObject = (padding, direction) => {
+  if (padding === undefined) {
+    return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
+  }
+
+  if (typeof padding === 'number') {
+    return { start: padding, end: padding, oppositeStart: padding, oppositeEnd: padding }
+  }
+
+  // todo: do we need to do this runtime every time? or can we optimize this?
+  if (isObjectString(padding) === true) {
+    padding = parseToObject(padding)
+  }
+
+  if (typeof padding === 'object') {
+    const {
+      top = undefined,
+      right = undefined,
+      bottom = undefined,
+      left = undefined,
+      x = 0,
+      y = 0,
+    } = padding
+
+    // use specific values if provided, otherwise fall back to x or y
+    return direction === 'vertical'
+      ? {
+          start: top !== undefined ? top : y,
+          end: bottom !== undefined ? bottom : y,
+          oppositeStart: left !== undefined ? left : x,
+          oppositeEnd: right !== undefined ? right : x,
+        }
+      : {
+          start: left !== undefined ? left : x,
+          end: right !== undefined ? right : x,
+          oppositeStart: top !== undefined ? top : y,
+          oppositeEnd: bottom !== undefined ? bottom : y,
+        }
+  }
+  return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
+}
+
 const layoutFn = function (config) {
-  let offset = 0
   const position = config.direction === 'vertical' ? 'y' : 'x'
   const oppositePosition = config.direction === 'vertical' ? 'x' : 'y'
   const oppositeMount = config.direction === 'vertical' ? 'mountX' : 'mountY'
   const dimension = config.direction === 'vertical' ? 'height' : 'width'
   const oppositeDimension = config.direction === 'vertical' ? 'width' : 'height'
+  const padding = createPaddingObject(config.padding, config.direction)
 
-  const children = this.children
+  let offset = padding.start
+
+  const children = this.node.children
   const childrenLength = children.length
   let otherDimension = 0
   const gap = config.gap || 0
   for (let i = 0; i < childrenLength; i++) {
     const node = children[i]
     node[position] = offset
+    node[oppositePosition] = padding.oppositeStart
     // todo: temporary text check, due to 1px width of empty text node
     if (dimension === 'width') {
       offset += node.width + (node.width !== ('text' in node ? 1 : 0) ? gap : 0)
-    } else if (dimension === 'height') {
+    } else {
       offset +=
         'text' in node
           ? node.width > 1
@@ -50,11 +95,14 @@ const layoutFn = function (config) {
           ? node.height + gap
           : 0
     }
-    otherDimension = Math.max(otherDimension, node[oppositeDimension])
+    otherDimension = Math.max(
+      otherDimension,
+      node[oppositeDimension] + padding.oppositeStart + padding.oppositeEnd
+    )
   }
   // adjust the size of the layout container
-  this[dimension] = offset - gap
-  this[oppositeDimension] = otherDimension
+  this.node[dimension] = offset - gap + padding.end
+  this.node[oppositeDimension] = otherDimension
 
   const align = {
     start: 0,
@@ -68,6 +116,11 @@ const layoutFn = function (config) {
       node[oppositePosition] = otherDimension
       node[oppositeMount] = align
     }
+  }
+
+  // emit an updated event
+  if (config['@updated'] !== undefined) {
+    config['@updated']({ w: this.node.width, h: this.node.height }, this)
   }
 }
 
@@ -164,6 +217,10 @@ const propsTransformer = {
     if (this.raw['color'] === undefined) {
       this.props['color'] = this.props['src'] ? 0xffffffff : 0x00000000
     }
+    // apply auto sizing when no width or height specified
+    if (!('w' in this.raw) && !('w' in this.raw) && !('h' in this.raw) && !('height' in this.raw)) {
+      this.props['autosize'] = true
+    }
   },
   set texture(v) {
     this.props['texture'] = v
@@ -198,8 +255,8 @@ const propsTransformer = {
   },
   set rtt(v) {
     this.props['rtt'] = v
-    if (v === true && this.raw['color'] === undefined) {
-      this.props['color'] = 0xffffffff
+    if (this.raw['color'] === undefined) {
+      this.props['color'] = v === true ? 0xffffffff : 0x00000000
     }
   },
   set mount(v) {
@@ -243,8 +300,8 @@ const propsTransformer = {
   set show(v) {
     if (v) {
       this.props['alpha'] = 1
-      this.props['width'] = this.raw['w'] || this.raw['width']
-      this.props['height'] = this.raw['h'] || this.raw['height']
+      this.props['width'] = this.raw['w'] || this.raw['width'] || 0
+      this.props['height'] = this.raw['h'] || this.raw['height'] || 0
     } else {
       this.props['alpha'] = 0
       this.props['width'] = 0
@@ -267,9 +324,23 @@ const propsTransformer = {
         v[i].props.color = colors.normalize(v[i].props.color)
       }
     }
-    this.props['shader'] = renderer.createShader('DynamicShader', {
-      effects: v,
-    })
+
+    if (this.element.node === undefined) {
+      this.props['shader'] = renderer.createShader('DynamicShader', {
+        effects: v.map((effect) => {
+          return renderer.createEffect(effect.type, effect.props, effect.type)
+        }),
+      })
+    } else {
+      for (let i = 0; i < v.length; i++) {
+        const target = this.element.node.shader.props[v[i].type]
+        const props = Object.keys(v[i].props)
+
+        for (let j = 0; j < props.length; j++) {
+          target[props[j]] = v[i].props[props[j]]
+        }
+      }
+    }
   },
   set clipping(v) {
     this.props['clipping'] = v
@@ -311,6 +382,37 @@ const propsTransformer = {
   },
   set content(v) {
     this.props['text'] = '' + v
+  },
+  set placement(v) {
+    let x, y
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      if ('x' in v === true) {
+        x = v.x
+      }
+      if ('y' in v === true) {
+        y = v.y
+      }
+    } else {
+      v === 'center' || v === 'right' ? (x = v) : (y = v)
+    }
+
+    // Set X position
+    if (x === 'center') {
+      this.x = '50%'
+      this.props['mountX'] = 0.5
+    } else if (x === 'right') {
+      this.x = '100%'
+      this.props['mountX'] = 1
+    }
+
+    // Set Y position
+    if (y === 'middle') {
+      this.y = '50%'
+      this.props['mountY'] = 0.5
+    } else if (y === 'bottom') {
+      this.y = '100%'
+      this.props['mountY'] = 1
+    }
   },
 }
 
@@ -363,7 +465,7 @@ const Element = {
     }
 
     if (props.__layout === true) {
-      this.triggerLayout = layoutFn.bind(this.node)
+      this.triggerLayout = layoutFn.bind(this)
     }
 
     if (this.config.parent.props !== undefined && this.config.parent.props.__layout === true) {
@@ -469,12 +571,18 @@ const Element = {
     }
 
     f.once('stopped', () => {
-      // remove the prop from scheduled transitions
-      this.scheduledTransitions[prop] = undefined
+      if (
+        this.scheduledTransitions[prop] !== undefined &&
+        this.scheduledTransitions[prop].canceled === true
+      ) {
+        return
+      }
       // fire transition end callback when animation ends (if specified)
       if (transition.end && typeof transition.end === 'function') {
         transition.end.call(this.component, this, prop, this.node[prop])
       }
+      // remove the prop from scheduled transitions
+      delete this.scheduledTransitions[prop]
     })
 
     // start animation
@@ -483,6 +591,16 @@ const Element = {
   destroy() {
     Log.debug('Deleting  Node', this.nodeId)
     this.node.destroy()
+
+    // Clearing transition end callback functions
+    const transitionProps = Object.keys(this.scheduledTransitions)
+    for (let i = 0; i < transitionProps.length; i++) {
+      const transition = this.scheduledTransitions[transitionProps[i]]
+      if (transition !== undefined) {
+        transition.canceled = true
+        if (transition.f !== undefined) transition.f.stop()
+      }
+    }
   },
   get nodeId() {
     return this.node && this.node.id

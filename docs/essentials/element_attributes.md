@@ -36,6 +36,38 @@ Besides using values in pixels (i.e. `w="100" h="300"`), you can also specify _p
 The percentage value specified for `w` and `x` will be calculated as the percentage of the _width_ (`w`) of the parent element.
 And the percentage specified for `h` and `y` will use the _height_ (`h`) of the parent element as the base of the percentage calculation.
 
+### Predefined placement options
+
+In addition to the absolute positions that Blits and Lightning use, there are a few predefined placement options available. By adding the `placement`-attribute to an Element we can easily align it to the _center_, _left_, _right_, _top_, _bottom_, or even a combination like `{y: 'middle', x: 'left'}`, without having to calculate the positions yourself.
+
+
+On the `x`-axis the following _placement_ options can be used: `left` (default), `center` and `right`. On the `y`-axis the _placement_ attribute accepts `top` (default), `middle` and `bottom`.
+
+The _placement_ attribute also accepts and object with an `x` and a `y` key, to specify a placement for both axes.
+
+The placement of an Element is calculated based on the dimensions of it's direct parent. This means that the containing Element _must_ have it's own dimensions (i.e. a `w` and a `h` attribute).
+
+```xml
+<Element w="300" h="300">
+  <!-- x placement -->
+  <Element w="40" h="40" placement="left" color="#818cf8" />
+  <Element w="40" h="40" placement="center" color="#2563eb" />
+  <Element w="40" h="40" placement="right" color="#1e40af" />
+
+  <!-- y placement -->
+  <Element w="40" h="40" x="54" placement="top" color="#f472b6" />
+  <Element w="40" h="40" x="54" placement="middle" color="#db2777" />
+  <Element w="40" h="40" x="54" placement="bottom" color="#be185d" />
+
+  <!-- x/y placement -->
+  <Element w="40" h="40" placement="{x: 'center', y: 'bottom'}" color="#a3e635" />
+  <Element w="40" h="40" placement="{x: 'right', y: 'middle'}" color="#65a30d" />
+  <Element w="40" h="40" placement="{x: 'center', y: 'middle'}" color="#4d7c0f" />
+</Element>
+```
+
+> note: the `x` or `y` attributes on the Element are ignored for those axes defined in the `placement`-attribute
+
 ## Colors
 
 By default, Elements have a transparent background color. The `color` attribute can be used to give an Element a color.

@@ -35,7 +35,11 @@ let navigatingBack = false
 let previousFocus
 
 export const getHash = () => {
-  return (document.location.hash || '/').replace(/^#/, '')
+  const hashParts = (document.location.hash || '/').replace(/^#/, '').split('?')
+  return {
+    hash: hashParts[0],
+    queryParams: new URLSearchParams(hashParts[1]),
+  }
 }
 
 const normalizePath = (path) => {
@@ -113,13 +117,13 @@ export const navigate = async function () {
   navigating = true
   if (this.parent[symbols.routes]) {
     const previousRoute = currentRoute
-    const hash = getHash()
+    const { hash, queryParams } = getHash()
     let route = matchHash(hash, this.parent[symbols.routes])
     let beforeHookOutput
     if (route) {
       if (route.hooks) {
         if (route.hooks.before) {
-          beforeHookOutput = await route.hooks.before(route, previousRoute)
+          beforeHookOutput = await route.hooks.before.call(this.parent, route, previousRoute)
           if (isString(beforeHookOutput)) {
             currentRoute = previousRoute
             to(beforeHookOutput)
@@ -153,7 +157,16 @@ export const navigate = async function () {
         holder.set('w', '100%')
         holder.set('h', '100%')
         // merge props with potential route params, navigation data and route data to be injected into the component instance
-        const props = { ...this[symbols.props], ...route.params, ...navigationData, ...route.data }
+        const props = {
+          ...this[symbols.props],
+          ...route.params,
+          ...navigationData,
+          ...route.data,
+          ...queryParams.entries().reduce((obj, item) => {
+            obj[item[0]] = item[1]
+            return obj
+          }, {}),
+        }
 
         view = await route.component({ props }, holder, this)
         if (view[Symbol.toStringTag] === 'Module') {
@@ -195,7 +208,7 @@ export const navigate = async function () {
       previousFocus = Focus.get()
 
       // set focus to the view that we're routing to
-      focus ? Focus.set(focus) : Focus.set(view)
+      focus ? focus.$focus() : view.$focus()
 
       // apply before settings to holder element
       if (route.transition.before) {
