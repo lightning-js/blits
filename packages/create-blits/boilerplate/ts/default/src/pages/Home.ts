@@ -1,6 +1,6 @@
 import Blits from '@lightningjs/blits'
 
-import Loader from '../components/Loader.js'
+import Loader from '../components/Loader'
 
 const colors = ['#f5f3ff', '#ede9fe', '#ddd6fe', '#c4b5fd', '#a78bfa']
 
@@ -38,8 +38,7 @@ export default Blits.Component('Home', {
           />
         </Element>
       </Element>
-    </Element>
-    `,
+    </Element>`,
   state() {
     return {
       /**
