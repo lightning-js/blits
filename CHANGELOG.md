@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.16.0
+
+_16 jan 2025_
+
+- Fixed issue with component scope in Slots
+- Fixed issue with sprites (regression since v1.14.0)
+- Changed reactive state to only make plain objects reactive, and return custom Classes, Blits components, Renderer texture etc in raw form
+
 ## v1.15.0
 
 _14 jan 2025_

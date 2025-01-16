@@ -1,5 +1,5 @@
 import Blits from '@lightningjs/blits'
-import App from './App.js'
+import App from './App'
 
 Blits.Launch(App, 'app', {
   w: 1920,
