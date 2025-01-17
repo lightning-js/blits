@@ -156,16 +156,20 @@ export const navigate = async function () {
         holder.populate({})
         holder.set('w', '100%')
         holder.set('h', '100%')
+
+        const queryParamsData = {}
+        const queryParamsEntries = [...queryParams.entries()]
+        for (let i = 0; i < queryParamsEntries.length; i++) {
+          queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
+        }
+
         // merge props with potential route params, navigation data and route data to be injected into the component instance
         const props = {
           ...this[symbols.props],
           ...route.params,
           ...navigationData,
           ...route.data,
-          ...queryParams.entries().reduce((obj, item) => {
-            obj[item[0]] = item[1]
-            return obj
-          }, {}),
+          ...queryParamsData,
         }
 
         view = await route.component({ props }, holder, this)

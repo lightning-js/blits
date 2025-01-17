@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.16.1
+
+_17 jan 2025_
+
+- Fixed issue in certain browsers caused by route query params functionality (and optimized for performance)
+
+
 ## v1.16.0
 
 _16 jan 2025_
