@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.16.2
+
+_21 jan 2025_
+
+- Upgraded to latest version of MSDF font generator, with fix for missing presets
+
+
 ## v1.16.1
 
 _17 jan 2025_
