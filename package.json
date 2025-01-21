@@ -49,7 +49,7 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/msdf-generator": "^1.1.0",
+    "@lightningjs/msdf-generator": "^1.1.1",
     "@lightningjs/renderer": "^2.8.0"
   },
   "repository": {
