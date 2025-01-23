@@ -71,7 +71,7 @@ export default Blits.Component('MyComponent', {
 
 The text renderer offers the ability to display a _text overflow suffix_ when the text exceeds the bounds of the Text component.
 
-This functionality is enabled by default, but requires to specify the horizontal boundary via the `wordwrap` attribute and the vertical boundary via either `maxlines` or `maxheight`.
+This functionality is automatically enabled, but requires that both a _horizontal_ (using `wordwrap`) and a _vertical_ boundary (using `maxlines` or `maxheight`) are specified on the Text component.
 
 The `textoverflow`-attribute itself is not required, unless you want to use another suffix than the standard `...`. If you want _no suffix_ (and just a hard cutoff), the`textoverflow`-attribute should be set to `false` or an _empty string_.
 
