@@ -30,7 +30,7 @@ The Text-tag accepts the following attributes:
 - `maxheight` - maximum height of a text block, lines that don't fit within this height will not be displayed
 - `lineheight` - the spacing between lines in pixels
 - `contain` - the strategy for containing text within the bounds, can be `none` (default), `width`, or `both`. In most cases, the value of this attribute will automatically be set by Blits, based on the other specified attributes
-- `textoverflow` - the suffix to be added when text is cropped due to bounds limits, defaults to `...`
+- `textoverflow` - the suffix to be added when text is cropped due to bounds limits, defaults to `...` (see more details [here](#text-overflow))
 
 ## Text dimensions
 
@@ -66,6 +66,14 @@ export default Blits.Component('MyComponent', {
     }
   }
 ```
+
+## Text overflow
+
+The text renderer offers the ability to display a _text overflow suffix_ when the text exceeds the bounds of the Text component.
+
+This functionality is enabled by default, but requires to specify the horizontal boundary via the `wordwrap` attribute and the vertical boundary via either `maxlines` or `maxheight`.
+
+The `textoverflow`-attribute itself is not required, unless you want to use another suffix than the standard `...`. If you want _no suffix_ (and just a hard cutoff), the`textoverflow`-attribute should be set to `false` or an _empty string_.
 
 ## SDF and Canvas2d
 
