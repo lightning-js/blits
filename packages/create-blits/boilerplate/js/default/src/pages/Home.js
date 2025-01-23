@@ -24,13 +24,13 @@ export default Blits.Component('Home', {
         />
         <Loader :x="1920 / 2" mount="{x: 0.5}" y="600" w="160" :alpha.transition="$loaderAlpha" :loaderColor="$color" />
         <Element y="600" :alpha.transition="$textAlpha">
-          <Text size="80" align="center" wordwrap="1920">Hello!</Text>
+          <Text size="80" align="center" maxwidth="1920">Hello!</Text>
           <Text
             size="50"
             align="center"
             y="120"
             :x="1920/2"
-            wordwrap="500"
+            maxwidth="500"
             lineheight="64"
             mount="{x: 0.5}"
             color="#ffffffaa"
@@ -39,7 +39,7 @@ export default Blits.Component('Home', {
         </Element>
       </Element>
     </Element>
-    `,
+  `,
   state() {
     return {
       /**
