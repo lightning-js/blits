@@ -355,6 +355,11 @@ const propsTransformer = {
     this.props['fontSize'] = v
   },
   set wordwrap(v) {
+    Log.warn('The wordwrap attribute is deprecated, use maxwidth instead')
+    this.props['width'] = v
+    this.props['contain'] = 'width'
+  },
+  set maxwidth(v) {
     this.props['width'] = v
     this.props['contain'] = 'width'
   },
