@@ -7,6 +7,6 @@ export default () => {
     stage.shManager.registerShaderType(shader.name, shader.type)
   })
   Settings.get('effects', []).forEach((effect) => {
-    stage.shManager.registerShaderType(effect.name, effect.type)
+    stage.shManager.registerEffectType(effect.name, effect.type)
   })
 }
