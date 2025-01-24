@@ -65,6 +65,7 @@ export default (App, target, settings = {}) => {
         'gpuMemoryLimit' in settings ? settings.gpuMemoryLimit * 1024 * 1024 : 200 * 1024 * 1024,
       renderEngine: renderEngine(settings),
       fontEngines: textRenderEngines(settings),
+      canvas: settings.canvas
     },
     target
   )

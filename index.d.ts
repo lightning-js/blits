@@ -774,7 +774,21 @@ declare module '@lightningjs/blits' {
      *
      * Defaults to `50` (ms)
      */
-    holdTimeout?: number
+    holdTimeout?: number,
+    /**
+     * Custom canvas object used to render the App to.
+     *
+     * When not provided, the Lightning renderer will create a
+     * new Canvas element and inject it into the DOM
+     */
+    canvas?: HTMLCanvasElement,
+    /**
+     * The maximum number of textures to process in a single frame. This is used to
+     * prevent the renderer from processing too many textures in a single frame.
+     *
+     * Defaults to `0` (meaning no limit)
+     */
+    textureProcessingLimit?: number
   }
 
   interface State {
