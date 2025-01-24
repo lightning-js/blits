@@ -49,7 +49,7 @@ export default () =>
       },
     },
     hooks: {
-      init() {
+      ready() {
         this.spriteTexture = this[symbols.renderer]().createTexture('ImageTexture', {
           src: this.image,
         })
