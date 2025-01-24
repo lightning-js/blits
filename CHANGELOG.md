@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.17.1
+
+_24 jan 2025_
+
+- Fixed issue in sprite
+
 ## v1.17.0
 
 _24 jan 2025_
