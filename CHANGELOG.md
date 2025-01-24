@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.17.0
+
+_24 jan 2025_
+
+- Deprecated `wordwrap`-attribute on Text component in favour of `maxwidth`
+- Added documentation about text overflow
+- Upgraded renderer to v2.9.1 and added `canvas` and `textureProcessingLimit` launch options
+
 ## v1.16.2
 
 _21 jan 2025_
