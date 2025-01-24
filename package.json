@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "1.16.2",
+  "version": "1.17.0",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
@@ -35,6 +35,8 @@
   "author": "Michiel van der Geest <hello@michielvandergeest.com>",
   "license": "Apache-2.0",
   "devDependencies": {
+    "@babel/eslint-parser": "^7.26.5",
+    "@babel/plugin-syntax-import-assertions": "^7.26.0",
     "babel-eslint": "^10.1.0",
     "c8": "^8.0.1",
     "eslint": "^8.8.0",
@@ -50,7 +52,7 @@
   },
   "dependencies": {
     "@lightningjs/msdf-generator": "^1.1.1",
-    "@lightningjs/renderer": "^2.8.0"
+    "@lightningjs/renderer": "^2.9.1"
   },
   "repository": {
     "type": "git",
