@@ -96,6 +96,40 @@ export default Blits.Component('Poster', {
 
 Whenever you navigate to a new page, the URL hash will automatically be updated. Unless specified otherwise, navigating to a new page, will add that route to the history stack. The `back` input action is automatically wired up to navigate back down the history stack.
 
+## Deeplinking
+
+The Router plugin has support for deep linking. Whenthe App is loaded with a URL hash, the router will try to match that hash to a defined route.
+This means that your app can be deep linked into, by simply providing the correct URL hash.
+
+This is an important feature for several reasons:
+
+- It will allow external sources linke operators and Ui's to link directly to a specific page in your app ( i.e. the player page of a specific movie)
+- If dynamic routes are used, only load what is needed to keep memory usage low and the initial load time fast
+- Data provided in the URL hash can still be used to set initial state of the App
+
+## Backtrack
+
+When a user enters your App via a deeplink, there is technically no history available. By default, this would mean that a Back key press leads to exiting the App.
+
+In some cases, this is not the desired behavior. For that reason, the Router plugin supports the backtrack functionality. By setting the `backtrack` option to `true` in a route definition, the Router will recursively remove the last part of the hash, until it finds a valid path to navigate to.
+
+```
+{
+  path: '/examples/router-hooks/episode/:id',
+  component: Episode,
+  transition: PageTransitions.slideInOutUp,
+  options: {
+    backtrack: true,
+  },
+},
+{
+  path: '/examples/router-hooks/episode',
+  component: EpisodesOverview,
+},
+```
+
+In the example above, the `backtrack` option is set to `true` for the `/examples/router-hooks/episode/:id` route. When the user navigates to `/examples/router-hooks/episode/1`, the `back` input action will navigate to `/examples/router-hooks/episode` instead of exiting the App.
+
 ## Router API
 
 The Router API provides several useful methods and properties for managing routes and navigation:
