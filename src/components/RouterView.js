@@ -18,7 +18,7 @@
 import Component from '../component.js'
 import Router from '../router/router.js'
 
-let handler
+let hashchangeHandler = null
 
 export default () =>
   Component('RouterView', {
@@ -32,12 +32,13 @@ export default () =>
     },
     hooks: {
       ready() {
-        handler = () => Router.navigate.apply(this)
+        hashchangeHandler = () => Router.navigate.apply(this)
         Router.navigate.apply(this)
-        window.addEventListener('hashchange', handler)
+        window.addEventListener('hashchange', hashchangeHandler)
+
       },
       destroy() {
-        window.removeEventListener('hashchange', handler, false)
+        window.removeEventListener('hashchange', hashchangeHandler, false)
       },
       focus() {
         this.activeView && this.activeView.$focus()
@@ -45,7 +46,7 @@ export default () =>
     },
     input: {
       back(e) {
-        const navigating = Router.back()
+        const navigating = Router.back.call(this)
         if (navigating === false) {
           this.parent.$focus(e)
         }

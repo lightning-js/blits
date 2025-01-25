@@ -320,9 +320,9 @@ export const to = (location, data = {}, options = {}) => {
   window.location.hash = `#${location}`
 }
 
-export const back = () => {
+export const back = function(){
   const route = history.pop()
-  if (route) {
+  if (route && currentRoute !== route) {
     // set indicator that we are navigating back (to prevent adding page to history stack)
     navigatingBack = true
     let targetRoutePath = route.path
@@ -333,9 +333,40 @@ export const back = () => {
     }
     to(targetRoutePath)
     return true
-  } else {
+  }
+
+  const backtrack = currentRoute && currentRoute.options.backtrack || false
+
+  // If we deeplink to a page without backtrack
+  // we we let the RouterView handle back
+  if(!backtrack){
     return false
   }
+
+  const hashEnd = /(\/:?[\w%\s-]+)$/
+  let path = currentRoute.path
+  let level = path.split('/').length
+
+  // On root return
+  if(level <= 1){
+    return false
+  }
+
+  while(level--){
+    if(!hashEnd.test(path)){
+      return false
+    }
+    // Construct new path to backtrack to
+    path = path.replace(hashEnd, '')
+    const route = matchHash(path, this.parent[symbols.routes])
+
+    if(route && backtrack){
+      to(route.path)
+      return true
+    }
+  }
+
+  return false
 }
 
 export default {
