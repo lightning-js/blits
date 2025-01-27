@@ -783,12 +783,13 @@ declare module '@lightningjs/blits' {
      */
     canvas?: HTMLCanvasElement,
     /**
-     * The maximum number of textures to process in a single frame. This is used to
-     * prevent the renderer from processing too many textures in a single frame.
+     * The maximum amount of time the renderer is allowed to process textures in a
+     * single frame. If the processing time exceeds this limit, the renderer will
+     * skip processing the remaining textures and continue rendering the frame.
      *
-     * Defaults to `0` (meaning no limit)
+     * Defaults to `10`
      */
-    textureProcessingLimit?: number
+    textureProcessingTimeLimit?: number
   }
 
   interface State {

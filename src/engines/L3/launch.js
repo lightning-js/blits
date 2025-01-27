@@ -66,7 +66,7 @@ export default (App, target, settings = {}) => {
       renderEngine: renderEngine(settings),
       fontEngines: textRenderEngines(settings),
       canvas: settings.canvas,
-      textureProcessingLimit: settings.textureProcessingLimit
+      textureProcessingTimeLimit: settings.textureProcessingTimeLimit
     },
     target
   )
