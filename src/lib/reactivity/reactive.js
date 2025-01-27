@@ -107,14 +107,12 @@ const reactiveProxy = (original, _parent = null, _key, global) => {
           : oldRawValue === rawValue
 
       if (isEqual === false) {
-        if (Array.isArray(value) === true) {
-          value = getRaw(value).slice(0)
-        } else if (
-          typeof value === 'object' &&
-          target[key] !== null &&
-          Array.isArray(target) === false
-        ) {
-          value = Object.assign(receiver[key], value)
+        if(typeof value === 'object') {
+          if (Array.isArray(value) === true) {
+            value = getRaw(value).slice(0)
+          } else if(target[key] !== null && target[key] !== undefined && Object.getPrototypeOf(value) === Object.prototype) {
+            value = Object.assign(receiver[key], value)
+          }
         }
         result = Reflect.set(target, key, value, receiver)
       }
