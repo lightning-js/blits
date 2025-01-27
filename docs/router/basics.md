@@ -98,22 +98,24 @@ Whenever you navigate to a new page, the URL hash will automatically be updated.
 
 ## Deeplinking
 
-The Router plugin has support for deep linking. Whenthe App is loaded with a URL hash, the router will try to match that hash to a defined route.
-This means that your app can be deep linked into, by simply providing the correct URL hash.
+The Router plugin has support for deeplinking. When the App is loaded with a URL hash (i.e. `#/pages/settings/network`), the router will try to match that hash to a defined route. This means that your app can be deep linked into, by simply providing the correct URL hash.
 
 This is an important feature for several reasons:
 
-- It will allow external sources linke operators and Ui's to link directly to a specific page in your app ( i.e. the player page of a specific movie)
-- If dynamic routes are used, only load what is needed to keep memory usage low and the initial load time fast
+- It will allow external sources (like operators and UIs) to link directly to a specific page in your app (i.e. the details page of a specific movie)
+- If dynamic routes are used, the App only loads what is needed, to keep memory usage low and the initial load time fast
 - Data provided in the URL hash can still be used to set initial state of the App
 
-## Backtrack
+## Backtracking
 
-When a user enters your App via a deeplink, there is technically no history available. By default, this would mean that a Back key press leads to exiting the App.
+When a user enters your App via a deeplink, there is technically no history available. By default, this means that a Back keypress goes straight to
+the App's `root`-route (i.e. the `Blits.Application()`-component).
 
-In some cases, this is not the desired behavior. For that reason, the Router plugin supports the backtrack functionality. By setting the `backtrack` option to `true` in a route definition, the Router will recursively remove the last part of the hash, until it finds a valid path to navigate to.
+In some cases, you may want walk back down the logical path of the deeplinked page instead, and navigate to the first existing parent route (i.e. go from `/movies/comedy/american-pie` to `/movies/comedy`).
 
-```
+By setting the route option `backtrack` to `true` in the route definition (or in the `this.$routetr.to()`-method), the router will recursively  remove the last part of the route hash, until it finds a valid path to navigate to.
+
+```js
 {
   path: '/examples/router-hooks/episode/:id',
   component: Episode,
