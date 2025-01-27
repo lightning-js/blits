@@ -104,7 +104,7 @@ This is an important feature for several reasons:
 
 - It will allow external sources (like operators and UIs) to link directly to a specific page in your app (i.e. the details page of a specific movie)
 - If dynamic routes are used, the App only loads what is needed, to keep memory usage low and the initial load time fast
-- Data provided in the URL hash can still be used to set initial state of the App
+- Data provided in the URL hash can still be used to set the initial state of the App
 
 ## Backtracking
 
@@ -113,7 +113,7 @@ the App's `root`-route (i.e. the `Blits.Application()`-component).
 
 In some cases, you may want walk back down the logical path of the deeplinked page instead, and navigate to the first existing parent route (i.e. go from `/movies/comedy/american-pie` to `/movies/comedy`).
 
-By setting the route option `backtrack` to `true` in the route definition (or in the `this.$routetr.to()`-method), the router will recursively  remove the last part of the route hash, until it finds a valid path to navigate to.
+By setting the route option `backtrack` to `true` in the route definition (or in the `this.$router.to()`-method), the router will recursively remove the last part of the route hash, until it finds a valid path to navigate to.
 
 ```js
 {
