@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.18.0
+
+_27 jan 2025_
+
+- Added backtracking functionality to the Router
+- Upgraded to latest version of the renderer (2.10.0)
+- Changed setting `textureProcessingLimit` to `textureProcessingTimeLimit`
+
+
 ## v1.17.1
 
 _24 jan 2025_

@@ -96,6 +96,42 @@ export default Blits.Component('Poster', {
 
 Whenever you navigate to a new page, the URL hash will automatically be updated. Unless specified otherwise, navigating to a new page, will add that route to the history stack. The `back` input action is automatically wired up to navigate back down the history stack.
 
+## Deeplinking
+
+The Router plugin has support for deeplinking. When the App is loaded with a URL hash (i.e. `#/pages/settings/network`), the router will try to match that hash to a defined route. This means that your app can be deep linked into, by simply providing the correct URL hash.
+
+This is an important feature for several reasons:
+
+- It will allow external sources (like operators and UIs) to link directly to a specific page in your app (i.e. the details page of a specific movie)
+- If dynamic routes are used, the App only loads what is needed, to keep memory usage low and the initial load time fast
+- Data provided in the URL hash can still be used to set the initial state of the App
+
+## Backtracking
+
+When a user enters your App via a deeplink, there is technically no history available. By default, this means that a Back keypress goes straight to
+the App's `root`-route (i.e. the `Blits.Application()`-component).
+
+In some cases, you may want walk back down the logical path of the deeplinked page instead, and navigate to the first existing parent route (i.e. go from `/movies/comedy/american-pie` to `/movies/comedy`).
+
+By setting the route option `backtrack` to `true` in the route definition (or in the `this.$router.to()`-method), the router will recursively remove the last part of the route hash, until it finds a valid path to navigate to.
+
+```js
+{
+  path: '/examples/router-hooks/episode/:id',
+  component: Episode,
+  transition: PageTransitions.slideInOutUp,
+  options: {
+    backtrack: true,
+  },
+},
+{
+  path: '/examples/router-hooks/episode',
+  component: EpisodesOverview,
+},
+```
+
+In the example above, the `backtrack` option is set to `true` for the `/examples/router-hooks/episode/:id` route. When the user navigates to `/examples/router-hooks/episode/1`, the `back` input action will navigate to `/examples/router-hooks/episode` instead of exiting the App.
+
 ## Router API
 
 The Router API provides several useful methods and properties for managing routes and navigation:
