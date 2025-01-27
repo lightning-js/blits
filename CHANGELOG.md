@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.18.1
+
+_27 jan 2025_
+
+- Fixed issue with navigating back to a router page with `keepalive=true`
+
 ## v1.18.0
 
 _27 jan 2025_
