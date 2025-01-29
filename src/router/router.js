@@ -22,7 +22,7 @@ import { Log } from '../lib/log.js'
 import { stage } from '../launch.js'
 import Focus from '../focus.js'
 import Announcer from '../announcer/announcer.js'
-import { reactive } from '../lib/reactivity/reactive.js'
+import { reactive, getRaw } from '../lib/reactivity/reactive.js'
 import Settings from '../settings.js'
 
 export const routeState = reactive({ currentRoute: null }, Settings.get('ReactivityMode'), true)
@@ -118,7 +118,7 @@ export const matchHash = (path, routes = []) => {
 export const navigate = async function () {
   navigating = true
   if (this.parent[symbols.routes]) {
-    const previousRoute = routeState.currentRoute
+    const previousRoute = getRaw(routeState.currentRoute)
     const { hash, queryParams } = getHash()
     let route = matchHash(hash, this.parent[symbols.routes])
     let beforeHookOutput
@@ -322,8 +322,9 @@ export const to = (location, data = {}, options = {}) => {
   window.location.hash = `#${location}`
 }
 
-export const back = function(){
+export const back = function () {
   const route = history.pop()
+  const currentRoute = routeState.currentRoute
   if (route && currentRoute !== route) {
     // set indicator that we are navigating back (to prevent adding page to history stack)
     navigatingBack = true
@@ -337,11 +338,11 @@ export const back = function(){
     return true
   }
 
-  const backtrack = currentRoute && currentRoute.options.backtrack || false
+  const backtrack = (currentRoute && currentRoute.options.backtrack) || false
 
   // If we deeplink to a page without backtrack
   // we we let the RouterView handle back
-  if(!backtrack){
+  if (backtrack === false) {
     return false
   }
 
@@ -350,19 +351,19 @@ export const back = function(){
   let level = path.split('/').length
 
   // On root return
-  if(level <= 1){
+  if (level <= 1) {
     return false
   }
 
-  while(level--){
-    if(!hashEnd.test(path)){
+  while (level--) {
+    if (!hashEnd.test(path)) {
       return false
     }
     // Construct new path to backtrack to
     path = path.replace(hashEnd, '')
     const route = matchHash(path, this.parent[symbols.routes])
 
-    if(route && backtrack){
+    if (route && backtrack) {
       to(route.path)
       return true
     }
