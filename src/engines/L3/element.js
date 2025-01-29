@@ -309,7 +309,7 @@ const propsTransformer = {
     }
   },
   set alpha(v) {
-    if(this.raw['show'] === true) {
+    if(this.raw['show'] === undefined || this.raw['show'] === true) {
       this.props['alpha'] = v
     }
   },
