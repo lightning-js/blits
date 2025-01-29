@@ -22,10 +22,8 @@ import { Log } from '../lib/log.js'
 import { stage } from '../launch.js'
 import Focus from '../focus.js'
 import Announcer from '../announcer/announcer.js'
-import { reactive } from '../lib/reactivity/reactive.js'
-import Settings from '../settings.js'
 
-export const routeState = reactive({ currentRoute: null }, Settings.get('ReactivityMode'), true)
+export let currentRoute
 export let navigating = false
 
 const cacheMap = new WeakMap()
@@ -109,7 +107,7 @@ export const matchHash = (path, routes = []) => {
     if (!matchingRoute.data) {
       matchingRoute.data = {}
     }
-    routeState.currentRoute = matchingRoute
+    currentRoute = matchingRoute
   }
 
   return matchingRoute
@@ -118,7 +116,7 @@ export const matchHash = (path, routes = []) => {
 export const navigate = async function () {
   navigating = true
   if (this.parent[symbols.routes]) {
-    const previousRoute = routeState.currentRoute
+    const previousRoute = currentRoute
     const { hash, queryParams } = getHash()
     let route = matchHash(hash, this.parent[symbols.routes])
     let beforeHookOutput
@@ -127,7 +125,7 @@ export const navigate = async function () {
         if (route.hooks.before) {
           beforeHookOutput = await route.hooks.before.call(this.parent, route, previousRoute)
           if (isString(beforeHookOutput)) {
-            routeState.currentRoute = previousRoute
+            currentRoute = previousRoute
             to(beforeHookOutput)
             return
           }
