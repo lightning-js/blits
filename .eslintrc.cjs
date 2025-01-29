@@ -55,6 +55,7 @@ module.exports = {
     parser: 'babel-eslint',
     ecmaVersion: 2018,
     sourceType: 'module',
+    requireConfigFile: false,
     babelOptions: {
       plugins: ['@babel/plugin-syntax-import-assertions'],
     },
