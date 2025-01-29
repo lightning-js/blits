@@ -299,7 +299,7 @@ const propsTransformer = {
   },
   set show(v) {
     if (v) {
-      this.props['alpha'] = 1
+      this.props['alpha'] = !isNaN(this.raw['alpha']) ? this.raw['alpha'] : 1
       this.props['width'] = this.raw['w'] || this.raw['width'] || 0
       this.props['height'] = this.raw['h'] || this.raw['height'] || 0
     } else {
@@ -309,7 +309,9 @@ const propsTransformer = {
     }
   },
   set alpha(v) {
-    this.props['alpha'] = v
+    if(this.raw['show'] === true) {
+      this.props['alpha'] = v
+    }
   },
   set shader(v) {
     if (v !== null) {
