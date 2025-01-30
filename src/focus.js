@@ -16,7 +16,7 @@
  */
 
 import symbols from './lib/symbols.js'
-import { navigating } from './router/router.js'
+import { state } from './router/router.js'
 import Settings from './settings.js'
 import { DEFAULT_HOLD_TIMEOUT_MS } from './constants.js'
 
@@ -58,7 +58,7 @@ export default {
     }
   },
   input(key, event) {
-    if (navigating === true) return
+    if (state.navigating === true) return
     focusChain = walkChain([focusedComponent], key)
     const componentWithInputEvent = focusChain.shift()
 

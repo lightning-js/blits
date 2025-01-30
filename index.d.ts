@@ -161,6 +161,30 @@ declare module '@lightningjs/blits' {
      */
     readonly navigating: boolean;
 
+    /**
+     * Reactive router state
+     */
+    state: {
+      /**
+       * Path of the current route
+       *
+       * Can be used in:
+       * - a template as `$$router.state.path`
+       * - inside business logic as `this.$router.state.path`
+       * - as a watcher as `$router.state.path(v) {}`
+       */
+      readonly path: string
+      /**
+       * Whether or not the router is currently in the process of navigating
+       * between pages
+       *
+       * Can be used in:
+       * - a template as `$$router.state.navihating`
+       * - inside business logic as `this.$router.state.navigating`
+       * - as a watcher as `$router.state.navigating(v) {}`
+       */
+      readonly navigating: boolean
+    }
   }
 
   export type ComponentBase = {

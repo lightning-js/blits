@@ -16,7 +16,7 @@
  */
 
 import symbols from '../../lib/symbols.js'
-import { to, currentRoute, navigating, back } from '../../router/router.js'
+import { to, currentRoute, back, state } from '../../router/router.js'
 
 export default {
   $router: {
@@ -30,8 +30,9 @@ export default {
         return this[symbols.routes]
       },
       get navigating() {
-        return navigating
+        return state.navigating
       },
+      state,
     },
     writable: false,
     enumerable: true,
