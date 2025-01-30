@@ -419,6 +419,11 @@ const propsTransformer = {
       this.props['mountY'] = 1
     }
   },
+  set 'inspector-data'(v) {
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      this.props['data'] = v
+    }
+  },
 }
 
 const Element = {
