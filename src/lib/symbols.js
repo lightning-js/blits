@@ -20,6 +20,7 @@ export default {
   ready: Symbol('ready'),
   renderer: Symbol('renderer'),
   routes: Symbol('routes'),
+  routerHooks: Symbol('routerHooks'),
   settings: Symbol('settings'),
   state: Symbol('state'),
   stateKeys: Symbol('stateKeys'),
