@@ -299,7 +299,7 @@ const propsTransformer = {
   },
   set show(v) {
     if (v) {
-      this.props['alpha'] = 1
+      this.props['alpha'] = this.raw['alpha'] !== undefined ? this.raw['alpha'] : 1
       this.props['width'] = this.raw['w'] || this.raw['width'] || 0
       this.props['height'] = this.raw['h'] || this.raw['height'] || 0
     } else {
@@ -309,7 +309,9 @@ const propsTransformer = {
     }
   },
   set alpha(v) {
-    this.props['alpha'] = v
+    if(this.raw['show'] === undefined || this.raw['show'] === true) {
+      this.props['alpha'] = v
+    }
   },
   set shader(v) {
     if (v !== null) {
@@ -417,6 +419,11 @@ const propsTransformer = {
     } else if (y === 'bottom') {
       this.y = '100%'
       this.props['mountY'] = 1
+    }
+  },
+  set 'inspector-data'(v) {
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      this.props['data'] = v
     }
   },
 }

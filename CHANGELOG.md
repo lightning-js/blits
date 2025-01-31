@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.19.0
+
+- Fixed `show`-attribute when an `alpha`-attribute is also present
+- Added `inspector-data`-attribute to help with automated testing based on the Lightning inspector
+- Added reactivity to Route changes (`this.$router.state.path` and `this.$router.state.navigating`)
+- Added `renderQuality` launch setting
+
 ## v1.18.1
 
 _27 jan 2025_
