@@ -21,7 +21,7 @@ import { CanvasCoreRenderer, CanvasTextRenderer } from '@lightningjs/renderer/ca
 import { Inspector } from '@lightningjs/renderer/inspector'
 
 import { Log } from '../../lib/log.js'
-import { SCREEN_RESOLUTIONS } from '../../constants.js'
+import { SCREEN_RESOLUTIONS, RENDER_QUALITIES } from '../../constants.js'
 import colors from '../../lib/colors/colors.js'
 import fontLoader from './fontLoader.js'
 import shaderLoader from './shaderLoader.js'
@@ -43,11 +43,15 @@ const textRenderEngines = (settings) => {
 }
 
 export default (App, target, settings = {}) => {
+  console.log(RENDER_QUALITIES[settings.renderQuality] || settings.renderQuality || 1)
+
   renderer = new RendererMain(
     {
       appWidth: settings.w || 1920,
       appHeight: settings.h || 1080,
       fpsUpdateInterval: settings.fpsInterval || 1000,
+      devicePhysicalPixelRatio:
+        RENDER_QUALITIES[settings.renderQuality] || settings.renderQuality || 1,
       deviceLogicalPixelRatio:
         settings.pixelRatio ||
         SCREEN_RESOLUTIONS[settings.screenResolution] ||
@@ -66,7 +70,7 @@ export default (App, target, settings = {}) => {
       renderEngine: renderEngine(settings),
       fontEngines: textRenderEngines(settings),
       canvas: settings.canvas,
-      textureProcessingTimeLimit: settings.textureProcessingTimeLimit
+      textureProcessingTimeLimit: settings.textureProcessingTimeLimit,
     },
     target
   )
