@@ -623,6 +623,7 @@ declare module '@lightningjs/blits' {
   }
 
   type ScreenResolutions = 'hd' | '720p' | 720 | 'fhd' | 'fullhd' | '1080p' | 1080 | '4k' | '2160p' | 2160
+  type RenderQualities = 'low' | 'medium' | 'high' | 'retina' | number
 
   type ReactivityModes = 'Proxy' | 'defineProperty'
   type RenderModes = 'webgl' | 'canvas'
@@ -691,7 +692,7 @@ declare module '@lightningjs/blits' {
     *
     * Currently 3 screen resolutions are supported, which can be defined with different alias values:
     *
-    * For 720x1080 (1px = 0.66666667px)
+    * For 720x1280 (1px = 0.66666667px)
     * - hd
     * - 720p
     * - 720
@@ -708,6 +709,27 @@ declare module '@lightningjs/blits' {
     * - 2160
     */
     screenResolution?: ScreenResolutions,
+    /**
+    * Controls the quality of the rendered App.
+    *
+    * Setting a lower quality leads to less detail on screen, but can positively affect overall
+    * performance and smoothness of the App (i.e. a higher FPS).
+    *
+    * The render quality can be one of the following presets:
+    *
+    * - `low` => 66% quality
+    * - `medium` => 85% quality
+    * - `high` => 100% quality
+    * - `retina` => 200% quality
+    *
+    * It's also possible to provide a custom value as a (decimal) number:
+    *
+    * - `0.2` => 20% quality
+    * - `1.5` => 150% quality
+    *
+    * Defaults to 1 (high quality) when not specified
+    */
+    renderQuality?: RenderQualities,
     /**
     * Custom pixel ratio of the device used to convert dimensions
     * and positions in the App code to the actual device logical coordinates
