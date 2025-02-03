@@ -6,7 +6,7 @@ _3 feb 2025_
 
 - Removed left-over console.log
 - Upgraded to renderer v2.11.1
-
+- Fixed issues with wrongly pre-compiling `template` key of non-blits related objects
 
 ## v1.19.0
 
