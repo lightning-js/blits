@@ -43,8 +43,6 @@ const textRenderEngines = (settings) => {
 }
 
 export default (App, target, settings = {}) => {
-  console.log(RENDER_QUALITIES[settings.renderQuality] || settings.renderQuality || 1)
-
   renderer = new RendererMain(
     {
       appWidth: settings.w || 1920,
