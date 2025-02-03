@@ -35,32 +35,37 @@ export default (source, filePath) => {
 
     for (const template of templates) {
       if (template[2]) {
-        const templateStartIndex = template.index + offset
-        const templateEndIndex = templateStartIndex + template[0].length
         const templateContent = template[2]
 
-        // Parse the template
-        let resourceName = 'Blits.Application'
-        if (source.indexOf('Blits.Component(') > -1) {
-          resourceName = source.match(/Blits\.Component\(['"](.*)['"]\s*,/)[1]
+        // Only process if it looks like a Blits template
+        if (templateContent.match(/^\s*(<!--[\s\S]*?-->|<[A-Za-z][^>]*>)/s)) {
+          const templateStartIndex = template.index + offset
+          const templateEndIndex = templateStartIndex + template[0].length
+
+
+          // Parse the template
+          let resourceName = 'Blits.Application'
+          if (source.indexOf('Blits.Component(') > -1) {
+            resourceName = source.match(/Blits\.Component\(['"](.*)['"]\s*,/)[1]
+          }
+
+          const parsed = parser(templateContent, resourceName, null, filePath)
+
+          // Generate the code
+          const code = generator.call({ components: {} }, parsed)
+
+          // Insert the code in the component using the 'code' key, replacing the template key
+          const replacement = `/* eslint-disable no-unused-vars */ \ncode: { render: ${code.render.toString()}, effects: [${code.effects.map(
+            (fn) => fn.toString()
+          )}], context: {}}`
+
+          offset += replacement.length - template[0].length
+
+          newSource =
+            newSource.substring(0, templateStartIndex) +
+            replacement +
+            newSource.substring(templateEndIndex)
         }
-
-        const parsed = parser(templateContent, resourceName, null, filePath)
-
-        // Generate the code
-        const code = generator.call({ components: {} }, parsed)
-
-        // Insert the code in the component using the 'code' key, replacing the template key
-        const replacement = `/* eslint-disable no-unused-vars */ \ncode: { render: ${code.render.toString()}, effects: [${code.effects.map(
-          (fn) => fn.toString()
-        )}], context: {}}`
-
-        offset += replacement.length - template[0].length
-
-        newSource =
-          newSource.substring(0, templateStartIndex) +
-          replacement +
-          newSource.substring(templateEndIndex)
       }
     }
     return newSource
