@@ -1,6 +1,16 @@
 # Changelog
 
+## v1.19.1
+
+_3 feb 2025_
+
+- Removed left-over console.log
+- Upgraded to renderer v2.11.1
+
+
 ## v1.19.0
+
+_31 jan 2025_
 
 - Fixed `show`-attribute when an `alpha`-attribute is also present
 - Added `inspector-data`-attribute to help with automated testing based on the Lightning inspector
