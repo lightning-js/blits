@@ -120,8 +120,22 @@ export const navigate = async function () {
     const previousRoute = currentRoute
     const { hash, queryParams } = getHash()
     let route = matchHash(hash, this.parent[symbols.routes])
-    let beforeHookOutput
     if (route) {
+      let beforeAllResult
+      if (this.parent[symbols.routerHooks]) {
+        const hooks = this.parent[symbols.routerHooks]
+        if (hooks.beforeAll) {
+          beforeAllResult = await hooks.beforeAll(route, previousRoute)
+          if (isString(beforeAllResult)) {
+            to(beforeAllResult)
+            return
+          }
+        }
+      }
+      // If the resolved result is an object, assign it to the target route object
+      route = isObject(beforeAllResult) ? beforeAllResult : route
+
+      let beforeHookOutput
       if (route.hooks) {
         if (route.hooks.before) {
           beforeHookOutput = await route.hooks.before.call(this.parent, route, previousRoute)
