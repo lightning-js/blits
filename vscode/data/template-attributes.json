@@ -11,7 +11,8 @@
       "Element",
       "Text",
       "Layout",
-      "RouterView"
+      "RouterView",
+      "Component"
     ]
   },
   "y": {
@@ -26,7 +27,8 @@
       "Element",
       "Text",
       "Layout",
-      "RouterView"
+      "RouterView",
+      "Component"
     ]
   },
   "z": {
@@ -69,7 +71,6 @@
     "usedIn": [
       "Element",
       "Text",
-      "Layout",
       "RouterView"
     ]
   },
@@ -99,7 +100,6 @@
     "usedIn": [
       "Element",
       "Text",
-      "Layout",
       "RouterView"
     ]
   },
@@ -114,7 +114,6 @@
     "usedIn": [
       "Element",
       "Text",
-      "Layout",
       "RouterView"
     ]
   },
@@ -145,7 +144,8 @@
       "Element",
       "Text",
       "Layout",
-      "RouterView"
+      "RouterView",
+      "Component"
     ]
   },
   "rotation": {
@@ -175,7 +175,8 @@
       "Element",
       "Text",
       "Layout",
-      "RouterView"
+      "RouterView",
+      "Component"
     ]
   },
   "mount": {
@@ -245,7 +246,6 @@
     "usedIn": [
       "Element",
       "Text",
-      "Layout",
       "RouterView"
     ]
   },
@@ -331,7 +331,7 @@
       "Text"
     ]
   },
-  "wordwrap": {
+  "maxwidth": {
     "attrType": "regular",
     "types": [
       "number"
@@ -572,6 +572,18 @@
     "usedIn": [
       "Element",
       "Text"
+    ]
+  },
+  "@updated": {
+    "attrType": "event",
+    "types": [
+      "string"
+    ],
+    "defaultValue": null,
+    "reactive": false,
+    "description": " Fires when each update in Layout children. Must be a function reference.",
+    "usedIn": [
+      "Layout"
     ]
   }
 }
