@@ -262,7 +262,8 @@
     "reactive": true,
     "description": "The overflow attribute allows the element to extend beyond the specified height and width. Possible values are true or false.",
     "usedIn": [
-      "Text"
+      "Text",
+      "Element"
     ]
   },
   "content": {
@@ -398,13 +399,9 @@
   "textoverflow": {
     "attrType": "regular",
     "types": [
-      "enum"
+      "string"
     ],
-    "values": [
-      "true",
-      "false"
-    ],
-    "defaultValue": "false",
+    "defaultValue": null,
     "reactive": true,
     "description": "The suffix to be added when text is cropped due to bounds limits. Defaults to ...",
     "usedIn": [
@@ -436,10 +433,7 @@
     "reactive": true,
     "description": "Controls how much space will be added between each Element or Component.",
     "usedIn": [
-      "Element",
-      "Text",
-      "Layout",
-      "RouterView"
+      "Layout"
     ]
   },
   "is": {
@@ -498,7 +492,8 @@
       "Element",
       "Text",
       "Layout",
-      "RouterView"
+      "RouterView",
+      "Component"
     ]
   },
   "align-items": {
@@ -515,11 +510,7 @@
     "reactive": true,
     "description": "Specifies how to align children on the opposite axis.",
     "usedIn": [
-      "Component",
-      "Element",
-      "Text",
-      "Layout",
-      "RouterView"
+      "Layout"
     ]
   },
   "padding": {
@@ -554,10 +545,7 @@
     "reactive": true,
     "description": "Adds spacing between the content and the edges of the Layout Component.",
     "usedIn": [
-      "Element",
-      "Text",
-      "Layout",
-      "RouterView"
+      "Layout"
     ]
   },
   "@loaded": {
