@@ -113,7 +113,7 @@ const layoutFn = function (config) {
   if (align !== 0) {
     for (let i = 0; i < childrenLength; i++) {
       const node = children[i]
-      node[oppositePosition] = otherDimension
+      node[oppositePosition] = otherDimension * align
       node[oppositeMount] = align
     }
   }
