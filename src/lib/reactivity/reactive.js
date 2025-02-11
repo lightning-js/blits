@@ -113,6 +113,7 @@ const reactiveProxy = (original, _parent = null, _key, global) => {
           } else if (
             target[key] !== null &&
             target[key] !== undefined &&
+            Array.isArray(target) === false &&
             Object.getPrototypeOf(value) === Object.prototype
           ) {
             value = Object.assign(receiver[key], value)
