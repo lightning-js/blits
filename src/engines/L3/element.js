@@ -171,6 +171,47 @@ const colorMap = {
 
 let textDefaults = null
 
+const AvailableProps = [
+  'parent',
+  'rotation',
+  'w',
+  'width',
+  'h',
+  'height',
+  'x',
+  'y',
+  'z',
+  'zIndex',
+  'color',
+  'style',
+  'src',
+  'texture',
+  'fit',
+  'rtt',
+  'mount',
+  'pivot',
+  'scale',
+  'show',
+  'alpha',
+  'shader',
+  'effects',
+  'clipping',
+  'overflow',
+  'font',
+  'size',
+  'wordwrap',
+  'maxwidth',
+  'maxheight',
+  'contain',
+  'maxlines',
+  'textoverflow',
+  'letterspacing',
+  'lineheight',
+  'align',
+  'content',
+  'placement',
+]
+
 const propsTransformer = {
   set parent(v) {
     this.props['parent'] = v === 'root' ? renderer.root : v.node
@@ -425,6 +466,25 @@ const propsTransformer = {
     if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
       this.props['data'] = v
     }
+  },
+  set style(v) {
+    if (typeof v !== 'object') {
+      if (isObjectString(v) === true) {
+        v = parseToObject(v)
+      } else {
+        console.warn('Invalid style format: Expected an object or a valid object-like string.')
+        return
+      }
+    }
+
+    // Apply valid style properties
+    Object.entries(v).forEach(([key, value]) => {
+      if (AvailableProps.includes(key)) {
+        this[key] = value
+      } else {
+        console.warn(`"${key}" is not a valid style property.`)
+      }
+    })
   },
 }
 
