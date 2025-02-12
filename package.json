@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@lightningjs/msdf-generator": "^1.1.1",
-    "@lightningjs/renderer": "^2.11.1"
+    "@lightningjs/renderer": "^2.12.0"
   },
   "repository": {
     "type": "git",
