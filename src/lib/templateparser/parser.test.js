@@ -1392,7 +1392,7 @@ test('Parse template with color and effects attributes and parsing should conver
 test('Parse template with :for attribute on root element and parsing should fail', (assert) => {
   const template = `
   <Element :for="item in $items">
-    <Text value="$item.name" />
+    <Text content="$item.name" />
   </Element>
   `
 
