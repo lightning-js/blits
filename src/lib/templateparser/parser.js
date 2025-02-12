@@ -239,6 +239,7 @@ export default (template = '', componentName, parentComponent, filePath = null) 
     #2: There must be exactly one top-level element (an element at level 0). This element may either be a self-closing
         element or an opening tag followed by a closing tag. If more than one top-level element is encountered, an error
         should be thrown.
+        But the top-level element can not have :for attribute.
   */
   const format = (parsedData) => {
     let stack = []
@@ -253,6 +254,10 @@ export default (template = '', componentName, parentComponent, filePath = null) 
       if (element[symbols.level] === 0 && element[symbols.type] !== 'closing') {
         if (rootElementDefined) {
           throw TemplateStructureError('MultipleTopLevelTags', element)
+        }
+        // Check for :for attribute on root level element
+        if (element[':for'] !== undefined) {
+          throw TemplateStructureError('ForAttributeOnRootElement', element)
         }
         rootElementDefined = true
       }

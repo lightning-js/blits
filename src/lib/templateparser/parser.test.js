@@ -1388,3 +1388,24 @@ test('Parse template with color and effects attributes and parsing should conver
   )
   assert.end()
 })
+
+test('Parse template with :for attribute on root element and parsing should fail', (assert) => {
+  const template = `
+  <Element :for="item in $items">
+    <Text content="$item.name" />
+  </Element>
+  `
+
+  try {
+    parser(template)
+    assert.fail('Parser should throw TemplateStructureError:ForAttributeOnRootElement')
+  } catch (error) {
+    assert.equal(error.name, 'TemplateStructureError', 'Parser should throw TemplateStructureError')
+    assert.ok(
+      error.message.startsWith('ForAttributeOnRootElement'),
+      'Parser should throw TemplateStructureError:ForAttributeOnRootElement'
+    )
+  }
+
+  assert.end()
+})
