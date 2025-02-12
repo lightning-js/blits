@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.20.0
+
+_12 feb 2025_
+
+- Improved attribute definitions used for autocompletion in VScode extension
+- Fixed calculation of `align-items` in Layout component
+- Fixed issue with sorting reactive arrays
+- Upgraded to renderer v2.12.0
+
 ## v1.19.1
 
 _3 feb 2025_
