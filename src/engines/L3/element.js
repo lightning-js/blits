@@ -340,7 +340,7 @@ const propsTransformer = {
     } else {
       for (let i = 0; i < v.length; i++) {
         // temporary add counter to work around shader caching issues
-        const target = this.element.node.shader.props[v[i].type + counter]
+        const target = this.element.node.shader.props[v[i].type + this.element.counter]
         const props = Object.keys(v[i].props)
 
         for (let j = 0; j < props.length; j++) {
