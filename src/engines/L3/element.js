@@ -334,7 +334,6 @@ const propsTransformer = {
       this.props['shader'] = renderer.createShader('DynamicShader', {
         effects: v.map((effect) => {
           // temporary add counter to work around shader caching issues
-          console.log(this.element.counter)
           return renderer.createEffect(
             effect.type,
             effect.props,
@@ -348,6 +347,7 @@ const propsTransformer = {
         const target = this.element.node.shader.props[v[i].type + this.element.counter]
         const props = Object.keys(v[i].props)
 
+        if (target == undefined) continue
         for (let j = 0; j < props.length; j++) {
           target[props[j]] = v[i].props[props[j]]
         }
