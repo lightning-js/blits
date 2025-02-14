@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.20.1
+
+_14 feb 2025_
+
+- Added error message when root element in template contains a `:for`-attribute
+- Added workaround fix for shader caching issue
+- Upgraded to renderer v2.12.1
+
 ## v1.20.0
 
 _12 feb 2025_
