@@ -25,7 +25,13 @@ import Focus from '../focus.js'
 import Announcer from '../announcer/announcer.js'
 
 export let currentRoute
-export const state = reactive({ path: null, navigating: false })
+export const state = reactive({
+  path: null,
+  navigating: false,
+  queryParams: {},
+  params: {},
+  rawPath: null,
+})
 
 const cacheMap = new WeakMap()
 const history = []
@@ -249,7 +255,10 @@ export const navigate = async function () {
         previousRoute = undefined
       }
 
-      state.path = route.path
+      state.rawPath = route.path
+      state.queryParams = route.queryParams
+      state.params = route.params
+      state.path = hash
 
       // apply in transition
       if (route.transition.in) {
