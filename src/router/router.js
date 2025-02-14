@@ -55,7 +55,20 @@ const isObject = (v) => typeof v === 'object' && v !== null
 
 const isString = (v) => typeof v === 'string'
 
-export const matchHash = (path, routes = []) => {
+const setRouteQueryParams = (routeItem, queryParams = new URLSearchParams()) => {
+  const queryParamsData = {}
+  const queryParamsEntries = [...queryParams.entries()]
+
+  for (let i = 0; i < queryParamsEntries.length; i++) {
+    queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
+  }
+
+  routeItem.queryParams = queryParamsData
+
+  return routeItem
+}
+
+export const matchHash = (path, queryParams = new URLSearchParams(), routes = []) => {
   // remove trailing slashes
   const originalPath = path
   path = normalizePath(path)
@@ -108,7 +121,8 @@ export const matchHash = (path, routes = []) => {
     if (!matchingRoute.data) {
       matchingRoute.data = {}
     }
-    currentRoute = matchingRoute
+
+    matchingRoute = setRouteQueryParams(matchingRoute, queryParams)
   }
 
   return matchingRoute
@@ -117,9 +131,10 @@ export const matchHash = (path, routes = []) => {
 export const navigate = async function () {
   state.navigating = true
   if (this.parent[symbols.routes]) {
-    const previousRoute = currentRoute
+    let previousRoute = currentRoute ? Object.assign({}, currentRoute) : undefined
     const { hash, queryParams } = getHash()
-    let route = matchHash(hash, this.parent[symbols.routes])
+    let route = matchHash(hash, queryParams, this.parent[symbols.routes])
+    currentRoute = route
     let beforeHookOutput
     if (route) {
       if (route.hooks) {
@@ -158,19 +173,13 @@ export const navigate = async function () {
         holder.set('w', '100%')
         holder.set('h', '100%')
 
-        const queryParamsData = {}
-        const queryParamsEntries = [...queryParams.entries()]
-        for (let i = 0; i < queryParamsEntries.length; i++) {
-          queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
-        }
-
         // merge props with potential route params, navigation data and route data to be injected into the component instance
         const props = {
           ...this[symbols.props],
           ...route.params,
           ...navigationData,
           ...route.data,
-          ...queryParamsData,
+          ...route.queryParams,
         }
 
         view = await route.component({ props }, holder, this)
@@ -236,6 +245,8 @@ export const navigate = async function () {
         if (oldView) {
           removeView(previousRoute, oldView, route.transition.out)
         }
+
+        previousRoute = undefined
       }
 
       state.path = route.path
@@ -317,10 +328,15 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
   })
 }
 
-export const to = (location, data = {}, options = {}) => {
+export const to = (location, data = {}, options = {}, queryParams = {}) => {
   navigationData = data
   overrideOptions = options
-  window.location.hash = `#${location}`
+  let search = new URLSearchParams(queryParams).toString()
+
+  if (search) {
+    search = `?${search}`
+  }
+  window.location.hash = `#${location}${search}`
 }
 
 export const back = function () {
@@ -334,7 +350,15 @@ export const back = function () {
         targetRoutePath = targetRoutePath.replace(`:${item}`, route.params[item])
       })
     }
-    to(targetRoutePath)
+
+    const routeQueryParams = route.queryParams
+    let targetQueryParams
+
+    if (Object.keys(route.queryParams).length > 0) {
+      targetQueryParams = routeQueryParams
+    }
+
+    to(targetRoutePath, route.data, route.options, targetQueryParams)
     return true
   }
 
@@ -348,6 +372,8 @@ export const back = function () {
 
   const hashEnd = /(\/:?[\w%\s-]+)$/
   let path = currentRoute.path
+  const queryParams = currentRoute.queryParams
+
   let level = path.split('/').length
 
   // On root return
@@ -361,7 +387,7 @@ export const back = function () {
     }
     // Construct new path to backtrack to
     path = path.replace(hashEnd, '')
-    const route = matchHash(path, this.parent[symbols.routes])
+    const route = matchHash(path, queryParams, this.parent[symbols.routes])
 
     if (route && backtrack) {
       to(route.path)
