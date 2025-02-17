@@ -141,3 +141,35 @@ The Router API provides several useful methods and properties for managing route
 - `this.$router.currentRoute` - retrieve the current route
 - `this.$router.routes` - retrieve the list of all routes
 - `this.$router.navigating` - retrieve the current navigating state
+- `this.$router.state` - reactive router state (see below)
+
+### Reactive router state
+
+The reactive router state (`this.$router.state`) can be useful in situations where you want to hook up reactive changes in your App to Route changes.
+
+The `state` variable on the `this.$router` object returns a reactive object with 2 keys: `path` and `navigating`. The values of these keys will automaticaly update when the router navigates from one page to another.
+
+The router state changes can be used in a Blits template, they can be _watched_ and they can be used in generic busines logic, as demonstrated in the example below.
+
+```js
+export default Blits.Component('MyComponent', {
+  template: `
+    <Element w="1920" h="1080">
+      <!-- dynamically display the current path -->
+      <Text x="100" h="100" :content="$$router.state.path" />
+      <!-- show loading text when router is navigating -->
+      <Text :show="$showLoader">Loading ...</Text>
+    </Element>
+  `,
+  watch: {
+    '$router.state.path'(v, old) {
+      Log.info(`Router Path changed from ${old} to ${v}`)
+    }
+  },
+  computed: {
+    showLoader() {
+      return this.$router.state.navigating
+    }
+  }
+})
+```

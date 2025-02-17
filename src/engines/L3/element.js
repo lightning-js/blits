@@ -22,6 +22,9 @@ import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 
+// temporary counter to work around shader caching issues
+let counter = 0
+
 const createPaddingObject = (padding, direction) => {
   if (padding === undefined) {
     return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
@@ -113,7 +116,7 @@ const layoutFn = function (config) {
   if (align !== 0) {
     for (let i = 0; i < childrenLength; i++) {
       const node = children[i]
-      node[oppositePosition] = otherDimension
+      node[oppositePosition] = otherDimension * align
       node[oppositeMount] = align
     }
   }
@@ -362,7 +365,7 @@ const propsTransformer = {
   },
   set show(v) {
     if (v) {
-      this.props['alpha'] = 1
+      this.props['alpha'] = this.raw['alpha'] !== undefined ? this.raw['alpha'] : 1
       this.props['width'] = this.raw['w'] || this.raw['width'] || 0
       this.props['height'] = this.raw['h'] || this.raw['height'] || 0
     } else {
@@ -372,7 +375,9 @@ const propsTransformer = {
     }
   },
   set alpha(v) {
-    this.props['alpha'] = v
+    if (this.raw['show'] === undefined || this.raw['show'] === true) {
+      this.props['alpha'] = v
+    }
   },
   set rounded(v) {
     this.props['rounded'] = v
@@ -507,6 +512,11 @@ const propsTransformer = {
     } else if (y === 'bottom') {
       this.y = '100%'
       this.props['mountY'] = 1
+    }
+  },
+  set 'inspector-data'(v) {
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      this.props['data'] = v
     }
   },
 }
@@ -735,5 +745,6 @@ export default (config, component) => {
     scheduledTransitions: {},
     config,
     component,
+    counter: counter++,
   })
 }

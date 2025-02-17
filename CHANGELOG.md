@@ -1,5 +1,39 @@
 # Changelog
 
+## v1.20.1
+
+_14 feb 2025_
+
+- Added error message when root element in template contains a `:for`-attribute
+- Added workaround fix for shader caching issue
+- Upgraded to renderer v2.12.1
+
+## v1.20.0
+
+_12 feb 2025_
+
+- Improved attribute definitions used for autocompletion in VScode extension
+- Fixed calculation of `align-items` in Layout component
+- Fixed issue with sorting reactive arrays
+- Upgraded to renderer v2.12.0
+
+## v1.19.1
+
+_3 feb 2025_
+
+- Removed left-over console.log
+- Upgraded to renderer v2.11.1
+- Fixed issues with wrongly pre-compiling `template` key of non-blits related objects
+
+## v1.19.0
+
+_31 jan 2025_
+
+- Fixed `show`-attribute when an `alpha`-attribute is also present
+- Added `inspector-data`-attribute to help with automated testing based on the Lightning inspector
+- Added reactivity to Route changes (`this.$router.state.path` and `this.$router.state.navigating`)
+- Added `renderQuality` launch setting
+
 ## v1.18.1
 
 _27 jan 2025_

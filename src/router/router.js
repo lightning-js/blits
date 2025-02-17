@@ -16,6 +16,7 @@
  */
 
 import { default as fadeInFadeOutTransition } from './transitions/fadeInOut.js'
+import { reactive } from '../lib/reactivity/reactive.js'
 
 import symbols from '../lib/symbols.js'
 import { Log } from '../lib/log.js'
@@ -24,7 +25,7 @@ import Focus from '../focus.js'
 import Announcer from '../announcer/announcer.js'
 
 export let currentRoute
-export let navigating = false
+export const state = reactive({ path: null, navigating: false })
 
 const cacheMap = new WeakMap()
 const history = []
@@ -114,7 +115,7 @@ export const matchHash = (path, routes = []) => {
 }
 
 export const navigate = async function () {
-  navigating = true
+  state.navigating = true
   if (this.parent[symbols.routes]) {
     const previousRoute = currentRoute
     const { hash, queryParams } = getHash()
@@ -237,6 +238,8 @@ export const navigate = async function () {
         }
       }
 
+      state.path = route.path
+
       // apply in transition
       if (route.transition.in) {
         if (Array.isArray(route.transition.in)) {
@@ -268,7 +271,7 @@ export const navigate = async function () {
 
   // reset navigating indicators
   navigatingBack = false
-  navigating = false
+  state.navigating = false
 }
 
 const removeView = async (route, view, transition) => {
@@ -320,7 +323,7 @@ export const to = (location, data = {}, options = {}) => {
   window.location.hash = `#${location}`
 }
 
-export const back = function(){
+export const back = function () {
   const route = history.pop()
   if (route && currentRoute !== route) {
     // set indicator that we are navigating back (to prevent adding page to history stack)
@@ -335,11 +338,11 @@ export const back = function(){
     return true
   }
 
-  const backtrack = currentRoute && currentRoute.options.backtrack || false
+  const backtrack = (currentRoute && currentRoute.options.backtrack) || false
 
   // If we deeplink to a page without backtrack
   // we we let the RouterView handle back
-  if(!backtrack){
+  if (backtrack === false) {
     return false
   }
 
@@ -348,19 +351,19 @@ export const back = function(){
   let level = path.split('/').length
 
   // On root return
-  if(level <= 1){
+  if (level <= 1) {
     return false
   }
 
-  while(level--){
-    if(!hashEnd.test(path)){
+  while (level--) {
+    if (!hashEnd.test(path)) {
       return false
     }
     // Construct new path to backtrack to
     path = path.replace(hashEnd, '')
     const route = matchHash(path, this.parent[symbols.routes])
 
-    if(route && backtrack){
+    if (route && backtrack) {
       to(route.path)
       return true
     }
