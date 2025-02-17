@@ -4,8 +4,9 @@ import { renderer } from './launch.js'
 
 export default () => {
   const stage = renderer.stage
+  const renderMode = Settings.get('renderMode')
   Settings.get('fonts', []).forEach((font) => {
-    if (font.type === 'sdf' || font.type === 'msdf') {
+    if (renderMode !== 'canvas' && (font.type === 'sdf' || font.type === 'msdf')) {
       // automatically map png key to file name
       if (!font.png && font.file) {
         font.png = font.file.replace(/\.[^.]+$/, `.${font.type}.png`)

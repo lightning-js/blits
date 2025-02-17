@@ -42,7 +42,7 @@ const textRenderEngines = (settings) => {
   if (renderMode === 'canvas') return [CanvasTextRenderer]
 }
 
-export default (App, target, settings = {}) => {
+export default async (App, target, settings = {}) => {
   renderer = new RendererMain(
     {
       appWidth: settings.w || 1920,
@@ -81,7 +81,7 @@ export default (App, target, settings = {}) => {
     }
   }
 
-  shaderLoader()
+  await shaderLoader()
   fontLoader()
   initApp()
 

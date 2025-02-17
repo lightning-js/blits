@@ -132,8 +132,26 @@ const isObjectString = (str) => {
   return typeof str === 'string' && str.startsWith('{') && str.endsWith('}')
 }
 
+const isArrayString = (str) => {
+  return typeof str === 'string' && str.startsWith('[') && str.endsWith(']')
+}
+
 const parseToObject = (str) => {
   return JSON.parse(str.replace(/'/g, '"').replace(/([\w-_]+)\s*:/g, '"$1":'))
+}
+
+const parseShaderObject = (v, keyPrefix) => {
+  if (typeof v === 'string') {
+    if (keyPrefix === undefined) {
+      return parseToObject(v)
+    }
+    return JSON.parse(v.replace(/'/g, '"').replace(/([\w-_]+)\s*:/g, `"${keyPrefix}-$1":`))
+  }
+  const result = {}
+  for (const key in v) {
+    result[`${keyPrefix}-${key}`] = v[key]
+  }
+  return result
 }
 
 const parsePercentage = function (v, base) {
@@ -160,6 +178,51 @@ const unpackTransition = (v) => {
     }
   }
   return v
+}
+
+const createElementShaderObject = (props) => {
+  let { border, shadow, rounded } = props
+  const allProps = {}
+  const hasShadow = shadow !== undefined
+  const hasBorder = border !== undefined
+  const hasRounded = rounded !== undefined
+
+  if (hasBorder === true && (typeof border === 'object' || isObjectString(border) === true)) {
+    border = parseShaderObject(border, 'border')
+    for (const key in border) {
+      allProps[key] = colors.parseShaderProp(border[key])
+    }
+  }
+  if (hasShadow === true && (typeof shadow === 'object' || isObjectString(shadow) === true)) {
+    shadow = parseShaderObject(shadow, 'shadow')
+    for (const key in shadow) {
+      allProps[key] = colors.parseShaderProp(shadow[key])
+    }
+  }
+
+  if (hasRounded === true && (typeof rounded === 'object' || isObjectString(rounded) === true)) {
+    if (typeof rounded === 'string') {
+      rounded = parseShaderObject(rounded)
+    }
+    for (const key in rounded) {
+      allProps[key] = rounded[key]
+    }
+  } else if (hasRounded === true) {
+    if (isArrayString(rounded) === true) {
+      rounded = JSON.parse(rounded)
+    }
+    allProps['radius'] = rounded
+  }
+
+  let type = 'Rounded'
+  if (hasBorder === true && hasShadow === true) {
+    type += 'WithBorderAndShadow'
+  } else if (hasBorder) {
+    type += 'WithBorder'
+  } else if (hasShadow) {
+    type += 'WithShadow'
+  }
+  return renderer.createShader(type, allProps)
 }
 
 const colorMap = {
@@ -311,35 +374,62 @@ const propsTransformer = {
   set alpha(v) {
     this.props['alpha'] = v
   },
-  set shader(v) {
-    if (v !== null) {
-      this.props['shader'] = renderer.createShader(v.type, v.props)
-    } else {
-      this.props['shader'] = renderer.createShader('DefaultShader')
+  set rounded(v) {
+    this.props['rounded'] = v
+    if (this.element.node !== undefined && this.elementShader === true) {
+      if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+        this.element.node.props['shader'].props = v
+      } else {
+        if (isArrayString(v) === true) {
+          v = JSON.parse(v)
+        }
+        this.element.node.props['shader'].props.radius = v
+      }
     }
   },
-  set effects(v) {
-    for (let i = 0; i < v.length; i++) {
-      if (v[i].props && v[i].props.color) {
-        v[i].props.color = colors.normalize(v[i].props.color)
-      }
-    }
-
-    if (this.element.node === undefined) {
-      this.props['shader'] = renderer.createShader('DynamicShader', {
-        effects: v.map((effect) => {
-          return renderer.createEffect(effect.type, effect.props, effect.type)
-        }),
-      })
-    } else {
-      for (let i = 0; i < v.length; i++) {
-        const target = this.element.node.shader.props[v[i].type]
-        const props = Object.keys(v[i].props)
-
-        for (let j = 0; j < props.length; j++) {
-          target[props[j]] = v[i].props[props[j]]
+  set border(v) {
+    this.props['border'] = v
+    if (
+      this.element.node !== undefined &&
+      this.elementShader === true &&
+      (typeof v === 'object' || isObjectString(v) === true)
+    ) {
+      if (typeof v === 'string') {
+        v = parseShaderObject(v, 'border')
+        colors.parseShaderProps(v)
+        this.element.node.props['shader'].props = v
+      } else {
+        colors.parseShaderProps(v)
+        for (const key in v) {
+          this.element.node.props['shader'].props[`border-${key}`] = v[key]
         }
       }
+    }
+  },
+  set shadow(v) {
+    this.props['shadow'] = v
+    if (
+      this.element.node !== undefined &&
+      this.elementShader === true &&
+      (typeof v === 'object' || isObjectString(v) === true)
+    ) {
+      if (typeof v === 'string') {
+        v = parseShaderObject(v, 'shadow')
+        colors.parseShaderProps(v)
+        this.element.node.props['shader'].props = v
+      } else {
+        colors.parseShaderProps(v)
+        for (const key in v) {
+          this.element.node.props['shader'].props[`shadow-${key}`] = v[key]
+        }
+      }
+    }
+  },
+  set shader(v) {
+    if (v !== null) {
+      this.props['shader'] = renderer.createShader(v.type, v)
+    } else {
+      this.props['shader'] = renderer.createShader('DefaultShader')
     }
   },
   set clipping(v) {
@@ -422,8 +512,7 @@ const propsTransformer = {
 }
 
 const Element = {
-  populate(data) {
-    const props = data
+  populate(props) {
     props['node'] = this.config.node
 
     if (props[symbols.isSlot] === true) {
@@ -435,10 +524,21 @@ const Element = {
     this.props['parent'] = props['parent'] || this.config.parent
     delete props.parent
 
-    this.props.raw = data
+    this.props.raw = props
+    this.props.elementShader = false
 
     const propKeys = Object.keys(props)
     const length = propKeys.length
+
+    if (
+      props['shader'] === undefined &&
+      (props['rounded'] !== undefined ||
+        props['border'] !== undefined ||
+        props['shadow'] !== undefined)
+    ) {
+      this.props.elementShader = true
+      this.props.props['shader'] = createElementShaderObject(props)
+    }
 
     for (let i = 0; i < length; i++) {
       const key = propKeys[i]
