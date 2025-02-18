@@ -16,6 +16,7 @@
  */
 
 let counter
+let isDev
 
 export default function (templateObject = { children: [] }) {
   const ctx = {
@@ -33,6 +34,28 @@ export default function (templateObject = { children: [] }) {
   }
 
   counter = -1
+  isDev = this.isDev
+  if (isDev === true) {
+    ctx.renderCode.push(`
+      function propInComponent(prop, kind="dynamic") {
+        const property = prop.includes('.') ? prop.split('.')[0] : prop
+        if (kind === 'reactive' || prop.includes('.') === false) {
+          if (component[property] === undefined) {
+            console.warn('Property ' +  property + ' was accessed during render but is not defined on instance')
+          }
+        } else {
+          const nestedKeys = prop.split('.')
+          let base = component
+          for(let i =0; i<nestedKeys.length;i++){
+            if (base[nestedKeys[i]] === undefined) {
+              console.warn('Property ' +  nestedKeys.slice(0,i+1).join('.') + ' was accessed during render but is not defined on instance')
+            }
+            base = base[nestedKeys[i]]
+          }
+        }
+      }
+    `)
+  }
   generateCode.call(ctx, templateObject)
   ctx.renderCode.push('return elms')
 
@@ -105,6 +128,8 @@ const generateElementCode = function (
 
     if (key === 'key') return
 
+    const value = templateObject[key]
+
     if (isReactiveKey(key)) {
       if (options.holder && key === ':color') return
       if (options.holder) {
@@ -121,16 +146,26 @@ const generateElementCode = function (
         )})
           `)
       }
+
+      if (isDev === true) {
+        if (value.startsWith('$') && value.includes('.') === false) {
+          renderCode.push(`
+            propInComponent('${value.replace('$', '')}', 'reactive')
+          `)
+        }
+      }
       renderCode.push(
-        `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(
-          templateObject[key],
-          options.component
-        )}`
+        `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(value, options.component)}`
       )
     } else {
-      renderCode.push(
-        `elementConfig${counter}['${key}'] = ${cast(templateObject[key], key, options.component)}`
-      )
+      if (isDev === true) {
+        if (value.startsWith('$')) {
+          renderCode.push(`
+            propInComponent('${value.replace('$', '')}')
+          `)
+        }
+      }
+      renderCode.push(`elementConfig${counter}['${key}'] = ${cast(value, key, options.component)}`)
     }
   })
 
