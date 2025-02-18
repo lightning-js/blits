@@ -340,14 +340,16 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
   })
 }
 
-export const to = (location, data = {}, options = {}, queryParams = {}) => {
+export const to = (location, data = {}, options = {}, queryParams = null) => {
   navigationData = data
   overrideOptions = options
-  let search = new URLSearchParams(queryParams).toString()
+  let search
 
-  if (search.trim().length > 0) {
+  if (queryParams) {
+    search = new URLSearchParams(queryParams).toString()
     search = `?${search}`
   }
+
   window.location.hash = `#${location}${search}`
 }
 
