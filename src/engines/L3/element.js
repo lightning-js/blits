@@ -22,6 +22,9 @@ import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 
+// temporary counter to work around shader caching issues
+let counter = 0
+
 const createPaddingObject = (padding, direction) => {
   if (padding === undefined) {
     return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
@@ -330,14 +333,21 @@ const propsTransformer = {
     if (this.element.node === undefined) {
       this.props['shader'] = renderer.createShader('DynamicShader', {
         effects: v.map((effect) => {
-          return renderer.createEffect(effect.type, effect.props, effect.type)
+          // temporary add counter to work around shader caching issues
+          return renderer.createEffect(
+            effect.type,
+            effect.props,
+            effect.type + this.element.counter
+          )
         }),
       })
     } else {
       for (let i = 0; i < v.length; i++) {
-        const target = this.element.node.shader.props[v[i].type]
+        // temporary add counter to work around shader caching issues
+        const target = this.element.node.shader.props[v[i].type + this.element.counter]
         const props = Object.keys(v[i].props)
 
+        if (target == undefined) continue
         for (let j = 0; j < props.length; j++) {
           target[props[j]] = v[i].props[props[j]]
         }
@@ -642,5 +652,6 @@ export default (config, component) => {
     scheduledTransitions: {},
     config,
     component,
+    counter: counter++,
   })
 }
