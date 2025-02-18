@@ -343,7 +343,7 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
 export const to = (location, data = {}, options = {}, queryParams = null) => {
   navigationData = data
   overrideOptions = options
-  let search
+  let search = ''
 
   if (queryParams) {
     search = new URLSearchParams(queryParams).toString()
