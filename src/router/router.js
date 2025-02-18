@@ -26,11 +26,11 @@ import Announcer from '../announcer/announcer.js'
 
 export let currentRoute
 export const state = reactive({
-  path: null,
+  path: '',
   navigating: false,
-  queryParams: {},
+  data: {},
   params: {},
-  hash: null,
+  hash: '',
 })
 
 const cacheMap = new WeakMap()
@@ -44,8 +44,9 @@ let previousFocus
 export const getHash = () => {
   const hashParts = (document.location.hash || '/').replace(/^#/, '').split('?')
   return {
-    hash: hashParts[0],
+    path: hashParts[0],
     queryParams: new URLSearchParams(hashParts[1]),
+    hash: document.location.hash,
   }
 }
 
@@ -61,20 +62,7 @@ const isObject = (v) => typeof v === 'object' && v !== null
 
 const isString = (v) => typeof v === 'string'
 
-const setRouteQueryParams = (routeItem, queryParams) => {
-  const queryParamsData = {}
-  const queryParamsEntries = [...queryParams.entries()]
-
-  for (let i = 0; i < queryParamsEntries.length; i++) {
-    queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
-  }
-
-  routeItem.queryParams = queryParamsData
-
-  return routeItem
-}
-
-export const matchHash = (path, routes = [], queryParams = null) => {
+export const matchHash = (path, routes = [], hash = null) => {
   // remove trailing slashes
   const originalPath = path
   path = normalizePath(path)
@@ -128,9 +116,8 @@ export const matchHash = (path, routes = [], queryParams = null) => {
       matchingRoute.data = {}
     }
 
-    if (queryParams) {
-      queryParams = new URLSearchParams(queryParams)
-      matchingRoute = setRouteQueryParams(matchingRoute, queryParams)
+    if (hash !== null) {
+      matchingRoute.hash = hash
     }
   }
 
@@ -141,8 +128,8 @@ export const navigate = async function () {
   state.navigating = true
   if (this.parent[symbols.routes]) {
     let previousRoute = currentRoute ? Object.assign({}, currentRoute) : undefined
-    const { hash, queryParams } = getHash()
-    let route = matchHash(hash, this.parent[symbols.routes], queryParams)
+    const { hash, path, queryParams } = getHash()
+    let route = matchHash(path, this.parent[symbols.routes], hash)
     currentRoute = route
     let beforeHookOutput
     if (route) {
@@ -182,14 +169,22 @@ export const navigate = async function () {
         holder.set('w', '100%')
         holder.set('h', '100%')
 
+        const queryParamsData = {}
+        const queryParamsEntries = [...queryParams.entries()]
+        for (let i = 0; i < queryParamsEntries.length; i++) {
+          queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
+        }
+
         // merge props with potential route params, navigation data and route data to be injected into the component instance
         const props = {
           ...this[symbols.props],
           ...route.params,
           ...navigationData,
           ...route.data,
-          ...route.queryParams,
+          ...queryParamsData,
         }
+
+        state.data = props
 
         view = await route.component({ props }, holder, this)
         if (view[Symbol.toStringTag] === 'Module') {
@@ -259,7 +254,6 @@ export const navigate = async function () {
       }
 
       state.path = route.path
-      state.queryParams = route.queryParams
       state.params = route.params
       state.hash = hash
 
@@ -340,17 +334,11 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
   })
 }
 
-export const to = (location, data = {}, options = {}, queryParams = null) => {
+export const to = (location, data = {}, options = {}) => {
   navigationData = data
   overrideOptions = options
-  let search = ''
 
-  if (queryParams) {
-    search = new URLSearchParams(queryParams).toString()
-    search = `?${search}`
-  }
-
-  window.location.hash = `#${location}${search}`
+  window.location.hash = location
 }
 
 export const back = function () {
@@ -358,21 +346,9 @@ export const back = function () {
   if (route && currentRoute !== route) {
     // set indicator that we are navigating back (to prevent adding page to history stack)
     navigatingBack = true
-    let targetRoutePath = route.path
-    if (targetRoutePath.indexOf(':') > -1) {
-      Object.keys(route.params).forEach((item) => {
-        targetRoutePath = targetRoutePath.replace(`:${item}`, route.params[item])
-      })
-    }
+    let targetRoutePath = route.hash
 
-    const routeQueryParams = route.queryParams
-    let targetQueryParams
-
-    if (Object.keys(route.queryParams).length > 0) {
-      targetQueryParams = routeQueryParams
-    }
-
-    to(targetRoutePath, route.data, route.options, targetQueryParams)
+    to(targetRoutePath, route.data, route.options)
     return true
   }
 
@@ -386,7 +362,6 @@ export const back = function () {
 
   const hashEnd = /(\/:?[\w%\s-]+)$/
   let path = currentRoute.path
-  const queryParams = currentRoute.queryParams
 
   let level = path.split('/').length
 
@@ -401,7 +376,7 @@ export const back = function () {
     }
     // Construct new path to backtrack to
     path = path.replace(hashEnd, '')
-    const route = matchHash(path, this.parent[symbols.routes], queryParams)
+    const route = matchHash(path, this.parent[symbols.routes])
 
     if (route && backtrack) {
       to(route.path)
