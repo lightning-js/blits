@@ -30,7 +30,7 @@ export const state = reactive({
   navigating: false,
   queryParams: {},
   params: {},
-  rawPath: null,
+  hash: null,
 })
 
 const cacheMap = new WeakMap()
