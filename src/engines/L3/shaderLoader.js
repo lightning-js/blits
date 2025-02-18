@@ -6,36 +6,62 @@ function registerBlitsDefaultShaders(
   Rounded,
   RoundedWithBorder,
   RoundedWithShadow,
-  RoundedWithBorderAndShadow
+  RoundedWithBorderAndShadow,
+  RadialGradient,
+  LinearGradient,
+  HolePunch
 ) {
-  shManager.registerShaderType('Rounded', Rounded)
-  shManager.registerShaderType('RoundedWithBorder', RoundedWithBorder)
-  shManager.registerShaderType('RoundedWithShadow', RoundedWithShadow)
-  shManager.registerShaderType('RoundedWithBorderAndShadow', RoundedWithBorderAndShadow)
+  shManager.registerShaderType('rounded', Rounded)
+  shManager.registerShaderType('roundedWithBorder', RoundedWithBorder)
+  shManager.registerShaderType('roundedWithShadow', RoundedWithShadow)
+  shManager.registerShaderType('roundedWithBorderAndShadow', RoundedWithBorderAndShadow)
+  shManager.registerShaderType('radialGradient', RadialGradient)
+  shManager.registerShaderType('linearGradient', LinearGradient)
+  shManager.registerShaderType('holePunch', HolePunch)
 }
 
 export default async () => {
   const stage = renderer.stage
   const renderMode = Settings.get('renderMode')
   if (renderMode !== undefined && renderMode === 'canvas') {
-    const { Rounded, RoundedWithBorder, RoundedWithShadow, RoundedWithBorderAndShadow } =
-      await import('@lightningjs/renderer/canvas/shaders')
+    const {
+      Rounded,
+      RoundedWithBorder,
+      RoundedWithShadow,
+      RoundedWithBorderAndShadow,
+      RadialGradient,
+      LinearGradient,
+      HolePunch,
+    } = await import('@lightningjs/renderer/canvas/shaders')
     registerBlitsDefaultShaders(
       stage.shManager,
       Rounded,
       RoundedWithBorder,
       RoundedWithShadow,
-      RoundedWithBorderAndShadow
+      RoundedWithBorderAndShadow,
+      RadialGradient,
+      LinearGradient,
+      HolePunch
     )
   } else {
-    const { Rounded, RoundedWithBorder, RoundedWithShadow, RoundedWithBorderAndShadow } =
-      await import('@lightningjs/renderer/webgl/shaders')
+    const {
+      Rounded,
+      RoundedWithBorder,
+      RoundedWithShadow,
+      RoundedWithBorderAndShadow,
+      RadialGradient,
+      LinearGradient,
+      HolePunch,
+    } = await import('@lightningjs/renderer/webgl/shaders')
     registerBlitsDefaultShaders(
       stage.shManager,
       Rounded,
       RoundedWithBorder,
       RoundedWithShadow,
-      RoundedWithBorderAndShadow
+      RoundedWithBorderAndShadow,
+      RadialGradient,
+      LinearGradient,
+      HolePunch
     )
   }
 

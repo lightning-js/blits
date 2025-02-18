@@ -16,11 +16,13 @@
  */
 
 import { renderer } from './launch.js'
+import { parseToObject, isObjectString, isArrayString, isTransition } from '../../lib/utils.js'
 import colors from '../../lib/colors/colors.js'
 
 import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
+import shaders from '../../lib/shaders/shaders.js'
 
 // temporary counter to work around shader caching issues
 let counter = 0
@@ -127,36 +129,6 @@ const layoutFn = function (config) {
   }
 }
 
-const isTransition = (value) => {
-  return value !== null && typeof value === 'object' && 'transition' in value === true
-}
-
-const isObjectString = (str) => {
-  return typeof str === 'string' && str.startsWith('{') && str.endsWith('}')
-}
-
-const isArrayString = (str) => {
-  return typeof str === 'string' && str.startsWith('[') && str.endsWith(']')
-}
-
-const parseToObject = (str) => {
-  return JSON.parse(str.replace(/'/g, '"').replace(/([\w-_]+)\s*:/g, '"$1":'))
-}
-
-const parseShaderObject = (v, keyPrefix) => {
-  if (typeof v === 'string') {
-    if (keyPrefix === undefined) {
-      return parseToObject(v)
-    }
-    return JSON.parse(v.replace(/'/g, '"').replace(/([\w-_]+)\s*:/g, `"${keyPrefix}-$1":`))
-  }
-  const result = {}
-  for (const key in v) {
-    result[`${keyPrefix}-${key}`] = v[key]
-  }
-  return result
-}
-
 const parsePercentage = function (v, base) {
   if (typeof v !== 'string') {
     return v
@@ -181,51 +153,6 @@ const unpackTransition = (v) => {
     }
   }
   return v
-}
-
-const createElementShaderObject = (props) => {
-  let { border, shadow, rounded } = props
-  const allProps = {}
-  const hasShadow = shadow !== undefined
-  const hasBorder = border !== undefined
-  const hasRounded = rounded !== undefined
-
-  if (hasBorder === true && (typeof border === 'object' || isObjectString(border) === true)) {
-    border = parseShaderObject(border, 'border')
-    for (const key in border) {
-      allProps[key] = colors.parseShaderProp(border[key])
-    }
-  }
-  if (hasShadow === true && (typeof shadow === 'object' || isObjectString(shadow) === true)) {
-    shadow = parseShaderObject(shadow, 'shadow')
-    for (const key in shadow) {
-      allProps[key] = colors.parseShaderProp(shadow[key])
-    }
-  }
-
-  if (hasRounded === true && (typeof rounded === 'object' || isObjectString(rounded) === true)) {
-    if (typeof rounded === 'string') {
-      rounded = parseShaderObject(rounded)
-    }
-    for (const key in rounded) {
-      allProps[key] = rounded[key]
-    }
-  } else if (hasRounded === true) {
-    if (isArrayString(rounded) === true) {
-      rounded = JSON.parse(rounded)
-    }
-    allProps['radius'] = rounded
-  }
-
-  let type = 'Rounded'
-  if (hasBorder === true && hasShadow === true) {
-    type += 'WithBorderAndShadow'
-  } else if (hasBorder) {
-    type += 'WithBorder'
-  } else if (hasShadow) {
-    type += 'WithShadow'
-  }
-  return renderer.createShader(type, allProps)
 }
 
 const colorMap = {
@@ -399,15 +326,9 @@ const propsTransformer = {
       this.elementShader === true &&
       (typeof v === 'object' || isObjectString(v) === true)
     ) {
-      if (typeof v === 'string') {
-        v = parseShaderObject(v, 'border')
-        colors.parseShaderProps(v)
-        this.element.node.props['shader'].props = v
-      } else {
-        colors.parseShaderProps(v)
-        for (const key in v) {
-          this.element.node.props['shader'].props[`border-${key}`] = v[key]
-        }
+      v = shaders.parseProps(v)
+      for (const key in v) {
+        this.element.node.props['shader'].props[`border-${key}`] = v[key]
       }
     }
   },
@@ -418,21 +339,18 @@ const propsTransformer = {
       this.elementShader === true &&
       (typeof v === 'object' || isObjectString(v) === true)
     ) {
-      if (typeof v === 'string') {
-        v = parseShaderObject(v, 'shadow')
-        colors.parseShaderProps(v)
-        this.element.node.props['shader'].props = v
-      } else {
-        colors.parseShaderProps(v)
-        for (const key in v) {
-          this.element.node.props['shader'].props[`shadow-${key}`] = v[key]
-        }
+      v = shaders.parseProps(v)
+      for (const key in v) {
+        this.element.node.props['shader'].props[`shadow-${key}`] = v[key]
       }
     }
   },
   set shader(v) {
-    if (v !== null) {
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      v = shaders.parseProps(v)
       this.props['shader'] = renderer.createShader(v.type, v)
+    } else if (typeof v === 'string') {
+      this.props['shader'] = renderer.createShader(v)
     } else {
       this.props['shader'] = renderer.createShader('DefaultShader')
     }
@@ -547,7 +465,7 @@ const Element = {
         props['shadow'] !== undefined)
     ) {
       this.props.elementShader = true
-      this.props.props['shader'] = createElementShaderObject(props)
+      this.props.props['shader'] = shaders.createElementShader(props)
     }
 
     for (let i = 0; i < length; i++) {

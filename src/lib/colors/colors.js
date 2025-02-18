@@ -36,7 +36,7 @@ const decimalToHex = (decimal) => {
 }
 
 export default {
-  normalize: (color = '', defaultColor = '0xffffffff') => {
+  normalize: (color = '', defaultColor) => {
     color = color.toString()
 
     // it is a 0xRRGGBBAA color, return it
@@ -86,67 +86,9 @@ export default {
       console.warn('HSL(A) color format is not supported yet')
       return '0xffffffff'
     }
-
-    return defaultColor
-  },
-  parseShaderProp: (color = '') => {
-    let sColor = color.toString()
-
-    // it is a 0xRRGGBBAA color, return it
-    if (sColor.startsWith('0x') && sColor.length === 10) {
-      return color
-    }
-
-    // it is a previously mapped color, return it
-    if (colorsMap[sColor] !== undefined) {
-      return colorsMap[sColor]
-    }
-
-    // check for hex color
-    if (hex.test(sColor)) {
-      sColor = sColor.replace('#', '').toLowerCase()
-      if (sColor.length === 3) {
-        sColor = sColor
-          .split('')
-          .map((c) => c + c)
-          .join('')
-      }
-
-      const colorRGBA = '0x' + sColor.padEnd(8, 'f')
-      colorsMap[sColor] = colorRGBA
-      return colorRGBA
-    }
-
-    //rgb/a
-    const rgbaMatch = rgba.exec(sColor)
-    if (rgbaMatch !== null) {
-      const r = decimalToHex(rgbaMatch[3])
-      const g = decimalToHex(rgbaMatch[5])
-      const b = decimalToHex(rgbaMatch[7])
-      let a = 'ff'
-
-      if (rgbaMatch[10] && rgbaMatch[1] === 'rgba') {
-        const alpha = Math.min(Math.max(Math.round(parseFloat(rgbaMatch[10]) * 255), 0), 255)
-        a = decimalToHex(alpha)
-      }
-
-      const resp = '0x' + r + g + b + a
-      colorsMap[sColor] = resp
-      return resp
-    }
-
-    if (hsla.test(sColor)) {
-      console.warn('HSL(A) color format is not supported yet')
-      return '0xffffffff'
+    if (defaultColor !== undefined) {
+      return defaultColor
     }
     return color
-  },
-  parseShaderProps(v) {
-    const keys = Object.keys(v)
-    const length = keys.length
-    for (let i = 0; i < length; i++) {
-      const key = keys[i]
-      v[key] = this.parseShaderProp(v[key])
-    }
   },
 }
