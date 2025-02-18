@@ -61,7 +61,7 @@ const isObject = (v) => typeof v === 'object' && v !== null
 
 const isString = (v) => typeof v === 'string'
 
-const setRouteQueryParams = (routeItem, queryParams = new URLSearchParams()) => {
+const setRouteQueryParams = (routeItem, queryParams) => {
   const queryParamsData = {}
   const queryParamsEntries = [...queryParams.entries()]
 
@@ -74,7 +74,7 @@ const setRouteQueryParams = (routeItem, queryParams = new URLSearchParams()) => 
   return routeItem
 }
 
-export const matchHash = (path, queryParams = new URLSearchParams(), routes = []) => {
+export const matchHash = (path, routes = [], queryParams = null) => {
   // remove trailing slashes
   const originalPath = path
   path = normalizePath(path)
@@ -128,7 +128,10 @@ export const matchHash = (path, queryParams = new URLSearchParams(), routes = []
       matchingRoute.data = {}
     }
 
-    matchingRoute = setRouteQueryParams(matchingRoute, queryParams)
+    if (queryParams) {
+      queryParams = new URLSearchParams(queryParams)
+      matchingRoute = setRouteQueryParams(matchingRoute, queryParams)
+    }
   }
 
   return matchingRoute
@@ -139,7 +142,7 @@ export const navigate = async function () {
   if (this.parent[symbols.routes]) {
     let previousRoute = currentRoute ? Object.assign({}, currentRoute) : undefined
     const { hash, queryParams } = getHash()
-    let route = matchHash(hash, queryParams, this.parent[symbols.routes])
+    let route = matchHash(hash, this.parent[symbols.routes], queryParams)
     currentRoute = route
     let beforeHookOutput
     if (route) {
@@ -255,10 +258,10 @@ export const navigate = async function () {
         previousRoute = undefined
       }
 
-      state.rawPath = route.path
+      state.path = route.path
       state.queryParams = route.queryParams
       state.params = route.params
-      state.path = hash
+      state.hash = hash
 
       // apply in transition
       if (route.transition.in) {
@@ -342,7 +345,7 @@ export const to = (location, data = {}, options = {}, queryParams = {}) => {
   overrideOptions = options
   let search = new URLSearchParams(queryParams).toString()
 
-  if (search) {
+  if (search.trim().length > 0) {
     search = `?${search}`
   }
   window.location.hash = `#${location}${search}`
@@ -396,7 +399,7 @@ export const back = function () {
     }
     // Construct new path to backtrack to
     path = path.replace(hashEnd, '')
-    const route = matchHash(path, queryParams, this.parent[symbols.routes])
+    const route = matchHash(path, this.parent[symbols.routes], queryParams)
 
     if (route && backtrack) {
       to(route.path)
