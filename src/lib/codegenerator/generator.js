@@ -77,6 +77,12 @@ export default function (templateObject = { children: [] }) {
   }
 }
 
+// This is used to get only variable from expression
+const fetchOnlyVariable = function (value) {
+  const regEx = /\b[a-zA-Z_]\w*(\.[a-zA-Z_]\w*)*\b/g
+  return value.match(regEx)[0]
+}
+
 const generateElementCode = function (
   templateObject,
   parent = false,
@@ -147,23 +153,22 @@ const generateElementCode = function (
           `)
       }
 
-      if (isDev === true) {
-        if (value.startsWith('$') && value.includes('.') === false) {
-          renderCode.push(`
-            propInComponent('${value.replace('$', '')}', 'reactive')
-          `)
-        }
+      if (
+        isDev === true &&
+        options.component !== 'scope.' &&
+        value.includes('.') === false &&
+        value.startsWith('$')
+      ) {
+        const propToBeVerified = fetchOnlyVariable(`${value.replace('$', '')}`)
+        renderCode.push(`propInComponent('${propToBeVerified}', 'reactive')`)
       }
       renderCode.push(
         `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(value, options.component)}`
       )
     } else {
-      if (isDev === true) {
-        if (value.startsWith('$')) {
-          renderCode.push(`
-            propInComponent('${value.replace('$', '')}')
-          `)
-        }
+      if (isDev === true && options.component !== 'scope.' && value.startsWith('$')) {
+        const propToBeVerified = fetchOnlyVariable(`${value.replace('$', '')}`)
+        renderCode.push(`propInComponent('${propToBeVerified}')`)
       }
       renderCode.push(`elementConfig${counter}['${key}'] = ${cast(value, key, options.component)}`)
     }
