@@ -348,12 +348,25 @@ const propsTransformer = {
   set shader(v) {
     if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
       v = shaders.parseProps(v)
-      this.props['shader'] = renderer.createShader(v.type, v)
-    } else if (typeof v === 'string') {
-      this.props['shader'] = renderer.createShader(v)
-    } else {
-      this.props['shader'] = renderer.createShader('DefaultShader')
     }
+    const target = this.element.node !== undefined ? this.element.node.props : this.props
+    //if v remains a string we can change shader types
+    if (typeof v === 'string') {
+      target['shader'] = renderer.createShader(v)
+      return
+    }
+
+    //check again if v is an object since it could have been an object string
+    if (typeof v === 'object') {
+      if (this.element.node !== undefined && v.type === target['shader'].props.type) {
+        target['shader'].props = v
+        return
+      }
+      target['shader'] = renderer.createShader(v.type, v)
+      return
+    }
+
+    target['shader'] = renderer.createShader('DefaultShader')
   },
   set clipping(v) {
     this.props['clipping'] = v
