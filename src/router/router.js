@@ -177,16 +177,20 @@ export const navigate = async function () {
           queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
         }
 
-        // merge props with potential route params, navigation data and route data to be injected into the component instance
-        const props = {
-          ...this[symbols.props],
-          ...route.params,
+        const routeData = {
           ...navigationData,
           ...route.data,
           ...queryParamsData,
         }
 
-        state.data = route.data
+        // merge props with potential route params, navigation data and route data to be injected into the component instance
+        const props = {
+          ...this[symbols.props],
+          ...route.params,
+          ...routeData,
+        }
+
+        state.data = routeData
 
         view = await route.component({ props }, holder, this)
         if (view[Symbol.toStringTag] === 'Module') {
