@@ -291,6 +291,9 @@ const generateComponentCode = function (
 const generateForLoopCode = function (templateObject, parent) {
   const forLoop = templateObject[':for']
   delete templateObject[':for']
+  const range = templateObject['range'] || templateObject[':range'] || '{}'
+  delete templateObject['range']
+  delete templateObject[':range']
 
   const key = templateObject['key']
   const forKey = interpolate(key, 'scope.')
@@ -340,10 +343,19 @@ const generateForLoopCode = function (templateObject, parent) {
 
   ctx.renderCode.push(`
     const created${forStartCounter} = []
+
+    let from${forStartCounter}
+    let to${forStartCounter}
+
     const forloop${forStartCounter} = (collection = [], elms, created) => {
       const rawCollection = getRaw(collection)
       const keys = new Set()
       let l = rawCollection.length
+
+      const range = ${interpolate(range)} || {}
+      from${forStartCounter} = range['from'] || 0
+      to${forStartCounter} = 'to' in range ? range['to'] : rawCollection.length
+
       while(l--) {
         const ${item} = rawCollection[l]
   `)
@@ -354,7 +366,9 @@ const generateForLoopCode = function (templateObject, parent) {
     `)
   }
   ctx.renderCode.push(`
-        keys.add('' +  ${interpolate(key, '') || 'l'})
+        if(l < to${forStartCounter} && l >= from${forStartCounter}) {
+          keys.add('' +  ${interpolate(key, '') || 'l'})
+        }
       }
   `)
 
@@ -368,6 +382,7 @@ const generateForLoopCode = function (templateObject, parent) {
       const length = rawCollection.length
       const effects = []
       for(let __index = 0; __index < length; __index++) {
+        if(__index < from${forStartCounter} || __index >= to${forStartCounter}) continue
         const scope = Object.create(component)
         parent = ${parent}
         scope['${item}'] = rawCollection[__index]
@@ -488,6 +503,10 @@ const generateForLoopCode = function (templateObject, parent) {
     effectKey = effectKey.match(/[^.]+$/)[0]
   }
 
+  // get the reference to range from and to
+  const effectKeysRegex = /\$([^,} ]+)/g
+  const effectKeys = [...range.matchAll(effectKeysRegex)].map((match) => `'${match[1]}'`)
+
   ctx.renderCode.push(`
     let forEffects${forStartCounter}
     effect(() => {
@@ -497,7 +516,7 @@ const generateForLoopCode = function (templateObject, parent) {
     result[2],
     ':for'
   )}, elms, created${forStartCounter})
-    }, '${effectKey}' )
+    }, ['${effectKey}', ${effectKeys.join(',')}] )
   `)
 
   outerScopeEffects.forEach((effect) => {
@@ -520,6 +539,7 @@ const generateForLoopCode = function (templateObject, parent) {
       effect(() => {
         void ${refs.join(', ')}
         for(let __index = 0; __index < ${interpolate(result[2])}.length; __index++) {
+          if(__index < from${forStartCounter} || __index >= to${forStartCounter}) continue
           const scope = {}
           scope['${index}'] = __index
           scope['${item}'] = ${interpolate(result[2])}[__index]
