@@ -28,8 +28,8 @@ export let currentRoute
 export const state = reactive({
   path: '',
   navigating: false,
-  data: {},
-  params: {},
+  data: null,
+  params: null,
   hash: '',
 })
 
@@ -62,7 +62,7 @@ const isObject = (v) => typeof v === 'object' && v !== null
 
 const isString = (v) => typeof v === 'string'
 
-export const matchHash = (path, routes = [], hash = null) => {
+export const matchHash = (path, routes = []) => {
   // remove trailing slashes
   const originalPath = path
   path = normalizePath(path)
@@ -115,10 +115,6 @@ export const matchHash = (path, routes = [], hash = null) => {
     if (!matchingRoute.data) {
       matchingRoute.data = {}
     }
-
-    if (hash !== null) {
-      matchingRoute.hash = hash
-    }
   }
 
   return matchingRoute
@@ -129,7 +125,13 @@ export const navigate = async function () {
   if (this.parent[symbols.routes]) {
     let previousRoute = currentRoute ? Object.assign({}, currentRoute) : undefined
     const { hash, path, queryParams } = getHash()
-    let route = matchHash(path, this.parent[symbols.routes], hash)
+    let route = matchHash(path, this.parent[symbols.routes])
+
+    // Adding the location hash to the route if it exists.
+    if (hash !== null) {
+      route.hash = hash
+    }
+
     currentRoute = route
     let beforeHookOutput
     if (route) {
@@ -184,7 +186,7 @@ export const navigate = async function () {
           ...queryParamsData,
         }
 
-        state.data = props
+        state.data = route.data
 
         view = await route.component({ props }, holder, this)
         if (view[Symbol.toStringTag] === 'Module') {
