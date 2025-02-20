@@ -162,6 +162,7 @@ export const navigate = async function () {
       }
 
       let holder
+      let routeData
       let { view, focus } = cacheMap.get(route) || {}
 
       if (!view) {
@@ -177,7 +178,7 @@ export const navigate = async function () {
           queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
         }
 
-        const routeData = {
+        routeData = {
           ...navigationData,
           ...route.data,
           ...queryParamsData,
@@ -189,8 +190,6 @@ export const navigate = async function () {
           ...route.params,
           ...routeData,
         }
-
-        state.data = routeData
 
         view = await route.component({ props }, holder, this)
         if (view[Symbol.toStringTag] === 'Module') {
@@ -262,6 +261,7 @@ export const navigate = async function () {
       state.path = route.path
       state.params = route.params
       state.hash = hash
+      state.data = routeData
 
       // apply in transition
       if (route.transition.in) {
