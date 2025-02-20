@@ -78,9 +78,28 @@ export default function (templateObject = { children: [] }) {
 }
 
 // This is used to get only variable from expression
-const fetchOnlyVariable = function (value) {
-  const regEx = /\b[a-zA-Z_]\w*(\.[a-zA-Z_]\w*)*\b/g
-  return value.match(regEx)[0]
+const extractVariables = function (value) {
+  const regEx = /\$\w+(\.\w+)?/g
+  const matches = value.match(regEx)
+  if (matches !== null) {
+    const shaderRegex = /\$shader/
+    return matches.filter((match) => !shaderRegex.test(match))
+  } else {
+    return false
+  }
+}
+
+const verifyVariables = function (value, renderCode, type = 'dymanic') {
+  const variablesToBeVerified = extractVariables(value)
+  if (variablesToBeVerified !== false) {
+    for (let i = 0; i < variablesToBeVerified.length; i++) {
+      let variable = variablesToBeVerified[i]
+      if (type === 'reactive' && variable.includes('.')) {
+        variable = variable.split('.')[0]
+      }
+      renderCode.push(`propInComponent('${variable.replace('$', '')}', 'reactive')`)
+    }
+  }
 }
 
 const generateElementCode = function (
@@ -152,23 +171,16 @@ const generateElementCode = function (
         )})
           `)
       }
-
-      if (
-        isDev === true &&
-        options.component !== 'scope.' &&
-        value.includes('.') === false &&
-        value.startsWith('$')
-      ) {
-        const propToBeVerified = fetchOnlyVariable(`${value.replace('$', '')}`)
-        renderCode.push(`propInComponent('${propToBeVerified}', 'reactive')`)
+      // value.includes('.') === false &&
+      if (isDev === true && options.component !== 'scope.' && value.includes('$')) {
+        verifyVariables(value, renderCode, 'reactive')
       }
       renderCode.push(
         `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(value, options.component)}`
       )
     } else {
-      if (isDev === true && options.component !== 'scope.' && value.startsWith('$')) {
-        const propToBeVerified = fetchOnlyVariable(`${value.replace('$', '')}`)
-        renderCode.push(`propInComponent('${propToBeVerified}')`)
+      if (isDev === true && options.component !== 'scope.' && value.includes('$')) {
+        verifyVariables(value, renderCode)
       }
       renderCode.push(`elementConfig${counter}['${key}'] = ${cast(value, key, options.component)}`)
     }
