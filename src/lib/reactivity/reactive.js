@@ -103,7 +103,7 @@ const reactiveProxy = (original, _parent = null, _key, global) => {
       let result = true
       let isEqual = false
 
-      // We need to check that the oldRawValue is also undefined before we do the deep equal check
+      // We need to check that the oldRawValue is also an array before we do the deep equal check
       if (Array.isArray(rawValue) === true && Array.isArray(oldRawValue) === true) {
         isEqual = deepEqualArray(oldRawValue, rawValue)
       } else if (oldRawValue === rawValue) {
