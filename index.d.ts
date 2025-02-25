@@ -18,7 +18,7 @@
 // blits file type reference
 /// <reference path="./blits.d.ts" />
 
-import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader} from '@lightningjs/renderer'
+import {CoreShaderType, type ShaderEffect as RendererShaderEffect, type WebGlCoreShader} from '@lightningjs/renderer'
 
 declare module '@lightningjs/blits' {
 
@@ -619,7 +619,7 @@ declare module '@lightningjs/blits' {
 
   type Shader = {
     name: string,
-    type: WebGlCoreShader
+    type: CoreShaderType
   }
 
   type ScreenResolutions = 'hd' | '720p' | 720 | 'fhd' | 'fullhd' | '1080p' | 1080 | '4k' | '2160p' | 2160
@@ -655,10 +655,6 @@ declare module '@lightningjs/blits' {
      * Fonts to be used in the Application
      */
     fonts?: Font[],
-    /**
-     * Effects to be used by DynamicShader
-     */
-    effects?: ShaderEffect[],
     /**
      * Shaders to be used in the application
      */

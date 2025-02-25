@@ -130,27 +130,6 @@ export default {
     enumerable: true,
     configurable: false,
   },
-  shader: {
-    value: function (type, args) {
-      return {
-        type: type,
-        props: args,
-      }
-      // const shaders = renderer.driver.stage.shManager.getRegisteredEffects()
-
-      // if (target in shaders) {
-      //   return {
-      //     type: target,
-      //     props: args,
-      //   }
-      // } else {
-      //   Log.error(`Shader ${type} not found`)
-      // }
-    },
-    writable: false,
-    enumerable: true,
-    configurable: false,
-  },
 }
 
 const deleteChildren = function (children) {
