@@ -352,9 +352,8 @@ export const back = function () {
   if (route && currentRoute !== route) {
     // set indicator that we are navigating back (to prevent adding page to history stack)
     navigatingBack = true
-    let targetRoutePath = route.hash
 
-    to(targetRoutePath, route.data, route.options)
+    to(route.hash, route.data, route.options)
     return true
   }
 
