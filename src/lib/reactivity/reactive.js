@@ -108,8 +108,6 @@ const reactiveProxy = (original, _parent = null, _key, global) => {
         isEqual = deepEqualArray(oldRawValue, rawValue)
       } else if (oldRawValue === rawValue) {
         isEqual = true
-      } else {
-        isEqual = false
       }
 
       if (isEqual === false) {
