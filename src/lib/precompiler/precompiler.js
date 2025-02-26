@@ -18,7 +18,7 @@
 import parser from '../templateparser/parser.js'
 import generator from '../codegenerator/generator.js'
 
-export default (source, filePath) => {
+export default (source, filePath, mode) => {
   if (
     source.indexOf('Blits.Component(') > -1 ||
     source.indexOf('Blits.Application(') > -1 ||
@@ -42,7 +42,6 @@ export default (source, filePath) => {
           const templateStartIndex = template.index + offset
           const templateEndIndex = templateStartIndex + template[0].length
 
-
           // Parse the template
           let resourceName = 'Blits.Application'
           if (source.indexOf('Blits.Component(') > -1) {
@@ -52,7 +51,7 @@ export default (source, filePath) => {
           const parsed = parser(templateContent, resourceName, null, filePath)
 
           // Generate the code
-          const code = generator.call({ components: {} }, parsed)
+          const code = generator.call({ components: {}, isDev: mode === 'development' }, parsed)
 
           // Insert the code in the component using the 'code' key, replacing the template key
           const replacement = `/* eslint-disable no-unused-vars */ \ncode: { render: ${code.render.toString()}, effects: [${code.effects.map(
