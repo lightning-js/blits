@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.21.0
+
+_27 feb 2025_
+
+- Added functionality for keeping query params when navigating back in the router
+- Exposed more info in reactive router state
+- Added `range`-attribute to for-loop
+- Fixed issue when setting `alpha` to truthy or false values
+- Upgraded to renderer v2.13.0
+
 ## v1.20.1
 
 _14 feb 2025_
