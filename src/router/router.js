@@ -23,6 +23,7 @@ import { Log } from '../lib/log.js'
 import { stage } from '../launch.js'
 import Focus from '../focus.js'
 import Announcer from '../announcer/announcer.js'
+import eventListeners from '../lib/eventListeners.js'
 
 export let currentRoute
 export const state = reactive({ path: null, navigating: false })
@@ -146,6 +147,11 @@ export const navigate = async function () {
       // based on current and previous route
       if (typeof route.transition === 'function') {
         route.transition = route.transition(previousRoute, route)
+      }
+
+      // remove event listeners from current active view
+      if (previousRoute) {
+        eventListeners.removeListeners(this.activeView)
       }
 
       let holder
