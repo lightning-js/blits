@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.21.1
+
+_28 feb 2025_
+
+- Changed gpuMemory launch settings to be optional in type definitions
+
 ## v1.21.0
 
 _27 feb 2025_
