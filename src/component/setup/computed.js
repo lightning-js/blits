@@ -38,8 +38,24 @@ export default (component, computeds) => {
         Log.warn(`${computed} is not a function`)
       }
       component[symbols.computedKeys].push(computed)
+
+      // get internal variables referenced in computed function
+      const refs = [...computeds[computed].toString().matchAll(/this[\.\[][\w\.\'\"\]\$]+/g)]
+      let refsFn
+      // when 1 or less internal references, there is no dependency between references
+      if (refs.length > 1) {
+        // create a function that simply lists all references,
+        // to ensure that reactivity is being set up, even if the value
+        // of 1 variable affects calling another one (inside the user defined computed function)
+        refsFn = new Function(refs.map((ref) => 'void ' + ref[0] + '\n'))
+      }
+
       Object.defineProperty(component, computed, {
         get() {
+          // execute the refsFn if it exists
+          if (refsFn !== undefined) {
+            refsFn.apply(this)
+          }
           return computeds[computed].apply(this)
         },
       })
