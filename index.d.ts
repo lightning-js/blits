@@ -806,7 +806,7 @@ declare module '@lightningjs/blits' {
     /**
      * Configures the gpu memory settings used by the renderer
      */
-    gpuMemory: {
+    gpuMemory?: {
       /**
        * Maximum GPU memory threshold (in `mb`) after which
        * the renderer will immediately start cleaning up textures to free
@@ -816,7 +816,7 @@ declare module '@lightningjs/blits' {
        *
        * @default `200`
        */
-      max: number,
+      max?: number,
       /**
        * Target threshold of GPU memory usage, defined as a fraction of
        * the max threshold. The renderer will attempt to keep memory
@@ -824,13 +824,13 @@ declare module '@lightningjs/blits' {
        *
        * @default `0.8`
        */
-      target: 0.8,
+      target?: 0.8,
       /**
        * Interval at which regular texture cleanups occur (in `ms`)
        *
        * @default `5000`
        */
-      cleanupInterval: 5000,
+      cleanupInterval?: 5000,
       /**
        * Baseline GPU memory usage of the App (in `mb`), without rendering any
        * textures. This value will be used as a basis when calculating
@@ -839,7 +839,7 @@ declare module '@lightningjs/blits' {
        *
        * @default `25`
        */
-      baseline: 25,
+      baseline?: 25,
       /**
        * Whether or not the max threshold should be considered
        * as a strict number that can not be exceeded in any way
@@ -850,7 +850,7 @@ declare module '@lightningjs/blits' {
        *
        * @default false
        */
-      strict: false,
+      strict?: false,
     },
     /**
      * Defines which mode the renderer should operate in: `webgl` or `canvas`
