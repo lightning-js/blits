@@ -193,3 +193,42 @@ By default contents inside an Element (i.e. child Elements) will overflow the bo
 In order to contain / cut off the content inside an Elements' `w` and `h`, you can add the `clipping="true"`-attribute. Setting `clipping` to `false` restores the default behaviour of content overflowing.
 
 Alternatively you can also use the `overflow`-attribute (and pass it `true` or `false`), which works similar to clipping just mapped inversly (i.e. `overflow="false"` ensures content that surpasses the parent dimensions is clipped-off).
+
+## Shaders
+
+Generally Elements that have a color or texture are simply rendered as a rectangle. With shaders you can add extra effects or even change the shape of what is rendered.
+
+In Blits there are two ways to apply these Shaders.
+
+### Built-in
+For better a better development experience Blits had the following shader attributes regularly used in app development:
+
+- `rounded` - Allows you to round corners of an Element. You can do this with a single value, array, or object. ([details](https://github.com/lightning-js/renderer/blob/e7f7b71bc854e2510dbbf7adb05e2231a18c3736/src/core/shaders/templates/RoundedTemplate.ts#L25))
+- `border` - Allows you to add an inner border to an Element. You can do this with an object. ([details](https://github.com/lightning-js/renderer/blob/e7f7b71bc854e2510dbbf7adb05e2231a18c3736/src/core/shaders/templates/BorderTemplate.ts#L25))
+- `shadow` - Allows you to add a box shadow "behind" an Element. You can do this with an object. ([details](https://github.com/lightning-js/renderer/blob/e7f7b71bc854e2510dbbf7adb05e2231a18c3736/src/core/shaders/templates/ShadowTemplate.ts#L21))
+
+```xml
+<Element w="200" h="200" x="20" y="100" rounded="20" />
+<Element w="200" h="200" x="800" y="400" border="{width: 10, color: 'green'}" />
+<Element w="200" h="200" x="800" y="700" shadow="{blur: 10, spread: 10}" />
+```
+
+You can also use built-in shader attributes in combination with eachother f.e;
+
+```xml
+<Element w="200" h="200" x="20" y="100" rounded="20" border="{width: 20, color:'blue'}"/>
+```
+
+### Imported
+You can also import your own shaders and use them in your template by using the following attribute:
+
+- `shader` - You can either use the `name` of the shader type, or an object with a type and additional properties.
+
+```xml
+<Element w="200" h="200" x="20" y="100" shader="rhombus" />
+<Element w="200" h="200" x="20" y="100" shader="{type: 'rhombus', width: 100, height: 100}" />
+```
+
+> [!WARNING]
+> This attribute does not work in combination with the built-in shader attributes. This has to do with the complexity of shaders that makes mixing and matching difficult.
+
