@@ -18,7 +18,7 @@
 // blits file type reference
 /// <reference path="./blits.d.ts" />
 
-import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader} from '@lightningjs/renderer'
+import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader, type RendererMainSettings} from '@lightningjs/renderer'
 
 declare module '@lightningjs/blits' {
 
@@ -824,13 +824,13 @@ declare module '@lightningjs/blits' {
        *
        * @default `0.8`
        */
-      target?: 0.8,
+      target?: number,
       /**
        * Interval at which regular texture cleanups occur (in `ms`)
        *
        * @default `5000`
        */
-      cleanupInterval?: 5000,
+      cleanupInterval?: number,
       /**
        * Baseline GPU memory usage of the App (in `mb`), without rendering any
        * textures. This value will be used as a basis when calculating
@@ -839,7 +839,7 @@ declare module '@lightningjs/blits' {
        *
        * @default `25`
        */
-      baseline?: 25,
+      baseline?: number,
       /**
        * Whether or not the max threshold should be considered
        * as a strict number that can not be exceeded in any way
@@ -850,7 +850,7 @@ declare module '@lightningjs/blits' {
        *
        * @default false
        */
-      strict?: false,
+      strict?: boolean,
     },
     /**
      * Defines which mode the renderer should operate in: `webgl` or `canvas`
@@ -886,7 +886,14 @@ declare module '@lightningjs/blits' {
      *
      * Defaults to `10`
      */
-    textureProcessingTimeLimit?: number
+    textureProcessingTimeLimit?: number,
+    /**
+     * Advanced renderer settings to override Blits launch settings, or configure
+     * settings that are not officially exposed in Blits yet
+     *
+     * @important if you dont know what you're doing here, you probably shouldn't be doing it!
+     */
+    advanced?: Partial<RendererMainSettings>
   }
 
   interface State {
