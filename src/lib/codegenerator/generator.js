@@ -40,7 +40,7 @@ export default function (templateObject = { children: [] }) {
       function propInComponent(prop, kind="dynamic") {
         const property = prop.includes('.') ? prop.split('.')[0] : prop
         if (kind === 'reactive' || prop.includes('.') === false) {
-          if (component[property] === undefined) {
+          if (property in component === false) {
             console.warn('Property ' +  property + ' was accessed during render but is not defined on instance')
           }
         } else {
