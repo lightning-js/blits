@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.22.0
+
+_3 mar 2025_
+
+- Added default value for `createImageBitmapSupport` to `auto`
+- Added advanced launch settings
+
 ## v1.21.1
 
 _28 feb 2025_
