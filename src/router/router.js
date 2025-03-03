@@ -33,7 +33,7 @@ export const state = reactive({
   hash: '',
 })
 
-const cacheMap = new WeakMap()
+const cacheMap = new Map()
 const history = []
 
 let overrideOptions = {}
@@ -163,7 +163,7 @@ export const navigate = async function () {
 
       let holder
       let routeData
-      let { view, focus } = cacheMap.get(route) || {}
+      let { view, focus } = cacheMap.get(route.hash) || {}
 
       if (!view) {
         // create a holder element for the new view
@@ -313,8 +313,12 @@ const removeView = async (route, view, transition) => {
 
   // cache the page when it's as 'keepAlive' instead of destroying
   if (route.options && route.options.keepAlive === true) {
-    cacheMap.set(route, { view: view, focus: previousFocus })
-  } else {
+    cacheMap.set(route.hash, { view: view, focus: previousFocus })
+  } else if (cacheMap.has(route.hash) && route.options.keepAlive === false) {
+    cacheMap.delete(route.hash)
+  }
+
+  if (route.options && route.options.keepAlive === false) {
     view.destroy()
     view = null
   }
