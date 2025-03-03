@@ -33,6 +33,8 @@ export const state = reactive({
   hash: '',
 })
 
+// Changed from WeakMap to Map to allow for caching of views by the url hash.
+// We are manually doing the cleanup of the cache when the route is not marked as keepAlive.
 const cacheMap = new Map()
 const history = []
 
