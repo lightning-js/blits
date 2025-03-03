@@ -66,28 +66,32 @@ const textureMemorySettings = (settings) => {
 export default (App, target, settings = {}) => {
   renderer = new RendererMain(
     {
-      appWidth: settings.w || 1920,
-      appHeight: settings.h || 1080,
-      fpsUpdateInterval: settings.fpsInterval || 1000,
-      devicePhysicalPixelRatio:
-        RENDER_QUALITIES[settings.renderQuality] || settings.renderQuality || 1,
-      deviceLogicalPixelRatio:
-        settings.pixelRatio ||
-        SCREEN_RESOLUTIONS[settings.screenResolution] ||
-        SCREEN_RESOLUTIONS[window.innerHeight] ||
-        1,
-      numImageWorkers:
-        'webWorkersLimit' in settings
-          ? settings.webWorkersLimit
-          : window.navigator.hardwareConcurrency || 2,
-      clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
-      inspector: settings.inspector === true ? Inspector : undefined,
-      boundsMargin: settings.viewportMargin || 0,
-      renderEngine: renderEngine(settings),
-      fontEngines: textRenderEngines(settings),
-      canvas: settings.canvas,
-      textureProcessingTimeLimit: settings.textureProcessingTimeLimit,
-      textureMemory: textureMemorySettings(settings),
+      ...{
+        appWidth: settings.w || 1920,
+        appHeight: settings.h || 1080,
+        fpsUpdateInterval: settings.fpsInterval || 1000,
+        devicePhysicalPixelRatio:
+          RENDER_QUALITIES[settings.renderQuality] || settings.renderQuality || 1,
+        deviceLogicalPixelRatio:
+          settings.pixelRatio ||
+          SCREEN_RESOLUTIONS[settings.screenResolution] ||
+          SCREEN_RESOLUTIONS[window.innerHeight] ||
+          1,
+        numImageWorkers:
+          'webWorkersLimit' in settings
+            ? settings.webWorkersLimit
+            : window.navigator.hardwareConcurrency || 2,
+        clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
+        inspector: settings.inspector === true ? Inspector : undefined,
+        boundsMargin: settings.viewportMargin || 0,
+        renderEngine: renderEngine(settings),
+        fontEngines: textRenderEngines(settings),
+        canvas: settings.canvas,
+        textureProcessingTimeLimit: settings.textureProcessingTimeLimit,
+        textureMemory: textureMemorySettings(settings),
+        createImageBitmapSupport: 'auto',
+      },
+      ...(settings.advanced || {}),
     },
     target
   )
