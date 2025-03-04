@@ -316,7 +316,9 @@ const removeView = async (route, view, transition) => {
   // cache the page when it's as 'keepAlive' instead of destroying
   if (route.options && route.options.keepAlive === true && navigatingBack === false) {
     cacheMap.set(route.hash, { view: view, focus: previousFocus })
-  } else if (cacheMap.has(route.hash) === true && navigatingBack === true) {
+  } else if (navigatingBack === true) {
+    // remove the previous route from the cache when navigating back
+    // cacheMap.delete will not throw an error if the route is not in the cache
     cacheMap.delete(route.hash)
   }
 
