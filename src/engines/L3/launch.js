@@ -42,33 +42,56 @@ const textRenderEngines = (settings) => {
   if (renderMode === 'canvas') return [CanvasTextRenderer]
 }
 
+const textureMemorySettings = (settings) => {
+  const gpuMemory = {
+    ...{
+      max: 200,
+      target: 0.8,
+      cleanupInterval: 5000,
+      baseline: 25,
+      strict: false,
+    },
+    ...('gpuMemory' in settings === true ? settings.gpuMemory : {}),
+  }
+
+  return {
+    criticalThreshold: gpuMemory.max * 1024 * 1024, // convert from mb to bytes
+    targetThresholdLevel: gpuMemory.target,
+    cleanupInterval: gpuMemory.cleanupInterval,
+    baselineMemoryAllocation: gpuMemory.baseline * 1024 * 1024, // convert from mb to bytes
+    doNotExceedCriticalThreshold: gpuMemory.strict,
+  }
+}
+
 export default (App, target, settings = {}) => {
   renderer = new RendererMain(
     {
-      appWidth: settings.w || 1920,
-      appHeight: settings.h || 1080,
-      fpsUpdateInterval: settings.fpsInterval || 1000,
-      devicePhysicalPixelRatio:
-        RENDER_QUALITIES[settings.renderQuality] || settings.renderQuality || 1,
-      deviceLogicalPixelRatio:
-        settings.pixelRatio ||
-        SCREEN_RESOLUTIONS[settings.screenResolution] ||
-        SCREEN_RESOLUTIONS[window.innerHeight] ||
-        1,
-      numImageWorkers:
-        'webWorkersLimit' in settings
-          ? settings.webWorkersLimit
-          : window.navigator.hardwareConcurrency || 2,
-      clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
-      inspector: settings.inspector === true ? Inspector : undefined,
-      boundsMargin: settings.viewportMargin || 0,
-      // gpu memory limit, converted from mb to bytes - defaults to 200mb
-      txMemByteThreshold:
-        'gpuMemoryLimit' in settings ? settings.gpuMemoryLimit * 1024 * 1024 : 200 * 1024 * 1024,
-      renderEngine: renderEngine(settings),
-      fontEngines: textRenderEngines(settings),
-      canvas: settings.canvas,
-      textureProcessingTimeLimit: settings.textureProcessingTimeLimit,
+      ...{
+        appWidth: settings.w || 1920,
+        appHeight: settings.h || 1080,
+        fpsUpdateInterval: settings.fpsInterval || 1000,
+        devicePhysicalPixelRatio:
+          RENDER_QUALITIES[settings.renderQuality] || settings.renderQuality || 1,
+        deviceLogicalPixelRatio:
+          settings.pixelRatio ||
+          SCREEN_RESOLUTIONS[settings.screenResolution] ||
+          SCREEN_RESOLUTIONS[window.innerHeight] ||
+          1,
+        numImageWorkers:
+          'webWorkersLimit' in settings
+            ? settings.webWorkersLimit
+            : window.navigator.hardwareConcurrency || 2,
+        clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
+        inspector: settings.inspector === true ? Inspector : undefined,
+        boundsMargin: settings.viewportMargin || 0,
+        renderEngine: renderEngine(settings),
+        fontEngines: textRenderEngines(settings),
+        canvas: settings.canvas,
+        textureProcessingTimeLimit: settings.textureProcessingTimeLimit,
+        textureMemory: textureMemorySettings(settings),
+        createImageBitmapSupport: 'auto',
+      },
+      ...(settings.advanced || {}),
     },
     target
   )

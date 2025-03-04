@@ -18,7 +18,7 @@
 // blits file type reference
 /// <reference path="./blits.d.ts" />
 
-import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader} from '@lightningjs/renderer'
+import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader, type RendererMainSettings} from '@lightningjs/renderer'
 
 declare module '@lightningjs/blits' {
 
@@ -799,8 +799,59 @@ declare module '@lightningjs/blits' {
      * and cleaned up
      *
      * Defaults to `200` (mb)
+     * @deprecated
+     * Deprecated:  use `gpuMemory` launch setting instead
      */
     gpuMemoryLimit?: number,
+    /**
+     * Configures the gpu memory settings used by the renderer
+     */
+    gpuMemory?: {
+      /**
+       * Maximum GPU memory threshold (in `mb`) after which
+       * the renderer will immediately start cleaning up textures to free
+       * up graphical memory
+       *
+       * When setting to `0`, texture memory management is disabled
+       *
+       * @default `200`
+       */
+      max?: number,
+      /**
+       * Target threshold of GPU memory usage, defined as a fraction of
+       * the max threshold. The renderer will attempt to keep memory
+       * usage below this target by cleaning up non-renderable textures
+       *
+       * @default `0.8`
+       */
+      target?: number,
+      /**
+       * Interval at which regular texture cleanups occur (in `ms`)
+       *
+       * @default `5000`
+       */
+      cleanupInterval?: number,
+      /**
+       * Baseline GPU memory usage of the App (in `mb`), without rendering any
+       * textures. This value will be used as a basis when calculating
+       * the total memory usage towards the max and target memory
+       * usage
+       *
+       * @default `25`
+       */
+      baseline?: number,
+      /**
+       * Whether or not the max threshold should be considered
+       * as a strict number that can not be exceeded in any way
+       *
+       * When set to `true`, new textures won't be created when the
+       * max threshold has been reached, until agressive texture cleanup
+       * has brought the memory back down
+       *
+       * @default false
+       */
+      strict?: boolean,
+    },
     /**
      * Defines which mode the renderer should operate in: `webgl` or `canvas`
      *
@@ -835,7 +886,14 @@ declare module '@lightningjs/blits' {
      *
      * Defaults to `10`
      */
-    textureProcessingTimeLimit?: number
+    textureProcessingTimeLimit?: number,
+    /**
+     * Advanced renderer settings to override Blits launch settings, or configure
+     * settings that are not officially exposed in Blits yet
+     *
+     * @important if you dont know what you're doing here, you probably shouldn't be doing it!
+     */
+    advanced?: Partial<RendererMainSettings>
   }
 
   interface State {
