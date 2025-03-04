@@ -18,7 +18,7 @@
 let counter
 let isDev
 
-export default function (templateObject = { children: [] }) {
+export default function (templateObject = { children: [] }, devMode = false) {
   const ctx = {
     renderCode: [
       'const elms = []',
@@ -34,21 +34,21 @@ export default function (templateObject = { children: [] }) {
   }
 
   counter = -1
-  isDev = this.isDev
+  isDev = devMode
   if (isDev === true) {
     ctx.renderCode.push(`
       function propInComponent(prop, kind="dynamic") {
         const property = prop.includes('.') ? prop.split('.')[0] : prop
         if (kind === 'reactive' || prop.includes('.') === false) {
           if (property in component === false) {
-            console.warn('Property ' +  property + ' was accessed during render but is not defined on instance')
+            Log.warn('Property ' +  property + ' was accessed during render but is not defined on instance')
           }
         } else {
           const nestedKeys = prop.split('.')
           let base = component
           for(let i =0; i<nestedKeys.length;i++){
             if (base[nestedKeys[i]] === undefined) {
-              console.warn('Property ' +  nestedKeys.slice(0,i+1).join('.') + ' was accessed during render but is not defined on instance')
+              Log.warn('Property ' +  nestedKeys.slice(0,i+1).join('.') + ' was accessed during render but is not defined on instance')
             }
             base = base[nestedKeys[i]]
           }
@@ -67,6 +67,7 @@ export default function (templateObject = { children: [] }) {
       'components',
       'effect',
       'getRaw',
+      'Log',
       ctx.renderCode.join('\n')
     ),
     effects: ctx.effectsCode.map(

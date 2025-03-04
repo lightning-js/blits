@@ -51,7 +51,7 @@ export default (source, filePath, mode) => {
           const parsed = parser(templateContent, resourceName, null, filePath)
 
           // Generate the code
-          const code = generator.call({ components: {}, isDev: mode === 'development' }, parsed)
+          const code = generator.call({ components: {} }, parsed, mode === 'development')
 
           // Insert the code in the component using the 'code' key, replacing the template key
           const replacement = `/* eslint-disable no-unused-vars */ \ncode: { render: ${code.render.toString()}, effects: [${code.effects.map(
