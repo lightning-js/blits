@@ -90,7 +90,7 @@ const extractVariables = function (value) {
   }
 }
 
-const verifyVariables = function (value, renderCode, type = 'dymanic') {
+const verifyVariables = function (value, renderCode, type = 'dynamic') {
   const variablesToBeVerified = extractVariables(value)
   if (variablesToBeVerified !== false) {
     for (let i = 0; i < variablesToBeVerified.length; i++) {
@@ -98,7 +98,7 @@ const verifyVariables = function (value, renderCode, type = 'dymanic') {
       if (type === 'reactive' && variable.includes('.')) {
         variable = variable.split('.')[0]
       }
-      renderCode.push(`propInComponent('${variable.replace('$', '')}', 'reactive')`)
+      renderCode.push(`propInComponent('${variable.replace('$', '')}', '${type}')`)
     }
   }
 }
