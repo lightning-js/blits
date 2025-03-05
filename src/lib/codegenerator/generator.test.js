@@ -80,7 +80,7 @@ test('The contex key is an object', (assert) => {
 
 test('Generate render and effect code for an empty template', (assert) => {
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -116,7 +116,7 @@ test('Generate render and effect code for a template with a single simple elemen
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -163,7 +163,7 @@ test('Generate code for a template with a simple element and a simple nested ele
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -214,7 +214,7 @@ test('Generate code for a template with a single element with attributes', (asse
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -261,7 +261,7 @@ test('Generate code for a template with a single element with attributes with a 
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -315,7 +315,7 @@ test('Generate code for a template with attributes and a nested element with att
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -390,7 +390,7 @@ test('Generate code for a template with attributes and 2 nested elements with at
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -489,7 +489,7 @@ test('Generate code for a template with attributes and deep nested elements with
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -588,7 +588,7 @@ test('Generate code for a template with simple dynamic attributes', (assert) => 
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -666,7 +666,7 @@ test('Generate code for a template with an attribute with a dash', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -717,7 +717,7 @@ test('Generate code for a template with dynamic attributes with code to be evalu
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -801,7 +801,7 @@ test('Generate code for a template with attribute (object)', (assert) => {
   }
 
   const expectedRender = `
-    function anonymous(parent,component,context,components,effect,getRaw) {
+    function anonymous(parent,component,context,components,effect,getRaw,Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -851,7 +851,7 @@ test('Generate code for a template with dynamic attribute (object)', (assert) =>
   }
 
   const expectedRender = `
-    function anonymous(parent,component,context,components,effect,getRaw) {
+    function anonymous(parent,component,context,components,effect,getRaw,Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -902,7 +902,7 @@ test('Generate code for a template with attribute (object) with mixed dynamic & 
   }
 
   const expectedRender = `
-    function anonymous(parent,component,context,components,effect,getRaw) {
+    function anonymous(parent,component,context,components,effect,getRaw,Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -953,7 +953,7 @@ test('Generate code for a template with @-listeners', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw,Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -1014,7 +1014,7 @@ test('Generate code for a template with custom components', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
@@ -1166,7 +1166,7 @@ test('Generate code for a template with an unregistered custom component', (asse
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
@@ -1307,7 +1307,7 @@ test('Generate code for a template with custom components with arguments', (asse
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
@@ -1455,7 +1455,7 @@ test('Generate code for a template with custom components with reactive props', 
   }
 
   const expectedRender = `
-  function anonymous(parent,component,context,components,effect,getRaw) {
+  function anonymous(parent,component,context,components,effect,getRaw,Log) {
     const elms = []
     let componentType
     const rootComponent = component
@@ -1650,7 +1650,7 @@ test('Generate code for a template with a transition attributes', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -1717,7 +1717,7 @@ test('Generate code for a template with slot content', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
@@ -1861,7 +1861,7 @@ test('Generate code for a template with slot content, using a named slot', (asse
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
@@ -1991,7 +1991,7 @@ test('Generate code for a template with a slot', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -2065,7 +2065,7 @@ test('Generate code for a template with inline Text', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -2126,7 +2126,7 @@ test('Generate code for a template with inline dynamic Text', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -2188,7 +2188,7 @@ test('Generate code for a template with inline dynamic Text embedded in static t
   }
 
   const expectedRender = `
-  function anonymous(parent,component,context,components,effect,getRaw) {
+  function anonymous(parent,component,context,components,effect,getRaw,Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -2254,7 +2254,7 @@ test('Generate code for a template with a single element with attributes with pe
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -2319,7 +2319,7 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
@@ -2434,7 +2434,7 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
@@ -2549,7 +2549,7 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
@@ -2667,7 +2667,7 @@ test('Generate code for a template with a simple for-loop on an Element with a c
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
@@ -2785,7 +2785,7 @@ test('Generate code for a template with a simple for-loop on an Element with a k
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
@@ -2902,7 +2902,7 @@ test('Generate code for a template with a simple for-loop on a Component with a 
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
@@ -3057,7 +3057,7 @@ test('Generate code for a template with a simple for-loop on an Element with an 
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
@@ -3171,7 +3171,7 @@ test('Generate code for a template with double $$ (i.e. referencing a Blits plug
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
@@ -3215,6 +3215,383 @@ test('Generate code for a template with double $$ (i.e. referencing a Blits plug
     normalize(actual.effects[0].toString()),
     normalize(expectedEffect1),
     'Generator should return first render function with the correct code'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with verification of dynamic attributes', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        w: '$eWidth',
+        h: '$eHeight',
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
+      const elms = []
+      let componentType
+      const rootComponent = component
+      let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
+
+      function propInComponent(prop, kind = "dynamic") {
+        const property = prop.includes('.') ? prop.split('.')[0] : prop
+        if (kind === 'reactive' || prop.includes('.') === false) {
+          if (property in component === false) {
+            Log.warn('Property ' + property + ' was accessed during render but is not defined on instance')
+          }
+        } else {
+          const nestedKeys = prop.split('.')
+          let base = component
+          for (let i = 0; i < nestedKeys.length; i++) {
+            if (base[nestedKeys[i]] === undefined) {
+              Log.warn('Property ' + nestedKeys.slice(0, i + 1).join('.') + ' was accessed during render but is not defined on instance')
+            }
+            base = base[nestedKeys[i]]
+          }
+        }
+      }
+
+      const elementConfig0 = {}
+
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+
+      propInComponent('eWidth', 'dynamic')
+      elementConfig0['w'] = component.eWidth
+      propInComponent('eHeight', 'dynamic')
+      elementConfig0['h'] = component.eHeight
+
+      elms[0].populate(elementConfig0)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
+
+      return elms
+}
+  `
+  const actual = generator.call(scope, templateObject, true)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with verification of reactive attributes', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        ':w': '$eWidth',
+        ':h': '$eHeight',
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
+      const elms = []
+      let componentType
+      const rootComponent = component
+      let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
+
+      function propInComponent(prop, kind = "dynamic") {
+        const property = prop.includes('.') ? prop.split('.')[0] : prop
+        if (kind === 'reactive' || prop.includes('.') === false) {
+          if (property in component === false) {
+            Log.warn('Property ' + property + ' was accessed during render but is not defined on instance')
+          }
+        } else {
+          const nestedKeys = prop.split('.')
+          let base = component
+          for (let i = 0; i < nestedKeys.length; i++) {
+            if (base[nestedKeys[i]] === undefined) {
+              Log.warn('Property ' + nestedKeys.slice(0, i + 1).join('.') + ' was accessed during render but is not defined on instance')
+            }
+            base = base[nestedKeys[i]]
+          }
+        }
+      }
+
+      const elementConfig0 = {}
+
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+
+      propInComponent('eWidth', 'reactive')
+      elementConfig0['w'] = component.eWidth
+      propInComponent('eHeight', 'reactive')
+      elementConfig0['h'] = component.eHeight
+
+      elms[0].populate(elementConfig0)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
+
+      return elms
+  }
+  `
+  const expectedEffect1 = `
+  function anonymous(component, elms, context, components, rootComponent, effect) {
+    elms[0].set('w', component.eWidth)
+  }
+  `
+
+  const expectedEffect2 = `
+  function anonymous(component, elms, context, components, rootComponent, effect) {
+    elms[0].set('h', component.eHeight)
+ }
+  `
+
+  const actual = generator.call(scope, templateObject, true)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 2,
+    'Generator should return an effects array with 2 item'
+  )
+
+  assert.equal(
+    normalize(actual.effects[0].toString()),
+    normalize(expectedEffect1),
+    'Generator should return an effect function for the reactive eWidth attribute'
+  )
+
+  assert.equal(
+    normalize(actual.effects[1].toString()),
+    normalize(expectedEffect2),
+    'Generator should return an effect function for the reactive eHeight attribute'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with attribute values verified against a nested state object', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        x: '$position.x',
+        y: '$position.y',
+        ':w': '$size.w',
+        ':h': '$size.h',
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
+      const elms = []
+      let componentType
+      const rootComponent = component
+      let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
+
+      function propInComponent(prop, kind = "dynamic") {
+        const property = prop.includes('.') ? prop.split('.')[0] : prop
+        if (kind === 'reactive' || prop.includes('.') === false) {
+          if (property in component === false) {
+            Log.warn('Property ' + property + ' was accessed during render but is not defined on instance')
+          }
+        } else {
+          const nestedKeys = prop.split('.')
+          let base = component
+          for (let i = 0; i < nestedKeys.length; i++) {
+            if (base[nestedKeys[i]] === undefined) {
+              Log.warn('Property ' + nestedKeys.slice(0, i + 1).join('.') + ' was accessed during render but is not defined on instance')
+            }
+            base = base[nestedKeys[i]]
+          }
+        }
+      }
+
+      const elementConfig0 = {}
+
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+
+      propInComponent('position.x', 'dynamic')
+      elementConfig0['x'] = component.position.x
+      propInComponent('position.y', 'dynamic')
+      elementConfig0['y'] = component.position.y
+      propInComponent('size', 'reactive')
+      elementConfig0['w'] = component.size.w
+      propInComponent('size', 'reactive')
+      elementConfig0['h'] = component.size.h
+
+      elms[0].populate(elementConfig0)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
+
+      return elms
+  }
+  `
+  const expectedEffect1 = `
+  function anonymous(component, elms, context, components, rootComponent, effect) {
+    elms[0].set('w', component.size.w)
+  }
+  `
+
+  const expectedEffect2 = `
+  function anonymous(component, elms, context, components, rootComponent, effect) {
+    elms[0].set('h', component.size.h)
+ }
+  `
+
+  const actual = generator.call(scope, templateObject, true)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 2,
+    'Generator should return an effects array with 2 item'
+  )
+
+  assert.equal(
+    normalize(actual.effects[0].toString()),
+    normalize(expectedEffect1),
+    'Generator should return an effect function for the reactive eWidth attribute'
+  )
+
+  assert.equal(
+    normalize(actual.effects[1].toString()),
+    normalize(expectedEffect2),
+    'Generator should return an effect function for the reactive eHeight attribute'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with verification of attributes with Math calculations', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        x: '$position.x * 100',
+        y: '$position.y + 100',
+        ':w': '$size.w * $correction ',
+        ':h': '$size.h + $borderY',
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
+      const elms = []
+      let componentType
+      const rootComponent = component
+      let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
+
+      function propInComponent(prop, kind = "dynamic") {
+        const property = prop.includes('.') ? prop.split('.')[0] : prop
+        if (kind === 'reactive' || prop.includes('.') === false) {
+          if (property in component === false) {
+            Log.warn('Property ' + property + ' was accessed during render but is not defined on instance')
+          }
+        } else {
+          const nestedKeys = prop.split('.')
+          let base = component
+          for (let i = 0; i < nestedKeys.length; i++) {
+            if (base[nestedKeys[i]] === undefined) {
+              Log.warn('Property ' + nestedKeys.slice(0, i + 1).join('.') + ' was accessed during render but is not defined on instance')
+            }
+            base = base[nestedKeys[i]]
+          }
+        }
+      }
+
+      const elementConfig0 = {}
+
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+
+      propInComponent('position.x', 'dynamic')
+      elementConfig0['x'] = component.position.x * 100
+      propInComponent('position.y', 'dynamic')
+      elementConfig0['y'] = component.position.y + 100
+      propInComponent('size', 'reactive')
+      propInComponent('correction', 'reactive')
+      elementConfig0['w'] = component.size.w * component.correction
+      propInComponent('size', 'reactive')
+      propInComponent('borderY', 'reactive')
+      elementConfig0['h'] = component.size.h + component.borderY
+
+      elms[0].populate(elementConfig0)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
+
+      return elms
+  }
+  `
+  const expectedEffect1 = `
+  function anonymous(component, elms, context, components, rootComponent, effect) {
+    elms[0].set('w', component.size.w * component.correction)
+  }
+  `
+
+  const expectedEffect2 = `
+  function anonymous(component, elms, context, components, rootComponent, effect) {
+    elms[0].set('h', component.size.h + component.borderY)
+ }
+  `
+
+  const actual = generator.call(scope, templateObject, true)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 2,
+    'Generator should return an effects array with 2 item'
+  )
+
+  assert.equal(
+    normalize(actual.effects[0].toString()),
+    normalize(expectedEffect1),
+    'Generator should return an effect function for the reactive width attribute'
+  )
+
+  assert.equal(
+    normalize(actual.effects[1].toString()),
+    normalize(expectedEffect2),
+    'Generator should return an effect function for the reactive height attribute'
   )
 
   assert.end()
