@@ -32,7 +32,7 @@ export default function () {
 
       // we should only precompile .blits, .js and .ts files
       if (fileExtension === '.js' || fileExtension === '.ts' || fileExtension === '.blits') {
-        return compiler(source, filePath)
+        return compiler(source, filePath, config.mode)
       }
 
       // vite expects null if there is no modification
