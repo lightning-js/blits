@@ -21,6 +21,7 @@ import eventListeners from '../../lib/eventListeners.js'
 import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
 import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
+import { renderer } from '../../launch.js'
 
 export default {
   focus: {
@@ -149,6 +150,14 @@ export default {
     },
     writable: false,
     enumerable: true,
+    configurable: false,
+  },
+  $setClearColor: {
+    value: function (color) {
+      renderer.setClearColor(color)
+    },
+    writable: false,
+    enumerable: false,
     configurable: false,
   },
 }
