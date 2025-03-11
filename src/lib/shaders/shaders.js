@@ -29,14 +29,16 @@ export default {
 
     if (hasBorder === true && (typeof border === 'object' || isObjectString(border) === true)) {
       border = this.parseProps(border)
+      const borderPrefix = hasRounded === true ? 'border-' : ''
       for (const key in border) {
-        props[`border-${key}`] = border[key]
+        props[borderPrefix + key] = border[key]
       }
     }
     if (hasShadow === true && (typeof shadow === 'object' || isObjectString(shadow) === true)) {
       shadow = this.parseProps(shadow)
-      for (const key in shadow) {
-        props[`shadow-${key}`] = shadow[key]
+      const shadowPrefix = hasRounded === true ? 'shadow-' : ''
+      for (const key in border) {
+        props[shadowPrefix + key] = border[key]
       }
     }
 
@@ -54,15 +56,28 @@ export default {
       props['radius'] = rounded
     }
 
-    let type = 'rounded'
     if (hasBorder === true && hasShadow === true) {
-      type += 'WithBorderAndShadow'
-    } else if (hasBorder) {
-      type += 'WithBorder'
-    } else if (hasShadow) {
-      type += 'WithShadow'
+      return renderer.createShader('roundedWithBorderAndShadow', props)
     }
-    return renderer.createShader(type, props)
+
+    if (hasRounded === true) {
+      if (hasBorder === true) {
+        return renderer.createShader('roundedWithBorder', props)
+      }
+
+      if (hasShadow === true) {
+        return renderer.createShader('roundedWithShadow', props)
+      }
+
+      return renderer.createShader('rounded', props)
+    }
+
+    if (hasRounded === false && hasBorder === true) {
+      return renderer.createShader('border', props)
+    }
+
+    //only possible result left
+    return renderer.createShader('shadow', props)
   },
   parseProp(v) {
     if (typeof v === 'number') {

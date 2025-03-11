@@ -4,6 +4,8 @@ import { renderer } from './launch.js'
 function registerBlitsDefaultShaders(
   shManager,
   Rounded,
+  Border,
+  Shadow,
   RoundedWithBorder,
   RoundedWithShadow,
   RoundedWithBorderAndShadow,
@@ -12,6 +14,8 @@ function registerBlitsDefaultShaders(
   HolePunch
 ) {
   shManager.registerShaderType('rounded', Rounded)
+  shManager.registerShaderType('border', Border)
+  shManager.registerShaderType('shadow', Shadow)
   shManager.registerShaderType('roundedWithBorder', RoundedWithBorder)
   shManager.registerShaderType('roundedWithShadow', RoundedWithShadow)
   shManager.registerShaderType('roundedWithBorderAndShadow', RoundedWithBorderAndShadow)
@@ -33,6 +37,8 @@ export default async () => {
   const renderMode = Settings.get('renderMode', 'webgl')
   const {
     Rounded,
+    Border,
+    Shadow,
     RoundedWithBorder,
     RoundedWithShadow,
     RoundedWithBorderAndShadow,
@@ -44,6 +50,8 @@ export default async () => {
   registerBlitsDefaultShaders(
     stage.shManager,
     Rounded,
+    Border,
+    Shadow,
     RoundedWithBorder,
     RoundedWithShadow,
     RoundedWithBorderAndShadow,
