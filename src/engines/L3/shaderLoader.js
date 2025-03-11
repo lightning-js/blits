@@ -20,52 +20,41 @@ function registerBlitsDefaultShaders(
   shManager.registerShaderType('holePunch', HolePunch)
 }
 
+/**
+ * vite does not like dynamic links, this resolves that issue
+ */
+const shaderModules = {
+  webgl: () => import('@lightningjs/renderer/webgl/shaders'),
+  canvas: () => import('@lightningjs/renderer/canvas/shaders'),
+}
+
 export default async () => {
   const stage = renderer.stage
-  const renderMode = Settings.get('renderMode')
-  if (renderMode !== undefined && renderMode === 'canvas') {
-    const {
-      Rounded,
-      RoundedWithBorder,
-      RoundedWithShadow,
-      RoundedWithBorderAndShadow,
-      RadialGradient,
-      LinearGradient,
-      HolePunch,
-    } = await import('@lightningjs/renderer/canvas/shaders')
-    registerBlitsDefaultShaders(
-      stage.shManager,
-      Rounded,
-      RoundedWithBorder,
-      RoundedWithShadow,
-      RoundedWithBorderAndShadow,
-      RadialGradient,
-      LinearGradient,
-      HolePunch
-    )
-  } else {
-    const {
-      Rounded,
-      RoundedWithBorder,
-      RoundedWithShadow,
-      RoundedWithBorderAndShadow,
-      RadialGradient,
-      LinearGradient,
-      HolePunch,
-    } = await import('@lightningjs/renderer/webgl/shaders')
-    registerBlitsDefaultShaders(
-      stage.shManager,
-      Rounded,
-      RoundedWithBorder,
-      RoundedWithShadow,
-      RoundedWithBorderAndShadow,
-      RadialGradient,
-      LinearGradient,
-      HolePunch
-    )
-  }
+  const renderMode = Settings.get('renderMode', 'webgl')
+  const {
+    Rounded,
+    RoundedWithBorder,
+    RoundedWithShadow,
+    RoundedWithBorderAndShadow,
+    RadialGradient,
+    LinearGradient,
+    HolePunch,
+  } = await shaderModules[renderMode]()
 
-  Settings.get('shaders', []).forEach((shader) => {
-    stage.shManager.registerShaderType(shader.name, shader.type)
-  })
+  registerBlitsDefaultShaders(
+    stage.shManager,
+    Rounded,
+    RoundedWithBorder,
+    RoundedWithShadow,
+    RoundedWithBorderAndShadow,
+    RadialGradient,
+    LinearGradient,
+    HolePunch
+  )
+
+  const shaders = Settings.get('shaders', [])
+  const len = shaders.length
+  for (let i = 0; i < len; i++) {
+    stage.shManager.registerShaderType(shaders[i].name, shaders[i].type)
+  }
 }
