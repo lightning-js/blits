@@ -36,7 +36,7 @@ const decimalToHex = (decimal) => {
 }
 
 export default {
-  normalize: (color = '', defaultColor) => {
+  normalize: (color = '', defaultColor = '0xffffffff') => {
     color = color.toString()
 
     // it is a 0xRRGGBBAA color, return it
@@ -86,9 +86,6 @@ export default {
       console.warn('HSL(A) color format is not supported yet')
       return '0xffffffff'
     }
-    if (defaultColor !== undefined) {
-      return defaultColor
-    }
-    return color
+    return defaultColor
   },
 }

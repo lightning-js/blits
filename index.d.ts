@@ -18,7 +18,7 @@
 // blits file type reference
 /// <reference path="./blits.d.ts" />
 
-import {CoreShaderType, type ShaderEffect as RendererShaderEffect, type WebGlCoreShader} from '@lightningjs/renderer'
+import {CoreShaderType, type ShaderEffect as RendererShaderEffect, type RendererMainSettings} from '@lightningjs/renderer'
 
 declare module '@lightningjs/blits' {
 
