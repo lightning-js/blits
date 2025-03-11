@@ -224,7 +224,7 @@ const Component = (name = required('name'), config = required('config')) => {
 
         pluginInstances[prefixedPluginName] = {
           // instantiate the plugin, passing in provided options
-          value: Object.defineProperties(plugin.plugin.call(plugin.options), shared),
+          value: Object.defineProperties(plugin.plugin(plugin.options), shared),
           writable: false,
           enumerable: true,
           configurable: true,
