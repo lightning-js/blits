@@ -128,7 +128,7 @@ export default Blits.Component('Gold', {
   }
 ```
 
-It is also possible to keep track of the entire progress of a transition. Every frametick during a transition (ideally once every 1.6ms), the renderer reports the progress of the transition. You can hook into this event by specifying a `progress` key on the transition configuration object, with a function to excute.
+It is also possible to keep track of the entire progress of a transition. Every frametick during a transition (ideally once every 16ms), the renderer reports the progress of the transition. You can hook into this event by specifying a `progress` key on the transition configuration object, with a function to excute.
 
 This function is executed _every_ frametick, and receives the current progress and the previous progress as its arguments. The progress is indicated as a value between `0` and `1`, where 0 means start and 1 means finished.
 
