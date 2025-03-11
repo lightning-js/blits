@@ -16,8 +16,9 @@
  */
 
 let counter
+let isDev
 
-export default function (templateObject = { children: [] }) {
+export default function (templateObject = { children: [] }, devMode = false) {
   const ctx = {
     renderCode: [
       'const elms = []',
@@ -33,6 +34,28 @@ export default function (templateObject = { children: [] }) {
   }
 
   counter = -1
+  isDev = devMode
+  if (isDev === true) {
+    ctx.renderCode.push(`
+      function propInComponent(prop, kind="dynamic") {
+        const property = prop.includes('.') ? prop.split('.')[0] : prop
+        if (kind === 'reactive' || prop.includes('.') === false) {
+          if (property in component === false) {
+            Log.warn('Property ' +  property + ' was accessed during render but is not defined on instance')
+          }
+        } else {
+          const nestedKeys = prop.split('.')
+          let base = component
+          for(let i =0; i<nestedKeys.length;i++){
+            if (base[nestedKeys[i]] === undefined) {
+              Log.warn('Property ' +  nestedKeys.slice(0,i+1).join('.') + ' was accessed during render but is not defined on instance')
+            }
+            base = base[nestedKeys[i]]
+          }
+        }
+      }
+    `)
+  }
   generateCode.call(ctx, templateObject)
   ctx.renderCode.push('return elms')
 
@@ -44,6 +67,7 @@ export default function (templateObject = { children: [] }) {
       'components',
       'effect',
       'getRaw',
+      'Log',
       ctx.renderCode.join('\n')
     ),
     effects: ctx.effectsCode.map(
@@ -51,6 +75,31 @@ export default function (templateObject = { children: [] }) {
         new Function('component', 'elms', 'context', 'components', 'rootComponent', 'effect', code)
     ),
     context: ctx.context,
+  }
+}
+
+// This is used to get only variable from expression
+const extractVariables = function (value) {
+  const regEx = /\$\w+(\.\w+)?/g
+  const matches = value.match(regEx)
+  if (matches !== null) {
+    const shaderRegex = /\$shader/
+    return matches.filter((match) => !shaderRegex.test(match))
+  } else {
+    return false
+  }
+}
+
+const verifyVariables = function (value, renderCode, type = 'dynamic') {
+  const variablesToBeVerified = extractVariables(value)
+  if (variablesToBeVerified !== false) {
+    for (let i = 0; i < variablesToBeVerified.length; i++) {
+      let variable = variablesToBeVerified[i]
+      if (type === 'reactive' && variable.includes('.')) {
+        variable = variable.split('.')[0]
+      }
+      renderCode.push(`propInComponent('${variable.replace('$', '')}', '${type}')`)
+    }
   }
 }
 
@@ -105,6 +154,8 @@ const generateElementCode = function (
 
     if (key === 'key') return
 
+    const value = templateObject[key]
+
     if (isReactiveKey(key)) {
       if (options.holder && key === ':color') return
       if (options.holder) {
@@ -121,16 +172,18 @@ const generateElementCode = function (
         )})
           `)
       }
+      // value.includes('.') === false &&
+      if (isDev === true && options.component !== 'scope.' && value.includes('$')) {
+        verifyVariables(value, renderCode, 'reactive')
+      }
       renderCode.push(
-        `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(
-          templateObject[key],
-          options.component
-        )}`
+        `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(value, options.component)}`
       )
     } else {
-      renderCode.push(
-        `elementConfig${counter}['${key}'] = ${cast(templateObject[key], key, options.component)}`
-      )
+      if (isDev === true && options.component !== 'scope.' && value.includes('$')) {
+        verifyVariables(value, renderCode)
+      }
+      renderCode.push(`elementConfig${counter}['${key}'] = ${cast(value, key, options.component)}`)
     }
   })
 
