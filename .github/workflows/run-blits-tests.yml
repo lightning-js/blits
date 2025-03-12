@@ -1,0 +1,69 @@
+name: Run Blits Tests
+
+on:
+  pull_request:
+    branches:
+      - dev
+
+jobs:
+  run-blits-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20.16.0
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Run Tests
+      run: npm run test > test-report.txt
+      #To ensure subsequent steps run even if tests fail
+      continue-on-error: true 
+
+    - name: Get Current Timestamp
+      id: timestamp
+      run: echo "timestamp=$(date)" >> $GITHUB_OUTPUT
+
+    - name: Extract Test Summary
+      id: extracted-test-summary
+      run: |
+        # Search for a line containing both "passed:" and "failed:"
+        summary=$(grep -E "passed:.*failed:" test-report.txt | head -n1)
+        
+        # Extract the number of failed tests
+        failed=$(echo "$summary" | sed -E 's/.*failed:\s*([0-9]+).*/\1/')
+        
+        echo "summary=$summary" >> $GITHUB_OUTPUT
+        
+        # If the number of failed tests is greater than 1, exit with error.
+        if [ "$failed" -gt 1 ]; then
+            exit 1
+        fi
+    
+    - name: Post Test Results as PR Comment
+      if: always()
+      uses: actions/github-script@v6
+      env:
+          SUMMARY: ${{ steps.extracted-test-summary.outputs.summary }}
+          TIMESTAMP: ${{ steps.timestamp.outputs.timestamp }}
+      with:
+        script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `**Test Results Summary:** (Ran at: ${process.env.TIMESTAMP})\n${process.env.SUMMARY}`
+            });
+        
+    - name: Upload Test Report Artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-report
+        path: test-report.txt
