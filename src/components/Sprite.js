@@ -27,7 +27,7 @@ export default () =>
     props: ['image', 'map', 'frame', 'color'],
     state() {
       return {
-        spriteTexture: false,
+        spriteTexture: null,
       }
     },
     computed: {
@@ -37,7 +37,7 @@ export default () =>
             ? Object.assign({}, this.map.defaults || {}, this.map.frames[this.frame])
             : this.map[this.frame]
 
-        if (this.spriteTexture && options) {
+        if (this.spriteTexture !== null && options) {
           return this[symbols.renderer]().createTexture('SubTexture', {
             texture: this.spriteTexture,
             x: options.x,

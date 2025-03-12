@@ -49,9 +49,11 @@ export const track = (target, key, global = false) => {
     if (paused) {
       return
     }
-    if (currentKey !== null && key !== currentKey) {
-      return
-    }
+    // note: nesting the conditions like this seems to perform better ¯\_(ツ)_/¯
+    if (Array.isArray(currentKey) === true) {
+      if (currentKey.includes(key) === false) return
+    } else if (currentKey !== null && key !== currentKey) return
+
     let effectsMap = objectMap.get(target)
     if (!effectsMap) {
       effectsMap = new Map()

@@ -24,13 +24,13 @@ The Text-tag accepts the following attributes:
 - `size`  - the font size, defaults to `32`
 - `color` - the color to display for the text, defaults to `white` and can be any of the supported Blits color formats (HTML, hexadecimal or rgb(a))
 - `letterspacing` - letterspacing in pixels, defaults to `0`
-- `align` - the alignment of the text, can be `left`, `right`, or `center`, defaults to `left`. Centering text and aligning text to the right requires the `wordwrap` attribute to be set as well.
-- `wordwrap` - the max length of a line of text in pixels, words surpassing this length will be broken and wrapped onto the next line. This attribute is required when aligning center or right
+- `align` - the alignment of the text, can be `left`, `right`, or `center`, defaults to `left`. Centering text and aligning text to the right requires the `maxwidth` attribute to be set as well.
+- `maxwidth` - the max length of a line of text in pixels, words surpassing this length will be broken and wrapped onto the next line. This attribute is required when aligning center or right. Previously this attribute was `wordwrap`, which has now been deprecated in favour of `maxwidth`.
 - `maxlines` - maximum number of lines that will be displayed
 - `maxheight` - maximum height of a text block, lines that don't fit within this height will not be displayed
 - `lineheight` - the spacing between lines in pixels
 - `contain` - the strategy for containing text within the bounds, can be `none` (default), `width`, or `both`. In most cases, the value of this attribute will automatically be set by Blits, based on the other specified attributes
-- `textoverflow` - the suffix to be added when text is cropped due to bounds limits, defaults to `...`
+- `textoverflow` - the suffix to be added when text is cropped due to bounds limits, defaults to `...` (see more details [here](#text-overflow))
 
 ## Text dimensions
 
@@ -66,6 +66,14 @@ export default Blits.Component('MyComponent', {
     }
   }
 ```
+
+## Text overflow
+
+The text renderer offers the ability to display a _text overflow suffix_ when the text exceeds the bounds of the Text component.
+
+This functionality is automatically enabled, but requires that both a _horizontal_ boundary (using `maxwidth`) and a _vertical_ boundary (using `maxlines` or `maxheight`) are specified on the Text component.
+
+The `textoverflow`-attribute itself is not required, unless you want to use another suffix than the standard `...`. If you want _no suffix_ (and just a hard cutoff), the`textoverflow`-attribute should be set to `false` or an _empty string_.
 
 ## SDF and Canvas2d
 

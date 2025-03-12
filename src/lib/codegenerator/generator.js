@@ -16,20 +16,46 @@
  */
 
 let counter
+let isDev
 
-export default function (templateObject = { children: [] }) {
+export default function (templateObject = { children: [] }, devMode = false) {
   const ctx = {
     renderCode: [
       'const elms = []',
       'let componentType',
       'const rootComponent = component',
       'let propData',
+      'let slotComponent',
+      'let inSlot = false',
+      'let slotChildCounter = 0',
     ],
     effectsCode: [],
     context: { props: [], components: this.components },
   }
 
   counter = -1
+  isDev = devMode
+  if (isDev === true) {
+    ctx.renderCode.push(`
+      function propInComponent(prop, kind="dynamic") {
+        const property = prop.includes('.') ? prop.split('.')[0] : prop
+        if (kind === 'reactive' || prop.includes('.') === false) {
+          if (property in component === false) {
+            Log.warn('Property ' +  property + ' was accessed during render but is not defined on instance')
+          }
+        } else {
+          const nestedKeys = prop.split('.')
+          let base = component
+          for(let i =0; i<nestedKeys.length;i++){
+            if (base[nestedKeys[i]] === undefined) {
+              Log.warn('Property ' +  nestedKeys.slice(0,i+1).join('.') + ' was accessed during render but is not defined on instance')
+            }
+            base = base[nestedKeys[i]]
+          }
+        }
+      }
+    `)
+  }
   generateCode.call(ctx, templateObject)
   ctx.renderCode.push('return elms')
 
@@ -41,6 +67,7 @@ export default function (templateObject = { children: [] }) {
       'components',
       'effect',
       'getRaw',
+      'Log',
       ctx.renderCode.join('\n')
     ),
     effects: ctx.effectsCode.map(
@@ -48,6 +75,31 @@ export default function (templateObject = { children: [] }) {
         new Function('component', 'elms', 'context', 'components', 'rootComponent', 'effect', code)
     ),
     context: ctx.context,
+  }
+}
+
+// This is used to get only variable from expression
+const extractVariables = function (value) {
+  const regEx = /\$\w+(\.\w+)?/g
+  const matches = value.match(regEx)
+  if (matches !== null) {
+    const shaderRegex = /\$shader/
+    return matches.filter((match) => !shaderRegex.test(match))
+  } else {
+    return false
+  }
+}
+
+const verifyVariables = function (value, renderCode, type = 'dynamic') {
+  const variablesToBeVerified = extractVariables(value)
+  if (variablesToBeVerified !== false) {
+    for (let i = 0; i < variablesToBeVerified.length; i++) {
+      let variable = variablesToBeVerified[i]
+      if (type === 'reactive' && variable.includes('.')) {
+        variable = variable.split('.')[0]
+      }
+      renderCode.push(`propInComponent('${variable.replace('$', '')}', '${type}')`)
+    }
   }
 }
 
@@ -79,7 +131,7 @@ const generateElementCode = function (
   }
 
   renderCode.push(`
-    ${elm} = this.element({parent: parent || 'root'}, component)
+    ${elm} = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
   `)
 
   if (options.forloop) {
@@ -96,11 +148,13 @@ const generateElementCode = function (
   Object.keys(templateObject).forEach((key) => {
     if (key === 'slot') {
       renderCode.push(`
-        elementConfig${counter}['parent'] = component[Symbol.for('slots')].filter(slot => slot.ref === '${templateObject.slot}').shift() || parent
+        elementConfig${counter}['parent'] = component[Symbol.for('slots')] !== undefined && Array.isArray(component[Symbol.for('slots')]) === true && component[Symbol.for('slots')].filter(slot => slot.ref === '${templateObject.slot}').shift() || parent
       `)
     }
 
     if (key === 'key') return
+
+    const value = templateObject[key]
 
     if (isReactiveKey(key)) {
       if (options.holder && key === ':color') return
@@ -118,16 +172,18 @@ const generateElementCode = function (
         )})
           `)
       }
+      // value.includes('.') === false &&
+      if (isDev === true && options.component !== 'scope.' && value.includes('$')) {
+        verifyVariables(value, renderCode, 'reactive')
+      }
       renderCode.push(
-        `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(
-          templateObject[key],
-          options.component
-        )}`
+        `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(value, options.component)}`
       )
     } else {
-      renderCode.push(
-        `elementConfig${counter}['${key}'] = ${cast(templateObject[key], key, options.component)}`
-      )
+      if (isDev === true && options.component !== 'scope.' && value.includes('$')) {
+        verifyVariables(value, renderCode)
+      }
+      renderCode.push(`elementConfig${counter}['${key}'] = ${cast(value, key, options.component)}`)
     }
   })
 
@@ -148,6 +204,12 @@ const generateElementCode = function (
   }
 
   renderCode.push(`${elm}.populate(elementConfig${counter})`)
+
+  renderCode.push(`
+    if(inSlot === true) {
+      slotChildCounter -= 1
+    }
+  `)
 
   if (options.forloop) {
     renderCode.push('}')
@@ -247,7 +309,8 @@ const generateComponentCode = function (
 
     if (${elm}[Symbol.for('slots')][0]) {
       parent = ${elm}[Symbol.for('slots')][0]
-      component = ${elm}
+      slotComponent = ${elm}
+      inSlot = true
     } else {
       parent = ${elm}[Symbol.for('children')][0]
     }
@@ -258,20 +321,32 @@ const generateComponentCode = function (
   }
 
   if (children) {
+    if (!options.forloop) {
+      renderCode.push(`
+        if(inSlot === true) {
+          slotChildCounter = ${children.length}  + 1
+        }
+      `)
+    }
     counter++
     generateElementCode.call(this, { children }, false, { ...options })
   }
-  // if (!options.forloop) {
-  //   renderCode.push(`
-  //     // console.log('here', component, rootComponent)
-  //   component = rootComponent
-  // `)
-  // }
+
+  if (!options.forloop) {
+    renderCode.push(`
+      if (inSlot === true && slotChildCounter === 0) {
+        inSlot = false
+      }
+    `)
+  }
 }
 
 const generateForLoopCode = function (templateObject, parent) {
   const forLoop = templateObject[':for']
   delete templateObject[':for']
+  const range = templateObject['range'] || templateObject[':range'] || '{}'
+  delete templateObject['range']
+  delete templateObject[':range']
 
   const key = templateObject['key']
   const forKey = interpolate(key, 'scope.')
@@ -288,7 +363,7 @@ const generateForLoopCode = function (templateObject, parent) {
   const result = regex.exec(forLoop)
 
   // can be improved with a smarter regex
-  const [item, index = 'index'] = result[1]
+  const [item, index] = result[1]
     .replace('(', '')
     .replace(')', '')
     .split(/\s*,\s*/)
@@ -306,26 +381,47 @@ const generateForLoopCode = function (templateObject, parent) {
     ctx.renderCode.push(`parent = ${parent}`)
   }
 
-  const indexRegex = new RegExp(`\\$${index}(?!['\\w])`)
-  const indexResult = indexRegex.exec(key)
-  if (Array.isArray(indexResult)) {
-    ctx.renderCode.push(
-      `console.warn(" Using '${index}' in the key, like key=${key},  is not recommended")`
-    )
+  // If the index variable is not defined, the key attribute would not reference it.
+  if (index !== undefined) {
+    const indexRegex = new RegExp(`\\$${index}(?!['\\w])`)
+    const indexResult = indexRegex.exec(key)
+    if (Array.isArray(indexResult)) {
+      ctx.renderCode.push(
+        `console.warn(" Using '${index}' in the key, like key=${key},  is not recommended")`
+      )
+    }
   }
 
   const forStartCounter = counter
 
   ctx.renderCode.push(`
     const created${forStartCounter} = []
+
+    let from${forStartCounter}
+    let to${forStartCounter}
+
     const forloop${forStartCounter} = (collection = [], elms, created) => {
       const rawCollection = getRaw(collection)
       const keys = new Set()
       let l = rawCollection.length
+
+      const range = ${interpolate(range)} || {}
+      from${forStartCounter} = range['from'] || 0
+      to${forStartCounter} = 'to' in range ? range['to'] : rawCollection.length
+
       while(l--) {
         const ${item} = rawCollection[l]
+  `)
+  // push reference of index variable
+  if (index !== undefined) {
+    ctx.renderCode.push(`
         const ${index} = l
-        keys.add('' +  ${interpolate(key, '') || 'l'})
+    `)
+  }
+  ctx.renderCode.push(`
+        if(l < to${forStartCounter} && l >= from${forStartCounter}) {
+          keys.add('' +  ${interpolate(key, '') || 'l'})
+        }
       }
   `)
 
@@ -339,10 +435,18 @@ const generateForLoopCode = function (templateObject, parent) {
       const length = rawCollection.length
       const effects = []
       for(let __index = 0; __index < length; __index++) {
+        if(__index < from${forStartCounter} || __index >= to${forStartCounter}) continue
         const scope = Object.create(component)
         parent = ${parent}
-        scope['${index}'] = __index
         scope['${item}'] = rawCollection[__index]
+  `)
+  // If the index variable is declared, include it in the scope object
+  if (index !== '') {
+    ctx.renderCode.push(`
+        scope['${index}'] = __index
+    `)
+  }
+  ctx.renderCode.push(`
         scope['key'] = '' + ${forKey || '__index'}
   `)
   if ('ref' in templateObject && templateObject.ref.indexOf('$') === -1) {
@@ -452,6 +556,10 @@ const generateForLoopCode = function (templateObject, parent) {
     effectKey = effectKey.match(/[^.]+$/)[0]
   }
 
+  // get the reference to range from and to
+  const effectKeysRegex = /\$([^,} ]+)/g
+  const effectKeys = [...range.matchAll(effectKeysRegex)].map((match) => `'${match[1]}'`)
+
   ctx.renderCode.push(`
     let forEffects${forStartCounter}
     effect(() => {
@@ -461,7 +569,7 @@ const generateForLoopCode = function (templateObject, parent) {
     result[2],
     ':for'
   )}, elms, created${forStartCounter})
-    }, '${effectKey}' )
+    }, ['${effectKey}', ${effectKeys.join(',')}] )
   `)
 
   outerScopeEffects.forEach((effect) => {
@@ -484,6 +592,7 @@ const generateForLoopCode = function (templateObject, parent) {
       effect(() => {
         void ${refs.join(', ')}
         for(let __index = 0; __index < ${interpolate(result[2])}.length; __index++) {
+          if(__index < from${forStartCounter} || __index >= to${forStartCounter}) continue
           const scope = {}
           scope['${index}'] = __index
           scope['${item}'] = ${interpolate(result[2])}[__index]

@@ -23,9 +23,11 @@ import announcer from './announcer.js'
 import utils from './utils.js'
 import symbols from '../../lib/symbols.js'
 
+export const shared = { ...events, ...router, ...announcer }
+
 export default Object.defineProperties(
   {
     [symbols['launched']]: false,
   },
-  { ...methods, ...scheduling, ...events, ...router, ...announcer, ...utils }
+  { ...methods, ...scheduling, ...shared, ...utils }
 )

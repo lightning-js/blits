@@ -1,5 +1,141 @@
 # Changelog
 
+## v1.22.0
+
+_3 mar 2025_
+
+- Added default value for `createImageBitmapSupport` to `auto`
+- Added advanced launch settings
+
+## v1.21.1
+
+_28 feb 2025_
+
+- Changed gpuMemory launch settings to be optional in type definitions
+
+## v1.21.0
+
+_27 feb 2025_
+
+- Added functionality for keeping query params when navigating back in the router
+- Exposed more info in reactive router state
+- Added `range`-attribute to for-loop
+- Fixed issue when setting `alpha` to truthy or false values
+- Upgraded to renderer v2.13.0
+
+## v1.20.1
+
+_14 feb 2025_
+
+- Added error message when root element in template contains a `:for`-attribute
+- Added workaround fix for shader caching issue
+- Upgraded to renderer v2.12.1
+
+## v1.20.0
+
+_12 feb 2025_
+
+- Improved attribute definitions used for autocompletion in VScode extension
+- Fixed calculation of `align-items` in Layout component
+- Fixed issue with sorting reactive arrays
+- Upgraded to renderer v2.12.0
+
+## v1.19.1
+
+_3 feb 2025_
+
+- Removed left-over console.log
+- Upgraded to renderer v2.11.1
+- Fixed issues with wrongly pre-compiling `template` key of non-blits related objects
+
+## v1.19.0
+
+_31 jan 2025_
+
+- Fixed `show`-attribute when an `alpha`-attribute is also present
+- Added `inspector-data`-attribute to help with automated testing based on the Lightning inspector
+- Added reactivity to Route changes (`this.$router.state.path` and `this.$router.state.navigating`)
+- Added `renderQuality` launch setting
+
+## v1.18.1
+
+_27 jan 2025_
+
+- Fixed issue with navigating back to a router page with `keepalive=true`
+
+## v1.18.0
+
+_27 jan 2025_
+
+- Added backtracking functionality to the Router
+- Upgraded to latest version of the renderer (2.10.0)
+- Changed setting `textureProcessingLimit` to `textureProcessingTimeLimit`
+
+
+## v1.17.1
+
+_24 jan 2025_
+
+- Fixed issue in sprite
+
+## v1.17.0
+
+_24 jan 2025_
+
+- Deprecated `wordwrap`-attribute on Text component in favour of `maxwidth`
+- Added documentation about text overflow
+- Upgraded renderer to v2.9.1 and added `canvas` and `textureProcessingLimit` launch options
+
+## v1.16.2
+
+_21 jan 2025_
+
+- Upgraded to latest version of MSDF font generator, with fix for missing presets
+
+
+## v1.16.1
+
+_17 jan 2025_
+
+- Fixed issue in certain browsers caused by route query params functionality (and optimized for performance)
+
+
+## v1.16.0
+
+_16 jan 2025_
+
+- Fixed issue with component scope in Slots
+- Fixed issue with sprites (regression since v1.14.0)
+- Changed reactive state to only make plain objects reactive, and return custom Classes, Blits components, Renderer texture etc in raw form
+
+## v1.15.0
+
+_14 jan 2025_
+
+- Added `placement`-attribute for easily aligning Elements to predefined locations (i.e. `center`, `right`, `middle`, `bottom`)
+- Removed automatic injection of `index` variable into forloop-scope to prevent unexpected naming collisions
+
+
+## v1.14.1
+
+_8 jan 2025_
+
+- Fixed `undefined`-error with intercept method, when no input object is specified on root App component
+
+
+## v1.14.0
+
+_6 jan 2025_
+
+- Added ability to deregister listeners (`this.$unlisten()`)
+- Added autosize to images without `w` and `h` attributes
+- Fixed cleanup of transitions and end-callbacks when Elements are destroyed
+- Added support for reactively updating an entire object (instead of having to update each object key individually)
+- Added `this.$size()` method to set the dimensions of a Component
+- Added `intercept` input method to handle key presses before they reach the currently focused Component
+- Added support for query-parameters in routes (in addition to regular query params)
+
+
 ## v1.13.1
 
 _9 dec 2024_
@@ -56,7 +192,7 @@ _8 nov 2024_
 - Fixed issue with watching nested state variables and global state
 - Upgraded to renderer 2.6.2
 - Fixed issue with white background for Elements with falsy src attribute
-- Fixed issue with calling focus on component that already is focussed
+- Fixed issue with calling focus on component that already is focused
 
 
 ## v1.9.2

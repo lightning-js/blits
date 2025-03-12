@@ -16,6 +16,7 @@
  */
 
 import { default as fadeInFadeOutTransition } from './transitions/fadeInOut.js'
+import { reactive } from '../lib/reactivity/reactive.js'
 
 import symbols from '../lib/symbols.js'
 import { Log } from '../lib/log.js'
@@ -24,9 +25,17 @@ import Focus from '../focus.js'
 import Announcer from '../announcer/announcer.js'
 
 export let currentRoute
-export let navigating = false
+export const state = reactive({
+  path: '',
+  navigating: false,
+  data: null,
+  params: null,
+  hash: '',
+})
 
-const cacheMap = new WeakMap()
+// Changed from WeakMap to Map to allow for caching of views by the url hash.
+// We are manually doing the cleanup of the cache when the route is not marked as keepAlive.
+const cacheMap = new Map()
 const history = []
 
 let overrideOptions = {}
@@ -35,7 +44,12 @@ let navigatingBack = false
 let previousFocus
 
 export const getHash = () => {
-  return (document.location.hash || '/').replace(/^#/, '')
+  const hashParts = (document.location.hash || '/').replace(/^#/, '').split('?')
+  return {
+    path: hashParts[0],
+    queryParams: new URLSearchParams(hashParts[1]),
+    hash: document.location.hash,
+  }
 }
 
 const normalizePath = (path) => {
@@ -103,18 +117,24 @@ export const matchHash = (path, routes = []) => {
     if (!matchingRoute.data) {
       matchingRoute.data = {}
     }
-    currentRoute = matchingRoute
   }
 
   return matchingRoute
 }
 
 export const navigate = async function () {
-  navigating = true
+  state.navigating = true
   if (this.parent[symbols.routes]) {
-    const previousRoute = currentRoute
-    const hash = getHash()
-    let route = matchHash(hash, this.parent[symbols.routes])
+    let previousRoute = currentRoute ? Object.assign({}, currentRoute) : undefined
+    const { hash, path, queryParams } = getHash()
+    let route = matchHash(path, this.parent[symbols.routes])
+
+    // Adding the location hash to the route if it exists.
+    if (hash !== null) {
+      route.hash = hash
+    }
+
+    currentRoute = route
     if (route) {
       let beforeAllResult
       if (this.parent[symbols.routerHooks]) {
@@ -158,7 +178,8 @@ export const navigate = async function () {
       }
 
       let holder
-      let { view, focus } = cacheMap.get(route) || {}
+      let routeData
+      let { view, focus } = cacheMap.get(route.hash) || {}
 
       if (!view) {
         // create a holder element for the new view
@@ -166,8 +187,25 @@ export const navigate = async function () {
         holder.populate({})
         holder.set('w', '100%')
         holder.set('h', '100%')
+
+        const queryParamsData = {}
+        const queryParamsEntries = [...queryParams.entries()]
+        for (let i = 0; i < queryParamsEntries.length; i++) {
+          queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
+        }
+
+        routeData = {
+          ...navigationData,
+          ...route.data,
+          ...queryParamsData,
+        }
+
         // merge props with potential route params, navigation data and route data to be injected into the component instance
-        const props = { ...this[symbols.props], ...route.params, ...navigationData, ...route.data }
+        const props = {
+          ...this[symbols.props],
+          ...route.params,
+          ...routeData,
+        }
 
         view = await route.component({ props }, holder, this)
         if (view[Symbol.toStringTag] === 'Module') {
@@ -232,7 +270,14 @@ export const navigate = async function () {
         if (oldView) {
           removeView(previousRoute, oldView, route.transition.out)
         }
+
+        previousRoute = undefined
       }
+
+      state.path = route.path
+      state.params = route.params
+      state.hash = hash
+      state.data = routeData
 
       // apply in transition
       if (route.transition.in) {
@@ -265,7 +310,7 @@ export const navigate = async function () {
 
   // reset navigating indicators
   navigatingBack = false
-  navigating = false
+  state.navigating = false
 }
 
 const removeView = async (route, view, transition) => {
@@ -283,9 +328,15 @@ const removeView = async (route, view, transition) => {
   }
 
   // cache the page when it's as 'keepAlive' instead of destroying
-  if (route.options && route.options.keepAlive === true) {
-    cacheMap.set(route, { view: view, focus: previousFocus })
-  } else {
+  if (route.options && route.options.keepAlive === true && navigatingBack === false) {
+    cacheMap.set(route.hash, { view: view, focus: previousFocus })
+  } else if (navigatingBack === true) {
+    // remove the previous route from the cache when navigating back
+    // cacheMap.delete will not throw an error if the route is not in the cache
+    cacheMap.delete(route.hash)
+  }
+
+  if (route.options && route.options.keepAlive === false) {
     view.destroy()
     view = null
   }
@@ -314,25 +365,53 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
 export const to = (location, data = {}, options = {}) => {
   navigationData = data
   overrideOptions = options
-  window.location.hash = `#${location}`
+
+  window.location.hash = location
 }
 
-export const back = () => {
+export const back = function () {
   const route = history.pop()
-  if (route) {
+  if (route && currentRoute !== route) {
     // set indicator that we are navigating back (to prevent adding page to history stack)
     navigatingBack = true
-    let targetRoutePath = route.path
-    if (targetRoutePath.indexOf(':') > -1) {
-      Object.keys(route.params).forEach((item) => {
-        targetRoutePath = targetRoutePath.replace(`:${item}`, route.params[item])
-      })
-    }
-    to(targetRoutePath)
+
+    to(route.hash, route.data, route.options)
     return true
-  } else {
+  }
+
+  const backtrack = (currentRoute && currentRoute.options.backtrack) || false
+
+  // If we deeplink to a page without backtrack
+  // we we let the RouterView handle back
+  if (backtrack === false) {
     return false
   }
+
+  const hashEnd = /(\/:?[\w%\s-]+)$/
+  let path = currentRoute.path
+
+  let level = path.split('/').length
+
+  // On root return
+  if (level <= 1) {
+    return false
+  }
+
+  while (level--) {
+    if (!hashEnd.test(path)) {
+      return false
+    }
+    // Construct new path to backtrack to
+    path = path.replace(hashEnd, '')
+    const route = matchHash(path, this.parent[symbols.routes])
+
+    if (route && backtrack) {
+      to(route.path)
+      return true
+    }
+  }
+
+  return false
 }
 
 export default {

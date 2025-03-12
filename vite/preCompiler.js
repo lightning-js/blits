@@ -30,12 +30,13 @@ export default function () {
 
       const fileExtension = path.extname(filePath)
 
-      // we should only precompile .js and .ts files
-      if (fileExtension === '.js' || fileExtension === '.ts') {
-        return compiler(source, filePath)
+      // we should only precompile .blits, .js and .ts files
+      if (fileExtension === '.js' || fileExtension === '.ts' || fileExtension === '.blits') {
+        return compiler(source, filePath, config.mode)
       }
-      const relativePath = path.relative(process.cwd(), filePath)
-      return compiler(source, relativePath)
+
+      // vite expects null if there is no modification
+      return null
     },
   }
 }

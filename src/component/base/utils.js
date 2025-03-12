@@ -20,6 +20,15 @@ import symbols from '../../lib/symbols.js'
 import { renderer } from '../../launch.js'
 
 export default {
+  $size: {
+    value: function (dimensions = { w: 0, h: 0 }) {
+      this[symbols.holder].set('w', dimensions.w || 0)
+      this[symbols.holder].set('h', dimensions.h || 0)
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
   [symbols.renderer]: {
     value: () => renderer,
     writable: false,

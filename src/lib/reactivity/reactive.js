@@ -15,7 +15,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ImageTexture, Texture } from '@lightningjs/renderer'
 import { track, trigger, pauseTracking, resumeTracking } from './effect.js'
 import symbols from '../symbols.js'
 import deepEqualArray from '../../helpers/deepEqualArray.js'
@@ -30,14 +29,15 @@ export const getRaw = (value) => {
 }
 
 const reactiveProxy = (original, _parent = null, _key, global) => {
-  // don't create a proxy when a Blits component or an Image Texture
-  // is assigned to a state variable
-  if (typeof original === 'object') {
-    if (original[symbols.id] !== undefined) return original
-    if (original.constructor.name === ImageTexture.name) return original
-    if (original.txManager !== undefined) return original
+  // only create a proxy for plain objects. Other classes, Blits components, renderer textures etc
+  // are returned unmodified and will not become reactive
+  if (
+    typeof original === 'object' &&
+    Array.isArray(original) === false &&
+    Object.getPrototypeOf(original) !== Object.prototype
+  ) {
+    return original
   }
-
   // if original object is already a proxy, don't create a new one but return the existing one instead
   const existingProxy = proxyMap.get(original)
   if (existingProxy !== undefined) {
@@ -101,13 +101,28 @@ const reactiveProxy = (original, _parent = null, _key, global) => {
       const rawValue = getRaw(value)
 
       let result = true
-      const isEqual =
-        Array.isArray(rawValue) === true
-          ? deepEqualArray(oldRawValue, rawValue)
-          : oldRawValue === rawValue
+      let isEqual = false
+
+      // We need to check that the oldRawValue is also an array before we do the deep equal check
+      if (Array.isArray(rawValue) === true && Array.isArray(oldRawValue) === true) {
+        isEqual = deepEqualArray(oldRawValue, rawValue)
+      } else if (oldRawValue === rawValue) {
+        isEqual = true
+      }
 
       if (isEqual === false) {
-        if (Array.isArray(value) === true) value = getRaw(value).slice(0)
+        if (typeof value === 'object') {
+          if (Array.isArray(value) === true) {
+            value = getRaw(value).slice(0)
+          } else if (
+            target[key] !== null &&
+            target[key] !== undefined &&
+            Array.isArray(target) === false &&
+            Object.getPrototypeOf(value) === Object.prototype
+          ) {
+            value = Object.assign(receiver[key], value)
+          }
+        }
         result = Reflect.set(target, key, value, receiver)
       }
 

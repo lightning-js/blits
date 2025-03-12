@@ -80,11 +80,14 @@ test('The contex key is an object', (assert) => {
 
 test('Generate render and effect code for an empty template', (assert) => {
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       return elms
   }
   `
@@ -113,14 +116,20 @@ test('Generate render and effect code for a template with a single simple elemen
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elms[0].populate(elementConfig0)
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
       return elms
   }
   `
@@ -154,18 +163,27 @@ test('Generate code for a template with a simple element and a simple nested ele
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elms[0].populate(elementConfig0)
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
       parent = elms[0]
       const elementConfig1 = {}
-      elms[1] = this.element({ parent: parent || 'root' }, component)
+      elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elms[1].populate(elementConfig1)
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
       return elms
   }
   `
@@ -196,17 +214,23 @@ test('Generate code for a template with a single element with attributes', (asse
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
 
       elementConfig0['x'] = 10
       elementConfig0['y'] = 20
       elms[0].populate(elementConfig0)
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
       return elms
   }
   `
@@ -237,16 +261,23 @@ test('Generate code for a template with a single element with attributes with a 
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig0['one'] = true
       elementConfig0['two'] = false
       elms[0].populate(elementConfig0)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
       return elms
   }
   `
@@ -284,26 +315,36 @@ test('Generate code for a template with attributes and a nested element with att
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig0['x'] = 10
       elementConfig0['y'] = 20
       elms[0].populate(elementConfig0)
 
-      parent = elms[0]
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
+      parent = elms[0]
       const elementConfig1 = {}
 
-      elms[1] = this.element({ parent: parent || 'root' }, component)
+      elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig1['w'] = 100
       elementConfig1['h'] = 300
       elms[1].populate(elementConfig1)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
   }
@@ -349,37 +390,50 @@ test('Generate code for a template with attributes and 2 nested elements with at
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig0['x'] = 10
       elementConfig0['y'] = 20
       elms[0].populate(elementConfig0)
 
-      parent = elms[0]
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
+      parent = elms[0]
       const elementConfig1 = {}
 
-      elms[1] = this.element({ parent: parent || 'root' }, component)
+      elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig1['w'] = 100
       elementConfig1['h'] = 300
       elementConfig1['x'] = 0
       elms[1].populate(elementConfig1)
 
-      parent = elms[0]
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
+      parent = elms[0]
       const elementConfig2 = {}
 
-      elms[2] = this.element({ parent: parent || 'root' }, component)
+      elms[2] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig2['w'] = 100
       elementConfig2['h'] = 300
       elementConfig2['x'] = 50
       elms[2].populate(elementConfig2)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
   }
@@ -435,54 +489,72 @@ test('Generate code for a template with attributes and deep nested elements with
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig0['x'] = 10
       elementConfig0['y'] = 20
       elms[0].populate(elementConfig0)
 
-      parent = elms[0]
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
+      parent = elms[0]
       const elementConfig1 = {}
 
-      elms[1] = this.element({ parent: parent || 'root' }, component)
+      elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig1['w'] = 100
       elementConfig1['h'] = 300
       elementConfig1['x'] = 0
       elms[1].populate(elementConfig1)
 
-      parent = elms[0]
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
+      parent = elms[0]
       const elementConfig2 = {}
 
-      elms[2] = this.element({ parent: parent || 'root' }, component)
+      elms[2] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig2['w'] = 100
       elementConfig2['h'] = 300
       elementConfig2['x'] = 50
       elms[2].populate(elementConfig2)
 
-      parent = elms[2]
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
+      parent = elms[2]
       const elementConfig3 = {}
 
-      elms[3] = this.element({ parent: parent || 'root' }, component)
+      elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig3['label'] = "Hello"
       elms[3].populate(elementConfig3)
 
-      parent = elms[2]
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
+      parent = elms[2]
       const elementConfig4 = {}
 
-      elms[4] = this.element({ parent: parent || 'root' }, component)
+      elms[4] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig4['label'] = "World"
       elms[4].populate(elementConfig4)
 
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
       return elms
   }
   `
@@ -516,20 +588,29 @@ test('Generate code for a template with simple dynamic attributes', (assert) => 
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element( { parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+
       elementConfig0['x'] = 10
       elementConfig0['y'] = 20
       elementConfig0['w'] = component.foo
       elementConfig0['h'] = component.test
       elementConfig0['test'] = "ok"
+
       elms[0].populate(elementConfig0)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
   }
@@ -585,18 +666,24 @@ test('Generate code for a template with an attribute with a dash', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig0['my-Attribute'] = "doesitwork?"
       elementConfig0['x'] = 10
       elementConfig0['y'] = 20
       elms[0].populate(elementConfig0)
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
   }
@@ -630,18 +717,24 @@ test('Generate code for a template with dynamic attributes with code to be evalu
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig0['attribute1'] = component.foo * 2
       elementConfig0['attribute2'] = component.ok ? 'Yes' : 'No'
       elementConfig0['attribute3'] = component.text.split('').reverse().join('')
       elms[0].populate(elementConfig0)
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
   }
@@ -708,18 +801,24 @@ test('Generate code for a template with attribute (object)', (assert) => {
   }
 
   const expectedRender = `
-    function anonymous(parent,component,context,components,effect,getRaw) {
+    function anonymous(parent,component,context,components,effect,getRaw,Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({parent: parent || 'root'}, component)
+      elms[0] = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
       elementConfig0['w'] = 100
       elementConfig0['h'] = 100
       elementConfig0['color'] = "{top: 0xff0000ff, bottom: 0x008000ff, left: 0xffff00ff}"
       elms[0].populate(elementConfig0)
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
     }
@@ -752,18 +851,24 @@ test('Generate code for a template with dynamic attribute (object)', (assert) =>
   }
 
   const expectedRender = `
-    function anonymous(parent,component,context,components,effect,getRaw) {
+    function anonymous(parent,component,context,components,effect,getRaw,Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({parent: parent || 'root'}, component)
+      elms[0] = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
       elementConfig0['w'] = 100
       elementConfig0['h'] = 100
       elementConfig0['color'] =  { top: component.colorT, bottom: component.colorB, left: component.colorL }
       elms[0].populate(elementConfig0)
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
     }
@@ -797,18 +902,24 @@ test('Generate code for a template with attribute (object) with mixed dynamic & 
   }
 
   const expectedRender = `
-    function anonymous(parent,component,context,components,effect,getRaw) {
+    function anonymous(parent,component,context,components,effect,getRaw,Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({parent: parent || 'root'}, component)
+      elms[0] = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
       elementConfig0['w'] = 100
       elementConfig0['h'] = 100
       elementConfig0['color'] =  { top: 0xff0000ff, bottom: component.colorB, left: component.colorL }
       elms[0].populate(elementConfig0)
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
     }
@@ -842,18 +953,24 @@ test('Generate code for a template with @-listeners', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw,Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig0['src'] = "myImage.png"
       elementConfig0['@loaded'] = component['loadedCallback'] && component['loadedCallback'].bind(component)
       elementConfig0['@error'] = component['errorCallback'] && component['errorCallback'].bind(component)
       elms[0].populate(elementConfig0)
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
   }
@@ -897,21 +1014,27 @@ test('Generate code for a template with custom components', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
     let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
     const elementConfig0 = {}
 
-    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elms[0].populate(elementConfig0)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
 
     const cmp1 = (context.components && context.components['Poster']) || components['Poster']
     parent = elms[0]
     const elementConfig1 = {}
 
-    elms[1] = this.element({ parent: parent || 'root' }, component)
+    elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     const skip1 = []
 
     if (typeof cmp1 !== 'undefined') {
@@ -922,8 +1045,11 @@ test('Generate code for a template with custom components', (assert) => {
     }
 
     elms[1].populate(elementConfig1)
-    parent = elms[1]
 
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+    parent = elms[1]
     const props2 = {}
     componentType = props2['is'] || 'Poster'
     let component2
@@ -941,16 +1067,20 @@ test('Generate code for a template with custom components', (assert) => {
 
     if (elms[2][Symbol.for('slots')][0]) {
         parent = elms[2][Symbol.for('slots')][0]
-        component = elms[2]
+        slotComponent = elms[2]
+        inSlot = true
     } else {
         parent = elms[2][Symbol.for('children')][0]
+    }
+    if (inSlot === true && slotChildCounter === 0) {
+      inSlot = false
     }
 
     const cmp3 = (context.components && context.components['Poster']) || components['Poster']
     parent = elms[0]
     const elementConfig3 = {}
 
-    elms[3] = this.element({ parent: parent || 'root' }, component)
+    elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     const skip3 = []
 
     if (typeof cmp3 !== 'undefined') {
@@ -961,8 +1091,11 @@ test('Generate code for a template with custom components', (assert) => {
     }
 
     elms[3].populate(elementConfig3)
-    parent = elms[3]
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
 
+    parent = elms[3]
     const props4 = {}
     componentType = props4['is'] || 'Poster'
     let component4
@@ -980,14 +1113,18 @@ test('Generate code for a template with custom components', (assert) => {
 
     if (elms[4][Symbol.for('slots')][0]) {
         parent = elms[4][Symbol.for('slots')][0]
-        component = elms[4]
+        slotComponent = elms[4]
+        inSlot = true
     } else {
         parent = elms[4][Symbol.for('children')][0]
     }
 
+    if (inSlot === true && slotChildCounter === 0) {
+      inSlot = false
+    }
+
     return elms
 }
-
   `
 
   const actual = generator.call(scope, templateObject)
@@ -1029,18 +1166,25 @@ test('Generate code for a template with an unregistered custom component', (asse
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
     let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
     const elementConfig0 = {}
-    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elms[0].populate(elementConfig0)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     const cmp1 = (context.components && context.components['Poster']) || components['Poster']
     parent = elms[0]
     const elementConfig1 = {}
-    elms[1] = this.element({ parent: parent || 'root' }, component)
+    elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     const skip1 = []
     if (typeof cmp1 !== 'undefined') {
         for (let key in cmp1.config.props) {
@@ -1049,6 +1193,9 @@ test('Generate code for a template with an unregistered custom component', (asse
         }
     }
     elms[1].populate(elementConfig1)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
     parent = elms[1]
     const props2 = {}
     componentType = props2['is'] || 'Poster'
@@ -1064,14 +1211,20 @@ test('Generate code for a template with an unregistered custom component', (asse
     elms[2] = component2.call(null, { props: props2 }, elms[1], component)
     if (elms[2][Symbol.for('slots')][0]) {
         parent = elms[2][Symbol.for('slots')][0]
-        component = elms[2]
+        slotComponent = elms[2]
+        inSlot = true
     } else {
         parent = elms[2][Symbol.for('children')][0]
     }
+
+    if (inSlot === true && slotChildCounter === 0) {
+      inSlot = false
+    }
+
     const cmp3 = (context.components && context.components['Poster2']) || components['Poster2']
     parent = elms[0]
     const elementConfig3 = {}
-    elms[3] = this.element({ parent: parent || 'root' }, component)
+    elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     const skip3 = []
     if (typeof cmp3 !== 'undefined') {
         for (let key in cmp3.config.props) {
@@ -1080,6 +1233,9 @@ test('Generate code for a template with an unregistered custom component', (asse
         }
     }
     elms[3].populate(elementConfig3)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
     parent = elms[3]
     const props4 = {}
     componentType = props4['is'] || 'Poster2'
@@ -1095,10 +1251,16 @@ test('Generate code for a template with an unregistered custom component', (asse
     elms[4] = component4.call(null, { props: props4 }, elms[3], component)
     if (elms[4][Symbol.for('slots')][0]) {
         parent = elms[4][Symbol.for('slots')][0]
-        component = elms[4]
+        slotComponent = elms[4]
+        inSlot = true
     } else {
         parent = elms[4][Symbol.for('children')][0]
     }
+
+    if (inSlot === true && slotChildCounter === 0) {
+      inSlot = false
+    }
+
     return elms
   }
   `
@@ -1145,18 +1307,25 @@ test('Generate code for a template with custom components with arguments', (asse
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
     let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
     const elementConfig0 = {}
-    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elms[0].populate(elementConfig0)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     const cmp1 = (context.components && context.components['Poster']) || components['Poster']
     parent = elms[0]
     const elementConfig1 = {}
-    elms[1] = this.element({ parent: parent || 'root' }, component)
+    elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elementConfig1['x'] = 10
     const skip1 = []
     if (typeof cmp1 !== 'undefined') {
@@ -1166,6 +1335,10 @@ test('Generate code for a template with custom components with arguments', (asse
         }
     }
     elms[1].populate(elementConfig1)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     parent = elms[1]
     const props2 = {}
     props2['x'] = 10
@@ -1182,14 +1355,19 @@ test('Generate code for a template with custom components with arguments', (asse
     elms[2] = component2.call(null, { props: props2 }, elms[1], component)
     if (elms[2][Symbol.for('slots')][0]) {
         parent = elms[2][Symbol.for('slots')][0]
-        component = elms[2]
+        slotComponent = elms[2]
+        inSlot = true
     } else {
         parent = elms[2][Symbol.for('children')][0]
+    }
+
+    if (inSlot === true && slotChildCounter === 0) {
+      inSlot = false
     }
     const cmp3 = (context.components && context.components['Poster']) || components['Poster']
     parent = elms[0]
     const elementConfig3 = {}
-    elms[3] = this.element({ parent: parent || 'root' }, component)
+    elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elementConfig3['x'] = 100
     elementConfig3['img'] = component.img
     const skip3 = []
@@ -1200,6 +1378,9 @@ test('Generate code for a template with custom components with arguments', (asse
         }
     }
     elms[3].populate(elementConfig3)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
     parent = elms[3]
     const props4 = {}
     props4['x'] = 100
@@ -1217,10 +1398,16 @@ test('Generate code for a template with custom components with arguments', (asse
     elms[4] = component4.call(null, { props: props4 }, elms[3], component)
     if (elms[4][Symbol.for('slots')][0]) {
         parent = elms[4][Symbol.for('slots')][0]
-        component = elms[4]
+        slotComponent = elms[4]
+        inSlot = true
     } else {
         parent = elms[4][Symbol.for('children')][0]
     }
+
+    if (inSlot === true && slotChildCounter === 0) {
+      inSlot = false
+    }
+
     return elms
   }
   `
@@ -1268,18 +1455,25 @@ test('Generate code for a template with custom components with reactive props', 
   }
 
   const expectedRender = `
-  function anonymous(parent,component,context,components,effect,getRaw) {
+  function anonymous(parent,component,context,components,effect,getRaw,Log) {
     const elms = []
     let componentType
     const rootComponent = component
     let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
     const elementConfig0 = {}
-    elms[0] = this.element({parent: parent || 'root'}, component)
+    elms[0] = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
     elms[0].populate(elementConfig0)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     const cmp1 = (context.components && context.components['Poster']) || components['Poster']
     parent = elms[0]
     const elementConfig1 = {}
-    elms[1] = this.element({parent: parent || 'root'}, component)
+    elms[1] = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
     elementConfig1['x'] = 10
     elementConfig1['img'] = component.image
     const skip1 = []
@@ -1290,6 +1484,10 @@ test('Generate code for a template with custom components with reactive props', 
       }
     }
     elms[1].populate(elementConfig1)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     parent = elms[1]
     const props2 = {}
     props2['x'] = 10
@@ -1311,14 +1509,20 @@ test('Generate code for a template with custom components with reactive props', 
     elms[2] = component2.call(null, {props: props2}, elms[1], component)
     if (elms[2][Symbol.for('slots')][0]) {
       parent = elms[2][Symbol.for('slots')][0]
-      component = elms[2]
+      slotComponent = elms[2]
+      inSlot = true
     } else {
       parent = elms[2][Symbol.for('children')][0]
     }
+
+    if (inSlot === true && slotChildCounter === 0) {
+      inSlot = false
+    }
+
     const cmp3 = (context.components && context.components['Poster']) || components['Poster']
     parent = elms[0]
     const elementConfig3 = {}
-    elms[3] = this.element({parent: parent || 'root'}, component)
+    elms[3] = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
     elementConfig3['x'] = 100
     elementConfig3['img'] = component.image
     const skip3 = []
@@ -1329,6 +1533,10 @@ test('Generate code for a template with custom components with reactive props', 
       }
     }
     elms[3].populate(elementConfig3)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     parent = elms[3]
     const props4 = {}
     props4['x'] = 100
@@ -1350,10 +1558,16 @@ test('Generate code for a template with custom components with reactive props', 
     elms[4] = component4.call(null, {props: props4}, elms[3], component)
     if (elms[4][Symbol.for('slots')][0]) {
       parent = elms[4][Symbol.for('slots')][0]
-      component = elms[4]
+      slotComponent = elms[4]
+      inSlot = true
     } else {
       parent = elms[4][Symbol.for('children')][0]
     }
+
+    if (inSlot === true && slotChildCounter === 0) {
+      inSlot = false
+    }
+
     return elms
   }
   `
@@ -1436,17 +1650,25 @@ test('Generate code for a template with a transition attributes', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig0['x'] = {transition:component.myX}
       elementConfig0['y'] = {transition:{value:component.myY,duration:600}}
       elms[0].populate(elementConfig0)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
+
       return elms
   }
   `
@@ -1495,18 +1717,25 @@ test('Generate code for a template with slot content', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
     let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
     const elementConfig0 = {}
-    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elms[0].populate(elementConfig0)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     const cmp1 = (context.components && context.components['Page']) || components['Page']
     parent = elms[0]
     const elementConfig1 = {}
-    elms[1] = this.element({ parent: parent || 'root' }, component)
+    elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elementConfig1['w'] = 1920
     elementConfig1['h'] = 1080
     const skip1 = []
@@ -1517,6 +1746,10 @@ test('Generate code for a template with slot content', (assert) => {
         }
     }
     elms[1].populate(elementConfig1)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     parent = elms[1]
     const props2 = {}
     props2['w'] = 1920
@@ -1534,20 +1767,37 @@ test('Generate code for a template with slot content', (assert) => {
     elms[2] = component2.call(null, { props: props2 }, elms[1], component)
     if (elms[2][Symbol.for('slots')][0]) {
         parent = elms[2][Symbol.for('slots')][0]
-        component = elms[2]
+        slotComponent = elms[2]
+        inSlot = true
     } else {
         parent = elms[2][Symbol.for('children')][0]
     }
+    if (inSlot === true) {
+      slotChildCounter = 1 + 1
+    }
+
     const elementConfig3 = {}
-    elms[3] = this.element({ parent: parent || 'root' }, component)
+    elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elms[3].populate(elementConfig3)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     parent = elms[3]
     const elementConfig4 = {}
-    elms[4] = this.element({ parent: parent || 'root' }, component)
+    elms[4] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elementConfig4['x'] = 100
     elementConfig4['y'] = component.y
     elementConfig4['rotation'] = component.rotate
     elms[4].populate(elementConfig4)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
+    if (inSlot === true && slotChildCounter === 0) {
+      inSlot = false
+    }
+
     return elms
   }
   `
@@ -1611,18 +1861,25 @@ test('Generate code for a template with slot content, using a named slot', (asse
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
     let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
     const elementConfig0 = {}
-    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elms[0].populate(elementConfig0)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     const cmp1 = (context.components && context.components['Page']) || components['Page']
     parent = elms[0]
     const elementConfig1 = {}
-    elms[1] = this.element({ parent: parent || 'root' }, component)
+    elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elementConfig1['w'] = 1920
     elementConfig1['h'] = 1080
     const skip1 = []
@@ -1633,6 +1890,10 @@ test('Generate code for a template with slot content, using a named slot', (asse
         }
     }
     elms[1].populate(elementConfig1)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     parent = elms[1]
     const props2 = {}
     props2['w'] = 1920
@@ -1650,21 +1911,42 @@ test('Generate code for a template with slot content, using a named slot', (asse
     elms[2] = component2.call(null, { props: props2 }, elms[1], component)
     if (elms[2][Symbol.for('slots')][0]) {
         parent = elms[2][Symbol.for('slots')][0]
-        component = elms[2]
+        slotComponent = elms[2]
+        inSlot = true
     } else {
         parent = elms[2][Symbol.for('children')][0]
     }
+
+    if (inSlot === true) {
+      slotChildCounter = 1 + 1
+    }
+
     const elementConfig3 = {}
-    elms[3] = this.element({ parent: parent || 'root' }, component)
+    elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elms[3].populate(elementConfig3)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     parent = elms[3]
     const elementConfig4 = {}
-    elms[4] = this.element({ parent: parent || 'root' }, component)
+    elms[4] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elementConfig4['x'] = 100
     elementConfig4['y'] = component.y
-    elementConfig4['parent'] = component[Symbol.for('slots')].filter(slot => slot.ref === 'mySlot').shift() || parent
+    elementConfig4['parent'] = component[Symbol.for('slots')] !== undefined &&
+      Array.isArray(component[Symbol.for('slots')]) === true &&
+      component[Symbol.for('slots')].filter(slot => slot.ref === 'mySlot').shift() || parent
     elementConfig4['slot'] = "mySlot"
     elms[4].populate(elementConfig4)
+
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
+    if (inSlot === true && slotChildCounter === 0) {
+      inSlot = false
+    }
+
     return elms
   }
   `
@@ -1709,30 +1991,43 @@ test('Generate code for a template with a slot', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elms[0].populate(elementConfig0)
-      parent = elms[0]
 
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
+      parent = elms[0]
       const elementConfig1 = {}
-      elms[1] = this.element({ parent: parent || 'root' }, component)
+      elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig1['w'] = 1920
       elementConfig1['h'] = 1080
       elms[1].populate(elementConfig1)
-      parent = elms[1]
 
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
+
+      parent = elms[1]
       const elementConfig2 = {}
-      elms[2] = this.element({ parent: parent || 'root' }, component)
+      elms[2] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig2[Symbol.for('isSlot')] = true
       elementConfig2['x'] = 100
       elementConfig2['y'] = component.y
       elms[2].populate(elementConfig2)
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
   }
@@ -1770,22 +2065,32 @@ test('Generate code for a template with inline Text', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elms[0].populate(elementConfig0)
-      parent = elms[0]
 
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
+
+      parent = elms[0]
       const elementConfig1 = {}
-      elms[1] = this.element({ parent: parent || 'root' }, component)
+      elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig1['content'] = 'HelloBlits!'
       elementConfig1['__textnode'] = true
       elms[1].populate(elementConfig1)
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
   }
@@ -1821,22 +2126,33 @@ test('Generate code for a template with inline dynamic Text', (assert) => {
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elms[0].populate(elementConfig0)
-      parent = elms[0]
 
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
+
+      parent = elms[0]
       const elementConfig1 = {}
-      elms[1] = this.element({ parent: parent || 'root' }, component)
+      elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig1['content'] = component.myText
       elementConfig1['__textnode'] = true
       elms[1].populate(elementConfig1)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
   }
@@ -1872,22 +2188,32 @@ test('Generate code for a template with inline dynamic Text embedded in static t
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent,component,context,components,effect,getRaw,Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elms[0].populate(elementConfig0)
-      parent = elms[0]
+      if(inSlot === true) {
+        slotChildCounter -= 1
+      }
 
+      parent = elms[0]
       const elementConfig1 = {}
-      elms[1] = this.element({ parent: parent || 'root' }, component)
-      elementConfig1['content'] = 'Hello' + component.firstname + ' ' + component.lastname + ', how are you?'
+      elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+      elementConfig1['content'] = 'Hello '+component.firstname+' '+component.lastname+', how are you?'
       elementConfig1['__textnode'] = true
       elms[1].populate(elementConfig1)
+
+      if(inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
   }
@@ -1928,26 +2254,36 @@ test('Generate code for a template with a single element with attributes with pe
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig0['w'] = 1920
       elementConfig0['h'] = 1080
       elms[0].populate(elementConfig0)
-      parent = elms[0]
 
+      if(inSlot === true) {
+        slotChildCounter -= 1
+      }
+
+      parent = elms[0]
       const elementConfig1 = {}
-      elms[1] = this.element({ parent: parent || 'root' }, component)
+      elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig1['w'] = parent.node.width * (50 / 100)
       elementConfig1['h'] = parent.node.height * (40 / 100)
       elementConfig1['x'] = parent.node.width * (10 / 100)
       elementConfig1['y'] = parent.node.height * (20 / 100)
       elms[1].populate(elementConfig1)
+      if(inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
   }
@@ -1983,25 +2319,41 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
     let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
     const elementConfig0 = {}
-    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0] = this.element({ parent: parent || 'root' },inSlot === true ? slotComponent : component)
     elms[0].populate(elementConfig0)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     parent = elms[0]
     const created1 = []
+    let from1
+    let to1
     const forloop1 = (collection = [], elms, created) => {
         const rawCollection = getRaw(collection)
         const keys = new Set()
         let l = rawCollection.length
+        const range = {} || {}
+
+        from1 = range['from'] || 0
+        to1 = 'to' in range ? range['to'] : rawCollection.length
+
         while (l--) {
             const item = rawCollection[l]
-            const index = l
-            keys.add('' + l)
+            if (l < to1 && l >= from1) {
+              keys.add('' + l)
+            }
         }
+
         let i = created.length
         while (i--) {
             if (keys.has(created[i]) === false) {
@@ -2012,11 +2364,13 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
         }
         created.length = 0
         const length = rawCollection.length
+        const effects = []
         for (let __index = 0; __index < length; __index++) {
+            if (__index < from1 || __index >= to1) continue
             const scope = Object.create(component)
             parent = elms[0]
-            scope['index'] = __index
             scope['item'] = rawCollection[__index]
+            scope['undefined'] = __index
             scope['key'] = '' + __index
             created.push(scope.key)
             parent = elms[0]
@@ -2025,16 +2379,25 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
             }
             const elementConfig1 = {}
             if (elms[1][scope.key] === undefined) {
-                elms[1][scope.key] = this.element({ parent: parent || 'root' }, component)
+                elms[1][scope.key] = this.element({ parent: parent || 'root' },inSlot === true ? slotComponent : component)
             }
             if (elms[1][scope.key].nodeId === undefined) {
                 elms[1][scope.key].populate(elementConfig1)
+                if (inSlot === true) {
+                  slotChildCounter -= 1
+                }
             }
         }
+      return effects
     }
+
+    let forEffects1
+
     effect(() => {
-        forloop1(component.items, elms, created1)
-    }, 'items')
+      component[Symbol.for('removeGlobalEffects')](forEffects1)
+      forEffects1 = null
+      forEffects1 = forloop1(component.items, elms, created1)
+    }, ['items',])
     return elms
   }
   `
@@ -2071,25 +2434,41 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
     let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
     const elementConfig0 = {}
-    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elms[0].populate(elementConfig0)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     parent = elms[0]
     const created1 = []
+    let from1
+    let to1
     const forloop1 = (collection = [], elms, created) => {
         const rawCollection = getRaw(collection)
         const keys = new Set()
         let l = rawCollection.length
+        const range = {} || {}
+
+        from1 = range['from'] || 0
+        to1 = 'to' in range ? range['to'] : rawCollection.length
+
         while (l--) {
             const item = rawCollection[l]
-            const index = l
-            keys.add('' + l)
+            if (l < to1 && l >= from1) {
+              keys.add('' + l)
+            }
         }
+
         let i = created.length
         while (i--) {
             if (keys.has(created[i]) === false) {
@@ -2100,11 +2479,13 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
         }
         created.length = 0
         const length = rawCollection.length
+        const effects = []
         for (let __index = 0; __index < length; __index++) {
+            if (__index < from1 || __index >= to1) continue
             const scope = Object.create(component)
             parent = elms[0]
-            scope['index'] = __index
             scope['item'] = rawCollection[__index]
+            scope['undefined'] = __index
             scope['key'] = '' + __index
             created.push(scope.key)
             parent = elms[0]
@@ -2113,16 +2494,25 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
             }
             const elementConfig1 = {}
             if (elms[1][scope.key] === undefined) {
-                elms[1][scope.key] = this.element({ parent: parent || 'root' }, component)
+                elms[1][scope.key] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
             }
             if (elms[1][scope.key].nodeId === undefined) {
                 elms[1][scope.key].populate(elementConfig1)
+                if (inSlot === true) {
+                  slotChildCounter -= 1
+                }
             }
         }
+      return effects
     }
+
+    let forEffects1
+
     effect(() => {
-        forloop1(component.$appState.list, elms, created1)
-    }, 'list')
+      component[Symbol.for('removeGlobalEffects')](forEffects1)
+      forEffects1 = null
+      forEffects1 = forloop1(component.$appState.list, elms, created1)
+    }, ['list',])
     return elms
   }
   `
@@ -2159,25 +2549,41 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
     let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
     const elementConfig0 = {}
-    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elms[0].populate(elementConfig0)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     parent = elms[0]
     const created1 = []
+    let from1
+    let to1
     const forloop1 = (collection = [], elms, created) => {
         const rawCollection = getRaw(collection)
         const keys = new Set()
         let l = rawCollection.length
+        const range = {} || {}
+
+        from1 = range['from'] || 0
+        to1 = 'to' in range ? range['to'] : rawCollection.length
+
         while (l--) {
             const item = rawCollection[l]
-            const index = l
-            keys.add('' + l)
+            if (l < to1 && l >= from1) {
+              keys.add('' + l)
+          }
         }
+
         let i = created.length
         while (i--) {
             if (keys.has(created[i]) === false) {
@@ -2188,11 +2594,14 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
         }
         created.length = 0
         const length = rawCollection.length
+        const effects = []
+
         for (let __index = 0; __index < length; __index++) {
+            if (__index < from1 || __index >= to1) continue
             const scope = Object.create(component)
             parent = elms[0]
-            scope['index'] = __index
             scope['item'] = rawCollection[__index]
+            scope['undefined'] = __index
             scope['key'] = '' + __index
             created.push(scope.key)
             parent = elms[0]
@@ -2201,16 +2610,27 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
             }
             const elementConfig1 = {}
             if (elms[1][scope.key] === undefined) {
-                elms[1][scope.key] = this.element({ parent: parent || 'root' }, component)
+                elms[1][scope.key] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
             }
             if (elms[1][scope.key].nodeId === undefined) {
                 elms[1][scope.key].populate(elementConfig1)
+                if (inSlot === true) {
+                  slotChildCounter -= 1
+                }
             }
         }
+
+      return effects
     }
+
+    let forEffects1
+
     effect(() => {
-        forloop1(component.content.data, elms, created1)
-    }, 'data')
+      component[Symbol.for('removeGlobalEffects')](forEffects1)
+      forEffects1 = null
+      forEffects1 = forloop1(component.content.data, elms, created1)
+    }, ['data',])
+
     return elms
   }
   `
@@ -2247,25 +2667,41 @@ test('Generate code for a template with a simple for-loop on an Element with a c
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
     let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
     const elementConfig0 = {}
-    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elms[0].populate(elementConfig0)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     parent = elms[0]
     const created1 = []
+    let from1
+    let to1
     const forloop1 = (collection = [], elms, created) => {
         const rawCollection = getRaw(collection)
         const keys = new Set()
         let l = rawCollection.length
+        const range = {} || {}
+
+        from1 = range['from'] || 0
+        to1 = 'to' in range ? range['to'] : rawCollection.length
         while (l--) {
             const item = rawCollection[l]
             const customIndex = l
-            keys.add('' + l)
+            if (l < to1 && l >= from1) {
+              keys.add('' + l)
+            }
         }
+
         let i = created.length
         while (i--) {
             if (keys.has(created[i]) === false) {
@@ -2276,11 +2712,13 @@ test('Generate code for a template with a simple for-loop on an Element with a c
         }
         created.length = 0
         const length = rawCollection.length
+        const effects = []
         for (let __index = 0; __index < length; __index++) {
+            if (__index < from1 || __index >= to1) continue
             const scope = Object.create(component)
             parent = elms[0]
-            scope['customIndex'] = __index
             scope['item'] = rawCollection[__index]
+            scope['customIndex'] = __index
             scope['key'] = '' + __index
             created.push(scope.key)
             parent = elms[0]
@@ -2289,16 +2727,27 @@ test('Generate code for a template with a simple for-loop on an Element with a c
             }
             const elementConfig1 = {}
             if (elms[1][scope.key] === undefined) {
-                elms[1][scope.key] = this.element({ parent: parent || 'root' }, component)
+                elms[1][scope.key] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
             }
             if (elms[1][scope.key].nodeId === undefined) {
-                elms[1][scope.key].populate(elementConfig1)
+              elms[1][scope.key].populate(elementConfig1)
+                if (inSlot === true) {
+                  slotChildCounter -= 1
+                }
             }
         }
+
+      return effects
     }
+
+    let forEffects1
+
     effect(() => {
-        forloop1(component.items, elms, created1)
-    }, 'items')
+        component[Symbol.for('removeGlobalEffects')](forEffects1)
+        forEffects1 = null
+        forEffects1 = forloop1(component.items, elms, created1)
+      }, ['items',])
+
     return elms
   }
   `
@@ -2336,25 +2785,40 @@ test('Generate code for a template with a simple for-loop on an Element with a k
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
     let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
     const elementConfig0 = {}
-    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elms[0].populate(elementConfig0)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     parent = elms[0]
     const created1 = []
+    let from1
+    let to1
     const forloop1 = (collection = [], elms, created) => {
         const rawCollection = getRaw(collection)
         const keys = new Set()
         let l = rawCollection.length
+        const range = {} || {}
+
+        from1 = range['from'] || 0
+        to1 = 'to' in range ? range['to'] : rawCollection.length
         while (l--) {
             const item = rawCollection[l]
-            const index = l
-            keys.add('' + item.id)
+            if (l < to1 && l >= from1) {
+              keys.add('' + item.id)
+            }
         }
+
         let i = created.length
         while (i--) {
             if (keys.has(created[i]) === false) {
@@ -2365,11 +2829,13 @@ test('Generate code for a template with a simple for-loop on an Element with a k
         }
         created.length = 0
         const length = rawCollection.length
+        const effects = []
         for (let __index = 0; __index < length; __index++) {
+            if (__index < from1 || __index >= to1) continue
             const scope = Object.create(component)
             parent = elms[0]
-            scope['index'] = __index
             scope['item'] = rawCollection[__index]
+            scope['undefined'] = __index
             scope['key'] = '' + scope.item.id
             created.push(scope.key)
             parent = elms[0]
@@ -2378,16 +2844,27 @@ test('Generate code for a template with a simple for-loop on an Element with a k
             }
             const elementConfig1 = {}
             if (elms[1][scope.key] === undefined) {
-                elms[1][scope.key] = this.element({ parent: parent || 'root' }, component)
+              elms[1][scope.key] = this.element({ parent: parent || 'root' },inSlot === true ? slotComponent : component)
             }
             if (elms[1][scope.key].nodeId === undefined) {
                 elms[1][scope.key].populate(elementConfig1)
+                if (inSlot === true) {
+                  slotChildCounter -= 1
+                }
             }
         }
+
+      return effects
     }
+
+    let forEffects1
+
     effect(() => {
-        forloop1(component.items, elms, created1)
-    }, 'items')
+          component[Symbol.for('removeGlobalEffects')](forEffects1)
+          forEffects1 = null
+          forEffects1 = forloop1(component.items, elms, created1)
+        }, ['items',])
+
     return elms
   }
   `
@@ -2425,25 +2902,42 @@ test('Generate code for a template with a simple for-loop on a Component with a 
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
     let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
     const elementConfig0 = {}
-    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elms[0].populate(elementConfig0)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     parent = elms[0]
     const created1 = []
+    let from1
+    let to1
     const forloop1 = (collection = [], elms, created) => {
         const rawCollection = getRaw(collection)
         const keys = new Set()
         let l = rawCollection.length
+        const range = {} || {}
+
+        from1 = range['from'] || 0
+        to1 = 'to' in range ? range['to'] : rawCollection.length
+
         while (l--) {
             const item = rawCollection[l]
             const myIndex = l
-            keys.add('' + item.id)
+            if (l < to1 && l >= from1) {
+              keys.add('' + item.id)
+            }
         }
+
         let i = created.length
         while (i--) {
             if (keys.has(created[i]) === false) {
@@ -2456,11 +2950,14 @@ test('Generate code for a template with a simple for-loop on a Component with a 
         }
         created.length = 0
         const length = rawCollection.length
+        const effects = []
         for (let __index = 0; __index < length; __index++) {
+            if (__index < from1 || __index >= to1) continue
+
             const scope = Object.create(component)
             parent = elms[0]
-            scope['myIndex'] = __index
             scope['item'] = rawCollection[__index]
+            scope['myIndex'] = __index
             scope['key'] = '' + item.id
             created.push(scope.key)
             const cmp1 = (context.components && context.components['ListItem']) || components['ListItem']
@@ -2469,7 +2966,7 @@ test('Generate code for a template with a simple for-loop on a Component with a 
             }
             const elementConfig1 = {}
             if (elms[1][scope.key] === undefined) {
-                elms[1][scope.key] = this.element({ parent: parent || 'root' }, component)
+                elms[1][scope.key] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
             }
             const skip1 = []
             if (typeof cmp1 !== 'undefined') {
@@ -2480,6 +2977,9 @@ test('Generate code for a template with a simple for-loop on a Component with a 
             }
             if (elms[1][scope.key].nodeId === undefined) {
                 elms[1][scope.key].populate(elementConfig1)
+                if (inSlot === true) {
+                  slotChildCounter -= 1
+                }
             }
             if (elms[2] === undefined) {
                 elms[2] = {}
@@ -2500,16 +3000,25 @@ test('Generate code for a template with a simple for-loop on a Component with a 
                 elms[2][scope.key] = component2.call(null, { props: props2 }, elms[1][scope.key], component)
                 if (elms[2][scope.key][Symbol.for('slots')][0]) {
                     parent = elms[2][scope.key][Symbol.for('slots')][0]
-                    component = elms[2][scope.key]
+                    slotComponent = elms[2][scope.key]
+                    inSlot = true
                 } else {
                     parent = elms[2][scope.key][Symbol.for('children')][0]
                 }
             }
         }
+
+      return effects
     }
+
+    let forEffects1
+
     effect(() => {
-        forloop1(component.items, elms, created1)
-    }, 'items')
+        component[Symbol.for('removeGlobalEffects')](forEffects1)
+        forEffects1 = null
+        forEffects1 = forloop1(component.items, elms, created1)
+      }, ['items',])
+
     return elms
   }
   `
@@ -2548,25 +3057,41 @@ test('Generate code for a template with a simple for-loop on an Element with an 
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
     let componentType
     const rootComponent = component
     let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
     const elementConfig0 = {}
-    elms[0] = this.element({ parent: parent || 'root' }, component)
+    elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elms[0].populate(elementConfig0)
+    if (inSlot === true) {
+      slotChildCounter -= 1
+    }
+
     parent = elms[0]
     const created1 = []
+    let from1
+    let to1
     const forloop1 = (collection = [], elms, created) => {
         const rawCollection = getRaw(collection)
         const keys = new Set()
         let l = rawCollection.length
+        const range = {} || {}
+
+        from1 = range['from'] || 0
+        to1 = 'to' in range ? range['to'] : rawCollection.length
+
         while (l--) {
             const item = rawCollection[l]
-            const index = l
-            keys.add('' + item.id)
+            if (l < to1 && l >= from1) {
+              keys.add('' + item.id)
+            }
         }
+
         let i = created.length
         while (i--) {
             if (keys.has(created[i]) === false) {
@@ -2577,11 +3102,13 @@ test('Generate code for a template with a simple for-loop on an Element with an 
         }
         created.length = 0
         const length = rawCollection.length
+        const effects = []
         for (let __index = 0; __index < length; __index++) {
+            if (__index < from1 || __index >= to1) continue
             const scope = Object.create(component)
             parent = elms[0]
-            scope['index'] = __index
             scope['item'] = rawCollection[__index]
+            scope['undefined'] = __index
             scope['key'] = '' + item.id
             scope['__ref'] = 'myref' + __index
             created.push(scope.key)
@@ -2591,17 +3118,28 @@ test('Generate code for a template with a simple for-loop on an Element with an 
             }
             const elementConfig1 = {}
             if (elms[1][scope.key] === undefined) {
-                elms[1][scope.key] = this.element({ parent: parent || 'root' }, component)
+                elms[1][scope.key] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
             }
             elementConfig1['ref'] = scope.__ref
             if (elms[1][scope.key].nodeId === undefined) {
                 elms[1][scope.key].populate(elementConfig1)
+                if (inSlot === true) {
+                  slotChildCounter -= 1
+                }
             }
         }
+
+      return effects
     }
+
+    let forEffects1
+
     effect(() => {
-        forloop1(component.items, elms, created1)
-    }, 'items')
+        component[Symbol.for('removeGlobalEffects')](forEffects1)
+        forEffects1 = null
+        forEffects1 = forloop1(component.items, elms, created1)
+      }, ['items', ])
+
     return elms
   }
   `
@@ -2633,17 +3171,24 @@ test('Generate code for a template with double $$ (i.e. referencing a Blits plug
   }
 
   const expectedRender = `
-  function anonymous(parent, component, context, components, effect, getRaw) {
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
       const elms = []
       let componentType
       const rootComponent = component
       let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
       const elementConfig0 = {}
 
-      elms[0] = this.element({ parent: parent || 'root' }, component)
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
       elementConfig0['content'] = component.$language.translate('hello')
       elementConfig0['__textnode'] = true
       elms[0].populate(elementConfig0)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
 
       return elms
   }
@@ -2670,6 +3215,383 @@ test('Generate code for a template with double $$ (i.e. referencing a Blits plug
     normalize(actual.effects[0].toString()),
     normalize(expectedEffect1),
     'Generator should return first render function with the correct code'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with verification of dynamic attributes', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        w: '$eWidth',
+        h: '$eHeight',
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
+      const elms = []
+      let componentType
+      const rootComponent = component
+      let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
+
+      function propInComponent(prop, kind = "dynamic") {
+        const property = prop.includes('.') ? prop.split('.')[0] : prop
+        if (kind === 'reactive' || prop.includes('.') === false) {
+          if (property in component === false) {
+            Log.warn('Property ' + property + ' was accessed during render but is not defined on instance')
+          }
+        } else {
+          const nestedKeys = prop.split('.')
+          let base = component
+          for (let i = 0; i < nestedKeys.length; i++) {
+            if (base[nestedKeys[i]] === undefined) {
+              Log.warn('Property ' + nestedKeys.slice(0, i + 1).join('.') + ' was accessed during render but is not defined on instance')
+            }
+            base = base[nestedKeys[i]]
+          }
+        }
+      }
+
+      const elementConfig0 = {}
+
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+
+      propInComponent('eWidth', 'dynamic')
+      elementConfig0['w'] = component.eWidth
+      propInComponent('eHeight', 'dynamic')
+      elementConfig0['h'] = component.eHeight
+
+      elms[0].populate(elementConfig0)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
+
+      return elms
+}
+  `
+  const actual = generator.call(scope, templateObject, true)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with verification of reactive attributes', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        ':w': '$eWidth',
+        ':h': '$eHeight',
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
+      const elms = []
+      let componentType
+      const rootComponent = component
+      let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
+
+      function propInComponent(prop, kind = "dynamic") {
+        const property = prop.includes('.') ? prop.split('.')[0] : prop
+        if (kind === 'reactive' || prop.includes('.') === false) {
+          if (property in component === false) {
+            Log.warn('Property ' + property + ' was accessed during render but is not defined on instance')
+          }
+        } else {
+          const nestedKeys = prop.split('.')
+          let base = component
+          for (let i = 0; i < nestedKeys.length; i++) {
+            if (base[nestedKeys[i]] === undefined) {
+              Log.warn('Property ' + nestedKeys.slice(0, i + 1).join('.') + ' was accessed during render but is not defined on instance')
+            }
+            base = base[nestedKeys[i]]
+          }
+        }
+      }
+
+      const elementConfig0 = {}
+
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+
+      propInComponent('eWidth', 'reactive')
+      elementConfig0['w'] = component.eWidth
+      propInComponent('eHeight', 'reactive')
+      elementConfig0['h'] = component.eHeight
+
+      elms[0].populate(elementConfig0)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
+
+      return elms
+  }
+  `
+  const expectedEffect1 = `
+  function anonymous(component, elms, context, components, rootComponent, effect) {
+    elms[0].set('w', component.eWidth)
+  }
+  `
+
+  const expectedEffect2 = `
+  function anonymous(component, elms, context, components, rootComponent, effect) {
+    elms[0].set('h', component.eHeight)
+ }
+  `
+
+  const actual = generator.call(scope, templateObject, true)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 2,
+    'Generator should return an effects array with 2 item'
+  )
+
+  assert.equal(
+    normalize(actual.effects[0].toString()),
+    normalize(expectedEffect1),
+    'Generator should return an effect function for the reactive eWidth attribute'
+  )
+
+  assert.equal(
+    normalize(actual.effects[1].toString()),
+    normalize(expectedEffect2),
+    'Generator should return an effect function for the reactive eHeight attribute'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with attribute values verified against a nested state object', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        x: '$position.x',
+        y: '$position.y',
+        ':w': '$size.w',
+        ':h': '$size.h',
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
+      const elms = []
+      let componentType
+      const rootComponent = component
+      let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
+
+      function propInComponent(prop, kind = "dynamic") {
+        const property = prop.includes('.') ? prop.split('.')[0] : prop
+        if (kind === 'reactive' || prop.includes('.') === false) {
+          if (property in component === false) {
+            Log.warn('Property ' + property + ' was accessed during render but is not defined on instance')
+          }
+        } else {
+          const nestedKeys = prop.split('.')
+          let base = component
+          for (let i = 0; i < nestedKeys.length; i++) {
+            if (base[nestedKeys[i]] === undefined) {
+              Log.warn('Property ' + nestedKeys.slice(0, i + 1).join('.') + ' was accessed during render but is not defined on instance')
+            }
+            base = base[nestedKeys[i]]
+          }
+        }
+      }
+
+      const elementConfig0 = {}
+
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+
+      propInComponent('position.x', 'dynamic')
+      elementConfig0['x'] = component.position.x
+      propInComponent('position.y', 'dynamic')
+      elementConfig0['y'] = component.position.y
+      propInComponent('size', 'reactive')
+      elementConfig0['w'] = component.size.w
+      propInComponent('size', 'reactive')
+      elementConfig0['h'] = component.size.h
+
+      elms[0].populate(elementConfig0)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
+
+      return elms
+  }
+  `
+  const expectedEffect1 = `
+  function anonymous(component, elms, context, components, rootComponent, effect) {
+    elms[0].set('w', component.size.w)
+  }
+  `
+
+  const expectedEffect2 = `
+  function anonymous(component, elms, context, components, rootComponent, effect) {
+    elms[0].set('h', component.size.h)
+ }
+  `
+
+  const actual = generator.call(scope, templateObject, true)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 2,
+    'Generator should return an effects array with 2 item'
+  )
+
+  assert.equal(
+    normalize(actual.effects[0].toString()),
+    normalize(expectedEffect1),
+    'Generator should return an effect function for the reactive eWidth attribute'
+  )
+
+  assert.equal(
+    normalize(actual.effects[1].toString()),
+    normalize(expectedEffect2),
+    'Generator should return an effect function for the reactive eHeight attribute'
+  )
+
+  assert.end()
+})
+
+test('Generate code for a template with verification of attributes with Math calculations', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        x: '$position.x * 100',
+        y: '$position.y + 100',
+        ':w': '$size.w * $correction ',
+        ':h': '$size.h + $borderY',
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
+      const elms = []
+      let componentType
+      const rootComponent = component
+      let propData
+      let slotComponent
+      let inSlot = false
+      let slotChildCounter = 0
+
+      function propInComponent(prop, kind = "dynamic") {
+        const property = prop.includes('.') ? prop.split('.')[0] : prop
+        if (kind === 'reactive' || prop.includes('.') === false) {
+          if (property in component === false) {
+            Log.warn('Property ' + property + ' was accessed during render but is not defined on instance')
+          }
+        } else {
+          const nestedKeys = prop.split('.')
+          let base = component
+          for (let i = 0; i < nestedKeys.length; i++) {
+            if (base[nestedKeys[i]] === undefined) {
+              Log.warn('Property ' + nestedKeys.slice(0, i + 1).join('.') + ' was accessed during render but is not defined on instance')
+            }
+            base = base[nestedKeys[i]]
+          }
+        }
+      }
+
+      const elementConfig0 = {}
+
+      elms[0] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+
+      propInComponent('position.x', 'dynamic')
+      elementConfig0['x'] = component.position.x * 100
+      propInComponent('position.y', 'dynamic')
+      elementConfig0['y'] = component.position.y + 100
+      propInComponent('size', 'reactive')
+      propInComponent('correction', 'reactive')
+      elementConfig0['w'] = component.size.w * component.correction
+      propInComponent('size', 'reactive')
+      propInComponent('borderY', 'reactive')
+      elementConfig0['h'] = component.size.h + component.borderY
+
+      elms[0].populate(elementConfig0)
+
+      if (inSlot === true) {
+        slotChildCounter -= 1
+      }
+
+      return elms
+  }
+  `
+  const expectedEffect1 = `
+  function anonymous(component, elms, context, components, rootComponent, effect) {
+    elms[0].set('w', component.size.w * component.correction)
+  }
+  `
+
+  const expectedEffect2 = `
+  function anonymous(component, elms, context, components, rootComponent, effect) {
+    elms[0].set('h', component.size.h + component.borderY)
+ }
+  `
+
+  const actual = generator.call(scope, templateObject, true)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 2,
+    'Generator should return an effects array with 2 item'
+  )
+
+  assert.equal(
+    normalize(actual.effects[0].toString()),
+    normalize(expectedEffect1),
+    'Generator should return an effect function for the reactive width attribute'
+  )
+
+  assert.equal(
+    normalize(actual.effects[1].toString()),
+    normalize(expectedEffect2),
+    'Generator should return an effect function for the reactive height attribute'
   )
 
   assert.end()

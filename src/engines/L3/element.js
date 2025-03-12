@@ -22,6 +22,9 @@ import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 
+// temporary counter to work around shader caching issues
+let counter = 0
+
 const createPaddingObject = (padding, direction) => {
   if (padding === undefined) {
     return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
@@ -113,7 +116,7 @@ const layoutFn = function (config) {
   if (align !== 0) {
     for (let i = 0; i < childrenLength; i++) {
       const node = children[i]
-      node[oppositePosition] = otherDimension
+      node[oppositePosition] = otherDimension * align
       node[oppositeMount] = align
     }
   }
@@ -217,6 +220,10 @@ const propsTransformer = {
     if (this.raw['color'] === undefined) {
       this.props['color'] = this.props['src'] ? 0xffffffff : 0x00000000
     }
+    // apply auto sizing when no width or height specified
+    if (!('w' in this.raw) && !('w' in this.raw) && !('h' in this.raw) && !('height' in this.raw)) {
+      this.props['autosize'] = true
+    }
   },
   set texture(v) {
     this.props['texture'] = v
@@ -295,7 +302,7 @@ const propsTransformer = {
   },
   set show(v) {
     if (v) {
-      this.props['alpha'] = 1
+      this.props['alpha'] = this.raw['alpha'] !== undefined ? this.raw['alpha'] : 1
       this.props['width'] = this.raw['w'] || this.raw['width'] || 0
       this.props['height'] = this.raw['h'] || this.raw['height'] || 0
     } else {
@@ -305,7 +312,9 @@ const propsTransformer = {
     }
   },
   set alpha(v) {
-    this.props['alpha'] = v
+    if (this.raw['show'] === undefined || this.raw['show'] == true) {
+      this.props['alpha'] = v
+    }
   },
   set shader(v) {
     if (v !== null) {
@@ -324,14 +333,21 @@ const propsTransformer = {
     if (this.element.node === undefined) {
       this.props['shader'] = renderer.createShader('DynamicShader', {
         effects: v.map((effect) => {
-          return renderer.createEffect(effect.type, effect.props, effect.type)
+          // temporary add counter to work around shader caching issues
+          return renderer.createEffect(
+            effect.type,
+            effect.props,
+            effect.type + this.element.counter
+          )
         }),
       })
     } else {
       for (let i = 0; i < v.length; i++) {
-        const target = this.element.node.shader.props[v[i].type]
+        // temporary add counter to work around shader caching issues
+        const target = this.element.node.shader.props[v[i].type + this.element.counter]
         const props = Object.keys(v[i].props)
 
+        if (target == undefined) continue
         for (let j = 0; j < props.length; j++) {
           target[props[j]] = v[i].props[props[j]]
         }
@@ -351,6 +367,11 @@ const propsTransformer = {
     this.props['fontSize'] = v
   },
   set wordwrap(v) {
+    Log.warn('The wordwrap attribute is deprecated, use maxwidth instead')
+    this.props['width'] = v
+    this.props['contain'] = 'width'
+  },
+  set maxwidth(v) {
     this.props['width'] = v
     this.props['contain'] = 'width'
   },
@@ -378,6 +399,42 @@ const propsTransformer = {
   },
   set content(v) {
     this.props['text'] = '' + v
+  },
+  set placement(v) {
+    let x, y
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      if ('x' in v === true) {
+        x = v.x
+      }
+      if ('y' in v === true) {
+        y = v.y
+      }
+    } else {
+      v === 'center' || v === 'right' ? (x = v) : (y = v)
+    }
+
+    // Set X position
+    if (x === 'center') {
+      this.x = '50%'
+      this.props['mountX'] = 0.5
+    } else if (x === 'right') {
+      this.x = '100%'
+      this.props['mountX'] = 1
+    }
+
+    // Set Y position
+    if (y === 'middle') {
+      this.y = '50%'
+      this.props['mountY'] = 0.5
+    } else if (y === 'bottom') {
+      this.y = '100%'
+      this.props['mountY'] = 1
+    }
+  },
+  set 'inspector-data'(v) {
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      this.props['data'] = v
+    }
   },
 }
 
@@ -536,12 +593,18 @@ const Element = {
     }
 
     f.once('stopped', () => {
-      // remove the prop from scheduled transitions
-      this.scheduledTransitions[prop] = undefined
+      if (
+        this.scheduledTransitions[prop] !== undefined &&
+        this.scheduledTransitions[prop].canceled === true
+      ) {
+        return
+      }
       // fire transition end callback when animation ends (if specified)
       if (transition.end && typeof transition.end === 'function') {
         transition.end.call(this.component, this, prop, this.node[prop])
       }
+      // remove the prop from scheduled transitions
+      delete this.scheduledTransitions[prop]
     })
 
     // start animation
@@ -550,6 +613,16 @@ const Element = {
   destroy() {
     Log.debug('Deleting  Node', this.nodeId)
     this.node.destroy()
+
+    // Clearing transition end callback functions
+    const transitionProps = Object.keys(this.scheduledTransitions)
+    for (let i = 0; i < transitionProps.length; i++) {
+      const transition = this.scheduledTransitions[transitionProps[i]]
+      if (transition !== undefined) {
+        transition.canceled = true
+        if (transition.f !== undefined) transition.f.stop()
+      }
+    }
   },
   get nodeId() {
     return this.node && this.node.id
@@ -579,5 +652,6 @@ export default (config, component) => {
     scheduledTransitions: {},
     config,
     component,
+    counter: counter++,
   })
 }

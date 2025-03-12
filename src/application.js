@@ -56,8 +56,18 @@ const Application = (config) => {
   config.hooks[symbols.init] = function () {
     const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
 
-    keyDownHandler = (e) => {
+    keyDownHandler = async (e) => {
       const key = keyMap[e.key] || keyMap[e.keyCode] || e.key || e.keyCode
+      // intercept key press if specified in main Application component
+      if (
+        this[symbols.inputEvents] !== undefined &&
+        this[symbols.inputEvents].intercept !== undefined
+      ) {
+        e = await this[symbols.inputEvents].intercept.call(this, e)
+        // only pass on the key press to focused component when keyboard event is returned
+        if (e instanceof KeyboardEvent === false) return
+      }
+
       Focus.input(key, e)
       clearTimeout(holdTimeout)
       holdTimeout = setTimeout(() => {

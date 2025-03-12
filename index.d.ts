@@ -18,7 +18,7 @@
 // blits file type reference
 /// <reference path="./blits.d.ts" />
 
-import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader} from '@lightningjs/renderer'
+import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader, type RendererMainSettings} from '@lightningjs/renderer'
 
 declare module '@lightningjs/blits' {
 
@@ -81,14 +81,26 @@ declare module '@lightningjs/blits' {
   }
 
   export interface Input {
-    [key: string]: (event: KeyboardEvent) => void | undefined,
+    [key: string]: (event: KeyboardEvent) => void | undefined | unknown,
     /**
      * Catch all input function
      *
      * Will be invoked when there is no dedicated function for a certain key
     */
     // @ts-ignore
-    any?: (event: KeyboardEvent) => void
+    any?: (event: KeyboardEvent) => void,
+    /**
+     * Intercept key presses on the root Application component before being handled
+     * by the currently focused component.
+     *
+     * Only when a KeyboardEvent (the original one, or a modified one) is returned from the
+     * intercept function, the Input event is passed on to the Component with focus.
+     *
+     * The intercept function can be asynchronous.
+     *
+     * Note: the intercept input handler is only available on the Root App component (i.e. Blits.Application)
+     */
+    intercept?: (event: KeyboardEvent) => KeyboardEvent | Promise<KeyboardEvent | any> | any
   }
 
   export interface Log {
@@ -149,11 +161,37 @@ declare module '@lightningjs/blits' {
      */
     readonly navigating: boolean;
 
+    /**
+     * Reactive router state
+     */
+    state: {
+      /**
+       * Path of the current route
+       *
+       * Can be used in:
+       * - a template as `$$router.state.path`
+       * - inside business logic as `this.$router.state.path`
+       * - as a watcher as `$router.state.path(v) {}`
+       */
+      readonly path: string
+      /**
+       * Whether or not the router is currently in the process of navigating
+       * between pages
+       *
+       * Can be used in:
+       * - a template as `$$router.state.navihating`
+       * - inside business logic as `this.$router.state.navigating`
+       * - as a watcher as `$router.state.navigating(v) {}`
+       */
+      readonly navigating: boolean
+    }
   }
 
   export type ComponentBase = {
     /**
-    * Check if a component has focus
+    * Indicates whether the component currently has focus
+    *
+    * @returns Boolean
     */
     hasFocus: boolean,
 
@@ -244,11 +282,23 @@ declare module '@lightningjs/blits' {
      * Deprecated: use `this.$trigger()` instead
      */
     trigger: (key: string) => void
-
     /**
      * Router instance
      */
     $router: Router
+    /**
+     * Dynamically set the size of a component holder node
+     */
+    $size: (dimensions: {
+      /**
+       * Component width
+       */
+      w: number,
+      /**
+       * Component height
+       */
+      h: number
+    }) => void
   }
 
   /**
@@ -603,6 +653,7 @@ declare module '@lightningjs/blits' {
   }
 
   type ScreenResolutions = 'hd' | '720p' | 720 | 'fhd' | 'fullhd' | '1080p' | 1080 | '4k' | '2160p' | 2160
+  type RenderQualities = 'low' | 'medium' | 'high' | 'retina' | number
 
   type ReactivityModes = 'Proxy' | 'defineProperty'
   type RenderModes = 'webgl' | 'canvas'
@@ -671,7 +722,7 @@ declare module '@lightningjs/blits' {
     *
     * Currently 3 screen resolutions are supported, which can be defined with different alias values:
     *
-    * For 720x1080 (1px = 0.66666667px)
+    * For 720x1280 (1px = 0.66666667px)
     * - hd
     * - 720p
     * - 720
@@ -688,6 +739,27 @@ declare module '@lightningjs/blits' {
     * - 2160
     */
     screenResolution?: ScreenResolutions,
+    /**
+    * Controls the quality of the rendered App.
+    *
+    * Setting a lower quality leads to less detail on screen, but can positively affect overall
+    * performance and smoothness of the App (i.e. a higher FPS).
+    *
+    * The render quality can be one of the following presets:
+    *
+    * - `low` => 66% quality
+    * - `medium` => 85% quality
+    * - `high` => 100% quality
+    * - `retina` => 200% quality
+    *
+    * It's also possible to provide a custom value as a (decimal) number:
+    *
+    * - `0.2` => 20% quality
+    * - `1.5` => 150% quality
+    *
+    * Defaults to 1 (high quality) when not specified
+    */
+    renderQuality?: RenderQualities,
     /**
     * Custom pixel ratio of the device used to convert dimensions
     * and positions in the App code to the actual device logical coordinates
@@ -757,8 +829,59 @@ declare module '@lightningjs/blits' {
      * and cleaned up
      *
      * Defaults to `200` (mb)
+     * @deprecated
+     * Deprecated:  use `gpuMemory` launch setting instead
      */
     gpuMemoryLimit?: number,
+    /**
+     * Configures the gpu memory settings used by the renderer
+     */
+    gpuMemory?: {
+      /**
+       * Maximum GPU memory threshold (in `mb`) after which
+       * the renderer will immediately start cleaning up textures to free
+       * up graphical memory
+       *
+       * When setting to `0`, texture memory management is disabled
+       *
+       * @default `200`
+       */
+      max?: number,
+      /**
+       * Target threshold of GPU memory usage, defined as a fraction of
+       * the max threshold. The renderer will attempt to keep memory
+       * usage below this target by cleaning up non-renderable textures
+       *
+       * @default `0.8`
+       */
+      target?: number,
+      /**
+       * Interval at which regular texture cleanups occur (in `ms`)
+       *
+       * @default `5000`
+       */
+      cleanupInterval?: number,
+      /**
+       * Baseline GPU memory usage of the App (in `mb`), without rendering any
+       * textures. This value will be used as a basis when calculating
+       * the total memory usage towards the max and target memory
+       * usage
+       *
+       * @default `25`
+       */
+      baseline?: number,
+      /**
+       * Whether or not the max threshold should be considered
+       * as a strict number that can not be exceeded in any way
+       *
+       * When set to `true`, new textures won't be created when the
+       * max threshold has been reached, until agressive texture cleanup
+       * has brought the memory back down
+       *
+       * @default false
+       */
+      strict?: boolean,
+    },
     /**
      * Defines which mode the renderer should operate in: `webgl` or `canvas`
      *
@@ -778,7 +901,29 @@ declare module '@lightningjs/blits' {
      *
      * Defaults to `50` (ms)
      */
-    holdTimeout?: number
+    holdTimeout?: number,
+    /**
+     * Custom canvas object used to render the App to.
+     *
+     * When not provided, the Lightning renderer will create a
+     * new Canvas element and inject it into the DOM
+     */
+    canvas?: HTMLCanvasElement,
+    /**
+     * The maximum amount of time the renderer is allowed to process textures in a
+     * single frame. If the processing time exceeds this limit, the renderer will
+     * skip processing the remaining textures and continue rendering the frame.
+     *
+     * Defaults to `10`
+     */
+    textureProcessingTimeLimit?: number,
+    /**
+     * Advanced renderer settings to override Blits launch settings, or configure
+     * settings that are not officially exposed in Blits yet
+     *
+     * @important if you dont know what you're doing here, you probably shouldn't be doing it!
+     */
+    advanced?: Partial<RendererMainSettings>
   }
 
   interface State {

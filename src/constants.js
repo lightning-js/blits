@@ -12,3 +12,10 @@ export const SCREEN_RESOLUTIONS = {
   '2160p': 2,
   2160: 2,
 }
+
+export const RENDER_QUALITIES = {
+  low: 0.66666667,
+  medium: 0.85,
+  high: 1,
+  retina: 2,
+}
