@@ -136,19 +136,19 @@ export const navigate = async function () {
 
     currentRoute = route
     if (route) {
-      let beforeAllResult
+      let beforeEachResult
       if (this.parent[symbols.routerHooks]) {
         const hooks = this.parent[symbols.routerHooks]
         if (hooks.beforeAll) {
-          beforeAllResult = await hooks.beforeAll(route, previousRoute)
-          if (isString(beforeAllResult)) {
-            to(beforeAllResult)
+          beforeEachResult = await hooks.beforeAll(route, previousRoute)
+          if (isString(beforeEachResult)) {
+            to(beforeEachResult)
             return
           }
         }
       }
       // If the resolved result is an object, assign it to the target route object
-      route = isObject(beforeAllResult) ? beforeAllResult : route
+      route = isObject(beforeEachResult) ? beforeEachResult : route
 
       let beforeHookOutput
       if (route.hooks) {

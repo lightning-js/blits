@@ -54,7 +54,8 @@ export default function (component, config) {
   if (config.watch) setupWatch(component, config.watch)
 
   // // setup router
-  if (config.router || config.routes) setupRouter(component, config.router || config.routes)
+  const routerConfig = config.router !== undefined ? config.router : config.routes !== undefined ? config.routes : undefined
+  if (routerConfig !== undefined) setupRouter(component, routerConfig)
 
   // // setup input
   if (config.input) setupInput(component, config.input)

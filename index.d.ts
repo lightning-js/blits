@@ -424,7 +424,7 @@ declare module '@lightningjs/blits' {
   }
 
   export interface RouterHooks {
-    beforeAll?: (to: Route, from: Route) => string | Route | Promise<string | Route>;
+    beforeEach?: (to: Route, from: Route) => string | Route | Promise<string | Route>;
   }
 
   export interface RouterConfig {
@@ -452,11 +452,15 @@ declare module '@lightningjs/blits' {
   export interface ApplicationConfig<P extends Props, S, M, C, W> extends ComponentConfig<P, S, M, C, W> {
     /**
      * Router configuration
+     *
+     * Configure either router or routes; if both are provided, router takes precedence
      */
     router?: RouterConfig
 
     /**
      * Routes definition
+     *
+     * Configure either router or routes; if both are provided, router takes precedence
      *
      * @example
      *
