@@ -20,21 +20,19 @@ import { parseToObject, isObjectString, isArrayString } from '../utils.js'
 import colors from '../colors/colors.js'
 
 export default {
-  createElementShader(v) {
+  createElementProps(v) {
     let { border, shadow, rounded } = v
     const props = {}
-    const hasShadow = shadow !== undefined
-    const hasBorder = border !== undefined
     const hasRounded = rounded !== undefined
 
-    if (hasBorder === true && (typeof border === 'object' || isObjectString(border) === true)) {
+    if (border !== undefined && (typeof border === 'object' || isObjectString(border) === true)) {
       border = this.parseProps(border)
       const borderPrefix = hasRounded === true ? 'border-' : ''
       for (const key in border) {
         props[borderPrefix + key] = border[key]
       }
     }
-    if (hasShadow === true && (typeof shadow === 'object' || isObjectString(shadow) === true)) {
+    if (shadow !== undefined && (typeof shadow === 'object' || isObjectString(shadow) === true)) {
       shadow = this.parseProps(shadow)
       const shadowPrefix = hasRounded === true ? 'shadow-' : ''
       for (const key in border) {
@@ -55,6 +53,14 @@ export default {
       }
       props['radius'] = rounded
     }
+    return props
+  },
+  createElementShader(v) {
+    let { border, shadow, rounded } = v
+    const props = this.createElementProps(v)
+    const hasShadow = shadow !== undefined
+    const hasBorder = border !== undefined
+    const hasRounded = rounded !== undefined
 
     if (hasBorder === true && hasShadow === true) {
       return renderer.createShader('roundedWithBorderAndShadow', props)

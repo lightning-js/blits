@@ -130,6 +130,20 @@ export default {
     enumerable: true,
     configurable: false,
   },
+  /**
+   * @deprecated this part has been replaced with a different & more dev friendly feature `docs/essentials/element_attributes.md`
+   */
+  shader: {
+    value: function (type, args) {
+      return {
+        type,
+        props: args,
+      }
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
 }
 
 const deleteChildren = function (children) {
