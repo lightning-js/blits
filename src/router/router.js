@@ -322,7 +322,7 @@ const removeView = async (route, view, transition) => {
     cacheMap.delete(route.hash)
   }
 
-  if (route.options && route.options.keepAlive === false) {
+  if (route.options && route.options.keepAlive !== true) {
     view.destroy()
     view = null
   }
