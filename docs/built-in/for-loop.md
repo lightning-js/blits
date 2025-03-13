@@ -1,10 +1,10 @@
 # For loop
 
-The for loop is technically also a [directive](../directives.md), but such an important one that it deserves it's own section.
+The for loop is technically also a [directive](../directives.md), but such an important one that it deserves its own section.
 
 The for loop directive can be used when you want to repeat multiple instances of an Element or a Component, without having to specify them hardcoded one by one in your template.
 
-The for loop take an `Array` of data, loops over it and for each Array-item an Element or Component is created. The `Array` can be a fixed one, but it' can also dynamically be filled or modified and have it's changes reflect in the rendered result.
+The for loop takes an `Array` of data, loops over it and for each Array-item an Element or Component is created. The `Array` can be a fixed one, but it can also dynamically be filled or modified and have it's changes reflect in the rendered result.
 
 > Important: the for loop is a powerful and often used directive. Within Blits it's optimized to be as performant as possible. But if used incorrectly, it can be the cause of slow performance. So please read carefully through this entire section.
 
@@ -33,9 +33,9 @@ The example above will generate 3 _lime green_ elements, based on the array of `
 
 ## Using the index
 
-In order to fix the example above and make all 3 elements visible, we can use the `index` of the Array, to position each item correctly.
+In order to fix the example above and make all 3 elements visible, we can use the `index` of the Array to position each item correctly.
 
-All we need to do is declare the `index` in the `for`-directive and subsequently use it in the the `x`-attribute, with a simple calculation.
+All we need to do is declare the `index` in the `for`-directive and subsequently use it in the `x`-attribute, with a simple calculation.
 
 You may choose any name for the `index` variable (like `i` or `forIndex`). This may be useful when you already have the `index`-key specified as a `state` or `prop` variable on your component, causing a conflict.
 
@@ -95,13 +95,13 @@ export default Blits.Component('ForLoop', {
 })
 ```
 
-This will generate 3 squares aligned next to each other, each with a differrent color and they will use the _alpha_ specific in the Component state.
+This will generate 3 squares aligned next to each other, each with a different color and they will use the _alpha_ specific in the Component state.
 
 ## The importance of using the key attribute
 
 The examples above have demonstrated the basic usage of the for-loop. But they are all missing one _very important_ ingredient to make sure that for-loops that are subject to change, continue to perform well. Meet the `key`-attribute.
 
-For perfomance reasons, it is essential to be able track the _identity_ of an Element or Component, whenever changes are made to the Array in the for loop.
+For performance reasons, it is essential to be able track the _identity_ of an Element or Component, whenever changes are made to the Array in the for loop.
 
 Think of _identity_ as the field that makes an item in the Array unique, such as an `id` or a `hash`. It's basically the thing that allows you to distinguish between the poster of _The Matrix_ and the poster of _Frozen 2_, for example.
 
@@ -109,7 +109,7 @@ Providing this information, allows the for-loop to decide whether it should _upd
 
 Correctly using the `key`-attribute enables Blits to _reuse_ existing instances whenever possible - which obviously is good for performance.
 
-It's important that the `key`-attribute is _unique_ for each Array item. Also beware that we can't rely on the `index` parameter provided in for loop, because that only indentifies the position in the Array, and not the actual item itself.
+It's important that the `key`-attribute is _unique_ for each Array item. Also beware that we can't rely on the `index` parameter provided in for loop, because that only identifies the position in the Array, and not the actual item itself.
 
 
 ```js
@@ -156,7 +156,7 @@ export default Blits.Component('ForLoop', {
 
 In the example above we have added the `key`-attribute in the template. Now whenever we push a new item to the `items`-array, the for-loop will reuse the Elements previously created and only instantiate a new Element for the newly added item.
 
-If we would ommit the `key`-attribute, then whenever we push a new item to the Array, the for-loop would dispose all the old Elements and create new instances for _each_ item in the array.
+If we would omit the `key`-attribute, then whenever we push a new item to the Array, the for-loop would dispose all the old Elements and create new instances for _each_ item in the array.
 
 ## Referencing elements in the for loop
 

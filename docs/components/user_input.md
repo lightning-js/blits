@@ -86,15 +86,15 @@ The `intercept`-method can also be an asynchronous method.
 
 The functions specified in the `input` configuration are invoked when a key is _pressed down_ (i.e. the `keydown` event listener). But sometimes you may also want to execute some logic when a key is _released_ (i.e. the `keyup` event listener).
 
-Instead of introducing a separate key on the Component configuration object for key release callbacks, Blits relies on the concept that a `keyup` event is always preceeded by a `keydown` event.
+Instead of introducing a separate key on the Component configuration object for key release callbacks, Blits relies on the concept that a `keyup` event is always preceded by a `keydown` event.
 
 Following this logic, whenever you return a function in an input (key down) handler, this function will be executed upon release (i.e. the `keyup` event) of that key .
 
-When an input key is being a hold down, it will execute the key down handler multipe times. Upon key release, only the last returned key up callback function will be executed.
+When an input key is being a hold down, it will execute the key down handler multiple times. Upon key release, only the last returned key up callback function will be executed.
 
 
 ```javascript
-Blits.Component('MyComponemnt', {
+Blits.Component('MyComponent', {
   //
   input: {
     enter() {

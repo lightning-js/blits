@@ -4,7 +4,7 @@ Blits uses an easy-to-read _XML-style_ template syntax. The syntax is inspired b
 
 The `template` key in the _Component configuration object_ is used to specify a string with this XML-like template structure. Templates can often span multiple lines. In those cases, it's advisable to use `template literals` (enclosed by backticks).
 
-Similar to HTML you can use arguments and nested tags. Self-closing tags and HTML-style comments are also supported in Blits templates.
+Similar to HTML, you can use arguments and nested tags. Self-closing tags and HTML-style comments are also supported in Blits templates.
 
 The default tag that can be used in templates is the `<Element>` tag. The Element tag corresponds to a node in the Lightning 3 renderer.
 

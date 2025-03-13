@@ -43,9 +43,9 @@ In addition to the absolute positions that Blits and Lightning use, there are a 
 
 On the `x`-axis the following _placement_ options can be used: `left` (default), `center` and `right`. On the `y`-axis the _placement_ attribute accepts `top` (default), `middle` and `bottom`.
 
-The _placement_ attribute also accepts and object with an `x` and a `y` key, to specify a placement for both axes.
+The _placement_ attribute also accepts an object with an `x` and a `y` key, to specify a placement for both axes.
 
-The placement of an Element is calculated based on the dimensions of it's direct parent. This means that the containing Element _must_ have it's own dimensions (i.e. a `w` and a `h` attribute).
+The placement of an Element is calculated based on the dimensions of its direct parent. This means that the containing Element _must_ have its own dimensions (i.e. a `w` and a `h` attribute).
 
 ```xml
 <Element w="300" h="300">
@@ -190,6 +190,6 @@ In the case where the `x` and `y` values are the same, you can also just supply 
 
 By default contents inside an Element (i.e. child Elements) will overflow the boundaries of the parent, even when you give the parent Element fixed dimensions.
 
-In order to contain / cut off the content inside an Elements' `w` and `h`, you can add the `clipping="true"`-attribute. Setting `clipping` to `false` restores the default behaviour of content overflowing.
+In order to contain / cut off the content inside an Element's `w` and `h`, you can add the `clipping="true"`-attribute. Setting `clipping` to `false` restores the default behaviour of content overflowing.
 
 Alternatively you can also use the `overflow`-attribute (and pass it `true` or `false`), which works similar to clipping just mapped inversly (i.e. `overflow="false"` ensures content that surpasses the parent dimensions is clipped-off).

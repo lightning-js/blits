@@ -44,7 +44,7 @@ Blits.Launch(App, 'app', {
 
 ### State object
 
-When registering the Global App State plugin, you pass it a state object as the second argument. This is a plain object literal that will be converted into a _reactive_ object, and is used to keep track the global state variables.
+When registering the Global App State plugin, you pass it a state object as the second argument. This is a plain object literal that will be converted into a _reactive_ object, and is used to keep track of the global state variables.
 
 The newly created Global App state works exactly the same as an internal Component state. You can read values and you can directly change values. And when you do change a value, it automatically triggers reactive updates. Either via reactive attributes in the template, or in the form of watchers / computed values in the Component logic.
 
@@ -77,7 +77,7 @@ In order to read or update variables on the global app state inside the componen
 
 ### Watching global state
 
-Similar to component state, you can watch for changes in the global state as well. You can to refer to global state variables using _dot-notation_ in the watcher function name, and _prefixing_ it with `$appState`. This means that you need to define your watcher as a `String`, matching one of the examples below, depending on your style preference.
+Similar to component state, you can watch for changes in the global state as well. You can refer to global state variables using _dot-notation_ in the watcher function name, and _prefixing_ it with `$appState`. This means that you need to define your watcher as a `String`, matching one of the examples below, depending on your style preference.
 
 ```js
 Blits.Component('MyComponent', {
