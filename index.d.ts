@@ -423,7 +423,16 @@ declare module '@lightningjs/blits' {
     watch?: W & ComponentContext<P, S, M, C>
   }
 
-  export interface ApplicationConfig<P extends Props, S, M, C, W> extends ComponentConfig<P, S, M, C, W> {
+  export interface RouterHooks {
+    beforeEach?: (to: Route, from: Route) => string | Route | Promise<string | Route>;
+  }
+
+  export interface RouterConfig {
+    /**
+     * Register hooks for the router
+     */
+    hooks?: RouterHooks,
+
     /**
      * Routes definition
      *
@@ -440,6 +449,33 @@ declare module '@lightningjs/blits' {
     routes?: Route[]
   }
 
+  export type ApplicationConfig<P extends Props, S, M, C, W> = ComponentConfig<P, S, M, C, W> & (
+    {
+      /**
+       * Router Configuration
+       */
+      router?: RouterConfig,
+      routes?: never
+    }
+    |
+    {
+      router?: never
+      /**
+       * Routes definition
+       *
+       * @example
+       *
+       * ```js
+       * routes: [
+       *  { path: '/', component: Home },
+       *  { path: '/details', component: Details },
+       *  { path: '/account', component: Account },
+       * ]
+       * ```
+     */
+      routes?: Route[]
+    }
+  )
 
   export interface Transition {
     /**

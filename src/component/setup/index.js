@@ -20,7 +20,7 @@ import setupMethods from './methods.js'
 import setupState from './state.js'
 import setupComputed from './computed.js'
 import setupInput from './input.js'
-import setupRoutes from './routes.js'
+import setupRouter from './routes.js'
 import setupWatch from './watch.js'
 
 import { registerHooks } from '../../lib/hooks.js'
@@ -53,8 +53,9 @@ export default function (component, config) {
   // // setup watchers
   if (config.watch) setupWatch(component, config.watch)
 
-  // // setup routes
-  if (config.routes) setupRoutes(component, config.routes)
+  // // setup router
+  const routerConfig = config.router !== undefined ? config.router : config.routes
+  if (routerConfig !== undefined) setupRouter(component, routerConfig)
 
   // // setup input
   if (config.input) setupInput(component, config.input)
