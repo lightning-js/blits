@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.23.0
+
+_13 mar 2025_
+
+- Added support for beforeEach router hook
+- Added warning when variables used in the template are not declared on the component scope (only during dev)
+- Added vite plugin that ensures reactivity is setup properly for all state variables in a computed prop
+- Fixed keepAlive functionality in the router on back navigation
+- Fixed various test cases
+- Added useful base methods to the this context of plugins
+- Added workflow to execute test cases for PRs
+- Updated L3 renderer dependency to v2.13.2
+- Fixed various typos in the documentation
+- Fixed reactivity issue when value is set to `null`
+
 ## v1.22.0
 
 _3 mar 2025_
