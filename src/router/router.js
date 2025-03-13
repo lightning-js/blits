@@ -33,7 +33,9 @@ export const state = reactive({
   hash: '',
 })
 
-const cacheMap = new WeakMap()
+// Changed from WeakMap to Map to allow for caching of views by the url hash.
+// We are manually doing the cleanup of the cache when the route is not marked as keepAlive.
+const cacheMap = new Map()
 const history = []
 
 let overrideOptions = {}
@@ -133,8 +135,22 @@ export const navigate = async function () {
     }
 
     currentRoute = route
-    let beforeHookOutput
     if (route) {
+      let beforeEachResult
+      if (this.parent[symbols.routerHooks]) {
+        const hooks = this.parent[symbols.routerHooks]
+        if (hooks.beforeAll) {
+          beforeEachResult = await hooks.beforeAll(route, previousRoute)
+          if (isString(beforeEachResult)) {
+            to(beforeEachResult)
+            return
+          }
+        }
+      }
+      // If the resolved result is an object, assign it to the target route object
+      route = isObject(beforeEachResult) ? beforeEachResult : route
+
+      let beforeHookOutput
       if (route.hooks) {
         if (route.hooks.before) {
           beforeHookOutput = await route.hooks.before.call(this.parent, route, previousRoute)
@@ -163,7 +179,7 @@ export const navigate = async function () {
 
       let holder
       let routeData
-      let { view, focus } = cacheMap.get(route) || {}
+      let { view, focus } = cacheMap.get(route.hash) || {}
 
       if (!view) {
         // create a holder element for the new view
@@ -312,9 +328,15 @@ const removeView = async (route, view, transition) => {
   }
 
   // cache the page when it's as 'keepAlive' instead of destroying
-  if (route.options && route.options.keepAlive === true) {
-    cacheMap.set(route, { view: view, focus: previousFocus })
-  } else {
+  if (route.options && route.options.keepAlive === true && navigatingBack === false) {
+    cacheMap.set(route.hash, { view: view, focus: previousFocus })
+  } else if (navigatingBack === true) {
+    // remove the previous route from the cache when navigating back
+    // cacheMap.delete will not throw an error if the route is not in the cache
+    cacheMap.delete(route.hash)
+  }
+
+  if (route.options && route.options.keepAlive !== true) {
     view.destroy()
     view = null
   }

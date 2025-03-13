@@ -42,7 +42,7 @@ In this case `id` and `name` won't automatically be made available as props insi
 
 Sometimes you may actually want pass custom data into a Blits component, without it being part of the dynamic route path or `data`-object during navigation. For these cases Blits allows you to use query parameters as part of a route (i.e. `#/series/simpsons/5/10?id=100&name=john`).
 
-This URL hash will match the route `/series/:show/:season/:episode` and it will pass `id` and `name` as additional props into the Page component. Note: similar to dynamic path params, route query params should also be be defined in the Page component as _props_ first (i.e. `props: ['id', 'name']`) in order to be accessed on the `this`-scope.
+This URL hash will match the route `/series/:show/:season/:episode` and it will pass `id` and `name` as additional props into the Page component. Note: similar to dynamic path params, route query params should also be defined in the Page component as _props_ first (i.e. `props: ['id', 'name']`) in order to be accessed on the `this`-scope.
 
 ## Router view
 
@@ -78,7 +78,7 @@ export default Blits.Application({
 
 Each component in a routed Blits app has a `this.$router` object that provides access to the Router instance. It can be used to programmatically navigate to pages, by calling the `to()` method on it.
 
-The `this.$router.to()`-methods accepts 3 arguments:
+The `this.$router.to()`-method accepts 3 arguments:
 
 - `path` - the path of the route to navigate to
 - `data` (optional) - an object with data to pass into the page as `props`
@@ -147,9 +147,9 @@ The Router API provides several useful methods and properties for managing route
 
 The reactive router state (`this.$router.state`) can be useful in situations where you want to hook up reactive changes in your App to Route changes.
 
-The `state` variable on the `this.$router` object returns a reactive object with 2 keys: `path` and `navigating`. The values of these keys will automaticaly update when the router navigates from one page to another.
+The `state` variable on the `this.$router` object returns a reactive object with 2 keys: `path` and `navigating`. The values of these keys will automatically update when the router navigates from one page to another.
 
-The router state changes can be used in a Blits template, they can be _watched_ and they can be used in generic busines logic, as demonstrated in the example below.
+The router state changes can be used in a Blits template, they can be _watched_ and they can be used in generic business logic, as demonstrated in the example below.
 
 ```js
 export default Blits.Component('MyComponent', {

@@ -39,11 +39,11 @@ export default {
   deregisterListener(component, event) {
     let componentsMap = eventsMap.get(event)
     if (componentsMap === undefined) {
-      return;
+      return
     }
 
-    if (componentsMap.contains(component)) {
-      componentsMap.delete(component);
+    if (componentsMap.has(component)) {
+      componentsMap.delete(component)
       eventsMap.set(event, componentsMap)
       callbackCache.delete(event)
     }

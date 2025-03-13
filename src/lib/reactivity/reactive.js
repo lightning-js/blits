@@ -115,6 +115,7 @@ const reactiveProxy = (original, _parent = null, _key, global) => {
           if (Array.isArray(value) === true) {
             value = getRaw(value).slice(0)
           } else if (
+            value !== null &&
             target[key] !== null &&
             target[key] !== undefined &&
             Array.isArray(target) === false &&

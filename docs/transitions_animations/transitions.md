@@ -3,7 +3,7 @@
 So far we have explored how to create components and draw elements on the screen. But everything has
 been rather static so far.
 
-We did learn how to _reactively_ changes values and trigger rerenders based on that. So if you try the example below, you'll see that indeed our golden element changes position. But it just jumps from one place to another:
+We did learn how to _reactively_ change values and trigger rerenders based on that. So if you try the example below, you'll see that indeed our golden element changes position. But it just jumps from one place to another:
 
 ```js
 export default Blits.Component('Gold', {
@@ -141,7 +141,7 @@ export default Blits.Component('Gold', {
   `,
   ///
   methods: {
-    transitionprogress(progress, previousProgress) {
+    transitionProgress(progress, previousProgress) {
       if(progress >= 0.5 && previousProgress < 0.5) {
         // halfway through the transition
       }

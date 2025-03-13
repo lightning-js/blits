@@ -34,7 +34,7 @@ The Text-tag accepts the following attributes:
 
 ## Text dimensions
 
-When you want to center your Text element, or properly position other Elements around your text, it is useful know the exact dimensions of your text.
+When you want to center your Text element, or properly position other Elements around your text, it is useful to know the exact dimensions of your text.
 
 Similar to the Image element (i.e. an Element with a `src`), Text elements also accept the `@loaded` attribute. This event is called, as soon as the text is rendered, and passes in the dimensions of the generated text texture.
 
@@ -91,7 +91,7 @@ When you create a new Blits app using the available [getting started boilerplate
 
 But of course, you can also use any custom font that you want, to give your App the unique look and feel that fits with the design.
 
-Adding is custom font to a Blits App is quite straightforward. First, you'll need to place a `.ttf`, `.woff` or `.otf` version of your font in the `public` folder (i.e. `public/fonts/comic-sans.ttf`).
+Adding a custom font to a Blits App is quite straightforward. First, you'll need to place a `.ttf`, `.woff` or `.otf` version of your font in the `public` folder (i.e. `public/fonts/comic-sans.ttf`).
 
 Then you'll need to register the custom font in the Launch settings of your app (in `src/index.js`). The `fonts`-key in the settings is an `Array` that specifies all available fonts in your App.
 
@@ -117,7 +117,7 @@ From this moment on you'll be able to use the font `ComicSans` anywhere in your 
 
 ### Custom characters
 
-For MSDF font, a font atlas is created. By default this atlas includes all printable main ASCII characters. If you know before hand that you won't need certain characters, it would be more optimal to generate only those characters that are actually needed.
+For MSDF font, a font atlas is created. By default this atlas includes all printable main ASCII characters. If you know beforehand that you won't need certain characters, it would be more optimal to generate only those characters that are actually needed.
 
 Similarly, if you need characters outside of the default set, like accents or other special characters, then these will need to be included in the generated font atlas.
 

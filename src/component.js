@@ -27,7 +27,7 @@ import symbols from './lib/symbols.js'
 
 import { stage, renderer } from './launch.js'
 
-import Base from './component/base/index.js'
+import { default as Base, shared } from './component/base/index.js'
 
 import Settings from './settings.js'
 
@@ -104,8 +104,15 @@ const Component = (name = required('name'), config = required('config')) => {
     // execute the render code that constructs the initial state of the component
     // and store the children result (a flat map of elements and components)
     this[symbols.children] =
-      config.code.render.apply(stage, [parentEl, this, config, globalComponents, effect, getRaw]) ||
-      []
+      config.code.render.apply(stage, [
+        parentEl,
+        this,
+        config,
+        globalComponents,
+        effect,
+        getRaw,
+        Log,
+      ]) || []
 
     // create a reference to the wrapper element of the component (i.e. the root Element of the component)
     this[symbols.wrapper] = this[symbols.children][0]
@@ -210,6 +217,7 @@ const Component = (name = required('name'), config = required('config')) => {
       // Register user defined plugins once on the Base object (after launch)
       const pluginKeys = Object.keys(plugins)
       const pluginKeysLength = pluginKeys.length
+      const pluginInstances = {}
       for (let i = 0; i < pluginKeysLength; i++) {
         const pluginName = pluginKeys[i]
         const prefixedPluginName = `$${pluginName}`
@@ -221,13 +229,22 @@ const Component = (name = required('name'), config = required('config')) => {
 
         const plugin = plugins[pluginName]
 
-        Object.defineProperty(Base, prefixedPluginName, {
+        pluginInstances[prefixedPluginName] = {
           // instantiate the plugin, passing in provided options
-          value: plugin.plugin(plugin.options),
+          value: Object.defineProperties(plugin.plugin(plugin.options), shared),
           writable: false,
           enumerable: true,
-          configurable: false,
-        })
+          configurable: true,
+        }
+      }
+
+      Object.defineProperties(Base, pluginInstances)
+
+      // expose other plugins inside each plugin
+      for (const plugin in pluginInstances) {
+        Object.defineProperties(Base[plugin], pluginInstances)
+        // but remove reference to plugin itself
+        delete Base[plugin][plugin]
       }
 
       // register global components once

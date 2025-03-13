@@ -112,7 +112,7 @@ Blits.Plugin(theme, {
 ```
 
 In the definition above we've specified 3 different themes: `base`, `dark` and `large`. The dark and large theme are not complete definitions,
-which mean that they will inherit missing values from the base theme.
+which means that they will inherit missing values from the base theme.
 
 
 ## Getting theme values

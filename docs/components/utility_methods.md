@@ -267,13 +267,13 @@ export default Blits.Component('MyComponent', {
 
 Timeouts are a great way to execute recurring logic, such as polling for updates or periodically updating an animation.
 
-But simular to timeouts, intervals (more specifically failing to clear them) are a common source of memory leaks - maybe even more than dangling timeouts.
+But similar to timeouts, intervals (more specifically failing to clear them) are a common source of memory leaks - maybe even more than dangling timeouts.
 
 For this reason Blits has 3 built-in utility methods to help registering and clearing intervals.
 
 ### $setInterval
 
-The `this.$setInterval()`-method create an interval, using a thin wrapper around the `window.setInterval()` method. The first argument is the `callback` to be executed after each interval `delay` specified in the second argument. The method returns an `interval id`, which can be used to mannually clear the interval.
+The `this.$setInterval()`-method create an interval, using a thin wrapper around the `window.setInterval()` method. The first argument is the `callback` to be executed after each interval `delay` specified in the second argument. The method returns an `interval id`, which can be used to manually clear the interval.
 
 ### $clearInterval
 
@@ -287,18 +287,22 @@ The `this.$clearIntervals()`-method is a utility method that is used to clear al
 ```js
 export default Blits.Component('MyComponent', {
   state() {
-    interval: null,
-    secondCount: 0,
-    minuteCount: 0,
+    return {
+      interval: null,
+      secondCount: 0,
+      minuteCount: 0,
+    }
   },
   hooks: {
     init() {
       this.interval = this.$setInterval(() => {
-        console.log(`${secondCount} second(s) have passed`)
+        this.secondCount++
+        console.log(`${this.secondCount} second(s) have passed`)
       }, 1000)
 
       this.$setInterval(() => {
-        console.log(`${minuteCount} minute(s) have passed`)
+        this.minuteCount++
+        console.log(`${this.minuteCount} minute(s) have passed`)
       }, 60000)
     },
     unfocus() {

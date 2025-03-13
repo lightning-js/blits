@@ -33,7 +33,7 @@ export default Blits.Application({
 The before hook can optionally return a value, which will influence the behaviour of the route change:
 
 - when  `false` is returned, the router will fail to finish the routing, and act as if _no matching route was found_
-- when a `string` is returned, the router will interpret this a _new route path to redirect to_
+- when a `string` is returned, the router will interpret this as a _new route path to redirect to_
 - when an `object` is returned, the router will interpret this as a route object, allowing to _modify (or completely replace) the route object_ being navigated to
 
 Returning an `object` is a simple, yet powerful, mechanism to add advanced runtime configuration to your routes. A common scenario is to overwrite certain parts of the route object provided in the `to`-argument, such as the route options (such as `inHistory` or `stayAlive`) or define conditional page transitions.
