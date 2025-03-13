@@ -39,7 +39,7 @@ The Language plugin accepts an optional configuration object with 2 keys:
 - `file` - the JSON file with translations to be loaded at initialization
 - `language` - the default language to use
 
-After registration of the Language plugin, it will be availabe in each Blits Component as `this.$language`.
+After registration of the Language plugin, it will be available in each Blits Component as `this.$language`.
 
 ## Translations file
 
@@ -78,7 +78,7 @@ When the JSON file is specified in the Plugin registration method, the language 
 
 In case you want to load the file with translations manually, you can use the `this.$language.load()`-method anywhere in a Component and pass in the path to the JSON file as the first argument.
 
-## Defining translations manualy
+## Defining translations manually
 
 As an alternative to a JSON file with translations, you can also define translations directly via an object, using the `translations()`-method.
 
