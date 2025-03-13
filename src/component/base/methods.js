@@ -130,22 +130,15 @@ export default {
     enumerable: true,
     configurable: false,
   },
+  /**
+   * @deprecated this part has been replaced with a different & more dev friendly feature `docs/essentials/element_attributes.md`
+   */
   shader: {
     value: function (type, args) {
       return {
-        type: type,
+        type,
         props: args,
       }
-      // const shaders = renderer.driver.stage.shManager.getRegisteredEffects()
-
-      // if (target in shaders) {
-      //   return {
-      //     type: target,
-      //     props: args,
-      //   }
-      // } else {
-      //   Log.error(`Shader ${type} not found`)
-      // }
     },
     writable: false,
     enumerable: true,

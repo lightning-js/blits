@@ -63,7 +63,7 @@ const textureMemorySettings = (settings) => {
   }
 }
 
-export default (App, target, settings = {}) => {
+export default async (App, target, settings = {}) => {
   renderer = new RendererMain(
     {
       ...{
@@ -106,7 +106,7 @@ export default (App, target, settings = {}) => {
     }
   }
 
-  shaderLoader()
+  await shaderLoader()
   fontLoader()
   initApp()
 

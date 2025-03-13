@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4.0
+
+_04 Mar 2025_
+
+- Added charset meta tag to index.html
+
 ## v1.3.0
 
 _08 Nov 2024_

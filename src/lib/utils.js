@@ -10,3 +10,19 @@ export const screenResolutions = {
   '2160p': 2,
   2160: 2,
 }
+
+export const isTransition = (value) => {
+  return value !== null && typeof value === 'object' && 'transition' in value === true
+}
+
+export const isObjectString = (str) => {
+  return typeof str === 'string' && str.startsWith('{') && str.endsWith('}')
+}
+
+export const isArrayString = (str) => {
+  return typeof str === 'string' && str.startsWith('[') && str.endsWith(']')
+}
+
+export const parseToObject = (str) => {
+  return JSON.parse(str.replace(/'/g, '"').replace(/([\w-_]+)\s*:/g, '"$1":'))
+}
