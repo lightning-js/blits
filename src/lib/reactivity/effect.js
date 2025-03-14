@@ -45,7 +45,7 @@ export const removeGlobalEffects = (effectsToRemove) => {
 }
 
 export const track = (target, key, global = false) => {
-  if (currentEffect) {
+  if (currentEffect !== null) {
     if (paused) {
       return
     }
@@ -55,12 +55,12 @@ export const track = (target, key, global = false) => {
     } else if (currentKey !== null && key !== currentKey) return
 
     let effectsMap = objectMap.get(target)
-    if (!effectsMap) {
+    if (effectsMap === undefined) {
       effectsMap = new Map()
       objectMap.set(target, effectsMap)
     }
     let effects = effectsMap.get(key)
-    if (!effects) {
+    if (effects === undefined) {
       effects = new Set()
       effectsMap.set(key, effects)
     }
@@ -73,11 +73,11 @@ export const track = (target, key, global = false) => {
 export const trigger = (target, key, force = false) => {
   if (paused === true) return
   const effectsMap = objectMap.get(target)
-  if (!effectsMap) {
+  if (effectsMap === undefined) {
     return
   }
   const effects = effectsMap.get(key)
-  if (effects) {
+  if (effects !== undefined) {
     for (let effect of effects) {
       effect(force)
     }
