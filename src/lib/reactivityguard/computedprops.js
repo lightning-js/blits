@@ -133,12 +133,23 @@ export default (code) => {
             const openBraceIndex = prop.fullText.indexOf('{')
 
             if (openBraceIndex !== -1) {
+              // Extract indentation from the original function body
+              const indentMatch = prop.body.match(/^(\s+)/)
+              const indent = indentMatch ? indentMatch[1] + '  ' : '    ' // Default to 4 spaces if no indent found
+
               const modifiedPropText =
                 prop.fullText.substring(0, openBraceIndex + 1) +
+                '\n' +
+                indent +
                 commentText +
+                '\n' +
+                indent +
                 refCode +
-                ' ' +
+                '\n' +
+                indent +
                 prop.body +
+                '\n' +
+                prop.fullText.substring(0, openBraceIndex).match(/^(\s*)/)[0] +
                 '}'
 
               // Replace this property in the computed object text
