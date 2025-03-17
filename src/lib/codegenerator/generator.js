@@ -80,7 +80,7 @@ export default function (templateObject = { children: [] }, devMode = false) {
 
 // This is used to get only variable from expression
 const extractVariables = function (value) {
-  const regEx = /\$\w+(\.\w+)?/g
+  const regEx = /\$\$?\w+(\.\w+)?/g
   const matches = value.match(regEx)
   if (matches !== null) {
     const shaderRegex = /\$shader/
