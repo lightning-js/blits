@@ -16,7 +16,7 @@
  */
 
 import test from 'tape'
-import { matchHash, getHash } from './router.js'
+import { matchHash, getHash, to } from './router.js'
 
 const routes = [
   {
@@ -293,6 +293,51 @@ test('Get the hash from the URL and handle query params', (assert) => {
     '2',
     'The result object should contain a queryParams key with the correct route query param values'
   )
+
+  assert.end()
+})
+
+test('Get route object from Match hash when navigating using to() method', (assert) => {
+  const hash = '/page1/subpage1'
+
+  to(hash)
+
+  const result = matchHash(hash, routes)
+
+  console.log(result)
+
+  assert.equal(result.path, 'page1/subpage1', 'The result object should contain a path key with path hash')
+  assert.equal(Object.keys(result.params).length, 0, 'The results object should contain a params key with zero props')
+  assert.equal(Object.keys(result.data).length, 0, 'The results object should contain a data key with zero props')
+  assert.equal(Object.keys(result.options).length, 0, 'The results object should contain a options key with zero props')
+  assert.end()
+})
+
+test.only('Get route object from Match hash when navigating using to() method with options', (assert) => {
+  const hash = '/page1/subpage1'
+
+  to(hash, undefined, {keepAlive: true})
+
+  const result = matchHash(hash, routes)
+
+  assert.equal(result.path, 'page1/subpage1', 'The result object should contain a path key with path hash')
+
+  assert.equal(result.options.keepAlive, true, 'The results object should contain a options key with keep alive as True')
+
+  assert.end()
+})
+
+
+test('Get Hash from URL when navigating using to() method', (assert) => {
+  const hash = '#/movies/action/avengers'
+
+  to(hash)
+
+  const result = getHash()
+
+  assert.equal(result.hash, hash, 'The result object key property should contain correct location hash')
+
+  assert.equal(result.path, '/movies/action/avengers', 'The result object should contain a path key with hash without #')
 
   assert.end()
 })
