@@ -304,29 +304,50 @@ test('Get route object from Match hash when navigating using to() method', (asse
 
   const result = matchHash(hash, routes)
 
-  console.log(result)
-
-  assert.equal(result.path, 'page1/subpage1', 'The result object should contain a path key with path hash')
-  assert.equal(Object.keys(result.params).length, 0, 'The results object should contain a params key with zero props')
-  assert.equal(Object.keys(result.data).length, 0, 'The results object should contain a data key with zero props')
-  assert.equal(Object.keys(result.options).length, 0, 'The results object should contain a options key with zero props')
+  assert.equal(
+    result.path,
+    'page1/subpage1',
+    'The result object should contain a path key with path hash'
+  )
+  assert.equal(
+    Object.keys(result.params).length,
+    0,
+    'The results object should contain a params key with zero props'
+  )
+  assert.equal(
+    Object.keys(result.data).length,
+    0,
+    'The results object should contain a data key with zero props'
+  )
+  assert.equal(
+    Object.keys(result.options).length,
+    0,
+    'The results object should contain a options key with zero props'
+  )
   assert.end()
 })
 
-test.only('Get route object from Match hash when navigating using to() method with options', (assert) => {
+test('Get route object from Match hash when navigating using to() method with options', (assert) => {
   const hash = '/page1/subpage1'
 
-  to(hash, undefined, {keepAlive: true})
+  to(hash, undefined, { keepAlive: true })
 
   const result = matchHash(hash, routes)
 
-  assert.equal(result.path, 'page1/subpage1', 'The result object should contain a path key with path hash')
+  assert.equal(
+    result.path,
+    'page1/subpage1',
+    'The result object should contain a path key with path hash'
+  )
 
-  assert.equal(result.options.keepAlive, true, 'The results object should contain a options key with keep alive as True')
+  assert.equal(
+    result.options.keepAlive,
+    true,
+    'The results object should contain a options key with keep alive as True'
+  )
 
   assert.end()
 })
-
 
 test('Get Hash from URL when navigating using to() method', (assert) => {
   const hash = '#/movies/action/avengers'
@@ -335,9 +356,17 @@ test('Get Hash from URL when navigating using to() method', (assert) => {
 
   const result = getHash()
 
-  assert.equal(result.hash, hash, 'The result object key property should contain correct location hash')
+  assert.equal(
+    result.hash,
+    hash,
+    'The result object key property should contain correct location hash'
+  )
 
-  assert.equal(result.path, '/movies/action/avengers', 'The result object should contain a path key with hash without #')
+  assert.equal(
+    result.path,
+    '/movies/action/avengers',
+    'The result object should contain a path key with hash without #'
+  )
 
   assert.end()
 })
