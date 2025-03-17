@@ -16,7 +16,7 @@
  */
 
 import test from 'tape'
-import { matchHash } from './router.js'
+import { matchHash, getHash } from './router.js'
 
 const routes = [
   {
@@ -232,6 +232,66 @@ test('Match routes case insensitive, but pass props with original casing', (asse
       name: 'Avengers-Endgame',
     },
     'Should return the correct params object'
+  )
+
+  assert.end()
+})
+
+test('Get the hash from the URL', (assert) => {
+  const hash = '#/movies/action/the-avengers'
+  document.location.hash = hash
+
+  const result = getHash()
+
+  assert.equal(
+    result.hash,
+    hash,
+    'The result object should contain a hash key with the correct location hash'
+  )
+
+  assert.equal(
+    result.path,
+    '/movies/action/the-avengers',
+    'The result object should contain a path key with the hash (stripped the # symbol)'
+  )
+
+  assert.end()
+})
+
+test('Get the hash from the URL and handle query params', (assert) => {
+  const hash = '#/movies/comedy/the-hangover?category=1&item=2'
+  document.location.hash = hash
+
+  const result = getHash()
+
+  assert.equal(
+    result.hash,
+    hash,
+    'The result object should contain a hash key with the correct location hash without the query params'
+  )
+
+  assert.equal(
+    result.path,
+    '/movies/comedy/the-hangover',
+    'The result object should contain a path key with the hash (stripped the # symbol)'
+  )
+
+  assert.equal(
+    result.queryParams instanceof URLSearchParams,
+    true,
+    'The result object should contain a queryParams key with an URLSearchParams object'
+  )
+
+  assert.equal(
+    result.queryParams.get('category'),
+    '1',
+    'The result object should contain a queryParams key with the correct route query param values'
+  )
+
+  assert.equal(
+    result.queryParams.get('item'),
+    '2',
+    'The result object should contain a queryParams key with the correct route query param values'
   )
 
   assert.end()
