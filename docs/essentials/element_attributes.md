@@ -205,7 +205,7 @@ For better a better development experience Blits had the following shader attrib
 
 - `rounded` - Allows you to round corners of an Element. You can do this with a single value, array, or object. ([details](https://lightningjs.io/api/renderer/interfaces/Renderer.RoundedProps.html))
 - `border` - Allows you to add an inner border to an Element. You can do this with an object. ([details](https://lightningjs.io/api/renderer/interfaces/Renderer.BorderProps.html))
-- `shadow` - Allows you to add a box shadow "behind" an Element. You can do this with an object. ([details](https://github.com/lightning-js/renderer/blob/e7f7b71bc854e2510dbbf7adb05e2231a18c3736/src/core/shaders/templates/ShadowTemplate.ts#L21))
+- `shadow` - Allows you to add a box shadow "behind" an Element. You can do this with an object. ([details](https://lightningjs.io/api/renderer/interfaces/Renderer.ShadowProps.html))
 
 ```xml
 <Element w="200" h="200" x="20" y="100" rounded="20" />

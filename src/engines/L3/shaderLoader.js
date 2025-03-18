@@ -8,10 +8,7 @@ function registerBlitsDefaultShaders(
   Shadow,
   RoundedWithBorder,
   RoundedWithShadow,
-  RoundedWithBorderAndShadow,
-  RadialGradient,
-  LinearGradient,
-  HolePunch
+  RoundedWithBorderAndShadow
 ) {
   shManager.registerShaderType('rounded', Rounded)
   shManager.registerShaderType('border', Border)
@@ -19,9 +16,6 @@ function registerBlitsDefaultShaders(
   shManager.registerShaderType('roundedWithBorder', RoundedWithBorder)
   shManager.registerShaderType('roundedWithShadow', RoundedWithShadow)
   shManager.registerShaderType('roundedWithBorderAndShadow', RoundedWithBorderAndShadow)
-  shManager.registerShaderType('radialGradient', RadialGradient)
-  shManager.registerShaderType('linearGradient', LinearGradient)
-  shManager.registerShaderType('holePunch', HolePunch)
 }
 
 /**
@@ -42,9 +36,6 @@ export default async () => {
     RoundedWithBorder,
     RoundedWithShadow,
     RoundedWithBorderAndShadow,
-    RadialGradient,
-    LinearGradient,
-    HolePunch,
   } = await shaderModules[renderMode]()
 
   registerBlitsDefaultShaders(
@@ -54,10 +45,7 @@ export default async () => {
     Shadow,
     RoundedWithBorder,
     RoundedWithShadow,
-    RoundedWithBorderAndShadow,
-    RadialGradient,
-    LinearGradient,
-    HolePunch
+    RoundedWithBorderAndShadow
   )
 
   const shaders = Settings.get('shaders', [])
