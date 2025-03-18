@@ -179,7 +179,7 @@ export const navigate = async function () {
 
       let holder
       let routeData
-      let { view, focus } = cacheMap.get(route.hash) || {}
+      let { view, focus } = navigatingBack === true ? cacheMap.get(route.hash) || {} : {}
 
       if (!view) {
         // create a holder element for the new view
@@ -330,17 +330,16 @@ const removeView = async (route, view, transition) => {
   // cache the page when it's as 'keepAlive' instead of destroying
   if (navigatingBack === false && route.options && route.options.keepAlive === true) {
     cacheMap.set(route.hash, { view: view, focus: previousFocus })
-  } else if (navigatingBack === true) {
-    // remove the previous route from the cache when navigating back
+  } else if (navigatingBack === true && route.options && route.options.keepAlive !== true) {
+    // remove the previous route from the cache when navigating back & route is not configure with keep alive
     // cacheMap.delete will not throw an error if the route is not in the cache
     cacheMap.delete(route.hash)
   }
   /* Destroy the view in the following cases:
    * 1. Navigating forward, and the previous route is not configured with "keep alive" set to true.
-   * 2. Navigating back, and the previous route is configured with "keep alive" set to true.
-   * 3. Navigating back, and the previous route is not configured with "keep alive" set to true.
+   * 2. Navigating back, and the previous route is not configured with "keep alive" set to true.
    */
-  if (route.options && (route.options.keepAlive !== true || navigatingBack === true)) {
+  if (route.options && route.options.keepAlive !== true) {
     view.destroy()
     view = null
   }
