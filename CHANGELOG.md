@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.23.2
+
+_18 mar 2025_
+
+- Fixed issue with keepAlive pages remaining in cache after navigating back
+
 ## v1.23.1
 
 _17 mar 2025_
