@@ -316,7 +316,7 @@ test('Match routes case insensitive, but pass props with original casing', (asse
   assert.end()
 })
 
-test.skip('Match paths with dynamic route parts along with query string params', (assert) => {
+test('Match paths with dynamic route parts along with query string params', (assert) => {
   const hash1 = '#/tv/simpsons/seasons/first?token="123"&ln="en"'
   document.location.hash = hash1
 
