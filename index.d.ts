@@ -18,7 +18,9 @@
 // blits file type reference
 /// <reference path="./blits.d.ts" />
 
-import {CoreShaderType, type ShaderEffect as RendererShaderEffect, type RendererMainSettings} from '@lightningjs/renderer'
+import {type ShaderEffect as RendererShaderEffect, type RendererMainSettings} from '@lightningjs/renderer'
+import { CanvasShaderType } from '@lightningjs/renderer/canvas';
+import { WebGlShaderType } from '@lightningjs/renderer/webgl';
 
 declare module '@lightningjs/blits' {
 
@@ -619,7 +621,7 @@ declare module '@lightningjs/blits' {
 
   type Shader = {
     name: string,
-    type: CoreShaderType
+    type: WebGlShaderType | CanvasShaderType
   }
 
   type ScreenResolutions = 'hd' | '720p' | 720 | 'fhd' | 'fullhd' | '1080p' | 1080 | '4k' | '2160p' | 2160
