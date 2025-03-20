@@ -66,7 +66,7 @@ const isString = (v) => typeof v === 'string'
 
 export const matchHash = (path, routes = []) => {
   // remove trailing slashes
-  const originalPath = path
+  const originalPath = path.replace(/^\/+|\/+$/g, '')
   path = normalizePath(path)
   let matchingRoute = false
   let i = 0
@@ -88,6 +88,8 @@ export const matchHash = (path, routes = []) => {
           '([^\\s/]+)' +
           dynamicRoutePartsRegex.substring(part.index + part[0].length)
       })
+
+      dynamicRoutePartsRegex = '^' + dynamicRoutePartsRegex
 
       // test if the constructed regex matches the path
       const match = originalPath.match(new RegExp(`${dynamicRoutePartsRegex}`, 'i'))
@@ -328,15 +330,19 @@ const removeView = async (route, view, transition) => {
   }
 
   // cache the page when it's as 'keepAlive' instead of destroying
-  if (route.options && route.options.keepAlive === true && navigatingBack === false) {
+  if (navigatingBack === false && route.options && route.options.keepAlive === true) {
     cacheMap.set(route.hash, { view: view, focus: previousFocus })
   } else if (navigatingBack === true) {
     // remove the previous route from the cache when navigating back
     // cacheMap.delete will not throw an error if the route is not in the cache
     cacheMap.delete(route.hash)
   }
-
-  if (route.options && route.options.keepAlive !== true) {
+  /* Destroy the view in the following cases:
+   * 1. Navigating forward, and the previous route is not configured with "keep alive" set to true.
+   * 2. Navigating back, and the previous route is configured with "keep alive" set to true.
+   * 3. Navigating back, and the previous route is not configured with "keep alive" set to true.
+   */
+  if (route.options && (route.options.keepAlive !== true || navigatingBack === true)) {
     view.destroy()
     view = null
   }

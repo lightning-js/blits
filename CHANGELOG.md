@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.23.2
+
+_18 mar 2025_
+
+- Fixed issue with keepAlive pages remaining in cache after navigating back
+
+## v1.23.1
+
+_17 mar 2025_
+
+- Fixed issue in vite plugin that ensures reacitivity setup in computed props when code block has a comment
+- Fixed warnings for non-declared variables in template when they refer to plugins (i.e. `$$apState.foo`)
+
 ## v1.23.0
 
 _13 mar 2025_
