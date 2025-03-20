@@ -371,7 +371,7 @@ const propsTransformer = {
   /**
    * @deprecated
    */
-  set effect(v) {
+  set effects(v) {
     const effect = {}
     for (let i = 0; i < v.length; i++) {
       const type = v[i].type
