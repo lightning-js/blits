@@ -200,12 +200,13 @@ Generally Elements that have a color or texture are simply rendered as a rectang
 
 In Blits there are two ways to apply these Shaders.
 
-### Built-in
+### Built-in Element Shader attributes
 For better a better development experience Blits had the following shader attributes regularly used in app development:
 
 - `rounded` - Allows you to round corners of an Element. You can do this with a single value, array, or object. ([details](https://lightningjs.io/api/renderer/interfaces/Renderer.RoundedProps.html))
 - `border` - Allows you to add an inner border to an Element. You can do this with an object. ([details](https://lightningjs.io/api/renderer/interfaces/Renderer.BorderProps.html))
 - `shadow` - Allows you to add a box shadow "behind" an Element. You can do this with an object. ([details](https://lightningjs.io/api/renderer/interfaces/Renderer.ShadowProps.html))
+
 
 ```xml
 <Element w="200" h="200" x="20" y="100" rounded="20" />
@@ -219,16 +220,23 @@ You can also use built-in shader attributes in combination with eachother f.e;
 <Element w="200" h="200" x="20" y="100" rounded="20" border="{width: 20, color:'blue'}"/>
 ```
 
-### Imported
-You can also import your own shaders and use them in your template by using the following attribute:
+### Using shader attribute
+> [!WARNING]
+> This attribute does not work in combination with the built-in element shader attributes. This has to do with the complexity of shaders that makes mixing and matching quite heavy on performance.
 
-- `shader` - You can either use the `name` of the shader type, or an object with a type and additional properties.
+You can use a custom shader type by using the `shader` attribute. You can use [imported shaders](../shaders/importing-shaders.md) or some of the shaders Blits already has available to you:
+
+- `linearGradient` - linear gradient with multiple stops, and adjustable angle.
+- `radialGradient` - radial gradient with multiple stops, and adjustable center point.
+- `holePunch` - hole punch effect into a texture.
 
 ```xml
+<!--load shader with its default values-->
 <Element w="200" h="200" x="20" y="100" shader="rhombus" />
-<Element w="200" h="200" x="20" y="100" shader="{type: 'rhombus', width: 100, height: 100}" />
+<!--load shader with props-->
+<Element w="200" h="200" x="20" y="100" shader="{type: 'holePunch', x: 100,
+ y: 200, width: 100, height: 100}" />
 ```
 
-> [!WARNING]
-> This attribute does not work in combination with the built-in shader attributes. This has to do with the complexity of shaders that makes mixing and matching difficult.
+
 
