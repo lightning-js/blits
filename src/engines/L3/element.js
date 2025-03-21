@@ -346,23 +346,26 @@ const propsTransformer = {
     }
   },
   set shader(v) {
+    let type = v
     if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      type = v.type
+      delete v.type
       v = shaders.parseProps(v)
     }
     const target = this.element.node !== undefined ? this.element.node.props : this.props
     //if v remains a string we can change shader types
     if (typeof v === 'string') {
-      target['shader'] = renderer.createShader(v)
+      target['shader'] = renderer.createShader(type)
       return
     }
 
     //check again if v is an object since it could have been an object string
     if (typeof v === 'object') {
-      if (this.element.node !== undefined && v.type === target['shader'].props.type) {
+      if (this.element.node !== undefined && type === target['shader'].props.type) {
         target['shader'].props = v
         return
       }
-      target['shader'] = renderer.createShader(v.type, v)
+      target['shader'] = renderer.createShader(type, v)
       return
     }
 
