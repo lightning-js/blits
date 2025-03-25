@@ -82,6 +82,9 @@ const layoutFn = function (config) {
   let otherDimension = 0
   const gap = config.gap || 0
   for (let i = 0; i < childrenLength; i++) {
+    if (this.children[i] !== undefined && this.children[i].props.raw.show === false) {
+      continue
+    }
     const node = children[i]
     node[position] = offset
     node[oppositePosition] = padding.oppositeStart
