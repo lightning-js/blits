@@ -104,6 +104,9 @@ export default {
     const length = keys.length
     for (let i = 0; i < length; i++) {
       const key = keys[i]
+      if (key === 'type') {
+        continue
+      }
       v[key] = this.parseProp(v[key])
     }
     return v

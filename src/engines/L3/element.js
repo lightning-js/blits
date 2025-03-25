@@ -349,7 +349,6 @@ const propsTransformer = {
     let type = v
     if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
       type = v.type
-      delete v.type
       v = shaders.parseProps(v)
     }
     const target = this.element.node !== undefined ? this.element.node.props : this.props
@@ -361,7 +360,7 @@ const propsTransformer = {
 
     //check again if v is an object since it could have been an object string
     if (typeof v === 'object') {
-      if (this.element.node !== undefined && type === target['shader'].props.type) {
+      if (target.shader !== undefined && type === target.shader.shaderKey) {
         target['shader'].props = v
         return
       }
