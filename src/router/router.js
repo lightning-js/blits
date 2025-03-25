@@ -23,6 +23,7 @@ import { Log } from '../lib/log.js'
 import { stage } from '../launch.js'
 import Focus from '../focus.js'
 import Announcer from '../announcer/announcer.js'
+import ViewManager from './ViewManager.js'
 
 export let currentRoute
 export const state = reactive({
@@ -177,9 +178,22 @@ export const navigate = async function () {
         route.transition = route.transition(previousRoute, route)
       }
 
+      if (navigatingBack === false && route.options && route.options.keepAlive === true) {
+        // If ViewManager exists for the route hash, add a new entry to it.
+        if (cacheMap.has(route.hash) === true) {
+          cacheMap.get(route.hash).createEntry()
+        } else {
+          // Create a ViewManager instance for the route hash if it doesn't exist in cacheMap.
+          cacheMap.set(route.hash, new ViewManager())
+        }
+      }
+
       let holder
       let routeData
-      let { view, focus } = navigatingBack === true ? cacheMap.get(route.hash) || {} : {}
+      let { view, focus } =
+        navigatingBack === true && cacheMap.has(route.hash)
+          ? cacheMap.get(route.hash).getView() || {}
+          : {}
 
       if (!view) {
         // create a holder element for the new view
@@ -329,17 +343,23 @@ const removeView = async (route, view, transition) => {
 
   // cache the page when it's as 'keepAlive' instead of destroying
   if (navigatingBack === false && route.options && route.options.keepAlive === true) {
-    cacheMap.set(route.hash, { view: view, focus: previousFocus })
-  } else if (navigatingBack === true && route.options && route.options.keepAlive !== true) {
-    // remove the previous route from the cache when navigating back & route is not configure with keep alive
-    // cacheMap.delete will not throw an error if the route is not in the cache
-    cacheMap.delete(route.hash)
+    cacheMap.get(route.hash).setView({ view: view, focus: previousFocus })
+  } else if (navigatingBack === true && cacheMap.has(route.hash)) {
+    // Remove the previous route entry from the ViewManager when navigating back.
+    const manager = cacheMap.get(route.hash)
+    manager.removeView()
+
+    // If the ViewManager has zero entries, remove the corresponding route hash from cacheMap.
+    if (manager.size() === 0) {
+      cacheMap.delete(route.hash)
+    }
   }
   /* Destroy the view in the following cases:
    * 1. Navigating forward, and the previous route is not configured with "keep alive" set to true.
    * 2. Navigating back, and the previous route is not configured with "keep alive" set to true.
+   * 3. Navigating back, and the previous route is configured with "keep alive" set to true
    */
-  if (route.options && route.options.keepAlive !== true) {
+  if (route.options && (route.options.keepAlive !== true || navigatingBack === true)) {
     view.destroy()
     view = null
   }
