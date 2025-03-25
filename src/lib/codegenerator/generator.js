@@ -691,7 +691,7 @@ const cast = (val = '', key = false, component = 'component.') => {
     }
   }
   // numeric
-  else if (key !== 'color' && !isNaN(parseFloat(val))) {
+  else if (key !== 'color' && /[^0-9%\s.eE]/.test(val) === false && !isNaN(parseFloat(val))) {
     castedValue = parseFloat(val)
     if (val.endsWith('%')) {
       const map = {
