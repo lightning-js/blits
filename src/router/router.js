@@ -66,7 +66,7 @@ const isString = (v) => typeof v === 'string'
 
 export const matchHash = (path, routes = []) => {
   // remove trailing slashes
-  const originalPath = path
+  const originalPath = path.replace(/^\/+|\/+$/g, '')
   path = normalizePath(path)
   let matchingRoute = false
   let i = 0
@@ -88,6 +88,8 @@ export const matchHash = (path, routes = []) => {
           '([^\\s/]+)' +
           dynamicRoutePartsRegex.substring(part.index + part[0].length)
       })
+
+      dynamicRoutePartsRegex = '^' + dynamicRoutePartsRegex
 
       // test if the constructed regex matches the path
       const match = originalPath.match(new RegExp(`${dynamicRoutePartsRegex}`, 'i'))

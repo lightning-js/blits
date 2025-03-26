@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.24.0
+
+_26 mar 2025_
+
+- Added additional tests for router
+- Fixed issues with `:show` attribute not working properly
+- Fixed issue with strings starting with a number being casted to a number
+- Fixed named slots functionality
+
 ## v1.23.2
 
 _18 mar 2025_

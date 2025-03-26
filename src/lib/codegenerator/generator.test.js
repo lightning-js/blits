@@ -296,6 +296,71 @@ test('Generate code for a template with a single element with attributes with a 
   assert.end()
 })
 
+test('Generate code for a template with a single element with attributes with numeric & alpha numeric value', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        x: '10e2',
+        y: '100',
+        h: '45%',
+        w: '45.45%',
+        one: 'Pure String',
+        two: '123abc',
+        three: '1E',
+        four: 'E1',
+      },
+    ],
+  }
+
+  const expectedRender = `
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
+    const elms = []
+    let componentType
+    const rootComponent = component
+    let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
+    const elementConfig0 = {}
+
+    elms[0] = this.element(
+        { parent: parent || 'root' },
+        inSlot === true ? slotComponent : component
+    )
+
+    elementConfig0['x'] = 1000
+    elementConfig0['y'] = 100
+    elementConfig0['h'] = parent.node.height * (45 / 100)
+    elementConfig0['w'] = parent.node.width * (45.45 / 100)
+    elementConfig0['one'] = "Pure String"
+    elementConfig0['two'] = "123abc"
+    elementConfig0['three'] = 1
+    elementConfig0['four'] = "E1"
+
+    elms[0].populate(elementConfig0)
+
+    if (inSlot === true) {
+        slotChildCounter -= 1
+    }
+
+    return elms
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+  assert.end()
+})
+
 test('Generate code for a template with attributes and a nested element with attributes', (assert) => {
   const templateObject = {
     children: [
@@ -1427,6 +1492,144 @@ test('Generate code for a template with custom components with arguments', (asse
   assert.end()
 })
 
+test('Generate code for a template with custom components with argument value as numeric & alpha numeric', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        children: [
+          {
+            [Symbol.for('componentType')]: 'Poster',
+            x: '10e2',
+            y: '100',
+            h: '45%',
+            w: '45.45%',
+            one: 'Pure String',
+            two: '123abc',
+            three: '1E',
+            four: 'E1',
+          },
+        ],
+      },
+    ],
+  }
+
+  const scope = {
+    components: {
+      Poster: () => {},
+    },
+  }
+
+  const expectedRender = `
+  function anonymous(parent, component, context, components, effect, getRaw, Log) {
+    const elms = []
+    let componentType
+    const rootComponent = component
+    let propData
+    let slotComponent
+    let inSlot = false
+    let slotChildCounter = 0
+    const elementConfig0 = {}
+
+    elms[0] = this.element(
+        { parent: parent || 'root' },
+        inSlot === true ? slotComponent : component
+    )
+    elms[0].populate(elementConfig0)
+
+    if (inSlot === true) {
+        slotChildCounter -= 1
+    }
+
+    const cmp1 = (context.components && context.components['Poster']) || components['Poster']
+    parent = elms[0]
+    const elementConfig1 = {}
+
+    elms[1] = this.element(
+        { parent: parent || 'root' },
+        inSlot === true ? slotComponent : component
+    )
+
+    elementConfig1['x'] = 1000
+    elementConfig1['y'] = 100
+    elementConfig1['h'] = parent.node.height * (45 / 100)
+    elementConfig1['w'] = parent.node.width * (45.45 / 100)
+    elementConfig1['one'] = "PureString"
+    elementConfig1['two'] = "123abc"
+    elementConfig1['three'] = 1
+    elementConfig1['four'] = "E1"
+
+    const skip1 = []
+    if (typeof cmp1 !== 'undefined') {
+        for (let key in cmp1.config.props) {
+            delete elementConfig1[cmp1.config.props[key]]
+            skip1.push(cmp1.config.props[key])
+        }
+    }
+
+    elms[1].populate(elementConfig1)
+
+    if (inSlot === true) {
+        slotChildCounter -= 1
+    }
+
+    parent = elms[1]
+    const props2 = {}
+
+    props2['x'] = 1000
+    props2['y'] = 100
+    props2['h'] = parent.node.height * (45 / 100)
+    props2['w'] = parent.node.width * (45.45 / 100)
+    props2['one'] = "PureString"
+    props2['two'] = "123abc"
+    props2['three'] = 1
+    props2['four'] = "E1"
+
+    componentType = props2['is'] || 'Poster'
+    let component2
+
+    if (typeof componentType === 'string') {
+        component2 = context.components && context.components[componentType] || components[componentType]
+        if (!component2) {
+            throw new Error('Component "Poster" not found')
+        }
+    } else if (typeof componentType === 'function' && componentType[Symbol.for('isComponent')] === true) {
+        component2 = componentType
+    }
+
+    elms[2] = component2.call(null, { props: props2 }, elms[1], component)
+
+    if (elms[2][Symbol.for('slots')][0]) {
+        parent = elms[2][Symbol.for('slots')][0]
+        slotComponent = elms[2]
+        inSlot = true
+    } else {
+        parent = elms[2][Symbol.for('children')][0]
+    }
+
+    if (inSlot === true && slotChildCounter === 0) {
+      inSlot = false
+    }
+
+    return elms
+  }
+  `
+
+  const actual = generator.call(scope, templateObject)
+
+  assert.equal(
+    normalize(actual.render.toString()),
+    normalize(expectedRender),
+    'Generator should return a render function with the correct code'
+  )
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should return an empty effects array'
+  )
+
+  assert.end()
+})
+
 test('Generate code for a template with custom components with reactive props', (assert) => {
   const templateObject = {
     children: [
@@ -1933,9 +2136,9 @@ test('Generate code for a template with slot content, using a named slot', (asse
     elms[4] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elementConfig4['x'] = 100
     elementConfig4['y'] = component.y
-    elementConfig4['parent'] = component[Symbol.for('slots')] !== undefined &&
-      Array.isArray(component[Symbol.for('slots')]) === true &&
-      component[Symbol.for('slots')].filter(slot => slot.ref === 'mySlot').shift() || parent
+    elementConfig4['parent'] = slotComponent[Symbol.for('slots')] !== undefined &&
+      Array.isArray(slotComponent[Symbol.for('slots')]) === true &&
+       slotComponent[Symbol.for('slots')].filter(slot => slot.ref === 'mySlot').shift() || parent
     elementConfig4['slot'] = "mySlot"
     elms[4].populate(elementConfig4)
 
