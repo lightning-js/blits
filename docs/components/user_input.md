@@ -137,9 +137,9 @@ But it's possible that the keycodes and mapping of your target device are slight
 
 In Blits, you can easily configure the key mapping to match your needs. In the `src/index.js` file where we instantiate the App via the `Blits.Launch` function, we can add an extra key, called `keymap`, to the _settings object_.
 
-The `keymap` should contain an object literal, where you map a `key` or `keyCode` (from the `KeyboardEvent`) to an event name that you can use in your Components.
+The `keymap` should contain an object literal, where you map a `keyCode` (from the `KeyboardEvent`) to an event name that you can use in your Components.
 
-> You can use a site like [keyjs.dev](https://keyjs.dev/) to find the appropriate key and keyCode for your device
+> You can use [this page](https://blits-demo.lightningjs.io/#/examples/keycodes) in the Blits Example app to find the appropriate keyCode for your device
 
 ```js
 // src/index.js
@@ -148,14 +148,11 @@ Blits.Launch(App, 'app', {
   h: 1080,
   //...
   keymap: {
-    // switch left and right using the key
-    ArrowLeft: 'right',
-    ArrowRight: 'left',
-    // switch up and down using the keyCode
+    // switch up and down
     38: 'down',
     40: 'up',
     // register new handlers
-    '.': 'dot', // dot() can now be used in the input object
+    190: 'dot', // dot() can now be used in the input object
     // key code for letter 's'
     83: 'search' // search() can now be used in the input object
   }
