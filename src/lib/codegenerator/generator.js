@@ -148,7 +148,7 @@ const generateElementCode = function (
   Object.keys(templateObject).forEach((key) => {
     if (key === 'slot') {
       renderCode.push(`
-        elementConfig${counter}['parent'] = component[Symbol.for('slots')] !== undefined && Array.isArray(component[Symbol.for('slots')]) === true && component[Symbol.for('slots')].filter(slot => slot.ref === '${templateObject.slot}').shift() || parent
+        elementConfig${counter}['parent'] = slotComponent[Symbol.for('slots')] !== undefined && Array.isArray(slotComponent[Symbol.for('slots')]) === true && slotComponent[Symbol.for('slots')].filter(slot => slot.ref === '${templateObject.slot}').shift() || parent
       `)
     }
 
