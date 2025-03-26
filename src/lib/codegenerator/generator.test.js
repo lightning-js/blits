@@ -2136,9 +2136,9 @@ test('Generate code for a template with slot content, using a named slot', (asse
     elms[4] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elementConfig4['x'] = 100
     elementConfig4['y'] = component.y
-    elementConfig4['parent'] = component[Symbol.for('slots')] !== undefined &&
-      Array.isArray(component[Symbol.for('slots')]) === true &&
-      component[Symbol.for('slots')].filter(slot => slot.ref === 'mySlot').shift() || parent
+    elementConfig4['parent'] = slotComponent[Symbol.for('slots')] !== undefined &&
+      Array.isArray(slotComponent[Symbol.for('slots')]) === true &&
+       slotComponent[Symbol.for('slots')].filter(slot => slot.ref === 'mySlot').shift() || parent
     elementConfig4['slot'] = "mySlot"
     elms[4].populate(elementConfig4)
 
