@@ -351,7 +351,7 @@ const propsTransformer = {
       type = v.type
       v = shaders.parseProps(v)
     }
-    const target = this.element.node !== undefined ? this.element.node.props : this.props
+    const target = this.element.node !== undefined ? this.element.node : this.props
     //if v remains a string we can change shader types
     if (typeof v === 'string') {
       target['shader'] = renderer.createShader(type)
@@ -364,6 +364,7 @@ const propsTransformer = {
         target['shader'].props = v
         return
       }
+      console.log('create shader')
       target['shader'] = renderer.createShader(type, v)
       return
     }
