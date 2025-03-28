@@ -4,6 +4,7 @@ on:
   pull_request_target:
     branches:
       - dev
+      - master
 
 jobs:
   run-blits-tests:
@@ -45,7 +46,7 @@ jobs:
         echo "summary=$summary" >> $GITHUB_OUTPUT
 
         # If the number of failed tests is greater than 1, exit with error.
-        if [ "$failed" -gt 1 ]; then
+        if [ "$failed" -gt 0 ]; then
             exit 1
         fi
 
