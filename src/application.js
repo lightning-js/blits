@@ -54,12 +54,11 @@ const Application = (config) => {
   }
 
   config.hooks[symbols.init] = function () {
+    // set the initial activation state of the announcer based on launch setting
+    this.$announcer.toggle(Settings.get('announcer', false))
     const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
 
     keyDownHandler = async (e) => {
-      // set the initial activation state of the announcer based on launch setting
-      this.$announcer.toggle(Settings.get('announcer', false))
-
       const key = keyMap[e.key] || keyMap[e.keyCode] || e.key || e.keyCode
       // intercept key press if specified in main Application component
       if (
