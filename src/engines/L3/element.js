@@ -364,11 +364,9 @@ const propsTransformer = {
         target['shader'].props = v
         return
       }
-      console.log('create shader')
       target['shader'] = renderer.createShader(type, v)
       return
     }
-
     target['shader'] = renderer.createShader('DefaultShader')
   },
   /**
