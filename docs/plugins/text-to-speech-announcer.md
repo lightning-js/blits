@@ -46,3 +46,15 @@ Blits.Component('MyComponent', {
   }
 })
 ```
+
+## Enabling / disabling the announcer
+
+By default the announcer is disabled. This mean that whenever you call `this.$announcer.speak()` there will actually not be anything spoken out via the Text To Speech engine.
+
+In order to enable utterances being spoken out, you can set the Blits launch setting `announcer` to `true` in the index.js.
+
+Alternatively the announcer can be enabled or disabled run time by using one of the following methods on the Announcer pluging:
+
+- `this.$announcer.enable()` - activates the announcer
+- `this.$announcer.disable()` - deactivates the announcer
+- `this.$announcer.disable(true/false)` - turns the announcer or on off
