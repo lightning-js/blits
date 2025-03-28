@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.25.0
+
+_28 mar 2025_
+
+- Fixed issue when same effect type is used in `effects` attribute
+- Added ability to enable / disable announcer via launch setting as well as runtime
+
 ## v1.24.0
 
 _26 mar 2025_
