@@ -19,7 +19,22 @@ import speechSynthesis from './speechSynthesis.js'
 
 let debounce
 
+let active = false
+
+const enable = () => {
+  active = true
+}
+
+const disable = () => {
+  active = false
+}
+
+const toggle = (v) => {
+  active = v ? true : false
+}
+
 const speak = (message, politeness = 'off') => {
+  if (active === false) return
   clearTimeout(debounce)
   speechSynthesis.cancel()
   // assertive messages get spoken immediately
@@ -45,4 +60,7 @@ export default {
   polite,
   assertive,
   stop,
+  enable,
+  disable,
+  toggle,
 }

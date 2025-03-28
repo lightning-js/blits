@@ -929,7 +929,22 @@ declare module '@lightningjs/blits' {
      *
      * @important if you dont know what you're doing here, you probably shouldn't be doing it!
      */
-    advanced?: Partial<RendererMainSettings>
+    advanced?: Partial<RendererMainSettings>,
+    /**
+     * Whether or not the announcer should be activated on initialization
+     *
+     * When set to `false` announcements via `this.$annoucer.speak()` will
+     * be ignored. When set to `true` announcement will be spoken out via the
+     * text to speech API
+     *
+     * Announcer can be enabled / disabled run time as well via:
+     * - this.$announcer.enable()
+     * - this.$announcer.disable()
+     * - this.$announcer.toggle(true/false)
+     *
+     * @default false
+     */
+    announcer?: boolean
   }
 
   interface State {
