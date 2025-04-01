@@ -59,6 +59,7 @@ export default {
       deleteChildren(this[symbols.children])
       removeGlobalEffects(this[symbols.effects])
       Log.debug(`Destroyed component ${this.componentId}`)
+      this[symbols.state] = {}
     },
     writable: false,
     enumerable: true,
