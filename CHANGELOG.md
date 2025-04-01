@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.25.1
+
+_01 apr 2025_
+
+- Fixed issue with page rendering after being destroyed when data is loaded by an async request
+
 ## v1.25.0
 
 _28 mar 2025_
