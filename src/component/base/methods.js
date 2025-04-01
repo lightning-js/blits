@@ -60,6 +60,7 @@ export default {
       removeGlobalEffects(this[symbols.effects])
       Log.debug(`Destroyed component ${this.componentId}`)
       this[symbols.state] = {}
+      this[symbols.props] = {}
     },
     writable: false,
     enumerable: true,
