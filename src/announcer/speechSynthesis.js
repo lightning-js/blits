@@ -17,8 +17,7 @@
 
 const syn = window.speechSynthesis
 
-const getUA = () => (window.navigator || {}).userAgent || ''
-const isAndroid = () => /android/i.test(getUA())
+const isAndroid = () => /android/i.test((window.navigator || {}).userAgent || '')
 
 let initialized = false
 let infinityTimer = null
@@ -37,7 +36,7 @@ const resumeInfinity = (target) => {
   }, 5000)
 }
 
-const utterProps = {
+const defaultUtteranceProps = {
   lang: 'en-US',
   pitch: 1,
   rate: 1,
@@ -46,82 +45,88 @@ const utterProps = {
 }
 
 const initialize = () => {
-  utterProps.voice = syn.getVoices()[0]
+  defaultUtteranceProps.voice = syn.getVoices()[0]
   initialized = true
 }
 
-const utterance = (scope, e) => {
-  const utter = new SpeechSynthesisUtterance(e.value)
+const speak = (options) => {
+  const utterance = new SpeechSynthesisUtterance(options.message)
 
-  // utter props
-  utter.lang = e.lang || utterProps.lang
-  utter.pitch = e.pitch || utterProps.pitch
-  utter.rate = e.rate || utterProps.rate
-  utter.voice = e.voice || utterProps.voice
-  utter.volume = e.volume || utterProps.volume
+  utterance.lang = options.lang || defaultUtteranceProps.lang
+  utterance.pitch = options.pitch || defaultUtteranceProps.pitch
+  utterance.rate = options.rate || defaultUtteranceProps.rate
+  utterance.voice = options.voice || defaultUtteranceProps.voice
+  utterance.volume = options.volume || defaultUtteranceProps.volume
 
-  // utter events
-  utter.onstart = () => {
-    if (!isAndroid()) {
-      resumeInfinity(utter)
+  return new Promise((resolve, reject) => {
+    utterance.onend = () => {
+      resolve()
     }
-    scope.onstart()
-  }
-
-  utter.onresume = () => {
-    if (!isAndroid()) {
-      resumeInfinity(utter)
+    utterance.onerror = (e) => {
+      reject(e)
     }
-    scope.onresume()
-  }
 
-  utter.onpause = () => {
-    scope.onpause()
-  }
-  utter.onend = () => {
-    scope.onend()
-  }
-  utter.onerror = () => {
-    clear()
-    scope.onerror()
-  }
-  syn.speak(utter)
+    syn.speak(utterance)
+  })
 }
 
+// const utterance_old = (scope, e) => {
+//   const utter = new SpeechSynthesisUtterance(e.value)
+
+//   // utter props
+//   utter.lang = e.lang || utterProps.lang
+//   utter.pitch = e.pitch || utterProps.pitch
+//   utter.rate = e.rate || utterProps.rate
+//   utter.voice = e.voice || utterProps.voice
+//   utter.volume = e.volume || utterProps.volume
+
+//   // utter events
+//   utter.onstart = () => {
+//     if (!isAndroid()) {
+//       resumeInfinity(utter)
+//     }
+//     scope.onstart()
+//   }
+
+//   utter.onresume = () => {
+//     if (!isAndroid()) {
+//       resumeInfinity(utter)
+//     }
+//     scope.onresume()
+//   }
+
+//   utter.onpause = () => {
+//     scope.onpause()
+//   }
+//   utter.onend = () => {
+//     scope.onend()
+//   }
+//   utter.onerror = () => {
+//     clear()
+//     scope.onerror()
+//   }
+//   syn.speak(utter)
+// }
+
 export default {
-  speak(e) {
+  speak(options) {
     if (!initialized) {
       initialize()
     }
-    this.cancel()
-    utterance(this, e)
+    // this.cancel()
+    return speak(options)
   },
-  resume() {
-    syn.resume()
-  },
-  pause() {
-    syn.pause()
-  },
+  // resume() {
+  //   syn.resume()
+  // },
+  // pause() {
+  //   syn.pause()
+  // },
   cancel() {
     syn.cancel()
     clear()
   },
-  getVoices() {
-    return syn.getVoices()
-  },
-  onend() {
-    //event placeholder
-  },
-  onerror() {
-    //event placeholder
-  },
-  onstart() {
-    //event placeholder
-  },
-  onresume() {
-    //event placeholder
-  },
-  onpause() {
-    //eventplaceholder
-  },
+  // getVoices() {
+  //   return syn.getVoices()
+  // },
 }
