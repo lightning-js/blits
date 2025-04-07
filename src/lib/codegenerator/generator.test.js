@@ -1103,9 +1103,9 @@ test('Generate code for a template with custom components', (assert) => {
     const skip1 = []
 
     if (typeof cmp1 !== 'undefined') {
-        for (let key in cmp1.config.props) {
-            delete elementConfig1[cmp1.config.props[key]]
-            skip1.push(cmp1.config.props[key])
+        for (let key in cmp1[Symbol.for('config')].props) {
+            delete elementConfig1[cmp1[Symbol.for('config')].props[key]]
+            skip1.push(cmp1[Symbol.for('config')].props[key])
         }
     }
 
@@ -1149,9 +1149,9 @@ test('Generate code for a template with custom components', (assert) => {
     const skip3 = []
 
     if (typeof cmp3 !== 'undefined') {
-        for (let key in cmp3.config.props) {
-            delete elementConfig3[cmp3.config.props[key]]
-            skip3.push(cmp3.config.props[key])
+        for (let key in cmp3[Symbol.for('config')].props) {
+            delete elementConfig3[cmp3[Symbol.for('config')].props[key]]
+            skip3.push(cmp3[Symbol.for('config')].props[key])
         }
     }
 
@@ -1252,9 +1252,9 @@ test('Generate code for a template with an unregistered custom component', (asse
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     const skip1 = []
     if (typeof cmp1 !== 'undefined') {
-        for (let key in cmp1.config.props) {
-            delete elementConfig1[cmp1.config.props[key]]
-            skip1.push(cmp1.config.props[key])
+        for (let key in cmp1[Symbol.for('config')].props) {
+            delete elementConfig1[cmp1[Symbol.for('config')].props[key]]
+            skip1.push(cmp1[Symbol.for('config')].props[key])
         }
     }
     elms[1].populate(elementConfig1)
@@ -1292,9 +1292,9 @@ test('Generate code for a template with an unregistered custom component', (asse
     elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     const skip3 = []
     if (typeof cmp3 !== 'undefined') {
-        for (let key in cmp3.config.props) {
-            delete elementConfig3[cmp3.config.props[key]]
-            skip3.push(cmp3.config.props[key])
+        for (let key in cmp3[Symbol.for('config')].props) {
+            delete elementConfig3[cmp3[Symbol.for('config')].props[key]]
+            skip3.push(cmp3[Symbol.for('config')].props[key])
         }
     }
     elms[3].populate(elementConfig3)
@@ -1394,9 +1394,9 @@ test('Generate code for a template with custom components with arguments', (asse
     elementConfig1['x'] = 10
     const skip1 = []
     if (typeof cmp1 !== 'undefined') {
-        for (let key in cmp1.config.props) {
-            delete elementConfig1[cmp1.config.props[key]]
-            skip1.push(cmp1.config.props[key])
+        for (let key in cmp1[Symbol.for('config')].props) {
+            delete elementConfig1[cmp1[Symbol.for('config')].props[key]]
+            skip1.push(cmp1[Symbol.for('config')].props[key])
         }
     }
     elms[1].populate(elementConfig1)
@@ -1437,9 +1437,9 @@ test('Generate code for a template with custom components with arguments', (asse
     elementConfig3['img'] = component.img
     const skip3 = []
     if (typeof cmp3 !== 'undefined') {
-        for (let key in cmp3.config.props) {
-            delete elementConfig3[cmp3.config.props[key]]
-            skip3.push(cmp3.config.props[key])
+        for (let key in cmp3[Symbol.for('config')].props) {
+            delete elementConfig3[cmp3[Symbol.for('config')].props[key]]
+            skip3.push(cmp3[Symbol.for('config')].props[key])
         }
     }
     elms[3].populate(elementConfig3)
@@ -1561,9 +1561,9 @@ test('Generate code for a template with custom components with argument value as
 
     const skip1 = []
     if (typeof cmp1 !== 'undefined') {
-        for (let key in cmp1.config.props) {
-            delete elementConfig1[cmp1.config.props[key]]
-            skip1.push(cmp1.config.props[key])
+        for (let key in cmp1[Symbol.for('config')].props) {
+            delete elementConfig1[cmp1[Symbol.for('config')].props[key]]
+            skip1.push(cmp1[Symbol.for('config')].props[key])
         }
     }
 
@@ -1681,9 +1681,9 @@ test('Generate code for a template with custom components with reactive props', 
     elementConfig1['img'] = component.image
     const skip1 = []
     if(typeof cmp1 !== 'undefined') {
-      for(let key in cmp1.config.props) {
-        delete elementConfig1[cmp1.config.props[key]]
-        skip1.push(cmp1.config.props[key])
+      for(let key in cmp1[Symbol.for('config')].props) {
+        delete elementConfig1[cmp1[Symbol.for('config')].props[key]]
+        skip1.push(cmp1[Symbol.for('config')].props[key])
       }
     }
     elms[1].populate(elementConfig1)
@@ -1730,9 +1730,9 @@ test('Generate code for a template with custom components with reactive props', 
     elementConfig3['img'] = component.image
     const skip3 = []
     if(typeof cmp3 !== 'undefined') {
-      for(let key in cmp3.config.props) {
-        delete elementConfig3[cmp3.config.props[key]]
-        skip3.push(cmp3.config.props[key])
+      for(let key in cmp3[Symbol.for('config')].props) {
+        delete elementConfig3[cmp3[Symbol.for('config')].props[key]]
+        skip3.push(cmp3[Symbol.for('config')].props[key])
       }
     }
     elms[3].populate(elementConfig3)
@@ -1943,9 +1943,9 @@ test('Generate code for a template with slot content', (assert) => {
     elementConfig1['h'] = 1080
     const skip1 = []
     if (typeof cmp1 !== 'undefined') {
-        for (let key in cmp1.config.props) {
-            delete elementConfig1[cmp1.config.props[key]]
-            skip1.push(cmp1.config.props[key])
+        for (let key in cmp1[Symbol.for('config')].props) {
+            delete elementConfig1[cmp1[Symbol.for('config')].props[key]]
+            skip1.push(cmp1[Symbol.for('config')].props[key])
         }
     }
     elms[1].populate(elementConfig1)
@@ -2087,9 +2087,9 @@ test('Generate code for a template with slot content, using a named slot', (asse
     elementConfig1['h'] = 1080
     const skip1 = []
     if (typeof cmp1 !== 'undefined') {
-        for (let key in cmp1.config.props) {
-            delete elementConfig1[cmp1.config.props[key]]
-            skip1.push(cmp1.config.props[key])
+        for (let key in cmp1[Symbol.for('config')].props) {
+            delete elementConfig1[cmp1[Symbol.for('config')].props[key]]
+            skip1.push(cmp1[Symbol.for('config')].props[key])
         }
     }
     elms[1].populate(elementConfig1)
@@ -3173,9 +3173,9 @@ test('Generate code for a template with a simple for-loop on a Component with a 
             }
             const skip1 = []
             if (typeof cmp1 !== 'undefined') {
-                for (let key in cmp1.config.props) {
-                    delete elementConfig1[cmp1.config.props[key]]
-                    skip1.push(cmp1.config.props[key])
+                for (let key in cmp1[Symbol.for('config')].props) {
+                    delete elementConfig1[cmp1[Symbol.for('config')].props[key]]
+                    skip1.push(cmp1[Symbol.for('config')].props[key])
                 }
             }
             if (elms[1][scope.key].nodeId === undefined) {
