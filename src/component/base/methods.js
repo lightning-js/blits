@@ -23,15 +23,6 @@ import { Log } from '../../lib/log.js'
 import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
 
 export default {
-  focus: {
-    value: function (e) {
-      Log.warn('this.focus is deprecated, use this.$focus instead')
-      return this.$focus(e)
-    },
-    writable: false,
-    enumerable: true,
-    configurable: false,
-  },
   $focus: {
     value: function (e) {
       this[symbols.state].hasFocus = true
@@ -74,15 +65,6 @@ export default {
     enumerable: false,
     configurable: false,
   },
-  select: {
-    value: function (ref) {
-      Log.warn('this.select is deprecated, use this.$select instead')
-      return this.$select(ref)
-    },
-    writable: false,
-    enumerable: true,
-    configurable: false,
-  },
   $select: {
     value: function (ref) {
       let selected = null
@@ -100,15 +82,6 @@ export default {
         }
       })
       return selected
-    },
-    writable: false,
-    enumerable: true,
-    configurable: false,
-  },
-  trigger: {
-    value: function (key) {
-      Log.warn('this.trigger is deprecated, use this.$trigger instead')
-      return this.$trigger(key)
     },
     writable: false,
     enumerable: true,

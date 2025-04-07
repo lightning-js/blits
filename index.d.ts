@@ -237,11 +237,6 @@ declare module '@lightningjs/blits' {
     * Set focus to the Component, optionally pass a KeyboardEvent for instant event bubbling
     */
     $focus: (event?: KeyboardEvent) => void
-    /**
-     * @deprecated
-     * Deprecated:  use `this.$focus()` instead
-     */
-    focus: (event?: KeyboardEvent) => void
 
     /**
     * Select a child Element or Component by ref
@@ -261,12 +256,6 @@ declare module '@lightningjs/blits' {
     $select: (ref: string) => ComponentBase
 
     /**
-     * @deprecated
-     * Deprecated: use `this.$select()` instead
-     */
-    select: (ref: string) => ComponentBase
-
-    /**
      * Announcer methods for screen reader support
      */
     // $announcer: Announcer
@@ -275,13 +264,6 @@ declare module '@lightningjs/blits' {
      * Triggers a forced update on state variables.
      */
     $trigger: (key: string) => void
-    /**
-     * @deprecated
-     *
-     * Triggers a forced update on state variables.
-     * Deprecated: use `this.$trigger()` instead
-     */
-    trigger: (key: string) => void
     /**
      * Router instance
      */
@@ -827,18 +809,6 @@ declare module '@lightningjs/blits' {
      * Defaults to `0`
      */
     viewportMargin?: number | [number, number, number, number],
-    /**
-     * Threshold in `Megabytes` after which all the textures that are currently not visible
-     * within the configured viewport margin will be be freed and cleaned up
-     *
-     * When passed `0` the threshold is disabled and textures will not be actively freed
-     * and cleaned up
-     *
-     * Defaults to `200` (mb)
-     * @deprecated
-     * Deprecated:  use `gpuMemory` launch setting instead
-     */
-    gpuMemoryLimit?: number,
     /**
      * Configures the gpu memory settings used by the renderer
      */
