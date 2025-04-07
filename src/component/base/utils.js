@@ -45,7 +45,8 @@ export default {
               if (Object.getPrototypeOf(child) === Object.prototype) {
                 return Object.values(child).map((c) => {
                   // ugly hack .. but the point is to reference the right component
-                  c.forComponent = c.config && c.config.parent.component
+                  c.forComponent =
+                    c[Symbol.for('config')] && c[Symbol.for('config')].parent.component
                   return c
                 })
               }
