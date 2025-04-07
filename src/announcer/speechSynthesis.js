@@ -17,7 +17,7 @@
 
 const syn = window.speechSynthesis
 
-const isAndroid = () => /android/i.test((window.navigator || {}).userAgent || '')
+const isAndroid = /android/i.test((window.navigator || {}).userAgent || '')
 
 let initialized = false
 let infinityTimer = null
@@ -58,6 +58,16 @@ const speak = (options) => {
   utterance.voice = options.voice || defaultUtteranceProps.voice
   utterance.volume = options.volume || defaultUtteranceProps.volume
 
+  if (isAndroid === false) {
+    utterance.onstart = () => {
+      resumeInfinity(utterance)
+    }
+
+    utterance.onresume = () => {
+      resumeInfinity(utterance)
+    }
+  }
+
   return new Promise((resolve, reject) => {
     utterance.onend = () => {
       resolve()
@@ -70,62 +80,18 @@ const speak = (options) => {
   })
 }
 
-// const utterance_old = (scope, e) => {
-//   const utter = new SpeechSynthesisUtterance(e.value)
-
-//   // utter props
-//   utter.lang = e.lang || utterProps.lang
-//   utter.pitch = e.pitch || utterProps.pitch
-//   utter.rate = e.rate || utterProps.rate
-//   utter.voice = e.voice || utterProps.voice
-//   utter.volume = e.volume || utterProps.volume
-
-//   // utter events
-//   utter.onstart = () => {
-//     if (!isAndroid()) {
-//       resumeInfinity(utter)
-//     }
-//     scope.onstart()
-//   }
-
-//   utter.onresume = () => {
-//     if (!isAndroid()) {
-//       resumeInfinity(utter)
-//     }
-//     scope.onresume()
-//   }
-
-//   utter.onpause = () => {
-//     scope.onpause()
-//   }
-//   utter.onend = () => {
-//     scope.onend()
-//   }
-//   utter.onerror = () => {
-//     clear()
-//     scope.onerror()
-//   }
-//   syn.speak(utter)
-// }
-
 export default {
   speak(options) {
     if (!initialized) {
       initialize()
     }
-    // this.cancel()
     return speak(options)
   },
-  // resume() {
-  //   syn.resume()
-  // },
-  // pause() {
-  //   syn.pause()
-  // },
   cancel() {
     syn.cancel()
     clear()
   },
+  // @todo
   // getVoices() {
   //   return syn.getVoices()
   // },
