@@ -369,42 +369,6 @@ const propsTransformer = {
     }
     target['shader'] = renderer.createShader('DefaultShader')
   },
-  /**
-   * @deprecated
-   */
-  set effects(v) {
-    const effect = {}
-    for (let i = 0; i < v.length; i++) {
-      const type = v[i].type
-      if (type === 'radius') {
-        effect.rounded = v[i].props
-        continue
-      }
-      if (type === 'border') {
-        effect.border = v[i].props
-        continue
-      }
-      if (type.startsWith('border')) {
-        const key = type.replace(/border(Left|Right|Top|Bottom)/, (match, p1) => p1.toLowerCase())
-        if (effect.border === undefined) {
-          effect.border = {}
-          effect.border[key] = v[i].props.color
-        }
-        effect.border[key] = v[i].props.width
-        continue
-      }
-
-      console.warn(
-        `type: ${type} not supported with new shader set up. see: docs/essentials/element_attributes.md`
-      )
-    }
-
-    if (this.element.node === undefined) {
-      this.props['shader'] = shaders.createElementShader(effect)
-    } else {
-      this.element.node.props['shader'].props = shaders.createElementProps(effect)
-    }
-  },
   set clipping(v) {
     this.props['clipping'] = v
   },
