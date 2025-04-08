@@ -77,7 +77,7 @@ The announcer plugin allows you to clear the entire queue by calling `this.$anno
 
 In some cases you may not want to clear the entire queue, but instead cancel out a single message.
 
-Imagine an App with a row of tiles, it's possible that before the title of the role is being spoken out, the user alrady navigates through the tiles within the row. Traditionally you'd use the focus event to speak out info about each tile (i.e. adding tot the queue). You don't want all previously focused tiles to still be announced, but tou still would want the category of the row to be announced for example, so clearing out the entire queue is too much.
+Imagine an App with a row of tiles, it's possible that before the title of the role is being spoken out, the user already navigates through the tiles within the row. Traditionally you'd use the focus event to speak out info about each tile (i.e. adding tot the queue). You don't want all previously focused tiles to still be announced, but would still want the category of the row to be announced, making clearing the queue not required.
 
 The `speak()`-method return a Promise that also contains a `cancel()` function. When called, it will cancel that specific message and remove it from the queue before it can be spoken out.
 
