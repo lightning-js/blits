@@ -177,23 +177,23 @@ export const navigate = async function () {
       if (typeof route.transition === 'function') {
         route.transition = route.transition(previousRoute, route)
       }
+      let viewManager = cacheMap.get(route.hash)
 
       if (navigatingBack === false && route.options && route.options.keepAlive === true) {
         // If ViewManager exists for the route hash, add a new entry to it.
-        if (cacheMap.has(route.hash) === true) {
-          cacheMap.get(route.hash).createEntry()
+        if (viewManager !== undefined) {
+          viewManager.createEntry()
         } else {
           // Create a ViewManager instance for the route hash if it doesn't exist in cacheMap.
-          cacheMap.set(route.hash, new ViewManager())
+          viewManager = new ViewManager()
+          cacheMap.set(route.hash, viewManager)
         }
       }
 
       let holder
       let routeData
       let { view, focus } =
-        navigatingBack === true && cacheMap.has(route.hash)
-          ? cacheMap.get(route.hash).getView() || {}
-          : {}
+        (navigatingBack === true && viewManager !== undefined && viewManager.getView()) || {}
 
       if (!view) {
         // create a holder element for the new view
