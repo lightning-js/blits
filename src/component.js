@@ -272,7 +272,7 @@ const Component = (name = required('name'), config = required('config')) => {
 
   // store the config on the factory, in order to access the config
   // during the code generation step
-  factory.config = config
+  factory[Symbol.for('config')] = config
 
   // To determine whether dynamic component is actual Blits component or not
   factory[symbols.isComponent] = true

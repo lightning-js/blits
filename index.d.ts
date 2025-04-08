@@ -22,6 +22,58 @@ import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader, type Re
 
 declare module '@lightningjs/blits' {
 
+
+  export interface AnnouncerUtterance extends Promise {
+    /**
+     * Removes a specific message from the announcement queue,
+     * to make sure it isn't spoke out.
+     *
+     * Does not interupt the message when it's already being announced.
+     */
+    cancel()
+  }
+
+  export interface Announcer {
+    /**
+     * Instruct the Announcer to speak a message. Will add the message
+     * to the end of announcement queue by default
+     *
+     * When a message is added with politeness set to `assertive` the message
+     * will be added to the beginning of the queue
+     *
+     */
+    speak(message: string | number, politeness?: 'off' | 'polite' | 'assertive'): AnnouncerUtterance;
+    /**
+     * Instruct the Announcer to add a pause of a certain duration (in ms). Will add this pause
+     * to the end of announcement queue
+     *
+     */
+    pause(delay: number): AnnouncerUtterance;
+    /**
+     * Interupts and instantly stops any running text to speech utterance
+     *
+     */
+    stop(): void;
+    /**
+     * Clears out the announcement queue of messages.
+     */
+    clears(): void;
+    /**
+     * Enables the announcer.
+     */
+    enable(): void;
+    /**
+     * Disables the announcer. Any messages passed in the announcer.speak() message
+     * will not be added to the queue
+     */
+    disable(): void;
+    /**
+     * Toggles the announcer based on the passed toggle value (Boolean)
+     */
+    toggle(toggle: Boolean): void;
+  }
+
+
   export interface Hooks {
     /**
     * Fires when the Component is being instantiated
@@ -258,7 +310,7 @@ declare module '@lightningjs/blits' {
     /**
      * Announcer methods for screen reader support
      */
-    // $announcer: Announcer
+    $announcer: Announcer
 
     /**
      * Triggers a forced update on state variables.
