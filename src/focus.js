@@ -42,6 +42,12 @@ export default {
     clearTimeout(setFocusTimeout)
     focusedComponent && focusedComponent !== component.parent && focusedComponent.unfocus()
     focusChain.reverse().forEach((cmp) => cmp.unfocus())
+    if (focusChain.length === 0 && focusedComponent && focusedComponent !== component.parent) {
+      let parentChain = walkToParent([focusedComponent], component)
+      parentChain.shift()
+      parentChain.forEach((cmp) => cmp.unfocus())
+      parentChain = []
+    }
     if (component !== focusedComponent) {
       setFocusTimeout = setTimeout(
         () => {
@@ -87,4 +93,14 @@ const walkChain = (components, key) => {
     components.unshift(components[0].parent)
     return walkChain(components, key)
   } else return []
+}
+
+const walkToParent = (components, targetComponent) => {
+  const parentComp = components[components.length - 1].parent
+  if (parentComp === targetComponent.parent) {
+    return components
+  } else {
+    components.push(parentComp)
+    return walkToParent(components, targetComponent)
+  }
 }
