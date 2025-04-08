@@ -73,17 +73,17 @@ test('Component - Instance should create component Id', (assert) => {
   const barInstance0 = bar()
 
   assert.equal(
-    fooInstance0.componentId,
+    fooInstance0.$componentId,
     'BlitsComponent::Foo_1',
     'First Foo instance should have correct id'
   )
   assert.equal(
-    fooInstance1.componentId,
+    fooInstance1.$componentId,
     'BlitsComponent::Foo_2',
     'Second Foo instance should have correct id'
   )
   assert.equal(
-    barInstance0.componentId,
+    barInstance0.$componentId,
     'BlitsComponent::Bar_1',
     'First Bar instance should have correct id'
   )

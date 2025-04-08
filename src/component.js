@@ -55,7 +55,7 @@ const Component = (name = required('name'), config = required('config')) => {
 
   const component = function (opts, parentEl, parentComponent, rootComponent) {
     // generate a human readable ID for the component instance (i.e. Blits::ComponentName1)
-    this.componentId = createHumanReadableId(name)
+    this.$componentId = createHumanReadableId(name)
 
     // instantiate a lifecycle object for this instance
     this.lifecycle = Object.assign(Object.create(Lifecycle), {
