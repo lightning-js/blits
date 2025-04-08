@@ -65,7 +65,7 @@ const addToQueue = (message, politeness, delay = false) => {
   }
 
   // add message of pause
-  if (delay == false) {
+  if (delay === false) {
     politeness === 'assertive'
       ? queue.unshift({ message, resolveFn, id })
       : queue.push({ message, resolveFn, id })
@@ -86,25 +86,25 @@ const processQueue = async () => {
 
   const { message, resolveFn, delay } = queue.shift()
 
-  if (delay) {
+  if (delay !== false) {
     setTimeout(() => {
       isProcessing = false
       resolveFn('finished')
       processQueue()
     }, delay)
-  } else {
-    speechSynthesis
-      .speak({ message })
-      .then(() => {
-        isProcessing = false
-        resolveFn('finished')
-        processQueue()
-      })
-      .catch((e) => {
-        isProcessing = false
-        resolveFn(e.error)
-      })
+    return
   }
+  speechSynthesis
+    .speak({ message })
+    .then(() => {
+      isProcessing = false
+      resolveFn('finished')
+      processQueue()
+    })
+    .catch((e) => {
+      isProcessing = false
+      resolveFn(e.error)
+    })
 }
 
 const polite = (message) => speak(message, 'polite')
