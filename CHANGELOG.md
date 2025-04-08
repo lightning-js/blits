@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.26.0
+
+- Announcer updates: queue, cancel individual messages, promise based chaining
+- Fixed naming collision for `config`-key on
+- Fixed logging correct renderer version
+
+_08 apr 2025_
+
+
 ## v1.25.1
 
 _01 apr 2025_
