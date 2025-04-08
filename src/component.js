@@ -65,9 +65,8 @@ const Component = (name = required('name'), config = required('config')) => {
     })
 
     // set a reference to the parent component
-    this.parent = parentComponent
+    this[symbols.parent] = parentComponent
 
-    //
     this.rootParent = rootComponent
 
     // set a reference to the holder / parentElement

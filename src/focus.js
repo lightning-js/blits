@@ -40,7 +40,7 @@ export default {
   set(component, event) {
     if (component === focusedComponent) return
     clearTimeout(setFocusTimeout)
-    focusedComponent && focusedComponent !== component.parent && focusedComponent.unfocus()
+    focusedComponent && focusedComponent !== component.$parent && focusedComponent.unfocus()
     focusChain.reverse().forEach((cmp) => cmp.unfocus())
     if (component !== focusedComponent) {
       setFocusTimeout = setTimeout(
@@ -83,8 +83,8 @@ const walkChain = (components, key) => {
       typeof components[0][symbols.inputEvents].any === 'function')
   ) {
     return components
-  } else if (components[0].parent) {
-    components.unshift(components[0].parent)
+  } else if (components[0].$parent) {
+    components.unshift(components[0].$parent)
     return walkChain(components, key)
   } else return []
 }

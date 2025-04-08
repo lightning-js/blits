@@ -83,7 +83,7 @@ export default Blits.Component('MyComponent', {
 })
 ```
 
-Another frequent case is that focus is passed on to the parent Component. The parent component is available on the Component scope as `this.parent`. So passing the focus to the parent is as simple as calling `this.parent.$focus()`.
+Another frequent case is that focus is passed on to the parent Component. The parent component is available on the Component scope as `this.$parent`. So passing the focus to the parent is as simple as calling `this.$parent.$focus()`.
 
 The `$focus`-method accepts an optional `event` parameter, which is of the type `KeyboardEvent`. When the `event` parameter is provided, not only will the selected Component receive focus, but the input event will be emitted again on the component that just received focus.
 
@@ -123,7 +123,7 @@ export default Blits.Component('MyComponent', {
 When working with Components in Blits you will often want to send data from one to another. In the case of (direct) child Component, using
 props is the defacto way for inter-component communication.
 
-For passing data from a child to a parent component, you may be tempted to use the `this.parent` reference and change the state directly. While this works, it does create a strict dependency on the parent, meaning the child Component only works properly when tied directly to a specific parent. This reduces reusability of Components and may cause limitations or problems later on.
+For passing data from a child to a parent component, you may be tempted to use the `this.$parent` reference and change the state directly. While this works, it does create a strict dependency on the parent, meaning the child Component only works properly when tied directly to a specific parent. This reduces reusability of Components and may cause limitations or problems later on.
 
 Instead the `this.$emit()` method can be used, which is available on each Component as a utility function. It's designed to easily emit data to anywhere in an App. The first argument is the `name` of the event that will be emitted (i.e. `changeBackground`) and optionally a second argument with additional `data` can be passed.
 

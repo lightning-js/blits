@@ -128,10 +128,10 @@ export const navigate = async function () {
   Announcer.stop()
   Announcer.clear()
   state.navigating = true
-  if (this.parent[symbols.routes]) {
+  if (this[symbols.parent][symbols.routes]) {
     let previousRoute = currentRoute ? Object.assign({}, currentRoute) : undefined
     const { hash, path, queryParams } = getHash()
-    let route = matchHash(path, this.parent[symbols.routes])
+    let route = matchHash(path, this[symbols.parent][symbols.routes])
 
     // Adding the location hash to the route if it exists.
     if (hash !== null) {
@@ -141,8 +141,8 @@ export const navigate = async function () {
     currentRoute = route
     if (route) {
       let beforeEachResult
-      if (this.parent[symbols.routerHooks]) {
-        const hooks = this.parent[symbols.routerHooks]
+      if (this[symbols.parent][symbols.routerHooks]) {
+        const hooks = this[symbols.parent][symbols.routerHooks]
         if (hooks.beforeAll) {
           beforeEachResult = await hooks.beforeAll(route, previousRoute)
           if (isString(beforeEachResult)) {
@@ -157,7 +157,11 @@ export const navigate = async function () {
       let beforeHookOutput
       if (route.hooks) {
         if (route.hooks.before) {
-          beforeHookOutput = await route.hooks.before.call(this.parent, route, previousRoute)
+          beforeHookOutput = await route.hooks.before.call(
+            this[symbols.parent],
+            route,
+            previousRoute
+          )
           if (isString(beforeHookOutput)) {
             currentRoute = previousRoute
             to(beforeHookOutput)
@@ -412,7 +416,7 @@ export const back = function () {
     }
     // Construct new path to backtrack to
     path = path.replace(hashEnd, '')
-    const route = matchHash(path, this.parent[symbols.routes])
+    const route = matchHash(path, this[symbols.parent][symbols.routes])
 
     if (route && backtrack) {
       to(route.path)

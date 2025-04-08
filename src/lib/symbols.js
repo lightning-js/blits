@@ -16,6 +16,7 @@ export default {
   lifecycle: Symbol('lifecycle'),
   methodKeys: Symbol('methodKeys'),
   originalState: Symbol('originalState'),
+  parent: Symbol('parent'),
   propKeys: Symbol('propKeys'),
   raw: Symbol('raw'),
   ready: Symbol('ready'),

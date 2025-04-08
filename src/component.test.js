@@ -119,7 +119,7 @@ test('Component - Instance should set a parent reference', (assert) => {
   const foo = Component('Foo', {})({}, parentElement, parentComponent)
 
   assert.equal(
-    foo.parent,
+    foo.$parent,
     parentComponent,
     'Foo instance object should have parent component object reference'
   )

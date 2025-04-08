@@ -35,7 +35,6 @@ export default () =>
         hashchangeHandler = () => Router.navigate.apply(this)
         Router.navigate.apply(this)
         window.addEventListener('hashchange', hashchangeHandler)
-
       },
       destroy() {
         window.removeEventListener('hashchange', hashchangeHandler, false)
@@ -48,7 +47,7 @@ export default () =>
       back(e) {
         const navigating = Router.back.call(this)
         if (navigating === false) {
-          this.parent.$focus(e)
+          this.$parent.$focus(e)
         }
       },
     },
