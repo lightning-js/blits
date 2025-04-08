@@ -137,7 +137,7 @@ test('Component - Instance should set a root reference', (assert) => {
   const foo = Component('Foo', {})({}, {}, {}, root)
 
   assert.equal(
-    foo.rootParent,
+    foo[symbols.rootParent],
     root,
     'Foo instance object should have root component object reference'
   )

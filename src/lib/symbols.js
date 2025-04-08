@@ -21,6 +21,7 @@ export default {
   raw: Symbol('raw'),
   ready: Symbol('ready'),
   renderer: Symbol('renderer'),
+  rootParent: Symbol('rootParent'),
   routes: Symbol('routes'),
   routerHooks: Symbol('routerHooks'),
   settings: Symbol('settings'),

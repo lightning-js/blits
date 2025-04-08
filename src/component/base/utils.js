@@ -44,7 +44,7 @@ export default {
   },
   [symbols.getChildren]: {
     value() {
-      const parent = this.rootParent || this[symbols.parent]
+      const parent = this[symbols.rootParent] || this[symbols.parent]
       return (this[symbols.children] || []).concat(
         (parent &&
           parent[symbols.getChildren]()

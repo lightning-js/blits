@@ -67,7 +67,7 @@ const Component = (name = required('name'), config = required('config')) => {
     // set a reference to the parent component
     this[symbols.parent] = parentComponent
 
-    this.rootParent = rootComponent
+    this[symbols.rootParent] = rootComponent
 
     // set a reference to the holder / parentElement
     // Components are wrapped in a holder node (used to apply positioning and transforms
