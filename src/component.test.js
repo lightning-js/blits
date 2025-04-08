@@ -93,18 +93,22 @@ test('Component - Instance should create component Id', (assert) => {
 test('Component - Instance should initiate lifecycle object', (assert) => {
   const foo = Component('Foo', {})()
 
-  assert.ok(foo.lifecycle, 'Lifecycle object should be initialized')
+  assert.ok(foo[symbols.lifecycle], 'Lifecycle object should be initialized')
   assert.equal(
-    foo.lifecycle.component,
+    foo[symbols.lifecycle].component,
     foo,
     'Lifecycle object should have a reference to foo instance'
   )
   assert.equal(
-    foo.lifecycle.previous,
+    foo[symbols.lifecycle].previous,
     null,
     'Lifecycle object should have previous state not initialized'
   )
-  assert.equal(foo.lifecycle.current, 'init', 'Lifecycle object should have initial current state')
+  assert.equal(
+    foo[symbols.lifecycle].current,
+    'init',
+    'Lifecycle object should have initial current state'
+  )
   assert.end()
 })
 
@@ -380,7 +384,7 @@ test('Component - Instance should have ready state after the next process tick',
 
   setTimeout(() => {
     assert.equal(
-      foo.lifecycle.state,
+      foo[symbols.lifecycle].state,
       'ready',
       'Foo component lifecycle should be eventually in a ready state'
     )

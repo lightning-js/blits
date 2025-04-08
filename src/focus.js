@@ -46,7 +46,7 @@ export default {
       setFocusTimeout = setTimeout(
         () => {
           focusedComponent = component
-          focusedComponent.lifecycle.state = 'focus'
+          focusedComponent[symbols.lifecycle].state = 'focus'
           if (event instanceof KeyboardEvent) {
             document.dispatchEvent(new KeyboardEvent('keydown', event))
           } else {

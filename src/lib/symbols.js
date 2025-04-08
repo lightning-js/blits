@@ -13,6 +13,7 @@ export default {
   intervals: Symbol('intervals'),
   launched: Symbol('launched'),
   level: Symbol('level'),
+  lifecycle: Symbol('lifecycle'),
   methodKeys: Symbol('methodKeys'),
   originalState: Symbol('originalState'),
   propKeys: Symbol('propKeys'),

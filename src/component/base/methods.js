@@ -35,7 +35,7 @@ export default {
   unfocus: {
     value: function () {
       this[symbols.state].hasFocus = false
-      this.lifecycle.state = 'unfocus'
+      this[symbols.lifecycle].state = 'unfocus'
     },
     writable: false,
     enumerable: true,
@@ -43,7 +43,7 @@ export default {
   },
   destroy: {
     value: function () {
-      this.lifecycle.state = 'destroy'
+      this[symbols.lifecycle].state = 'destroy'
       this.$clearTimeouts()
       this.$clearIntervals()
       eventListeners.removeListeners(this)

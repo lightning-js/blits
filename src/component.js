@@ -58,7 +58,7 @@ const Component = (name = required('name'), config = required('config')) => {
     this.$componentId = createHumanReadableId(name)
 
     // instantiate a lifecycle object for this instance
-    this.lifecycle = Object.assign(Object.create(Lifecycle), {
+    this[symbols.lifecycle] = Object.assign(Object.create(Lifecycle), {
       component: this,
       previous: null,
       current: null,
@@ -99,7 +99,7 @@ const Component = (name = required('name'), config = required('config')) => {
     this[symbols.state] = reactive(this[symbols.originalState], Settings.get('reactivityMode'))
 
     // all basic setup has been done now, set the lifecycle to state 'init'
-    this.lifecycle.state = 'init'
+    this[symbols.lifecycle].state = 'init'
 
     // execute the render code that constructs the initial state of the component
     // and store the children result (a flat map of elements and components)
@@ -138,28 +138,28 @@ const Component = (name = required('name'), config = required('config')) => {
       // inBounds event emiting a lifecycle attach event
       if (config.hooks.attach) {
         this[symbols.wrapper].node.on('inBounds', () => {
-          this.lifecycle.state = 'attach'
+          this[symbols.lifecycle].state = 'attach'
         })
       }
 
       // outOfBounds event emiting a lifeycle detach event
       if (config.hooks.detach) {
         this[symbols.wrapper].node.on('outOfBounds', (node, { previous }) => {
-          if (previous > 0) this.lifecycle.state = 'detach'
+          if (previous > 0) this[symbols.lifecycle].state = 'detach'
         })
       }
 
       // inViewport event emiting a lifecycle enter event
       if (config.hooks.enter) {
         this[symbols.wrapper].node.on('inViewport', () => {
-          this.lifecycle.state = 'enter'
+          this[symbols.lifecycle].state = 'enter'
         })
       }
 
       // outOfViewport event emitting a lifecycle exit event
       if (config.hooks.exit) {
         this[symbols.wrapper].node.on('outOfViewport', () => {
-          this.lifecycle.state = 'exit'
+          this[symbols.lifecycle].state = 'exit'
         })
       }
     }
@@ -206,7 +206,7 @@ const Component = (name = required('name'), config = required('config')) => {
     }
 
     // finaly set the lifecycle state to ready (in the next tick)
-    setTimeout(() => (this.lifecycle.state = 'ready'))
+    setTimeout(() => (this[symbols.lifecycle].state = 'ready'))
 
     // and return this
     return this
