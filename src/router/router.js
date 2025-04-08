@@ -125,6 +125,8 @@ export const matchHash = (path, routes = []) => {
 }
 
 export const navigate = async function () {
+  Announcer.stop()
+  Announcer.clear()
   state.navigating = true
   if (this.parent[symbols.routes]) {
     let previousRoute = currentRoute ? Object.assign({}, currentRoute) : undefined
@@ -183,6 +185,16 @@ export const navigate = async function () {
       let routeData
       let { view, focus } = cacheMap.get(route.hash) || {}
 
+      // Announce route change if a message has been specified for this route
+      if (route.announce) {
+        if (typeof route.announce === 'string') {
+          route.announce = {
+            message: route.announce,
+          }
+        }
+        Announcer.speak(route.announce.message, route.announce.politeness)
+      }
+
       if (!view) {
         // create a holder element for the new view
         holder = stage.element({ parent: this[symbols.children][0] })
@@ -210,6 +222,7 @@ export const navigate = async function () {
         }
 
         view = await route.component({ props }, holder, this)
+
         if (view[Symbol.toStringTag] === 'Module') {
           if (view.default && typeof view.default === 'function') {
             view = view.default({ props }, holder, this)
@@ -292,16 +305,6 @@ export const navigate = async function () {
         } else {
           await setOrAnimate(holder, route.transition.in, shouldAnimate)
         }
-      }
-
-      // Announce route change if a message has been specified for this route
-      if (route.announce) {
-        if (typeof route.announce === 'string') {
-          route.announce = {
-            message: route.announce,
-          }
-        }
-        Announcer.speak(route.announce.message, route.announce.politeness)
       }
 
       this.activeView = this[symbols.children][this[symbols.children].length - 1]

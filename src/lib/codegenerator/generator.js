@@ -191,9 +191,9 @@ const generateElementCode = function (
     renderCode.push(`
     const skip${counter} = []
     if(typeof cmp${counter} !== 'undefined') {
-      for(let key in cmp${counter}.config.props) {
-        delete elementConfig${counter}[cmp${counter}.config.props[key]]
-        skip${counter}.push(cmp${counter}.config.props[key])
+      for(let key in cmp${counter}[Symbol.for('config')].props) {
+        delete elementConfig${counter}[cmp${counter}[Symbol.for('config')].props[key]]
+        skip${counter}.push(cmp${counter}[Symbol.for('config')].props[key])
       }
     }
     `)
