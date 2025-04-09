@@ -170,7 +170,11 @@ test('deregisterListener - only deregisters specified component listener', (t) =
   eventListener.deregisterListener(componentA, event)
 
   const result = eventListener.executeListeners(event)
-  t.equal(result, true, 'Should return true when listeners are still registered after deregistering one')
+  t.equal(
+    result,
+    true,
+    'Should return true when listeners are still registered after deregistering one'
+  )
   t.equal(callCount1, 0, 'Should not call deregistered callback')
   t.equal(callCount2, 1, 'Should call remaining registered callback')
 
