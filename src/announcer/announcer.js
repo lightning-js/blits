@@ -86,25 +86,25 @@ const processQueue = async () => {
 
   const { message, resolveFn, delay } = queue.shift()
 
-  if (delay !== false) {
+  if (delay !== undefined) {
     setTimeout(() => {
       isProcessing = false
       resolveFn('finished')
       processQueue()
     }, delay)
-    return
+  } else {
+    speechSynthesis
+      .speak({ message })
+      .then(() => {
+        isProcessing = false
+        resolveFn('finished')
+        processQueue()
+      })
+      .catch((e) => {
+        isProcessing = false
+        resolveFn(e.error)
+      })
   }
-  speechSynthesis
-    .speak({ message })
-    .then(() => {
-      isProcessing = false
-      resolveFn('finished')
-      processQueue()
-    })
-    .catch((e) => {
-      isProcessing = false
-      resolveFn(e.error)
-    })
 }
 
 const polite = (message) => speak(message, 'polite')

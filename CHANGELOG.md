@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.26.1
+
+- Fixed issue with announcer queue
+
 ## v1.26.0
 
 - Announcer updates: queue, cancel individual messages, promise based chaining
