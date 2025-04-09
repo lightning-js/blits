@@ -18,18 +18,14 @@
     "lint": "eslint '**/*.js'",
     "lint:fix": "eslint '**/*.js' --fix",
     "prepublishOnly": "node scripts/prepublishOnly.js",
-    "postpublish": "node scripts/postpublish.js"
+    "postpublish": "node scripts/postpublish.js",
+    "prepare": "husky"
   },
   "types": "./index.d.ts",
   "lint-staged": {
     "*.js": [
       "eslint --fix"
     ]
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
   },
   "type": "module",
   "author": "Michiel van der Geest <hello@michielvandergeest.com>",
@@ -43,9 +39,9 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "global-jsdom": "24.0.0",
-    "husky": "^7.0.4",
+    "husky": "^9.1.7",
     "jsdom": "24.0.0",
-    "lint-staged": "^12.3.3",
+    "lint-staged": "^15.5.0",
     "prettier": "^2.5.1",
     "tap-diff": "^0.1.1",
     "tape": "^5.5.0"
