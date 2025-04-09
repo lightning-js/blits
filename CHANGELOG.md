@@ -2,7 +2,7 @@
 
 _09 apr 2025_
 
-## v1.26.1
+## v1.26.1 / v1.26.2
 
 - Fixed issue with announcer queue
 

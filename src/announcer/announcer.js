@@ -86,7 +86,7 @@ const processQueue = async () => {
 
   const { message, resolveFn, delay } = queue.shift()
 
-  if (delay !== undefined) {
+  if (delay) {
     setTimeout(() => {
       isProcessing = false
       resolveFn('finished')
