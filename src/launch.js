@@ -19,17 +19,30 @@ import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import engine from './engine.js'
 import blitsPackageInfo from '../package.json' assert { type: 'json' }
-import rendererPackageInfo from '../../renderer/package.json' assert { type: 'json' }
 
 export let renderer = {}
 export const stage = {}
+
+async function extractRendererVersion() {
+  let rendererPackageInfo
+
+  try {
+    // Dynamically import the renderer package.json
+    rendererPackageInfo = await import('../../renderer/package.json')
+    if (rendererPackageInfo !== undefined) {
+      Log.info('Renderer Version ', rendererPackageInfo.version)
+    }
+  } catch (e) {
+    // Ignore
+  }
+}
 
 export default (App, target, settings) => {
   Settings.set(settings)
 
   initLog()
   Log.info('Blits Version ', blitsPackageInfo.version)
-  Log.info('Renderer Version ', rendererPackageInfo.version)
+  extractRendererVersion()
 
   stage.element = engine.Element
 
