@@ -21,6 +21,8 @@ let active = false
 let count = 0
 const queue = []
 let isProcessing = false
+let currentId = null
+let debounce = null
 
 const enable = () => {
   active = true
@@ -64,6 +66,15 @@ const addToQueue = (message, politeness, delay = false) => {
     resolveFn('canceled')
   }
 
+  // augment the promise with a stop function
+  done.stop = () => {
+    if (id === currentId) {
+      speechSynthesis.cancel()
+      isProcessing = false
+      resolveFn('interupted')
+    }
+  }
+
   // add message of pause
   if (delay === false) {
     politeness === 'assertive'
@@ -84,26 +95,36 @@ const processQueue = async () => {
   if (isProcessing === true || queue.length === 0) return
   isProcessing = true
 
-  const { message, resolveFn, delay } = queue.shift()
+  const { message, resolveFn, delay, id } = queue.shift()
+
+  currentId = id
 
   if (delay) {
     setTimeout(() => {
       isProcessing = false
+      currentId = null
       resolveFn('finished')
       processQueue()
     }, delay)
   } else {
-    speechSynthesis
-      .speak({ message })
-      .then(() => {
-        isProcessing = false
-        resolveFn('finished')
-        processQueue()
-      })
-      .catch((e) => {
-        isProcessing = false
-        resolveFn(e.error)
-      })
+    if (debounce) clearTimeout(debounce)
+    // add some easing when speaking the messages to reduce stuttering
+    debounce = setTimeout(() => {
+      speechSynthesis
+        .speak({ message })
+        .then(() => {
+          isProcessing = false
+          currentId = null
+          resolveFn('finished')
+          processQueue()
+        })
+        .catch((e) => {
+          isProcessing = false
+          currentId = null
+          resolveFn(e.error)
+          processQueue()
+        })
+    }, 200)
   }
 }
 
