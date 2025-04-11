@@ -1121,7 +1121,7 @@ declare module '@lightningjs/blits' {
      * Enables storage functionality for the application, allowing data to be stored and retrieved.
      *
      */
-   Storage() : void
+   Storage : Storage
   }
 
   const Blits: Blits;
