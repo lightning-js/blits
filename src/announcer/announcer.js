@@ -24,6 +24,13 @@ let isProcessing = false
 let currentId = null
 let debounce = null
 
+const noopAnnouncement = {
+  then() {},
+  done() {},
+  cancel() {},
+  stop() {},
+}
+
 const enable = () => {
   active = true
 }
@@ -37,13 +44,13 @@ const toggle = (v) => {
 }
 
 const speak = (message, politeness = 'off') => {
-  if (active === false) return
+  if (active === false) return noopAnnouncement
 
   return addToQueue(message, politeness)
 }
 
 const pause = (delay) => {
-  if (active === false) return
+  if (active === false) return noopAnnouncement
 
   return addToQueue(undefined, undefined, delay)
 }
@@ -107,7 +114,7 @@ const processQueue = async () => {
       processQueue()
     }, delay)
   } else {
-    if (debounce) clearTimeout(debounce)
+    if (debounce !== null) clearTimeout(debounce)
     // add some easing when speaking the messages to reduce stuttering
     debounce = setTimeout(() => {
       speechSynthesis
@@ -124,6 +131,7 @@ const processQueue = async () => {
           resolveFn(e.error)
           processQueue()
         })
+      debounce = null
     }, 200)
   }
 }
