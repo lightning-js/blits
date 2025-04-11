@@ -62,7 +62,7 @@ declare module '@lightningjs/blits' {
     /**
      * Clears out the announcement queue of messages.
      */
-    clears(): void;
+    clear(): void;
     /**
      * Enables the announcer.
      */
