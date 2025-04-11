@@ -185,6 +185,34 @@ declare module '@lightningjs/blits' {
     [key: string]: any
   }
 
+  export interface Storage {
+    /**
+     * Retrieves a value from local storage.
+     * @param key - The key of the value to retrieve.
+     * @returns The retrieved value, or null if an error occurs.
+     */
+    get<T>(key: string): T | null
+
+    /**
+     * Sets a value in local storage.
+     * @param key - The key of the value to set.
+     * @param value - The value to set.
+     * @returns True if the value was set successfully, false otherwise.
+     */
+    set<T>(key: string, value: T): boolean
+
+    /**
+     * Removes a value from local storage.
+     * @param key - The key of the value to remove.
+     */
+    remove(key: string): void
+
+    /**
+     * Clears all values from local storage.
+     */
+    clear(): void
+  }
+
   export interface Router {
     /**
      * Navigate to a different location
@@ -1086,6 +1114,14 @@ declare module '@lightningjs/blits' {
      * Can be used to set default values
      */
     Plugin(plugin: Plugin, nameOrOptions?: string | object , options?: object) : void
+
+   /**
+     * Storage Plugin
+     *
+     * Enables storage functionality for the application, allowing data to be stored and retrieved.
+     *
+     */
+   Storage() : void
   }
 
   const Blits: Blits;

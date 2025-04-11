@@ -15,16 +15,30 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import Component from './src/component.js'
-import Application from './src/application.js'
-import Launch from './src/launch.js'
-import Plugin from './src/plugin.js'
-import Storage from './src/storage.js'
+import localCookie from 'localcookies/module/localCookie.js'
+
+let lc = new localCookie()
 
 export default {
-  Component,
-  Application,
-  Launch,
-  Plugin,
-  Storage
+  get(key) {
+    try {
+      return JSON.parse(lc.getItem(key))
+    } catch (e) {
+      return null
+    }
+  },
+  set(key, value) {
+    try {
+      lc.setItem(key, JSON.stringify(value))
+      return true
+    } catch (e) {
+      return false
+    }
+  },
+  remove(key) {
+    lc.removeItem(key)
+  },
+  clear() {
+      lc.clear()
+  },
 }
