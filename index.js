@@ -26,5 +26,5 @@ export default {
   Application,
   Launch,
   Plugin,
-  Storage
+  Storage,
 }

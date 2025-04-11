@@ -39,6 +39,6 @@ export default {
     lc.removeItem(key)
   },
   clear() {
-      lc.clear()
+    lc.clear()
   },
 }
