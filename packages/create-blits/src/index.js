@@ -13,7 +13,8 @@ import {
   setAppData,
   setBlitsVersion,
   gitInit,
-  done, spinnerMsg
+  done,
+  spinnerMsg,
 } from './helpers/create.js'
 
 const defaultBanner = `
@@ -29,19 +30,17 @@ console.log(defaultBanner)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const fixturesBase = path.join(
-  __dirname,
-  '../boilerplate')
+const fixturesBase = path.join(__dirname, '../boilerplate')
 
 const questions = [
   {
     type: 'text',
     name: 'appName',
     message: 'What is the name of your App?',
-    format: val => {
+    format: (val) => {
       // Check if the provided application name is empty
       if (!val.trim()) {
-        spinnerMsg.fail(red(bold("Please provide a name for the App")))
+        spinnerMsg.fail(red(bold('Please provide a name for the App')))
         return process.exit(1)
       } else {
         return val
@@ -53,16 +52,17 @@ const questions = [
     type: 'text',
     name: 'appPackage',
     message: 'What is the package name of your App?',
-    format: val => {
+    format: (val) => {
       // Validate the package name using validate-npm-package-name
       if (!validatePackage(val).validForNewPackages) {
-        spinnerMsg.fail(red(bold("Please provide a valid package name")))
+        spinnerMsg.fail(red(bold('Please provide a valid package name')))
         return process.exit(1)
       } else {
         return val
       }
     },
-    initial: prev => `${prev.replace(/[\sA-Z]/g, str => str === ' ' ? '-' : str.toLowerCase())}`,
+    initial: (prev) =>
+      `${prev.replace(/[\sA-Z]/g, (str) => (str === ' ' ? '-' : str.toLowerCase()))}`,
   },
   {
     type: 'text',
@@ -82,7 +82,9 @@ const questions = [
         } catch (e) {
           // Handle case where an error occurred during file system interaction
           if (e.code === 'ENOENT') {
-            spinnerMsg.fail(red(bold("Entered directory path is invalid, please enter a valid directory!")))
+            spinnerMsg.fail(
+              red(bold('Entered directory path is invalid, please enter a valid directory!'))
+            )
             process.exit()
           }
         }
@@ -97,10 +99,14 @@ const questions = [
     name: 'projectType',
     message: 'What kind of project do you want to create?',
     choices: [
-      { title: 'Javascript', description: 'JS based project (with JSDoc for type checking and autocompletion)', value: 'js' },
+      {
+        title: 'Javascript',
+        description: 'JS based project (with JSDoc for type checking and autocompletion)',
+        value: 'js',
+      },
       { title: 'TypeScript', description: 'TS based project', value: 'ts' },
     ],
-    initial: 0
+    initial: 0,
   },
   {
     type: 'toggle',
@@ -120,9 +126,8 @@ const questions = [
   },
 ]
 
-
 const createApp = () => {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     let config
     sequence([
       async () => {
@@ -135,14 +140,16 @@ const createApp = () => {
       },
       () => {
         spinnerMsg.start(`Generating new App "${config.appName}" ...`)
-        copyLightningFixtures(config).then(targetDir => (config.targetDir = targetDir)).catch(console.error)
+        copyLightningFixtures(config)
+          .then((targetDir) => (config.targetDir = targetDir))
+          .catch(console.error)
         spinnerMsg.succeed()
       },
       () => setAppData(config),
       () => setBlitsVersion(config),
       () => config.esLint && addESlint(config),
       () => config.gitInit && gitInit(config.targetDir, config.fixturesBase),
-      () => done(config)
+      () => done(config),
     ])
   })
 }

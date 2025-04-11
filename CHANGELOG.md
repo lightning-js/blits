@@ -1,5 +1,14 @@
 # Changelog
 
+_11 apr 2025_
+
+## v1.27.0
+
+- Added pre push linting check
+- Updated Github workflow for tests
+- Added noop announcement for when announcer is disabled
+- Add ability to interrupt specific announcement messages
+
 _09 apr 2025_
 
 ## v1.26.1 / v1.26.2
