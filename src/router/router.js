@@ -23,15 +23,20 @@ import { Log } from '../lib/log.js'
 import { stage } from '../launch.js'
 import Focus from '../focus.js'
 import Announcer from '../announcer/announcer.js'
+import Settings from '../settings.js'
 
 export let currentRoute
-export const state = reactive({
-  path: '',
-  navigating: false,
-  data: null,
-  params: null,
-  hash: '',
-})
+export const state = reactive(
+  {
+    path: '',
+    navigating: false,
+    data: null,
+    params: null,
+    hash: '',
+  },
+  Settings.get('reactivityMode'),
+  true
+)
 
 // Changed from WeakMap to Map to allow for caching of views by the url hash.
 // We are manually doing the cleanup of the cache when the route is not marked as keepAlive.
