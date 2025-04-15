@@ -128,6 +128,11 @@ const layoutFn = function (config) {
   if (config['@updated'] !== undefined) {
     config['@updated']({ w: this.node.width, h: this.node.height }, this)
   }
+
+  // trigger layout on parent if parent is a layout
+  if (this.config.parent && this.config.parent.props.__layout === true) {
+    this.config.parent.triggerLayout(this.config.parent.props)
+  }
 }
 
 const isTransition = (value) => {
