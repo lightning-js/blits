@@ -1,5 +1,14 @@
 # Changelog
 
+_15 apr 2025_
+
+## v1.27.1
+
+- Fixed issue with global watcher on router state not being cleared out
+- Minor performance updates
+- Fixed issue with retrieving correct renderer version for logging
+- Fixed issue with nested layouts not properly updating parent layout
+
 _11 apr 2025_
 
 ## v1.27.0
