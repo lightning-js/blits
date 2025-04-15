@@ -19,12 +19,10 @@ import Component from './src/component.js'
 import Application from './src/application.js'
 import Launch from './src/launch.js'
 import Plugin from './src/plugin.js'
-import Storage from './src/storage.js'
 
 export default {
   Component,
   Application,
   Launch,
   Plugin,
-  Storage,
 }

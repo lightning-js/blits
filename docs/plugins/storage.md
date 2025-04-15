@@ -1,16 +1,38 @@
-# Storage
+# Storage plugin
 
 Occasionally, you may want to persist data inside your App. By default, the browser's localStorage is used for that purpose. However, if localStorage is not supported by the platform, it automatically falls back to *Cookies*.
 
 Please note that the Cookie size is limited to 4096 Bytes.
 
-## Usage
+## Registering the plugin
 
-If you need to persist data inside your App, import Blits Storage plugin from Blits:
+The Storage plugin is part of the core Blits package, but it's an optional plugin that needs to be registered in the App's `index.js`,
+as demonstrated in the example below.
+
+Make sure to place the `Blits.Plugin()` method _before_ calling the `Blits.Launch()` method
 
 ```js
+// index.js
+
 import Blits from '@lightningjs/blits'
-Blits.Storage.get('<key>')
+// import the storage plugin
+import { storage } from '@lightningjs/blits/plugins'
+
+import App from './App.js'
+
+// Use the Blits Storage plugin
+Blits.Plugin(storage)
+
+
+Blits.Launch(App, 'app', {
+  // launch settings
+})
+```
+
+Within the application we can call the storage plugin methods as below
+
+```
+this.$storage.get(key, value)
 ```
 
 ## Available methods
@@ -20,7 +42,7 @@ Blits.Storage.get('<key>')
 Saves a key-value combination in storage.
 
 ```js
-Blits.Storage.set(key, value)
+this.$storage.set(key, value)
 ```
 
 The key is expected to be a `String`. The value can be a `String`, `Object`, `Boolean` or `Array`.
@@ -32,7 +54,7 @@ When saved, the value is automatically converted to a JSON object, so you do not
 Retrieves previously stored data from storage.
 
 ```js
-Blits.Storage.get(key)
+this.$storage.get(key)
 ```
 
 If you stored an `Object`, the data is automatically converted back to an Object, so you do not have to call `JSON.parse()` yourself.
@@ -42,7 +64,7 @@ If you stored an `Object`, the data is automatically converted back to an Object
 Removes a specific key from storage.
 
 ```js
-Blits.Storage.remove(key)
+this.$storage.remove(key)
 ```
 
 ### clear
@@ -50,5 +72,5 @@ Blits.Storage.remove(key)
 Removes *all* data from storage.
 
 ```js
-Blits.Storage.clear()
+this.$storage.clear()
 ```

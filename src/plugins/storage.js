@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Comcast Cable Communications Management, LLC
+ * Copyright 2024 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,25 +20,30 @@ import localCookie from 'localcookies/module/localCookie.js'
 let lc = new localCookie()
 
 export default {
-  get(key) {
-    try {
-      return JSON.parse(lc.getItem(key))
-    } catch (e) {
-      return null
+  name: 'storage',
+  plugin() {
+    return {
+      get(key) {
+        try {
+          return JSON.parse(lc.getItem(key))
+        } catch (e) {
+          return null
+        }
+      },
+      set(key, value) {
+        try {
+          lc.setItem(key, JSON.stringify(value))
+          return true
+        } catch (e) {
+          return false
+        }
+      },
+      remove(key) {
+        lc.removeItem(key)
+      },
+      clear() {
+          lc.clear()
+      },
     }
-  },
-  set(key, value) {
-    try {
-      lc.setItem(key, JSON.stringify(value))
-      return true
-    } catch (e) {
-      return false
-    }
-  },
-  remove(key) {
-    lc.removeItem(key)
-  },
-  clear() {
-    lc.clear()
   },
 }
