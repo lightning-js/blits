@@ -110,10 +110,6 @@ const layoutFn = function (config) {
   this.node[dimension] = offset - gap + padding.end
   this.node[oppositeDimension] = otherDimension
 
-  if (this.config.parent && this.config.parent.props.__layout === true) {
-    this.config.parent.triggerLayout(this.config.parent.props)
-  }
-
   const align = {
     start: 0,
     end: 1,
@@ -131,6 +127,11 @@ const layoutFn = function (config) {
   // emit an updated event
   if (config['@updated'] !== undefined) {
     config['@updated']({ w: this.node.width, h: this.node.height }, this)
+  }
+
+  // trigger layout on parent if parent is a layout
+  if (this.config.parent && this.config.parent.props.__layout === true) {
+    this.config.parent.triggerLayout(this.config.parent.props)
   }
 }
 
