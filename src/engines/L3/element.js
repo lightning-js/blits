@@ -110,6 +110,10 @@ const layoutFn = function (config) {
   this.node[dimension] = offset - gap + padding.end
   this.node[oppositeDimension] = otherDimension
 
+  if (this.config.parent && this.config.parent.props.__layout === true) {
+    this.config.parent.triggerLayout(this.config.parent.props)
+  }
+
   const align = {
     start: 0,
     end: 1,
