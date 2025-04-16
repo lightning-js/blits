@@ -194,13 +194,17 @@ const Component = (name = required('name'), config = required('config')) => {
 
         let old = this[key]
 
-        effect((force = false) => {
+        const eff = (force = false) => {
           const newValue = target[key]
           if (old !== newValue || force === true) {
             this[symbols.watchers][watchKey].apply(this, [newValue, old])
             old = newValue
           }
-        })
+        }
+
+        // store reference to the effect
+        this[symbols.effects].push(eff)
+        effect(eff)
       }
     }
 

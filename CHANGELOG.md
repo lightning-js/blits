@@ -1,13 +1,36 @@
 # Changelog
 
+_15 apr 2025_
+
+## v1.27.1
+
+- Fixed issue with global watcher on router state not being cleared out
+- Minor performance updates
+- Fixed issue with retrieving correct renderer version for logging
+- Fixed issue with nested layouts not properly updating parent layout
+
+_11 apr 2025_
+
+## v1.27.0
+
+- Added pre push linting check
+- Updated Github workflow for tests
+- Added noop announcement for when announcer is disabled
+- Add ability to interrupt specific announcement messages
+
+_09 apr 2025_
+
+## v1.26.1 / v1.26.2
+
+- Fixed issue with announcer queue
+
+_08 apr 2025_
+
 ## v1.26.0
 
 - Announcer updates: queue, cancel individual messages, promise based chaining
 - Fixed naming collision for `config`-key on component instance
 - Fixed logging correct renderer version
-
-_08 apr 2025_
-
 
 ## v1.25.1
 

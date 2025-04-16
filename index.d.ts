@@ -31,6 +31,11 @@ declare module '@lightningjs/blits' {
      * Does not interupt the message when it's already being announced.
      */
     cancel()
+    /**
+     * Interrupts a specific message as it is being spoken out by the Text to Speech
+     * engine.
+     */
+    stop()
   }
 
   export interface Announcer {
@@ -57,7 +62,7 @@ declare module '@lightningjs/blits' {
     /**
      * Clears out the announcement queue of messages.
      */
-    clears(): void;
+    clear(): void;
     /**
      * Enables the announcer.
      */

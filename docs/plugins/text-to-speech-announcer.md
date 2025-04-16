@@ -81,6 +81,8 @@ Imagine an App with a row of tiles, it's possible that before the title of the r
 
 The `speak()`-method return a Promise that also contains a `cancel()` function. When called, it will cancel that specific message and remove it from the queue before it can be spoken out.
 
+Additionally if you want to _interrupt_ a specific messages as it's being spoken out as well and go straight to the next message in the queue (i.e. the newly focused item, for example). You can use the `stop()` message that is returned on the Promise returned by the `speak()`-method.
+
 ```js
 Blits.Component('MyTile', {
   //
@@ -96,7 +98,9 @@ Blits.Component('MyTile', {
       this.message = this.$announcer.speak(`This is tile ${this.title}`)
     },
     unfocus() {
-      // when unfocused cancel the message and remove it from the queue
+      // when unfocused interrupt the message if it's already being spoken out
+      this.message.stop()
+      // and cancel the message to remove it from the queue
       this.message.cancel()
     }
   }
