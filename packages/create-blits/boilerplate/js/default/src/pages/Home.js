@@ -20,7 +20,7 @@ export default Blits.Component('Home', {
           :x.transition="{value: $x, delay: 200, duration: 1200, easing: 'cubic-bezier(1,-0.64,.39,1.44)'}"
           mount="{x: 0.5}"
           y="320"
-          :effects="[$shader('radius', {radius: 8})]"
+          rounded="8"
         />
         <Loader :x="1920 / 2" mount="{x: 0.5}" y="600" w="160" :alpha.transition="$loaderAlpha" :loaderColor="$color" />
         <Element y="600" :alpha.transition="$textAlpha">

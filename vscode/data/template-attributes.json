@@ -231,6 +231,117 @@
       "RouterView"
     ]
   },
+  "border": {
+    "attrType": "regular",
+    "types": [
+      "number",
+      {
+        "type": "object",
+        "properties": {
+          "width": {
+            "type": "number"
+          },
+          "top": {
+            "type": "number"
+          },
+          "right": {
+            "type": "number"
+          },
+          "bottom": {
+            "type": "number"
+          },
+          "left": {
+            "type": "number"
+          },
+          "color": {
+            "type": "string"
+          }
+        }
+      }
+    ],
+    "defaultValue": "undefined",
+    "reactive": true,
+    "description": "Apply a border, default color is white.",
+    "usedIn": [
+      "Element"
+    ]
+  },
+  "rounded": {
+    "attrType": "regular",
+    "types": [
+      "number",
+      {
+        "type": "object",
+        "properties": {
+          "radius": {
+            "type": "number"
+          },
+          "top-left": {
+            "type": "number"
+          },
+          "top-right": {
+            "type": "number"
+          },
+          "bottom-right": {
+            "type": "number"
+          },
+          "bottom-left": {
+            "type": "number"
+          }
+        }
+      }
+    ],
+    "defaultValue": "undefined",
+    "reactive": true,
+    "description": "Apply a to corners, or (a) specific corner(s)",
+    "usedIn": [
+      "Element"
+    ]
+  },
+  "shadow": {
+    "attrType": "regular",
+    "types": [
+      {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "blur": {
+            "type": "number"
+          },
+          "spread": {
+            "type": "number"
+          },
+          "color": {
+            "type": "string"
+          }
+        }
+      }
+    ],
+    "defaultValue": "undefined",
+    "reactive": true,
+    "description": "Apply a to corners, or (a) specific corner(s)",
+    "usedIn": [
+      "Element"
+    ]
+  },
+  "shader": {
+    "attrType": "regular",
+    "types": [
+      "string",
+      "object"
+    ],
+    "defaultValue": null,
+    "reactive": true,
+    "description": "Enable a specific shader to apply.",
+    "usedIn": [
+      "Element"
+    ]
+  },
   "clipping": {
     "attrType": "regular",
     "types": [

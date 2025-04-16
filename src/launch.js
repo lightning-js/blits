@@ -37,7 +37,7 @@ async function rendererVersion() {
   }
 }
 
-export default (App, target, settings) => {
+export default async (App, target, settings) => {
   Settings.set(settings)
 
   initLog()
@@ -49,5 +49,5 @@ export default (App, target, settings) => {
 
   stage.element = engine.Element
 
-  renderer = engine.Launch(App, target, settings)
+  renderer = await engine.Launch(App, target, settings)
 }

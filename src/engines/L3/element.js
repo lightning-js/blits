@@ -16,11 +16,13 @@
  */
 
 import { renderer } from './launch.js'
+import { parseToObject, isObjectString, isArrayString, isTransition } from '../../lib/utils.js'
 import colors from '../../lib/colors/colors.js'
 
 import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
+import shaders from '../../lib/shaders/shaders.js'
 
 // temporary counter to work around shader caching issues
 let counter = 0
@@ -133,18 +135,6 @@ const layoutFn = function (config) {
   if (this.config.parent && this.config.parent.props.__layout === true) {
     this.config.parent.triggerLayout(this.config.parent.props)
   }
-}
-
-const isTransition = (value) => {
-  return value !== null && typeof value === 'object' && 'transition' in value === true
-}
-
-const isObjectString = (str) => {
-  return typeof str === 'string' && str.startsWith('{') && str.endsWith('}')
-}
-
-const parseToObject = (str) => {
-  return JSON.parse(str.replace(/'/g, '"').replace(/([\w-_]+)\s*:/g, '"$1":'))
 }
 
 const parsePercentage = function (v, base) {
@@ -320,48 +310,68 @@ const propsTransformer = {
       this.props['alpha'] = v
     }
   },
-  set shader(v) {
-    if (v !== null) {
-      this.props['shader'] = renderer.createShader(v.type, v.props)
-    } else {
-      this.props['shader'] = renderer.createShader('DefaultShader')
+  set rounded(v) {
+    this.props['rounded'] = v
+    if (this.element.node !== undefined && this.elementShader === true) {
+      if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+        this.element.node.props['shader'].props = v
+      } else {
+        if (isArrayString(v) === true) {
+          v = JSON.parse(v)
+        }
+        this.element.node.props['shader'].props.radius = v
+      }
     }
   },
-  set effects(v) {
-    for (let i = 0; i < v.length; i++) {
-      if (v[i].props && v[i].props.color) {
-        v[i].props.color = colors.normalize(v[i].props.color)
+  set border(v) {
+    this.props['border'] = v
+    if (
+      this.element.node !== undefined &&
+      this.elementShader === true &&
+      (typeof v === 'object' || isObjectString(v) === true)
+    ) {
+      v = shaders.parseProps(v)
+      for (const key in v) {
+        this.element.node.props['shader'].props[`border-${key}`] = v[key]
       }
     }
-    const effectNames = {}
-    if (this.element.node === undefined) {
-      this.element.effectNames = []
-      this.props['shader'] = renderer.createShader('DynamicShader', {
-        effects: v.map((effect) => {
-          let name = effect.type
-          if (effectNames[name] !== undefined) {
-            name += ++effectNames[name]
-          } else {
-            effectNames[name] = 1
-          }
-          name += this.element.counter
-          this.element.effectNames.push(name)
-          // temporary add counter to work around shader caching issues
-          return renderer.createEffect(effect.type, effect.props, name)
-        }),
-      })
-    } else {
-      for (let i = 0; i < v.length; i++) {
-        const name = this.element.effectNames[i]
-        // temporary add counter to work around shader caching issues
-        const target = this.element.node.shader.props[name]
-        const props = Object.keys(v[i].props)
-        if (target == undefined) continue
-        for (let j = 0; j < props.length; j++) {
-          target[props[j]] = v[i].props[props[j]]
-        }
+  },
+  set shadow(v) {
+    this.props['shadow'] = v
+    if (
+      this.element.node !== undefined &&
+      this.elementShader === true &&
+      (typeof v === 'object' || isObjectString(v) === true)
+    ) {
+      v = shaders.parseProps(v)
+      for (const key in v) {
+        this.element.node.props['shader'].props[`shadow-${key}`] = v[key]
       }
     }
+  },
+  set shader(v) {
+    let type = v
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      type = v.type
+      v = shaders.parseProps(v)
+    }
+    const target = this.element.node !== undefined ? this.element.node : this.props
+    //if v remains a string we can change shader types
+    if (typeof v === 'string') {
+      target['shader'] = renderer.createShader(type)
+      return
+    }
+
+    //check again if v is an object since it could have been an object string
+    if (typeof v === 'object') {
+      if (target.shader !== undefined && type === target.shader.shaderKey) {
+        target['shader'].props = v
+        return
+      }
+      target['shader'] = renderer.createShader(type, v)
+      return
+    }
+    target['shader'] = renderer.createShader('DefaultShader')
   },
   set clipping(v) {
     this.props['clipping'] = v
@@ -448,8 +458,7 @@ const propsTransformer = {
 }
 
 const Element = {
-  populate(data) {
-    const props = data
+  populate(props) {
     props['node'] = this.config.node
 
     if (props[symbols.isSlot] === true) {
@@ -461,10 +470,21 @@ const Element = {
     this.props['parent'] = props['parent'] || this.config.parent
     delete props.parent
 
-    this.props.raw = data
+    this.props.raw = props
+    this.props.elementShader = false
 
     const propKeys = Object.keys(props)
     const length = propKeys.length
+
+    if (
+      props['shader'] === undefined &&
+      (props['rounded'] !== undefined ||
+        props['border'] !== undefined ||
+        props['shadow'] !== undefined)
+    ) {
+      this.props.elementShader = true
+      this.props.props['shader'] = shaders.createElementShader(props)
+    }
 
     for (let i = 0; i < length; i++) {
       const key = propKeys[i]
