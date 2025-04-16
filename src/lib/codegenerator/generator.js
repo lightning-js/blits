@@ -148,7 +148,7 @@ const generateElementCode = function (
   Object.keys(templateObject).forEach((key) => {
     if (key === 'slot') {
       renderCode.push(`
-        elementConfig${counter}['parent'] = component[Symbol.for('slots')] !== undefined && Array.isArray(component[Symbol.for('slots')]) === true && component[Symbol.for('slots')].filter(slot => slot.ref === '${templateObject.slot}').shift() || parent
+        elementConfig${counter}['parent'] = slotComponent[Symbol.for('slots')] !== undefined && Array.isArray(slotComponent[Symbol.for('slots')]) === true && slotComponent[Symbol.for('slots')].filter(slot => slot.ref === '${templateObject.slot}').shift() || parent
       `)
     }
 
@@ -191,9 +191,9 @@ const generateElementCode = function (
     renderCode.push(`
     const skip${counter} = []
     if(typeof cmp${counter} !== 'undefined') {
-      for(let key in cmp${counter}.config.props) {
-        delete elementConfig${counter}[cmp${counter}.config.props[key]]
-        skip${counter}.push(cmp${counter}.config.props[key])
+      for(let key in cmp${counter}[Symbol.for('config')].props) {
+        delete elementConfig${counter}[cmp${counter}[Symbol.for('config')].props[key]]
+        skip${counter}.push(cmp${counter}[Symbol.for('config')].props[key])
       }
     }
     `)
@@ -691,7 +691,7 @@ const cast = (val = '', key = false, component = 'component.') => {
     }
   }
   // numeric
-  else if (key !== 'color' && !isNaN(parseFloat(val))) {
+  else if (key !== 'color' && /[^0-9%\s.eE]/.test(val) === false && !isNaN(parseFloat(val))) {
     castedValue = parseFloat(val)
     if (val.endsWith('%')) {
       const map = {

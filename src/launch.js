@@ -18,17 +18,34 @@
 import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import engine from './engine.js'
-import packageInfo from '../package.json' assert { type: 'json' }
+import blitsPackageInfo from '../package.json' assert { type: 'json' }
 
 export let renderer = {}
 export const stage = {}
+
+async function rendererVersion() {
+  let rendererPackageInfo
+  try {
+    // Dynamically import the renderer package.json
+    rendererPackageInfo = await import('../../renderer/package.json')
+    if (rendererPackageInfo !== undefined) {
+      return rendererPackageInfo.version
+    }
+  } catch (e) {
+    // Fallback to renderer version in dependencies
+    return blitsPackageInfo.dependencies['@lightningjs/renderer']
+  }
+}
 
 export default (App, target, settings) => {
   Settings.set(settings)
 
   initLog()
-  Log.info('Blits Version ', packageInfo.version)
-  Log.info('Renderer Version ', packageInfo.dependencies['@lightningjs/renderer'])
+
+  rendererVersion().then((v) => {
+    Log.info('Blits Version ', blitsPackageInfo.version)
+    Log.info('Renderer Version ', v)
+  })
 
   stage.element = engine.Element
 

@@ -82,6 +82,9 @@ const layoutFn = function (config) {
   let otherDimension = 0
   const gap = config.gap || 0
   for (let i = 0; i < childrenLength; i++) {
+    if (this.children[i] !== undefined && this.children[i].props.raw.show === false) {
+      continue
+    }
     const node = children[i]
     node[position] = offset
     node[oppositePosition] = padding.oppositeStart
@@ -124,6 +127,11 @@ const layoutFn = function (config) {
   // emit an updated event
   if (config['@updated'] !== undefined) {
     config['@updated']({ w: this.node.width, h: this.node.height }, this)
+  }
+
+  // trigger layout on parent if parent is a layout
+  if (this.config.parent && this.config.parent.props.__layout === true) {
+    this.config.parent.triggerLayout(this.config.parent.props)
   }
 }
 
@@ -303,12 +311,8 @@ const propsTransformer = {
   set show(v) {
     if (v) {
       this.props['alpha'] = this.raw['alpha'] !== undefined ? this.raw['alpha'] : 1
-      this.props['width'] = this.raw['w'] || this.raw['width'] || 0
-      this.props['height'] = this.raw['h'] || this.raw['height'] || 0
     } else {
       this.props['alpha'] = 0
-      this.props['width'] = 0
-      this.props['height'] = 0
     }
   },
   set alpha(v) {
@@ -329,24 +333,29 @@ const propsTransformer = {
         v[i].props.color = colors.normalize(v[i].props.color)
       }
     }
-
+    const effectNames = {}
     if (this.element.node === undefined) {
+      this.element.effectNames = []
       this.props['shader'] = renderer.createShader('DynamicShader', {
         effects: v.map((effect) => {
+          let name = effect.type
+          if (effectNames[name] !== undefined) {
+            name += ++effectNames[name]
+          } else {
+            effectNames[name] = 1
+          }
+          name += this.element.counter
+          this.element.effectNames.push(name)
           // temporary add counter to work around shader caching issues
-          return renderer.createEffect(
-            effect.type,
-            effect.props,
-            effect.type + this.element.counter
-          )
+          return renderer.createEffect(effect.type, effect.props, name)
         }),
       })
     } else {
       for (let i = 0; i < v.length; i++) {
+        const name = this.element.effectNames[i]
         // temporary add counter to work around shader caching issues
-        const target = this.element.node.shader.props[v[i].type + this.element.counter]
+        const target = this.element.node.shader.props[name]
         const props = Object.keys(v[i].props)
-
         if (target == undefined) continue
         for (let j = 0; j < props.length; j++) {
           target[props[j]] = v[i].props[props[j]]
@@ -652,6 +661,7 @@ export default (config, component) => {
     scheduledTransitions: {},
     config,
     component,
+    effectNames: [],
     counter: counter++,
   })
 }

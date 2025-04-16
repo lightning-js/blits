@@ -195,13 +195,17 @@ const Component = (name = required('name'), config = required('config')) => {
 
         let old = this[key]
 
-        effect((force = false) => {
+        const eff = (force = false) => {
           const newValue = target[key]
           if (old !== newValue || force === true) {
             this[symbols.watchers][watchKey].apply(this, [newValue, old])
             old = newValue
           }
-        })
+        }
+
+        // store reference to the effect
+        this[symbols.effects].push(eff)
+        effect(eff)
       }
     }
 
@@ -272,7 +276,7 @@ const Component = (name = required('name'), config = required('config')) => {
 
   // store the config on the factory, in order to access the config
   // during the code generation step
-  factory.config = config
+  factory[Symbol.for('config')] = config
 
   // To determine whether dynamic component is actual Blits component or not
   factory[symbols.isComponent] = true

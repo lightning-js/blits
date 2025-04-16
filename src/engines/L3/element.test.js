@@ -551,10 +551,6 @@ test('Element - Set `show` property as false', (assert) => {
 
   assert.equal(el.node['alpha'], 0, 'Node alpha parameter should set to 0')
   assert.equal(el.props.props['alpha'], 0, 'Props alpha parameter should set')
-  assert.equal(el.node['width'], 0, 'Node width parameter should set to 0')
-  assert.equal(el.props.props['width'], 0, 'props width parameter should set to 0')
-  assert.equal(el.node['height'], 0, 'Node height parameter should set to 0')
-  assert.equal(el.props.props['height'], 0, 'props height parameter should set to 0')
 
   assert.end()
 })
@@ -567,9 +563,7 @@ test('Element - Set `show` property as false', (assert) => {
   assert.equal(el.node['alpha'], 1, 'Node alpha parameter should be set')
   assert.equal(el.props.props['alpha'], 1, 'Props alpha parameter should be set')
   assert.equal(el.node['width'], 960, 'Node width parameter should be set')
-  assert.equal(el.props.props['width'], 960, 'props width parameter should be set')
   assert.equal(el.node['height'], 540, 'Node height parameter should be set')
-  assert.equal(el.props.props['height'], 540, 'props height parameter should be set')
 
   assert.end()
 })

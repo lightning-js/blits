@@ -1,5 +1,59 @@
 # Changelog
 
+_15 apr 2025_
+
+## v1.27.1
+
+- Fixed issue with global watcher on router state not being cleared out
+- Minor performance updates
+- Fixed issue with retrieving correct renderer version for logging
+- Fixed issue with nested layouts not properly updating parent layout
+
+_11 apr 2025_
+
+## v1.27.0
+
+- Added pre push linting check
+- Updated Github workflow for tests
+- Added noop announcement for when announcer is disabled
+- Add ability to interrupt specific announcement messages
+
+_09 apr 2025_
+
+## v1.26.1 / v1.26.2
+
+- Fixed issue with announcer queue
+
+_08 apr 2025_
+
+## v1.26.0
+
+- Announcer updates: queue, cancel individual messages, promise based chaining
+- Fixed naming collision for `config`-key on component instance
+- Fixed logging correct renderer version
+
+## v1.25.1
+
+_01 apr 2025_
+
+- Fixed issue with page rendering after being destroyed when data is loaded by an async request
+
+## v1.25.0
+
+_28 mar 2025_
+
+- Fixed issue when same effect type is used in `effects` attribute
+- Added ability to enable / disable announcer via launch setting as well as runtime
+
+## v1.24.0
+
+_26 mar 2025_
+
+- Added additional tests for router
+- Fixed issues with `:show` attribute not working properly
+- Fixed issue with strings starting with a number being casted to a number
+- Fixed named slots functionality
+
 ## v1.23.2
 
 _18 mar 2025_

@@ -46,6 +46,8 @@ const Application = (config) => {
   }
 
   config.hooks[symbols.init] = function () {
+    // set the initial activation state of the announcer based on launch setting
+    this.$announcer.toggle(Settings.get('announcer', false))
     const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
 
     keyDownHandler = async (e) => {

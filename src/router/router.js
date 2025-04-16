@@ -23,15 +23,20 @@ import { Log } from '../lib/log.js'
 import { stage } from '../launch.js'
 import Focus from '../focus.js'
 import Announcer from '../announcer/announcer.js'
+import Settings from '../settings.js'
 
 export let currentRoute
-export const state = reactive({
-  path: '',
-  navigating: false,
-  data: null,
-  params: null,
-  hash: '',
-})
+export const state = reactive(
+  {
+    path: '',
+    navigating: false,
+    data: null,
+    params: null,
+    hash: '',
+  },
+  Settings.get('reactivityMode'),
+  true
+)
 
 // Changed from WeakMap to Map to allow for caching of views by the url hash.
 // We are manually doing the cleanup of the cache when the route is not marked as keepAlive.
@@ -66,7 +71,7 @@ const isString = (v) => typeof v === 'string'
 
 export const matchHash = (path, routes = []) => {
   // remove trailing slashes
-  const originalPath = path
+  const originalPath = path.replace(/^\/+|\/+$/g, '')
   path = normalizePath(path)
   let matchingRoute = false
   let i = 0
@@ -88,6 +93,8 @@ export const matchHash = (path, routes = []) => {
           '([^\\s/]+)' +
           dynamicRoutePartsRegex.substring(part.index + part[0].length)
       })
+
+      dynamicRoutePartsRegex = '^' + dynamicRoutePartsRegex
 
       // test if the constructed regex matches the path
       const match = originalPath.match(new RegExp(`${dynamicRoutePartsRegex}`, 'i'))
@@ -123,6 +130,8 @@ export const matchHash = (path, routes = []) => {
 }
 
 export const navigate = async function () {
+  Announcer.stop()
+  Announcer.clear()
   state.navigating = true
   if (this.parent[symbols.routes]) {
     let previousRoute = currentRoute ? Object.assign({}, currentRoute) : undefined
@@ -181,6 +190,16 @@ export const navigate = async function () {
       let routeData
       let { view, focus } = cacheMap.get(route.hash) || {}
 
+      // Announce route change if a message has been specified for this route
+      if (route.announce) {
+        if (typeof route.announce === 'string') {
+          route.announce = {
+            message: route.announce,
+          }
+        }
+        Announcer.speak(route.announce.message, route.announce.politeness)
+      }
+
       if (!view) {
         // create a holder element for the new view
         holder = stage.element({ parent: this[symbols.children][0] })
@@ -208,6 +227,7 @@ export const navigate = async function () {
         }
 
         view = await route.component({ props }, holder, this)
+
         if (view[Symbol.toStringTag] === 'Module') {
           if (view.default && typeof view.default === 'function') {
             view = view.default({ props }, holder, this)
@@ -290,16 +310,6 @@ export const navigate = async function () {
         } else {
           await setOrAnimate(holder, route.transition.in, shouldAnimate)
         }
-      }
-
-      // Announce route change if a message has been specified for this route
-      if (route.announce) {
-        if (typeof route.announce === 'string') {
-          route.announce = {
-            message: route.announce,
-          }
-        }
-        Announcer.speak(route.announce.message, route.announce.politeness)
       }
 
       this.activeView = this[symbols.children][this[symbols.children].length - 1]

@@ -5,6 +5,7 @@ Blits.Launch(App, 'app', {
   w: 1920,
   h: 1080,
   debugLevel: 1,
+  defaultFont: 'lato',
   fonts: [
     {
       family: 'lato',
