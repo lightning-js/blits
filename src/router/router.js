@@ -23,17 +23,24 @@ import { Log } from '../lib/log.js'
 import { stage } from '../launch.js'
 import Focus from '../focus.js'
 import Announcer from '../announcer/announcer.js'
+import Settings from '../settings.js'
 
 export let currentRoute
-export const state = reactive({
-  path: '',
-  navigating: false,
-  data: null,
-  params: null,
-  hash: '',
-})
+export const state = reactive(
+  {
+    path: '',
+    navigating: false,
+    data: null,
+    params: null,
+    hash: '',
+  },
+  Settings.get('reactivityMode'),
+  true
+)
 
-const cacheMap = new WeakMap()
+// Changed from WeakMap to Map to allow for caching of views by the url hash.
+// We are manually doing the cleanup of the cache when the route is not marked as keepAlive.
+const cacheMap = new Map()
 const history = []
 
 let overrideOptions = {}
@@ -64,7 +71,7 @@ const isString = (v) => typeof v === 'string'
 
 export const matchHash = (path, routes = []) => {
   // remove trailing slashes
-  const originalPath = path
+  const originalPath = path.replace(/^\/+|\/+$/g, '')
   path = normalizePath(path)
   let matchingRoute = false
   let i = 0
@@ -86,6 +93,8 @@ export const matchHash = (path, routes = []) => {
           '([^\\s/]+)' +
           dynamicRoutePartsRegex.substring(part.index + part[0].length)
       })
+
+      dynamicRoutePartsRegex = '^' + dynamicRoutePartsRegex
 
       // test if the constructed regex matches the path
       const match = originalPath.match(new RegExp(`${dynamicRoutePartsRegex}`, 'i'))
@@ -121,6 +130,8 @@ export const matchHash = (path, routes = []) => {
 }
 
 export const navigate = async function () {
+  Announcer.stop()
+  Announcer.clear()
   state.navigating = true
   if (this.parent[symbols.routes]) {
     let previousRoute = currentRoute ? Object.assign({}, currentRoute) : undefined
@@ -133,8 +144,22 @@ export const navigate = async function () {
     }
 
     currentRoute = route
-    let beforeHookOutput
     if (route) {
+      let beforeEachResult
+      if (this.parent[symbols.routerHooks]) {
+        const hooks = this.parent[symbols.routerHooks]
+        if (hooks.beforeAll) {
+          beforeEachResult = await hooks.beforeAll(route, previousRoute)
+          if (isString(beforeEachResult)) {
+            to(beforeEachResult)
+            return
+          }
+        }
+      }
+      // If the resolved result is an object, assign it to the target route object
+      route = isObject(beforeEachResult) ? beforeEachResult : route
+
+      let beforeHookOutput
       if (route.hooks) {
         if (route.hooks.before) {
           beforeHookOutput = await route.hooks.before.call(this.parent, route, previousRoute)
@@ -163,7 +188,17 @@ export const navigate = async function () {
 
       let holder
       let routeData
-      let { view, focus } = cacheMap.get(route) || {}
+      let { view, focus } = cacheMap.get(route.hash) || {}
+
+      // Announce route change if a message has been specified for this route
+      if (route.announce) {
+        if (typeof route.announce === 'string') {
+          route.announce = {
+            message: route.announce,
+          }
+        }
+        Announcer.speak(route.announce.message, route.announce.politeness)
+      }
 
       if (!view) {
         // create a holder element for the new view
@@ -192,6 +227,7 @@ export const navigate = async function () {
         }
 
         view = await route.component({ props }, holder, this)
+
         if (view[Symbol.toStringTag] === 'Module') {
           if (view.default && typeof view.default === 'function') {
             view = view.default({ props }, holder, this)
@@ -276,16 +312,6 @@ export const navigate = async function () {
         }
       }
 
-      // Announce route change if a message has been specified for this route
-      if (route.announce) {
-        if (typeof route.announce === 'string') {
-          route.announce = {
-            message: route.announce,
-          }
-        }
-        Announcer.speak(route.announce.message, route.announce.politeness)
-      }
-
       this.activeView = this[symbols.children][this[symbols.children].length - 1]
     } else {
       Log.error(`Route ${hash} not found`)
@@ -312,9 +338,19 @@ const removeView = async (route, view, transition) => {
   }
 
   // cache the page when it's as 'keepAlive' instead of destroying
-  if (route.options && route.options.keepAlive === true) {
-    cacheMap.set(route, { view: view, focus: previousFocus })
-  } else {
+  if (navigatingBack === false && route.options && route.options.keepAlive === true) {
+    cacheMap.set(route.hash, { view: view, focus: previousFocus })
+  } else if (navigatingBack === true) {
+    // remove the previous route from the cache when navigating back
+    // cacheMap.delete will not throw an error if the route is not in the cache
+    cacheMap.delete(route.hash)
+  }
+  /* Destroy the view in the following cases:
+   * 1. Navigating forward, and the previous route is not configured with "keep alive" set to true.
+   * 2. Navigating back, and the previous route is configured with "keep alive" set to true.
+   * 3. Navigating back, and the previous route is not configured with "keep alive" set to true.
+   */
+  if (route.options && (route.options.keepAlive !== true || navigatingBack === true)) {
     view.destroy()
     view = null
   }

@@ -58,6 +58,9 @@ export default {
       eventListeners.removeListeners(this)
       deleteChildren(this[symbols.children])
       removeGlobalEffects(this[symbols.effects])
+      this[symbols.state] = {}
+      this[symbols.props] = {}
+      this[symbols.effects].length = 0
       Log.debug(`Destroyed component ${this.componentId}`)
     },
     writable: false,

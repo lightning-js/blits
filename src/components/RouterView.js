@@ -35,7 +35,6 @@ export default () =>
         hashchangeHandler = () => Router.navigate.apply(this)
         Router.navigate.apply(this)
         window.addEventListener('hashchange', hashchangeHandler)
-
       },
       destroy() {
         window.removeEventListener('hashchange', hashchangeHandler, false)

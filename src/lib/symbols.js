@@ -20,6 +20,7 @@ export default {
   ready: Symbol('ready'),
   renderer: Symbol('renderer'),
   routes: Symbol('routes'),
+  routerHooks: Symbol('routerHooks'),
   settings: Symbol('settings'),
   state: Symbol('state'),
   stateKeys: Symbol('stateKeys'),
@@ -36,6 +37,8 @@ export default {
   children: Symbol.for('children'),
   // Symbol 'components' utilized within generated code
   components: Symbol.for('components'),
+  // Symbol 'config' utilized within generated code
+  config: Symbol.for('config'),
   // Symbol 'isSlot' utilized within generated code
   isSlot: Symbol.for('isSlot'),
   // Symbol 'props' utilized within generated code

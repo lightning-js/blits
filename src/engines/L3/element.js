@@ -84,6 +84,9 @@ const layoutFn = function (config) {
   let otherDimension = 0
   const gap = config.gap || 0
   for (let i = 0; i < childrenLength; i++) {
+    if (this.children[i] !== undefined && this.children[i].props.raw.show === false) {
+      continue
+    }
     const node = children[i]
     node[position] = offset
     node[oppositePosition] = padding.oppositeStart
@@ -126,6 +129,11 @@ const layoutFn = function (config) {
   // emit an updated event
   if (config['@updated'] !== undefined) {
     config['@updated']({ w: this.node.width, h: this.node.height }, this)
+  }
+
+  // trigger layout on parent if parent is a layout
+  if (this.config.parent && this.config.parent.props.__layout === true) {
+    this.config.parent.triggerLayout(this.config.parent.props)
   }
 }
 
@@ -293,12 +301,8 @@ const propsTransformer = {
   set show(v) {
     if (v) {
       this.props['alpha'] = this.raw['alpha'] !== undefined ? this.raw['alpha'] : 1
-      this.props['width'] = this.raw['w'] || this.raw['width'] || 0
-      this.props['height'] = this.raw['h'] || this.raw['height'] || 0
     } else {
       this.props['alpha'] = 0
-      this.props['width'] = 0
-      this.props['height'] = 0
     }
   },
   set alpha(v) {
@@ -677,6 +681,7 @@ export default (config, component) => {
     scheduledTransitions: {},
     config,
     component,
+    effectNames: [],
     counter: counter++,
   })
 }

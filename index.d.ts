@@ -24,6 +24,63 @@ import { WebGlShaderType } from '@lightningjs/renderer/webgl';
 
 declare module '@lightningjs/blits' {
 
+
+  export interface AnnouncerUtterance extends Promise {
+    /**
+     * Removes a specific message from the announcement queue,
+     * to make sure it isn't spoke out.
+     *
+     * Does not interupt the message when it's already being announced.
+     */
+    cancel()
+    /**
+     * Interrupts a specific message as it is being spoken out by the Text to Speech
+     * engine.
+     */
+    stop()
+  }
+
+  export interface Announcer {
+    /**
+     * Instruct the Announcer to speak a message. Will add the message
+     * to the end of announcement queue by default
+     *
+     * When a message is added with politeness set to `assertive` the message
+     * will be added to the beginning of the queue
+     *
+     */
+    speak(message: string | number, politeness?: 'off' | 'polite' | 'assertive'): AnnouncerUtterance;
+    /**
+     * Instruct the Announcer to add a pause of a certain duration (in ms). Will add this pause
+     * to the end of announcement queue
+     *
+     */
+    pause(delay: number): AnnouncerUtterance;
+    /**
+     * Interupts and instantly stops any running text to speech utterance
+     *
+     */
+    stop(): void;
+    /**
+     * Clears out the announcement queue of messages.
+     */
+    clear(): void;
+    /**
+     * Enables the announcer.
+     */
+    enable(): void;
+    /**
+     * Disables the announcer. Any messages passed in the announcer.speak() message
+     * will not be added to the queue
+     */
+    disable(): void;
+    /**
+     * Toggles the announcer based on the passed toggle value (Boolean)
+     */
+    toggle(toggle: Boolean): void;
+  }
+
+
   export interface Hooks {
     /**
     * Fires when the Component is being instantiated
@@ -271,7 +328,7 @@ declare module '@lightningjs/blits' {
     /**
      * Announcer methods for screen reader support
      */
-    // $announcer: Announcer
+    $announcer: Announcer
 
     /**
      * Triggers a forced update on state variables.
@@ -425,7 +482,16 @@ declare module '@lightningjs/blits' {
     watch?: W & ComponentContext<P, S, M, C>
   }
 
-  export interface ApplicationConfig<P extends Props, S, M, C, W> extends ComponentConfig<P, S, M, C, W> {
+  export interface RouterHooks {
+    beforeEach?: (to: Route, from: Route) => string | Route | Promise<string | Route>;
+  }
+
+  export interface RouterConfig {
+    /**
+     * Register hooks for the router
+     */
+    hooks?: RouterHooks,
+
     /**
      * Routes definition
      *
@@ -442,6 +508,33 @@ declare module '@lightningjs/blits' {
     routes?: Route[]
   }
 
+  export type ApplicationConfig<P extends Props, S, M, C, W> = ComponentConfig<P, S, M, C, W> & (
+    {
+      /**
+       * Router Configuration
+       */
+      router?: RouterConfig,
+      routes?: never
+    }
+    |
+    {
+      router?: never
+      /**
+       * Routes definition
+       *
+       * @example
+       *
+       * ```js
+       * routes: [
+       *  { path: '/', component: Home },
+       *  { path: '/details', component: Details },
+       *  { path: '/account', component: Account },
+       * ]
+       * ```
+     */
+      routes?: Route[]
+    }
+  )
 
   export interface Transition {
     /**
@@ -891,7 +984,22 @@ declare module '@lightningjs/blits' {
      *
      * @important if you dont know what you're doing here, you probably shouldn't be doing it!
      */
-    advanced?: Partial<RendererMainSettings>
+    advanced?: Partial<RendererMainSettings>,
+    /**
+     * Whether or not the announcer should be activated on initialization
+     *
+     * When set to `false` announcements via `this.$annoucer.speak()` will
+     * be ignored. When set to `true` announcement will be spoken out via the
+     * text to speech API
+     *
+     * Announcer can be enabled / disabled run time as well via:
+     * - this.$announcer.enable()
+     * - this.$announcer.disable()
+     * - this.$announcer.toggle(true/false)
+     *
+     * @default false
+     */
+    announcer?: boolean
   }
 
   interface State {

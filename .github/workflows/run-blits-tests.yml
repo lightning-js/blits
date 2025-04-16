@@ -1,0 +1,132 @@
+name: Run Blits Tests
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - master
+
+jobs:
+  run-blits-tests:
+    runs-on: ubuntu-latest
+    outputs:
+      tests_failed: ${{ steps.analyze-results.outputs.result && fromJSON(steps.analyze-results.outputs.result).testsFailed }}
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20.16.0
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Run Tests
+      id: run-tests
+      run: npm run test > test-report.txt 2>&1 || echo "Command failed with exit code $?" >> test-report.txt
+
+    - name: Analyze Test Results
+      id: analyze-results
+      uses: actions/github-script@v6
+      with:
+        result-encoding: json
+        script: |
+          const fs = require('fs');
+          const timestamp = new Date().toISOString();
+
+          const results = {
+            timestamp,
+            summary: '',
+            testsFailed: false,
+            error: null
+          };
+
+          // Check if test report exists and has content
+          if (!fs.existsSync('test-report.txt') || !fs.statSync('test-report.txt').size) {
+            results.summary = 'Test execution error: No test output generated.';
+            results.testsFailed = true;
+            return outputResults(results);
+          }
+
+          // Read test report
+          const testOutput = fs.readFileSync('test-report.txt', 'utf8');
+
+          // Check for errors and test results
+          const hasError = testOutput.includes('Error');
+          const testSummaryMatch = testOutput.match(/passed:\s*(\d+)\s*failed:\s*(\d+)\s*of\s*(\d+)\s*tests/);
+
+          if (hasError && (!testSummaryMatch || testSummaryMatch[3] === '0')) {
+            // Error with no tests or zero tests
+            results.summary = 'Test execution encountered errors. No tests were run.';
+            results.testsFailed = true;
+            results.error = testOutput;
+          } else if (testSummaryMatch) {
+            // We have a test summary
+            const passed = parseInt(testSummaryMatch[1]);
+            const failed = parseInt(testSummaryMatch[2]);
+            const total = parseInt(testSummaryMatch[3]);
+
+            results.summary = testSummaryMatch[0];
+
+            if (failed > 0 || total === 0) {
+              results.testsFailed = true;
+
+              if (total === 0) {
+                results.summary = 'No tests were found to run. This is considered a failure.';
+              }
+            }
+          } else {
+            // No test summary found
+            results.summary = 'Test execution produced no valid test summary';
+            results.testsFailed = true;
+            results.error = testOutput;
+          }
+
+          return outputResults(results);
+
+          /**
+           * Outputs results and saves result files
+           */
+          function outputResults(results) {
+            // Create test results directory and files
+            try {
+              fs.mkdirSync('./test-results', { recursive: true });
+
+              // Write results files
+              fs.writeFileSync('./test-results/timestamp.txt', results.timestamp);
+              fs.writeFileSync('./test-results/summary.txt', results.summary);
+              fs.writeFileSync('./test-results/failed.txt', results.testsFailed.toString());
+
+              // Save error output if it exists
+              if (results.error) {
+                fs.writeFileSync('./test-results/error.txt', results.error);
+              }
+            } catch (err) {
+              console.error('Error saving test results:', err);
+              core.warning(`Error saving test results: ${err.message}`);
+            }
+
+            return results;
+          }
+
+    - name: Upload Test Report Artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-report
+        path: test-report.txt
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: ./test-results/
+
+    # Fail the workflow if tests failed
+    - name: Check Test Status
+      if: ${{ steps.analyze-results.outputs.result && fromJSON(steps.analyze-results.outputs.result).testsFailed }}
+      run: exit 1
