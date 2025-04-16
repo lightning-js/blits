@@ -189,7 +189,11 @@ export default (template = '', componentName, parentComponent, filePath = null) 
     }
 
     // process color values
-    if (['color', ':color', ':effects', 'effects'].includes(name)) {
+    if (
+      ['color', ':color', ':border', 'border', 'shadow', ':shadow', 'shader', ':shader'].includes(
+        name
+      )
+    ) {
       return processColors(name, value)
     }
     return { name, value }

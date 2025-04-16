@@ -852,12 +852,12 @@ test('Parse template with attribute values with delimited either single or doubl
   <Component>
     <Element
       w='160' h="160" x='40' y='40' color="#fb923c"
-      rounded="44",
+      rounded="44"
     />
     <Element
       w='120' h="120"
       x='100' y="100"
-      rounded="45",
+      rounded="45"
     />
   </Component>`
 
@@ -1228,7 +1228,8 @@ test('Parse template with color and effects attributes and parsing should conver
         <Element color="#44037a" />
         <Element color="{top: '#44037a'}" :rounded="$radius" />
         <Element :color="$colors.color2" :rounded="$radius / 2" />
-        <Element color="transparent" rounded="10", border="{width: 20, color: '#60a5fa'}" />
+        <Element color="transparent" rounded="10" border="{width: 20, color: '#60a5fa'}" />
+        <Element color="blue" rounded="10" shadow="{blur: 20, spread: 10, color: '#60a5fa'}" />
         <Element color="#fba" />
         <Element color="#23dd21" />
         <Element color="#993322ff" />
@@ -1276,6 +1277,12 @@ test('Parse template with color and effects attributes and parsing should conver
             color: '0x00000000',
             rounded: '10',
             border: "{width: 20, color: '0x60a5faff'}",
+            [componentType]: 'Element',
+          },
+          {
+            color: '0x0000ffff',
+            rounded: '10',
+            shadow: "{blur: 20, spread: 10, color: '0x60a5faff'}",
             [componentType]: 'Element',
           },
           {
