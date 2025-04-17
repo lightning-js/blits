@@ -25,7 +25,7 @@ import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
 export default {
   $focus: {
     value: function (e) {
-      this[symbols.state].hasFocus = true
+      this[symbols.state].$hasFocus = true
       Focus.set(this, e)
     },
     writable: false,
@@ -34,7 +34,7 @@ export default {
   },
   unfocus: {
     value: function () {
-      this[symbols.state].hasFocus = false
+      this[symbols.state].$hasFocus = false
       this[symbols.lifecycle].state = 'unfocus'
     },
     writable: false,

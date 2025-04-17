@@ -91,7 +91,7 @@ const Component = (name = required('name'), config = required('config')) => {
     this[symbols.originalState] =
       (config.state && typeof config.state === 'function' && config.state.apply(this)) || {}
     // add hasFocus key in
-    this[symbols.originalState]['hasFocus'] = false
+    this[symbols.originalState]['$hasFocus'] = false
 
     // generate a reactive state (using the result of previously execute state function)
     // and store it

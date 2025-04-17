@@ -191,7 +191,7 @@ test('Component - Instance should initialize originalState', (assert) => {
   const state = foo[symbols.originalState]
 
   assert.equal(state.foo, 'bar', 'Foo instance should store originalState properties')
-  assert.equal(state.hasFocus, false, 'Foo instance should store originalState hasFocus property')
+  assert.equal(state.$hasFocus, false, 'Foo instance should store originalState $hasFocus property')
   assert.end()
 })
 

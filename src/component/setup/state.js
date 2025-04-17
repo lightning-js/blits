@@ -28,8 +28,8 @@ export default (component, state = () => {}) => {
   })
 
   const stateKeys = Object.keys(state.apply(component) || {})
-  // add built-in hasFocus key
-  stateKeys.push(['hasFocus'])
+  // add built-in $hasFocus key
+  stateKeys.push(['$hasFocus'])
   const stateKeysLength = stateKeys.length
 
   for (let i = 0; i < stateKeysLength; i++) {
