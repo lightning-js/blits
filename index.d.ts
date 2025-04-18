@@ -23,7 +23,7 @@ import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader, type Re
 declare module '@lightningjs/blits' {
 
 
-  export interface AnnouncerUtterance extends Promise {
+  export interface AnnouncerUtterance extends Promise<T> {
     /**
      * Removes a specific message from the announcement queue,
      * to make sure it isn't spoke out.
