@@ -45,7 +45,7 @@ Saves a key-value combination in storage.
 this.$storage.set(key, value)
 ```
 
-The key is expected to be a `String`. The value can be a `String`, `Object`, `Boolean` or `Array`.
+The key is expected to be a `String` or a `Number`. The value can be a `String`, `Object`, `Boolean` or `Array`.
 
 When saved, the value is automatically converted to a JSON object, so you do not have to call `JSON.stringify()` on objects yourself.
 
