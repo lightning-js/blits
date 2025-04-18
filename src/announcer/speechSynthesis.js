@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Log } from '../lib/log'
+import { Log } from '../lib/log.js'
 
 const syn = window.speechSynthesis
 
