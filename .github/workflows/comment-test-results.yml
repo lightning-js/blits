@@ -3,8 +3,7 @@ name: Comment Test Results
 on:
   workflow_run:
     workflows: ["Run Blits Tests"]
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   comment-test-results:
@@ -13,102 +12,70 @@ jobs:
       pull-requests: write
 
     steps:
-    - name: Download Test Results
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            run_id: ${{ github.event.workflow_run.id }}
-          });
+      - name: Download Test Results
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+            const art = artifacts.data.artifacts.find(a => a.name === "test-results");
+            if (!art) core.setFailed('No test-results artifact found');
+            const dl = await github.rest.actions.downloadArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: art.id,
+              archive_format: 'zip'
+            });
+            require('fs').writeFileSync('test-results.zip', Buffer.from(dl.data));
+      - name: Extract Test Results
+        run: |
+          mkdir -p test-results
+          unzip -o test-results.zip -d test-results
+          echo "TIMESTAMP=$(cat test-results/timestamp.txt)" >> $GITHUB_ENV
+          echo "SUMMARY=$(cat test-results/summary.txt)" >> $GITHUB_ENV
+          echo "FAILED=$(cat test-results/failed.txt)" >> $GITHUB_ENV
+          if [ -f test-results/error.txt ]; then cp test-results/error.txt raw_error.txt; fi
 
-          const matchArtifact = artifacts.data.artifacts.find(artifact => artifact.name === "test-results");
-          if (!matchArtifact) {
-            core.setFailed('No test results artifact found');
-            return;
-          }
+      - name: Post Test Results as PR Comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
 
-          const download = await github.rest.actions.downloadArtifact({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            artifact_id: matchArtifact.id,
-            archive_format: 'zip'
-          });
+            try {
+              const pulls = context.payload.workflow_run.pull_requests;
+              console.log(`Found ${pulls.length} triggering PR(s).`);
 
-          const fs = require('fs');
-          fs.writeFileSync('test-results.zip', Buffer.from(download.data));
+              if (pulls.length === 0) {
+                console.warn('No pull requests found for this workflow run; skipping comment.');
+                return;
+              }
 
-    - name: Extract Test Results
-      run: |
-        mkdir -p test-results
-        unzip -o test-results.zip -d test-results
+              const status = process.env.FAILED === 'true' ? '❌ FAILED' : '✅ PASSED';
+              let commentBody = `#### Test Results: ${status}\n`
+                              + `**Run at:** ${process.env.TIMESTAMP}\n\n`
+                              + `**Summary:**\n${process.env.SUMMARY}`;
 
-        TIMESTAMP=$(cat test-results/timestamp.txt)
-        SUMMARY=$(cat test-results/summary.txt)
-        FAILED=$(cat test-results/failed.txt)
+              if (fs.existsSync('raw_error.txt')) {
+                commentBody += '\n\n**Error Output:**\n```\n'
+                             + fs.readFileSync('raw_error.txt', 'utf8')
+                             + '\n```';
+              }
 
-        echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
-        echo "SUMMARY=$SUMMARY" >> $GITHUB_ENV
-        echo "FAILED=$FAILED" >> $GITHUB_ENV
+              for (const pr of pulls) {
+                console.log(`Commenting on PR #${pr.number}`);
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo:  context.repo.repo,
+                  issue_number: pr.number,
+                  body: commentBody
+                });
+              }
 
-        # Check if error.txt exists and read it if it does
-        if [ -f test-results/error.txt ]; then
-          # Store raw error output in a file for the next step
-          cat test-results/error.txt > raw_error.txt
-        fi
-
-    - name: Find PR Number
-      id: find-pr
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const { owner, repo } = context.repo;
-          const run_id = ${{ github.event.workflow_run.id }};
-
-          // Get the triggering workflow run
-          const run = await github.rest.actions.getWorkflowRun({
-            owner,
-            repo,
-            run_id
-          });
-
-          // Find associated PR
-          const pulls = await github.rest.pulls.list({
-            owner,
-            repo,
-            state: 'open',
-            head: run.data.head_sha
-          });
-
-          if (pulls.data.length > 0) {
-            return pulls.data[0].number;
-          }
-
-          console.log('No PR found');
-          return null;
-        result-encoding: string
-
-    - name: Post Test Results as PR Comment
-      if: steps.find-pr.outputs.result != 'null'
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const fs = require('fs');
-          const pr_number = parseInt(${{ steps.find-pr.outputs.result }});
-          const status = process.env.FAILED === 'true' ? '❌ FAILED' : '✅ PASSED';
-
-          let commentBody = `#### Test Results: ${status}\n**Run at:** ${process.env.TIMESTAMP}\n\n**Summary:**\n${process.env.SUMMARY}`;
-
-          // Add error output if it exists
-          if (fs.existsSync('raw_error.txt')) {
-            const errorOutput = fs.readFileSync('raw_error.txt', 'utf8');
-            commentBody += '\n\n**Error Output:**\n```\n' + errorOutput + '\n```';
-          }
-
-          github.rest.issues.createComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: pr_number,
-            body: commentBody
-          });
+            } catch (err) {
+              console.error('🛑 Failed to post test results comment:', err);
+              core.setFailed(`Comment step failed: ${err.message}`);
+            }
