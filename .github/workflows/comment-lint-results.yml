@@ -8,144 +8,93 @@ on:
 
 jobs:
   comment-lint-results:
-    # Only run this job if the previous workflow failed (indicating lint errors)
     if: github.event.workflow_run.conclusion == 'failure'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
 
     steps:
-    - name: Download Lint Results
-      id: download
-      uses: actions/github-script@v6
-      with:
-        script: |
-          try {
-            core.info('Downloading lint results artifact');
-
-            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: ${{ github.event.workflow_run.id }}
-            });
-
-            const matchArtifact = artifacts.data.artifacts.find(artifact => artifact.name === "lint-results");
-            if (!matchArtifact) {
-              core.setFailed('No lint results artifact found');
-              return false;
-            }
-
-            core.info(`Found artifact id: ${matchArtifact.id}`);
-
-            const download = await github.rest.actions.downloadArtifact({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              artifact_id: matchArtifact.id,
-              archive_format: 'zip'
-            });
-
-            const fs = require('fs');
+      - name: Download Lint Results
+        id: download
+        uses: actions/github-script@v6
+        with:
+          result-encoding: string
+          script: |
+            const core = require('@actions/core');
             try {
-              fs.writeFileSync('lint-results.zip', Buffer.from(download.data));
-              core.info('Successfully downloaded and saved artifact');
-              return true;
-            } catch (error) {
-              core.setFailed(`Failed to write artifact: ${error.message}`);
-              return false;
-            }
-          } catch (error) {
-            core.setFailed(`Failed to download artifact: ${error.message}`);
-            return false;
-          }
-        result-encoding: string
+              core.info('Downloading lint-results artifact');
 
-    - name: Extract Lint Results
-      if: steps.download.outputs.result == 'true'
-      id: extract
-      run: |
-        mkdir -p lint-results
-        unzip -o lint-results.zip -d lint-results
+              const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: github.event.workflow_run.id
+              });
+              const art = artifacts.data.artifacts.find(a => a.name === "lint-results");
+              if (!art) {
+                core.setFailed('No lint-results artifact found');
+                return 'false';
+              }
 
-        if [ -f lint-results/errors.md ]; then
-          # Use GitHub's EOF syntax for multiline content
-          echo "LINT_ERRORS<<EOF" >> $GITHUB_ENV
-          cat lint-results/errors.md >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-          echo "HAS_ERRORS=true" >> $GITHUB_OUTPUT
-        else
-          echo "HAS_ERRORS=false" >> $GITHUB_OUTPUT
-        fi
+              core.info(`Found artifact id ${art.id}, downloading…`);
+              const dl = await github.rest.actions.downloadArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: art.id,
+                archive_format: 'zip'
+              });
+              require('fs').writeFileSync('lint-results.zip', Buffer.from(dl.data));
+              core.info('Downloaded and saved lint-results.zip');
+              return 'true';
 
-    - name: Find PR Number
-      if: steps.extract.outputs.HAS_ERRORS == 'true'
-      id: find-pr
-      uses: actions/github-script@v6
-      with:
-        script: |
-          try {
-            core.info('Finding associated PR');
-
-            const { owner, repo } = context.repo;
-            const run_id = ${{ github.event.workflow_run.id }};
-
-            // Get the triggering workflow run
-            const run = await github.rest.actions.getWorkflowRun({
-              owner,
-              repo,
-              run_id
-            });
-
-            // Find associated PR - first try the event payload
-            if (run.data.pull_requests && run.data.pull_requests.length > 0) {
-              core.info(`Found PR directly from run data: #${run.data.pull_requests[0].number}`);
-              return run.data.pull_requests[0].number;
+            } catch (err) {
+              core.setFailed(`Download failed: ${err.message}`);
+              return 'false';
             }
 
-            // Fallback to searching by head SHA
-            core.info(`Searching for PR using head SHA: ${run.data.head_sha}`);
-            const pulls = await github.rest.pulls.list({
-              owner,
-              repo,
-              state: 'open',
-              head: `${owner}:${run.data.head_branch}`
-            });
+      - name: Extract Lint Results
+        if: steps.download.outputs.result == 'true'
+        id: extract
+        run: |
+          mkdir -p lint-results
+          unzip -o lint-results.zip -d lint-results
+          if [ -f lint-results/errors.md ]; then
+            echo "LINT_ERRORS<<EOF" >> $GITHUB_ENV
+            cat lint-results/errors.md >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+            echo "HAS_ERRORS=true" >> $GITHUB_OUTPUT
+          else
+            echo "HAS_ERRORS=false" >> $GITHUB_OUTPUT
+          fi
 
-            if (pulls.data.length > 0) {
-              core.info(`Found PR by branch: #${pulls.data[0].number}`);
-              return pulls.data[0].number;
+      - name: Post Lint Results as PR Comment
+        if: steps.extract.outputs.HAS_ERRORS == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+
+            try {
+              const pulls = context.payload.workflow_run.pull_requests;
+              core.info(`Found ${pulls.length} triggering PR(s)`);
+
+              if (pulls.length === 0) {
+                core.warning('No associated PRs; skipping comment.');
+                return;
+              }
+
+              const body = process.env.LINT_ERRORS;
+              for (const pr of pulls) {
+                core.info(`Commenting lint errors on PR #${pr.number}`);
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo:  context.repo.repo,
+                  issue_number: pr.number,
+                  body
+                });
+              }
+              core.info('All comments posted');
+
+            } catch (err) {
+              core.error('Failed to post lint comment:', err);
+              core.setFailed(err.message);
             }
-
-            core.info('No PR found for this workflow run');
-            return null;
-          } catch (error) {
-            core.setFailed(`Failed to find PR: ${error.message}`);
-            return null;
-          }
-        result-encoding: string
-
-    - name: Post Lint Results as PR Comment
-      if: steps.find-pr.outputs.result != 'null' && steps.find-pr.outputs.result != ''
-      uses: actions/github-script@v6
-      with:
-        script: |
-          try {
-            const pr_number = parseInt(${{ steps.find-pr.outputs.result }});
-
-            if (isNaN(pr_number)) {
-              core.warning('Invalid PR number');
-              return;
-            }
-
-            core.info(`Posting comment to PR #${pr_number}`);
-
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: pr_number,
-              body: process.env.LINT_ERRORS
-            });
-
-            core.info(`Successfully posted lint errors comment to PR #${pr_number}`);
-          } catch (error) {
-            core.setFailed(`Failed to post comment: ${error.message}`);
-          }
