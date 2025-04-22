@@ -148,8 +148,8 @@ export const navigate = async function () {
       let beforeEachResult
       if (this.parent[symbols.routerHooks]) {
         const hooks = this.parent[symbols.routerHooks]
-        if (hooks.beforeAll) {
-          beforeEachResult = await hooks.beforeAll(route, previousRoute)
+        if (hooks.beforeEach) {
+          beforeEachResult = await hooks.beforeEach(route, previousRoute)
           if (isString(beforeEachResult)) {
             to(beforeEachResult)
             return
