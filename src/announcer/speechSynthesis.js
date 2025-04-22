@@ -15,6 +15,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { Log } from '../lib/log.js'
+
 const syn = window.speechSynthesis
 
 const isAndroid = /android/i.test((window.navigator || {}).userAgent || '')
@@ -82,14 +84,21 @@ const speak = (options) => {
 
 export default {
   speak(options) {
-    if (!initialized) {
-      initialize()
+    if (syn !== undefined) {
+      if (initialized === false) {
+        initialize()
+      }
+      return speak(options)
+    } else {
+      Log.error('speechSynthesis web API not available')
+      return Promise.reject({ error: 'unavailable' })
     }
-    return speak(options)
   },
   cancel() {
-    syn.cancel()
-    clear()
+    if (syn !== undefined) {
+      syn.cancel()
+      clear()
+    }
   },
   // @todo
   // getVoices() {
