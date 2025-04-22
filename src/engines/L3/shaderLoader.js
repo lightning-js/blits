@@ -20,8 +20,8 @@ function registerBlitsDefaultShaders(
   shManager.registerShaderType('roundedWithShadow', RoundedWithShadow)
   shManager.registerShaderType('roundedWithBorderAndShadow', RoundedWithBorderAndShadow)
   shManager.registerShaderType('holePunch', HolePunch)
-  shManager.registerShaderType('roundedWithShadow', RadialGradient)
-  shManager.registerShaderType('roundedWithBorderAndShadow', LinearGradient)
+  shManager.registerShaderType('radialGradient', RadialGradient)
+  shManager.registerShaderType('linearGradient', LinearGradient)
 }
 
 /**
