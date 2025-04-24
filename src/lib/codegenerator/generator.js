@@ -201,7 +201,7 @@ const generateElementCode = function (
       const output = parseTagContent(val, options.component)
       renderCode.push(`elementConfig${counter}['content'] = ${output}`)
 
-      const variableRegEx = /\{\{\s*[^}]*\$\S*\s*\}\}/
+      const variableRegEx = /\{\{\s*(?=[^}]*\$).+?\s*\}\}/
       // Check if the interpolation contains $ variable
       const isReactive = variableRegEx.test(val)
       if (isReactive === true) {
