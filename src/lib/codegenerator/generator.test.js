@@ -2260,7 +2260,7 @@ test('Generate code for a template with inline Text', (assert) => {
         children: [
           {
             [Symbol.for('componentType')]: 'Text',
-            content: 'Hello Blits!',
+            [Symbol.for('tagContent')]: 'Hello Blits!',
           },
         ],
       },
@@ -2288,8 +2288,8 @@ test('Generate code for a template with inline Text', (assert) => {
       parent = elms[0]
       const elementConfig1 = {}
       elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-      elementConfig1['content'] = 'HelloBlits!'
       elementConfig1['__textnode'] = true
+      elementConfig1['content'] = 'HelloBlits!'
       elms[1].populate(elementConfig1)
       if (inSlot === true) {
         slotChildCounter -= 1
@@ -2321,7 +2321,7 @@ test('Generate code for a template with inline dynamic Text', (assert) => {
         children: [
           {
             [Symbol.for('componentType')]: 'Text',
-            content: '$myText',
+            [Symbol.for('tagContent')]: '{{$myText}}',
           },
         ],
       },
@@ -2349,8 +2349,8 @@ test('Generate code for a template with inline dynamic Text', (assert) => {
       parent = elms[0]
       const elementConfig1 = {}
       elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-      elementConfig1['content'] = component.myText
       elementConfig1['__textnode'] = true
+      elementConfig1['content'] = (component.myText)
       elms[1].populate(elementConfig1)
 
       if (inSlot === true) {
@@ -2369,8 +2369,8 @@ test('Generate code for a template with inline dynamic Text', (assert) => {
     'Generator should return a render function with the correct code'
   )
   assert.ok(
-    Array.isArray(actual.effects) && actual.effects.length === 0,
-    'Generator should return an empty effects array'
+    Array.isArray(actual.effects) && actual.effects.length === 1,
+    'Generator should return effects array with length 1'
   )
   assert.end()
 })
@@ -2383,7 +2383,7 @@ test('Generate code for a template with inline dynamic Text embedded in static t
         children: [
           {
             [Symbol.for('componentType')]: 'Text',
-            content: 'Hello {{$firstname}} {{$lastname}}, how are you?',
+            [Symbol.for('tagContent')]: 'Hello {{$firstname}} {{$lastname}}, how are you?',
           },
         ],
       },
@@ -2410,8 +2410,8 @@ test('Generate code for a template with inline dynamic Text embedded in static t
       parent = elms[0]
       const elementConfig1 = {}
       elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-      elementConfig1['content'] = 'Hello '+component.firstname+' '+component.lastname+', how are you?'
       elementConfig1['__textnode'] = true
+      elementConfig1['content'] = "Hello "+(component.firstname)+" "+(component.lastname)+", how are you?"
       elms[1].populate(elementConfig1)
 
       if(inSlot === true) {
@@ -2423,15 +2423,14 @@ test('Generate code for a template with inline dynamic Text embedded in static t
   `
 
   const actual = generator.call(scope, templateObject)
-
   assert.equal(
     normalize(actual.render.toString()),
     normalize(expectedRender),
     'Generator should return a render function with the correct code'
   )
   assert.ok(
-    Array.isArray(actual.effects) && actual.effects.length === 0,
-    'Generator should return an empty effects array'
+    Array.isArray(actual.effects) && actual.effects.length === 1,
+    'Generator should return effects array with length 1'
   )
   assert.end()
 })

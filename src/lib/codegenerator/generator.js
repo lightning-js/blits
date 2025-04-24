@@ -187,6 +187,31 @@ const generateElementCode = function (
     }
   })
 
+  if (templateObject[Symbol.for('tagContent')] !== undefined) {
+    const val = templateObject[Symbol.for('tagContent')]
+
+    // Check if the string contains interpolation (`{{ }}`).
+    const regex = /\{\{\s*.+?\s*\}\}/
+    const containsInterpolation = regex.test(val)
+
+    if (containsInterpolation === false) {
+      // Inline text is treated as static content when interpolation is not defined.
+      renderCode.push(`elementConfig${counter}['content'] = '${val}'`)
+    } else {
+      const output = parseTagContent(val, options.component)
+      renderCode.push(`elementConfig${counter}['content'] = ${output}`)
+
+      const variableRegEx = /\{\{\s*[^}]*\$\S*\s*\}\}/
+      // Check if the interpolation contains $ variable
+      const isReactive = variableRegEx.test(val)
+      if (isReactive === true) {
+        this.effectsCode.push(`
+          ${elm}.set('content', ${output})
+        `)
+      }
+    }
+  }
+
   if (options.holder === true) {
     renderCode.push(`
     const skip${counter} = []
@@ -746,6 +771,57 @@ const cast = (val = '', key = false, component = 'component.') => {
   }
 
   return castedValue
+}
+
+const parseTagContent = (val = '', component = 'component.') => {
+  // unescaped single quotes must be escaped while preserving escaped backslashes
+  let escapedVal = val
+    .replace(/\\\\/g, '__DOUBLE_BACKSLASH__')
+    .replace(/(^|[^\\])'/g, "$1\\'")
+    .replace(/__DOUBLE_BACKSLASH__/g, '\\\\')
+
+  const dynamicParts = /\{\{\s*.+?\s*\}\}/g
+  const matches = [...escapedVal.matchAll(dynamicParts)]
+
+  if (matches.length) {
+    const isValStartsWithBrace = /^\{\{/.test(escapedVal)
+    const isValEndsWithBrace = /\}\}$/.test(escapedVal)
+    for (let matchObj of matches) {
+      const { 0: match, index } = matchObj
+      const isMatchAtStart = index === 0
+      const isMatchAtLast = val[index + match.length] === undefined ? true : false
+
+      let parsedMatch = match
+
+      const replaceDollar = /\$(\$(?=\$)|\$?)/g
+      const dollarMatches = [...parsedMatch.matchAll(replaceDollar)]
+      if (dollarMatches.length) {
+        parsedMatch = parsedMatch.replace(replaceDollar, (match, group1) => {
+          if (group1 === '') {
+            return component
+          } else if (group1 === '$') {
+            return component + '$'
+          }
+        })
+      }
+
+      parsedMatch = parsedMatch.replace('{{', '(').replace('}}', ')')
+      if (isMatchAtStart === false) {
+        parsedMatch = `"+${parsedMatch}`
+      }
+      if (isMatchAtLast === false) {
+        parsedMatch = `${parsedMatch}+"`
+      }
+      escapedVal = escapedVal.replace(match, parsedMatch)
+    }
+    if (isValStartsWithBrace === false) {
+      escapedVal = '"' + escapedVal
+    }
+    if (isValEndsWithBrace === false) {
+      escapedVal = escapedVal + '"'
+    }
+  }
+  return escapedVal
 }
 
 const isReactiveKey = (str) => str.startsWith(':')
