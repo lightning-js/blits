@@ -47,8 +47,7 @@
   },
   "dependencies": {
     "@lightningjs/msdf-generator": "^1.1.1",
-    "@lightningjs/renderer": "^2.13.2",
-    "localcookies":"^2.0.0"
+    "@lightningjs/renderer": "^2.13.2"
   },
   "repository": {
     "type": "git",
