@@ -48,7 +48,7 @@ props: {
   bgColor: 'red' // type string is inferred
   /**
    * Height of the element
-   * @type {number}
+   * @type {number|undefined}
    */
   height: undefined,
   /**
