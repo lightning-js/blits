@@ -16,44 +16,46 @@
  */
 
 import { Log } from '../../lib/log.js'
-
 import symbols from '../../lib/symbols.js'
 
-const baseProp = {
-  cast: (v) => v,
-  required: false,
+const normalizeProps = (props) => {
+  const out = {}
+
+  if (Array.isArray(props)) {
+    for (let i = 0; i < props.length; i++) {
+      out[props[i]] = { default: undefined }
+    }
+    return out
+  }
+
+  for (const key in props) {
+    out[key] = { default: props[key] }
+  }
+
+  return out
 }
 
-export default (component, props = []) => {
-  if (props.indexOf('ref') === -1) {
-    props.push('ref')
+export default (component, props = {}) => {
+  props = normalizeProps(props)
+  if (!('ref' in props)) {
+    props.ref = { default: undefined }
   }
-  component[symbols.propKeys] = []
 
-  const propsLength = props.length
+  const keys = Object.keys(props)
+  component[symbols.propKeys] = keys
 
-  for (let i = 0; i < propsLength; i++) {
-    const prop = { ...baseProp, ...(typeof props[i] === 'object' ? props[i] : { key: props[i] }) }
-    component[symbols.propKeys].push(prop.key)
-    Object.defineProperty(component, prop.key, {
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    const prop = props[key]
+
+    Object.defineProperty(component, key, {
       get() {
-        const value = prop.cast(
-          this[symbols.props] !== undefined && prop.key in this[symbols.props]
-            ? this[symbols.props][prop.key]
-            : 'default' in prop
-            ? prop.default
-            : undefined
-        )
-
-        if (prop.required === true && value === undefined) {
-          Log.warn(`${prop.key} is required`)
-        }
-
-        return value
+        if (this[symbols.props] === undefined) return undefined
+        return key in this[symbols.props] ? this[symbols.props][key] : prop.default
       },
       set(v) {
-        Log.warn(`Warning! Avoid mutating props directly (${prop.key})`)
-        this[symbols.props][prop.key] = v
+        Log.warn(`Warning! Avoid mutating props directly (${key})`)
+        this[symbols.props][key] = v
       },
     })
   }

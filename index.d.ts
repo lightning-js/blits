@@ -372,20 +372,22 @@ declare module '@lightningjs/blits' {
     cast?: () => any
   };
 
-  // Props Array
-  export type Props = (string | PropObject)[];
+  export type Props = Record<string, any>
 
-  // Extract the prop names from the props array
-  type ExtractPropNames<P extends Props> = {
-      readonly [K in P[number] as K extends string ? K : K extends { key: infer Key } ? Key : never]: any;
-  };
+  type InferProp<T> = T extends (...args: any[]) => any ? ReturnType<T> : T
 
-  // Update the PropsDefinition to handle props as strings or objects
-  export type PropsDefinition<P extends Props> = ExtractPropNames<P>;
+  type InferProps<T extends Record<string, any>> = {
+    [K in keyof T]: InferProp<T[K]>
+  }
 
-  export type ComponentContext<P extends Props, S, M, C> = ThisType<PropsDefinition<P> & S & M & C & ComponentBase>
+  export type ComponentContext<
+    P extends Record<string, any>,
+    S,
+    M,
+    C
+  > = ThisType<Readonly<InferProps<P>> & S & M & Readonly<C> & ComponentBase>
 
-  export interface ComponentConfig<P extends Props, S, M, C, W> {
+  export interface ComponentConfig<P extends Props = {}, S, M, C, W> {
     components?: {
         [key: string]: ComponentFactory,
     },
@@ -441,7 +443,7 @@ declare module '@lightningjs/blits' {
      * }
      * ```
      */
-    state?: (this: PropsDefinition<P>) => S;
+    state?: (this: InferProps<P>) => S;
     /**
      * Methods for abstracting more complex business logic into separate function
      */
