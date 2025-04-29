@@ -21,9 +21,18 @@ import symbols from '../../lib/symbols.js'
 const normalizeProps = (props) => {
   const out = {}
 
-  if (Array.isArray(props)) {
-    for (let i = 0; i < props.length; i++) {
-      out[props[i]] = { default: undefined }
+  if (Array.isArray(props) === true) {
+    Log.warn(
+      'Defining props as an Array has been deprecated and will stop working in future versions. Please use the new notation instead (an object with key values pairs).'
+    )
+    const propLength = props.length
+    for (let i = 0; i < propLength; i++) {
+      const prop = props[i]
+      if (typeof prop === 'string') {
+        out[prop] = { default: undefined }
+      } else {
+        out[prop.key] = { default: prop.default }
+      }
     }
     return out
   }
