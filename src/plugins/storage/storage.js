@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import localCookie from './localCookie.mjs'
+import localCookie from './localCookie.js'
 
 let lc = new localCookie()
 
