@@ -773,19 +773,27 @@ const cast = (val = '', key = false, component = 'component.') => {
   return castedValue
 }
 
+function escapeSingleQuotes(str) {
+  return str.replace(/(\\*)'/g, (match, backslashes) => {
+    // If the number of backslashes is odd, quote is already escaped
+    if (backslashes.length % 2 === 1) {
+      return match
+    }
+    // Otherwise, escape the quote
+    return backslashes + "\\'"
+  })
+}
+
 const parseTagContent = (val = '', component = 'component.') => {
   // unescaped single quotes must be escaped while preserving escaped backslashes
-  let escapedVal = val
-    .replace(/\\\\/g, '__DOUBLE_BACKSLASH__')
-    .replace(/(^|[^\\])'/g, "$1\\'")
-    .replace(/__DOUBLE_BACKSLASH__/g, '\\\\')
+  let escapedVal = escapeSingleQuotes(val)
 
   const dynamicParts = /\{\{\s*.+?\s*\}\}/g
   const matches = [...escapedVal.matchAll(dynamicParts)]
 
-  if (matches.length) {
-    const isValStartsWithBrace = /^\{\{/.test(escapedVal)
-    const isValEndsWithBrace = /\}\}$/.test(escapedVal)
+  if (matches.length > 0) {
+    const isValStartsWithBrace = escapedVal.startsWith('{{')
+    const isValEndsWithBrace = escapedVal.endsWith('}}')
     for (let matchObj of matches) {
       const { 0: match, index } = matchObj
       const isMatchAtStart = index === 0
@@ -795,7 +803,7 @@ const parseTagContent = (val = '', component = 'component.') => {
 
       const replaceDollar = /\$(\$(?=\$)|\$?)/g
       const dollarMatches = [...parsedMatch.matchAll(replaceDollar)]
-      if (dollarMatches.length) {
+      if (dollarMatches.length > 0) {
         parsedMatch = parsedMatch.replace(replaceDollar, (match, group1) => {
           if (group1 === '') {
             return component
