@@ -19,32 +19,26 @@ import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 
 const normalizeProps = (props) => {
+  Log.warn(
+    'Defining props as an Array has been deprecated and will stop working in future versions. Please use the new notation instead (an object with key values pairs).'
+  )
   const out = {}
-  if (Array.isArray(props) === true) {
-    Log.warn(
-      'Defining props as an Array has been deprecated and will stop working in future versions. Please use the new notation instead (an object with key values pairs).'
-    )
-    const propLength = props.length
-    for (let i = 0; i < propLength; i++) {
-      const prop = props[i]
-      if (typeof prop === 'string') {
-        out[prop] = undefined
-      } else {
-        out[prop.key] = prop.default
-      }
+  const propLength = props.length
+  for (let i = 0; i < propLength; i++) {
+    const prop = props[i]
+    if (typeof prop === 'string') {
+      out[prop] = undefined
+    } else {
+      out[prop.key] = prop.default
     }
-    return out
   }
-
-  for (const key in props) {
-    out[key] = props[key].default || props[key]
-  }
-
   return out
 }
 
 export default (component, props = {}) => {
-  props = normalizeProps(props)
+  if (Array.isArray(props) === true) {
+    props = normalizeProps(props)
+  }
   if (!('ref' in props)) {
     props.ref = undefined
   }
