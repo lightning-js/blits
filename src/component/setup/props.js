@@ -20,7 +20,6 @@ import symbols from '../../lib/symbols.js'
 
 const normalizeProps = (props) => {
   const out = {}
-
   if (Array.isArray(props) === true) {
     Log.warn(
       'Defining props as an Array has been deprecated and will stop working in future versions. Please use the new notation instead (an object with key values pairs).'
@@ -29,16 +28,16 @@ const normalizeProps = (props) => {
     for (let i = 0; i < propLength; i++) {
       const prop = props[i]
       if (typeof prop === 'string') {
-        out[prop] = { default: undefined }
+        out[prop] = undefined
       } else {
-        out[prop.key] = { default: prop.default }
+        out[prop.key] = prop.default
       }
     }
     return out
   }
 
   for (const key in props) {
-    out[key] = { default: props[key] }
+    out[key] = props[key].default || props[key]
   }
 
   return out
@@ -47,9 +46,8 @@ const normalizeProps = (props) => {
 export default (component, props = {}) => {
   props = normalizeProps(props)
   if (!('ref' in props)) {
-    props.ref = { default: undefined }
+    props.ref = undefined
   }
-
   const keys = Object.keys(props)
   component[symbols.propKeys] = keys
 
@@ -60,7 +58,7 @@ export default (component, props = {}) => {
     Object.defineProperty(component, key, {
       get() {
         if (this[symbols.props] === undefined) return undefined
-        return key in this[symbols.props] ? this[symbols.props][key] : prop.default
+        return key in this[symbols.props] ? this[symbols.props][key] : prop
       },
       set(v) {
         Log.warn(`Warning! Avoid mutating props directly (${key})`)
