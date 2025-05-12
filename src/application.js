@@ -24,14 +24,6 @@ import { DEFAULT_HOLD_TIMEOUT_MS } from './constants.js'
 
 const Application = (config) => {
   const defaultKeyMap = {
-    ArrowLeft: 'left',
-    ArrowRight: 'right',
-    ArrowUp: 'up',
-    ArrowDown: 'down',
-    Enter: 'enter',
-    ' ': 'space',
-    Backspace: 'back',
-    Escape: 'escape',
     37: 'left',
     39: 'right',
     38: 'up',
@@ -59,7 +51,7 @@ const Application = (config) => {
     const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
 
     keyDownHandler = async (e) => {
-      const key = keyMap[e.key] || keyMap[e.keyCode] || e.key || e.keyCode
+      const key = keyMap[e.keyCode] || e.keyCode
       // intercept key press if specified in main Application component
       if (
         this[symbols.inputEvents] !== undefined &&
