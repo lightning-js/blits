@@ -21,6 +21,7 @@ export default (component, data) => {
   let routes = data
   if (Array.isArray(data) === false) {
     component[symbols.routerHooks] = data.hooks
+    component[symbols.error] = data.error
     routes = data.routes
   }
   component[symbols.routes] = []

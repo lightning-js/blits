@@ -491,6 +491,11 @@ declare module '@lightningjs/blits' {
     hooks?: RouterHooks,
 
     /**
+     * Define a custom error handler for unmatched routes
+     */
+    error?: () => string | Promise<string> | void
+
+    /**
      * Routes definition
      *
      * @example

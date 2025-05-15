@@ -21,6 +21,7 @@ export default {
   renderer: Symbol('renderer'),
   routes: Symbol('routes'),
   routerHooks: Symbol('routerHooks'),
+  error: Symbol('error'),
   settings: Symbol('settings'),
   state: Symbol('state'),
   stateKeys: Symbol('stateKeys'),
