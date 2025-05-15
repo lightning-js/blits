@@ -223,7 +223,7 @@ test('Setting prop value directly', (assert) => {
   assert.equal(componentInstance[symbols.props].property, 'bar', 'Should be possible to mutate the property')
   let logs = capture()
   assert.equal(logs.length, 1)
-  assert.equal(logs[0].args.pop(), 'Warning! Avoid mutating props directly (property)', 'Should log warning message')
+  assert.equal(logs[0].args.pop(), `Warning! Avoid mutating props directly (prop "${props[0].key}" in component "${componentInstance.componentId}")` , 'Should log warning message')
 
   assert.end()
 })
