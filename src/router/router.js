@@ -139,7 +139,7 @@ export const navigate = async function () {
     let route = matchHash(path, this.parent[symbols.routes])
 
     // Adding the location hash to the route if it exists.
-    if (hash !== null) {
+    if (route && hash !== null) {
       route.hash = hash
     }
 
@@ -313,6 +313,11 @@ export const navigate = async function () {
       }
 
       this.activeView = this[symbols.children][this[symbols.children].length - 1]
+    } else if (this.parent[symbols.error]) {
+      const errorFnResults = await this.parent[symbols.error]()
+      if (isString(errorFnResults)) {
+        to(errorFnResults)
+      }
     } else {
       Log.error(`Route ${hash} not found`)
     }
