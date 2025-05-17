@@ -632,6 +632,9 @@ const Element = {
         if (transition.f !== undefined) transition.f.stop()
       }
     }
+
+    // remove node reference
+    this.node = null
   },
   get nodeId() {
     return this.node && this.node.id

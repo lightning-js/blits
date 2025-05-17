@@ -352,6 +352,13 @@ const removeView = async (route, view, transition) => {
    */
   if (route.options && (route.options.keepAlive !== true || navigatingBack === true)) {
     view.destroy()
+
+    // destroy holder element
+    if (view[symbols.holder]) {
+      view[symbols.holder].destroy()
+      view[symbols.holder] = null
+    }
+
     view = null
   }
 }
