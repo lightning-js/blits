@@ -103,18 +103,19 @@ export default () =>
         let totalFps = 0
         let fpsUpdateCounter = 0
 
-        renderer.on('fpsUpdate', (rM, { fps }) => {
-          minFps = Math.min(fps, minFps)
-          maxFps = Math.max(fps, maxFps)
-          totalFps += fps
-          fpsUpdateCounter++
-          avgFps = Math.round(totalFps / fpsUpdateCounter)
+        // This leaks - might be L3 SubTexture issue
+        // renderer.on('fpsUpdate', (rM, { fps }) => {
+        //   minFps = Math.min(fps, minFps)
+        //   maxFps = Math.max(fps, maxFps)
+        //   totalFps += fps
+        //   fpsUpdateCounter++
+        //   avgFps = Math.round(totalFps / fpsUpdateCounter)
 
-          this.fps = fps.toString().padStart(3, '0')
-          this.avgFps = avgFps.toString().padStart(3, '0')
-          this.minFps = minFps.toString().padStart(3, '0')
-          this.maxFps = maxFps.toString().padStart(3, '0')
-        })
+        //   this.fps = fps.toString().padStart(3, '0')
+        //   this.avgFps = avgFps.toString().padStart(3, '0')
+        //   this.minFps = minFps.toString().padStart(3, '0')
+        //   this.maxFps = maxFps.toString().padStart(3, '0')
+        // })
       },
     },
   })
