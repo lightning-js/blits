@@ -360,6 +360,7 @@ const removeView = async (route, view, transition) => {
     if (view[symbols.holder]) {
       view[symbols.holder].destroy()
       view[symbols.holder] = null
+      delete view[symbols.holder]
     }
 
     view = null
