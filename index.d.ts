@@ -23,7 +23,7 @@ import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader, type Re
 declare module '@lightningjs/blits' {
 
 
-  export interface AnnouncerUtterance extends Promise {
+  export interface AnnouncerUtterance extends Promise<T> {
     /**
      * Removes a specific message from the announcement queue,
      * to make sure it isn't spoke out.
@@ -481,7 +481,7 @@ declare module '@lightningjs/blits' {
   }
 
   export interface RouterHooks {
-    beforeEach?: (to: Route, from: Route) => string | Route | Promise<string | Route>;
+    beforeEach?: (to: Route, from: Route) => string | Route | Promise<string | Route> | void;
   }
 
   export interface RouterConfig {

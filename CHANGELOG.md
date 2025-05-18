@@ -2,6 +2,14 @@
 
 _15 apr 2025_
 
+## v1.28.0
+
+- Added graceful handling of announcer when speechSynthesis API is not available
+- Renamed `beforeAll` method on router to `beforeEach` (as specified in the type definitions)
+- Fixed detection of correct PR to comment for github workflows
+
+_15 apr 2025_
+
 ## v1.27.1
 
 - Fixed issue with global watcher on router state not being cleared out
