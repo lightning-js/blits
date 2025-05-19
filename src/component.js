@@ -44,11 +44,52 @@ const required = (name) => {
 }
 
 /**
+ * @typedef {function} BlitsComponentFactory
+ * @param {object} opts - The options for the component instance
+ * @param {BlitsComponent} parentEl - The parent element for the component instance
+ * @param {BlitsComponent} parentComponent - The parent component for the component instance
+ * @param {BlitsComponent} rootComponent - The root component for the component instance
+ * @returns {BlitsComponent} - The component instance
+ */
+
+/**
+ * @typedef {import('@/engines/L3/element.js').BlitsElement} BlitsElement
+ */
+
+/**
+ * @typedef {object} BlitsComponent
+ * @property {string} componentId - The unique identifier for the component instance
+ * @property {object} lifecycle - The lifecycle object for the component instance
+ * @property {object} parent - The parent component of the current component instance
+ * @property {object} rootParent - The root parent component of the current component instance
+ * @property {(options: Object, holder: BlitsElement, parentComponent: BlitsComponent) => BlitsComponent} default - The default object for the component instance
+ * @property {object} [holder] - The holder element for the component instance
+ * @property {object} [id] - The internal ID for the component instance
+ * @property {object} [props] - The reactive properties of the component instance
+ * @property {object} [timeouts] - The timeouts created by the component instance
+ * @property {object} [intervals] - The intervals created by the component instance
+ * @property {object} [originalState] - The original state of the component instance
+ * @property {object} [state] - The reactive state of the component instance
+ * @property {object} [children] - The children of the component instance
+ * @property {object} [wrapper] - The wrapper element of the component instance
+ * @property {object} [slots] - The slots of the component instance
+ * @property {object} [effects] - The effects of the component instance
+ * @property {object} [watchers] - The watchers of the component instance
+ * @property {function(any): any} focus - ⚠️ Deprecated. Use `$focus()` instead.
+ * @property {function(any): void} $focus - Sets the component focus state and delegates to the Focus manager.
+ * @property {function(): void} unfocus - Clears the focus state and sets lifecycle to 'unfocus'.
+ * @property {function(): void} destroy - Destroys the component and its children, clearing listeners and effects.
+ * @property {function(any[]=): void} [removeGlobalEffects] - Removes global reactive effects for this component.
+ * @property {function(string): any} select - ⚠️ Deprecated. Use `$select(ref)` instead.
+ * @property {function(string): any} $select - Selects a child component by `ref`.
+ * @property {function(string): void} trigger - ⚠️ Deprecated. Use `$trigger(key)` instead.
+ * @property {function(string): void} $trigger - Forces a reactivity trigger on a property in `originalState`.
+ * @property {function(string, object): {type: string, props: object}} shader - Creates a shader definition object.
+ *
  * Component factory function
  * @param {string} name - The name of the component
  * @param {object} config - The configuration object for the component
- * @returns {function} - A factory function that creates a new component instance
- *
+ * @returns {BlitsComponentFactory} - The component factory function
  */
 const Component = (name = required('name'), config = required('config')) => {
   let base = undefined
@@ -216,11 +257,21 @@ const Component = (name = required('name'), config = required('config')) => {
     return this
   }
 
+  /**
+   * Component factory function
+   * @typedef {BlitsComponentFactory}
+   * @param {Object} options
+   * @param {BlitsComponent} parentEl
+   * @param {BlitsComponent} parentComponent
+   * @param {BlitsComponent} rootComponent
+   * @returns {BlitsComponent}
+   */
   const factory = (options = {}, parentEl, parentComponent, rootComponent) => {
     if (Base[symbols['launched']] === false) {
       // Register user defined plugins once on the Base object (after launch)
       const pluginKeys = Object.keys(plugins)
       const pluginKeysLength = pluginKeys.length
+      /** @type {Object} */
       const pluginInstances = {}
       for (let i = 0; i < pluginKeysLength; i++) {
         const pluginName = pluginKeys[i]

@@ -447,6 +447,28 @@ const propsTransformer = {
   },
 }
 
+/**
+ * Should this live here?
+ *
+ * @typedef {Object} BlitsElement
+ * @property {Object} props - Proxy-like object containing transformed props.
+ * @property {Object<string, any>} props.props - The actual props applied to the node.
+ * @property {Object<string, any>} props.raw - The raw input props.
+ * @property {Object<string, any>} scheduledTransitions - Tracks transitions by property name.
+ * @property {Object} config - Element config, including node and parent references.
+ * @property {Object} component - Reference to the owning Blits component.
+ * @property {string[]} effectNames - Names of active shader effects.
+ * @property {number} counter - Unique counter used for shader workarounds.
+ * @property {any} node - The underlying renderer node (e.g., WebGL node or text node).
+ * @property {any} parent - Shortcut to node's parent.
+ * @property {any[]} children - Filtered list of children owned by this element.
+ * @property {string|number|null} nodeId - ID of the node, if available.
+ * @property {string|null} ref - Ref name (if defined).
+ * @property {function(Object):void} populate - Initializes the element with props and hooks.
+ * @property {function(string, any):void} set - Updates a single property.
+ * @property {function(string, any, Object):void} animate - Animates a property with transition options.
+ * @property {function():void} destroy - Destroys the underlying node and cancels transitions.
+ */
 const Element = {
   populate(data) {
     const props = data
