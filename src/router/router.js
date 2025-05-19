@@ -134,7 +134,7 @@ export const navigate = async function () {
   Announcer.clear()
   state.navigating = true
   if (this.parent[symbols.routes]) {
-    let previousRoute = currentRoute ? Object.assign({}, currentRoute) : undefined
+    let previousRoute = currentRoute //? Object.assign({}, currentRoute) : undefined
     const { hash, path, queryParams } = getHash()
     let route = matchHash(path, this.parent[symbols.routes])
 
@@ -243,18 +243,18 @@ export const navigate = async function () {
 
         // Check, whether cached view holder's alpha prop is exists in transition or not
         let hasAlphaProp = false
-        // if (route.transition.before) {
-        //   if (Array.isArray(route.transition.before)) {
-        //     for (let i = 0; i < route.transition.before.length; i++) {
-        //       if (route.transition.before[i].prop === 'alpha') {
-        //         hasAlphaProp = true
-        //         break
-        //       }
-        //     }
-        //   } else if (route.transition.before.prop === 'alpha') {
-        //     hasAlphaProp = true
-        //   }
-        // }
+        if (route.transition.before) {
+          if (Array.isArray(route.transition.before)) {
+            for (let i = 0; i < route.transition.before.length; i++) {
+              if (route.transition.before[i].prop === 'alpha') {
+                hasAlphaProp = true
+                break
+              }
+            }
+          } else if (route.transition.before.prop === 'alpha') {
+            hasAlphaProp = true
+          }
+        }
         // set holder alpha when alpha prop is not exists in route transition
         if (hasAlphaProp === false) {
           holder.set('alpha', 1)
@@ -270,15 +270,15 @@ export const navigate = async function () {
       focus ? focus.$focus() : view.$focus()
 
       // apply before settings to holder element
-      // if (route.transition.before) {
-      //   if (Array.isArray(route.transition.before)) {
-      //     for (let i = 0; i < route.transition.before.length; i++) {
-      //       holder.set(route.transition.before[i].prop, route.transition.before[i].value)
-      //     }
-      //   } else {
-      //     holder.set(route.transition.before.prop, route.transition.before.value)
-      //   }
-      // }
+      if (route.transition.before) {
+        if (Array.isArray(route.transition.before)) {
+          for (let i = 0; i < route.transition.before.length; i++) {
+            holder.set(route.transition.before[i].prop, route.transition.before[i].value)
+          }
+        } else {
+          holder.set(route.transition.before.prop, route.transition.before.value)
+        }
+      }
 
       let shouldAnimate = false
 
@@ -290,8 +290,6 @@ export const navigate = async function () {
         if (oldView) {
           removeView(previousRoute, oldView, route.transition.out)
         }
-
-        previousRoute = undefined
       }
 
       state.path = route.path
@@ -300,17 +298,17 @@ export const navigate = async function () {
       state.data = routeData
 
       // apply in transition
-      // if (route.transition.in) {
-      //   if (Array.isArray(route.transition.in)) {
-      //     for (let i = 0; i < route.transition.in.length; i++) {
-      //       i === route.transition.length - 1
-      //         ? await setOrAnimate(holder, route.transition.in[i], shouldAnimate)
-      //         : setOrAnimate(holder, route.transition.in[i], shouldAnimate)
-      //     }
-      //   } else {
-      //     await setOrAnimate(holder, route.transition.in, shouldAnimate)
-      //   }
-      // }
+      if (route.transition.in) {
+        if (Array.isArray(route.transition.in)) {
+          for (let i = 0; i < route.transition.in.length; i++) {
+            i === route.transition.length - 1
+              ? await setOrAnimate(holder, route.transition.in[i], shouldAnimate)
+              : await setOrAnimate(holder, route.transition.in[i], shouldAnimate)
+          }
+        } else {
+          await setOrAnimate(holder, route.transition.in, shouldAnimate)
+        }
+      }
 
       holder.set('alpha', 1)
 
@@ -327,17 +325,17 @@ export const navigate = async function () {
 
 const removeView = async (route, view, transition) => {
   // apply out transition
-  // if (transition) {
-  //   if (Array.isArray(transition)) {
-  //     for (let i = 0; i < transition.length; i++) {
-  //       i === transition.length - 1
-  //         ? await setOrAnimate(view[symbols.holder], transition[i])
-  //         : setOrAnimate(view[symbols.holder], transition[i])
-  //     }
-  //   } else {
-  //     await setOrAnimate(view[symbols.holder], transition)
-  //   }
-  // }
+  if (transition) {
+    if (Array.isArray(transition)) {
+      for (let i = 0; i < transition.length; i++) {
+        i === transition.length - 1
+          ? await setOrAnimate(view[symbols.holder], transition[i])
+          : setOrAnimate(view[symbols.holder], transition[i])
+      }
+    } else {
+      await setOrAnimate(view[symbols.holder], transition)
+    }
+  }
   view[symbols.holder].set('alpha', 0)
 
   // cache the page when it's as 'keepAlive' instead of destroying
@@ -369,16 +367,16 @@ const removeView = async (route, view, transition) => {
 
 const setOrAnimate = (node, transition, shouldAnimate = true) => {
   return new Promise((resolve) => {
-    if (shouldAnimate) {
+    if (shouldAnimate === true) {
       // resolve the promise in the transition end-callback
       // ("extending" end callback when one is already specified)
-      const existingEndCallback = transition.end
-      transition.end = existingEndCallback
-        ? (...args) => {
-            existingEndCallback(...args)
-            resolve()
-          }
-        : resolve
+      let existingEndCallback = transition.end
+      transition.end = (...args) => {
+        existingEndCallback && existingEndCallback(args)
+        // null the callback to enable memory cleanup
+        existingEndCallback = null
+        resolve()
+      }
       node.set(transition.prop, { transition })
     } else {
       node.set(transition.prop, transition.value)
