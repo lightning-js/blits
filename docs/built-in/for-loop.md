@@ -168,3 +168,37 @@ Generally it's not recommended to access and interact directly with Elements in 
 The `ref`-attribute can be used in combination with the `for`-attribute as well.
 
 Setting the _ref_ in a for loop context, can be done by either passing a string (i.e. `myitem`) and as Elements get generated in the for loop, the `index` value will be appended to it (i.e. `myitem0`, `myitem1`, etc.). Alternatively you can make the attribute interpolated and define the value for each item yourself (i.e. `:ref="'item' + $item.id"`).
+
+## Using the range attribute
+
+Sometimes you may only need to render a portion of an array rather than all the items.
+
+To do this you can use the `range` variable to specify a subset of items to render. You should specify a `from` and `to` value (`from` is inclusive, and `to` is exclusive) inside the `range` variable (i.e. `range="{from: 0, to: 2}"`).  You can also make the variable reactive, and use moving pointers to dynamically render your items.
+
+This works differently to using the `show` directive on the items, as the items will be destroyed once they are outside the range, and created again when they fall back in it.
+
+```js
+export default Blits.Component('ForLoop', {
+  template: `
+    <Element>
+      <Element :for="(item, index) in $items" :range="{from: $selected - 1, to: $selected + 2}" w="100" h="100" color="lime" :x="$index * 150" />
+    </Element>
+  `,
+  state() {
+    return {
+      selected: 0,
+      items: ['Item 1', 'Item 2', 'Item 3', 'Item 4', 'Item 5', 'Item 6', 'Item 7']
+    }
+  },
+  input: {
+    left() {
+      this.selected = Math.max(0, this.selected - 1)
+    },
+    right() {
+      this.selected = Math.min(this.items.length, this.selected + 1)
+    }
+  }
+})
+```
+
+In the example above, there are 7 items in the array, but we only render the items immediately before and after the selected item at any time.
