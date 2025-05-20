@@ -303,7 +303,7 @@ export const navigate = async function () {
           for (let i = 0; i < route.transition.in.length; i++) {
             i === route.transition.length - 1
               ? await setOrAnimate(holder, route.transition.in[i], shouldAnimate)
-              : await setOrAnimate(holder, route.transition.in[i], shouldAnimate)
+              : setOrAnimate(holder, route.transition.in[i], shouldAnimate)
           }
         } else {
           await setOrAnimate(holder, route.transition.in, shouldAnimate)
