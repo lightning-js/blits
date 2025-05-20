@@ -66,19 +66,12 @@ export default {
       this.rootParent = null
 
       // remove corenode
-      this[symbols.holder].node?.destroy()
-      if (this[symbols.holder].config) this[symbols.holder].config.parent = null
-      // this[symbols.holder].parent = null
+      if (this[symbols.holder].node !== undefined) this[symbols.holder].node.destroy()
+      if (this[symbols.holder].config !== undefined) this[symbols.holder].config.parent = null
+
       this[symbols.holder].destroy()
       this[symbols.holder] = null
       delete this[symbols.holder]
-
-      this[symbols.wrapper].node?.destroy()
-      if (this[symbols.wrapper].config) this[symbols.wrapper].config.parent = null
-      // this[symbols.wrapper].parent = null
-      this[symbols.wrapper].destroy()
-      this[symbols.wrapper] = null
-      delete this[symbols.wrapper]
 
       Log.debug(`Destroyed component ${this.componentId}`)
     },

@@ -310,8 +310,6 @@ export const navigate = async function () {
         }
       }
 
-      holder.set('alpha', 1)
-
       this.activeView = this[symbols.children][this[symbols.children].length - 1]
     } else {
       Log.error(`Route ${hash} not found`)
@@ -336,7 +334,6 @@ const removeView = async (route, view, transition) => {
       await setOrAnimate(view[symbols.holder], transition)
     }
   }
-  view[symbols.holder].set('alpha', 0)
 
   // cache the page when it's as 'keepAlive' instead of destroying
   if (navigatingBack === false && route.options && route.options.keepAlive === true) {
@@ -353,14 +350,6 @@ const removeView = async (route, view, transition) => {
    */
   if (route.options && (route.options.keepAlive !== true || navigatingBack === true)) {
     view.destroy()
-
-    // destroy holder element
-    if (view[symbols.holder]) {
-      view[symbols.holder].destroy()
-      view[symbols.holder] = null
-      delete view[symbols.holder]
-    }
-
     view = null
   }
 }
