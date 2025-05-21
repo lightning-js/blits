@@ -622,6 +622,7 @@ const Element = {
   destroy() {
     Log.debug('Deleting  Node', this.nodeId)
 
+    if (this.node === null) return
     this.node.destroy()
 
     // Clearing transition end callback functions

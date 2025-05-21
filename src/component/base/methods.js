@@ -60,13 +60,13 @@ export default {
       removeGlobalEffects(this[symbols.effects])
       this[symbols.state] = {}
       this[symbols.props] = {}
+      this[symbols.computed] = {}
       this[symbols.effects].length = 0
-
       this.parent = null
       this.rootParent = null
 
       // remove corenode
-      if (this[symbols.holder].node !== undefined) this[symbols.holder].node.destroy()
+      if (this[symbols.holder].node !== null) this[symbols.holder].node.destroy()
       if (this[symbols.holder].config !== undefined) this[symbols.holder].config.parent = null
 
       this[symbols.holder].destroy()
