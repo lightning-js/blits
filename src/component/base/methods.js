@@ -59,8 +59,8 @@ export default {
       deleteChildren(this[symbols.children])
       this[symbols.children].length = 0
       removeGlobalEffects(this[symbols.effects])
-      this[symbols.state] = null
-      this[symbols.props] = null
+      this[symbols.state] = {}
+      this[symbols.props] = {}
       this[symbols.computed] = null
       this.lifecycle = null
       this[symbols.effects].length = 0
@@ -70,8 +70,6 @@ export default {
       this[symbols.originalState] = null
       this[symbols.slots].length = 0
 
-      delete this[symbols.state]
-      delete this[symbols.props]
       delete this[symbols.computed]
       delete this.lifecycle
       delete this[symbols.effects]
