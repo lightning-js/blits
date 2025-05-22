@@ -1,5 +1,12 @@
 # Changelog
 
+_22 may 2025_
+
+## v1.29.0
+
+- Fixed memory leaks
+- Added componentId in warning when modifying props directly for easier debugging
+
 _15 apr 2025_
 
 ## v1.28.0
