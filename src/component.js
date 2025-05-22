@@ -172,9 +172,32 @@ const required = (name) => {
  */
 
 /**
+ * @typedef {Object} BlitsComponentConfig
+ * @property {string} template - The template string for the component.
+ * @property {function(this: BlitsComponent): Object} [state] - State factory function.
+ * @property {Object} [hooks] - Lifecycle hooks (frameTick, idle, attach, detach, enter, exit, etc).
+ * @property {Object} [code] - Compiled render/effects code (render: Function, effects: Function[]).
+ * @property {string} [name] - Optional name for the component.
+ * @property {any} [data] - Optional static data for the component.
+ * @property {Object} [options] - Optional options for the component.
+ */
+
+/**
+ * Example usage:
+ *
+ * const MyComponent = Component('MyComponent', {
+ *   template: '<div>Hello {{name}}</div>',
+ *   state() { return { name: 'World' } },
+ *   hooks: { attach() { ... } },
+ * });
+ *
+ * const instance = MyComponent({ props: { name: 'Alice' } }, parentEl, parentComponent, rootComponent);
+ */
+
+/**
  * Component factory function
  * @param {string} name - The name of the component
- * @param {object} config - The configuration object for the component
+ * @param {BlitsComponentConfig} config - The configuration object for the component
  * @returns {BlitsComponentFactory} - The component factory function
  */
 const Component = (name = required('name'), config = required('config')) => {
