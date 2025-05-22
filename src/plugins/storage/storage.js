@@ -15,7 +15,35 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export { default as language } from './language.js'
-export { default as theme } from './theme.js'
-export { default as appState } from './appstate.js'
-export { default as storage } from './storage/storage.js'
+import localCookie from './localCookie.js'
+
+let lc = new localCookie()
+
+export default {
+  name: 'storage',
+  plugin() {
+    return {
+      get(key) {
+        try {
+          return JSON.parse(lc.getItem(key))
+        } catch (e) {
+          return null
+        }
+      },
+      set(key, value) {
+        try {
+          lc.setItem(key, JSON.stringify(value))
+          return true
+        } catch (e) {
+          return false
+        }
+      },
+      remove(key) {
+        lc.removeItem(key)
+      },
+      clear() {
+        lc.clear()
+      },
+    }
+  },
+}
