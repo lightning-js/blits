@@ -24,6 +24,9 @@ import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
 
 export default {
   focus: {
+    /**
+     * @this {import('../../component').BlitsComponent}
+     */
     value: function (e) {
       Log.warn('this.focus is deprecated, use this.$focus instead')
       return this.$focus(e)
@@ -33,6 +36,9 @@ export default {
     configurable: false,
   },
   $focus: {
+    /**
+     * @this {import('../../component').BlitsComponent}
+     */
     value: function (e) {
       this[symbols.state].hasFocus = true
       Focus.set(this, e)
@@ -42,6 +48,9 @@ export default {
     configurable: false,
   },
   unfocus: {
+    /**
+     * @this {import('../../component').BlitsComponent}
+     */
     value: function () {
       this[symbols.state].hasFocus = false
       this.lifecycle.state = 'unfocus'
@@ -51,6 +60,9 @@ export default {
     configurable: false,
   },
   destroy: {
+    /**
+     * @this {import('../../component').BlitsComponent}
+     */
     value: function () {
       this.lifecycle.state = 'destroy'
       this.$clearTimeouts()
@@ -93,6 +105,9 @@ export default {
     configurable: false,
   },
   [symbols.removeGlobalEffects]: {
+    /**
+     * @this {import('../../component').BlitsComponent}
+     */
     value: function (effects = []) {
       removeGlobalEffects(effects)
     },
@@ -101,6 +116,9 @@ export default {
     configurable: false,
   },
   select: {
+    /**
+     * @this {import('../../component').BlitsComponent}
+     */
     value: function (ref) {
       Log.warn('this.select is deprecated, use this.$select instead')
       return this.$select(ref)
@@ -110,6 +128,9 @@ export default {
     configurable: false,
   },
   $select: {
+    /**
+     * @this {import('../../component').BlitsComponent}
+     */
     value: function (ref) {
       let selected = null
       this[symbols.children].forEach((child) => {
@@ -132,6 +153,9 @@ export default {
     configurable: false,
   },
   trigger: {
+    /**
+     * @this {import('../../component').BlitsComponent}
+     */
     value: function (key) {
       Log.warn('this.trigger is deprecated, use this.$trigger instead')
       return this.$trigger(key)
@@ -141,6 +165,9 @@ export default {
     configurable: false,
   },
   $trigger: {
+    /**
+     * @this {import('../../component').BlitsComponent}
+     */
     value: function (key) {
       let target = this[symbols.originalState]
       // when dot notation used, find the nested target
@@ -159,6 +186,9 @@ export default {
     configurable: false,
   },
   shader: {
+    /**
+     * @this {import('../../component').BlitsComponent}
+     */
     value: function (type, args) {
       return {
         type: type,
@@ -181,6 +211,10 @@ export default {
   },
 }
 
+/**
+ * Recursively destroys all BlitsComponent children.
+ * @param {import('../../component').BlitsComponent[]} children
+ */
 const deleteChildren = function (children) {
   for (let i = 0; i < children.length; i++) {
     if (!children[i]) return
