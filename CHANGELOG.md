@@ -2,6 +2,13 @@
 
 _22 may 2025_
 
+## v1.29.1
+
+- Fixed issue with async and lifecycle ready error
+
+
+_22 may 2025_
+
 ## v1.29.0
 
 - Fixed memory leaks
