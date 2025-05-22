@@ -62,7 +62,7 @@ export default {
       this[symbols.state] = {}
       this[symbols.props] = {}
       this[symbols.computed] = null
-      this.lifecycle = null
+      this.lifecycle = {}
       this[symbols.effects].length = 0
       this.parent = null
       this.rootParent = null
@@ -71,7 +71,6 @@ export default {
       this[symbols.slots].length = 0
 
       delete this[symbols.computed]
-      delete this.lifecycle
       delete this[symbols.effects]
       delete this.parent
       delete this.rootParent
