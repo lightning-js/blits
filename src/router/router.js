@@ -134,7 +134,7 @@ export const navigate = async function () {
   Announcer.clear()
   state.navigating = true
   if (this.parent[symbols.routes]) {
-    let previousRoute = currentRoute ? Object.assign({}, currentRoute) : undefined
+    let previousRoute = currentRoute //? Object.assign({}, currentRoute) : undefined
     const { hash, path, queryParams } = getHash()
     let route = matchHash(path, this.parent[symbols.routes])
 
@@ -290,8 +290,6 @@ export const navigate = async function () {
         if (oldView) {
           removeView(previousRoute, oldView, route.transition.out)
         }
-
-        previousRoute = undefined
       }
 
       state.path = route.path
@@ -358,16 +356,16 @@ const removeView = async (route, view, transition) => {
 
 const setOrAnimate = (node, transition, shouldAnimate = true) => {
   return new Promise((resolve) => {
-    if (shouldAnimate) {
+    if (shouldAnimate === true) {
       // resolve the promise in the transition end-callback
       // ("extending" end callback when one is already specified)
-      const existingEndCallback = transition.end
-      transition.end = existingEndCallback
-        ? (...args) => {
-            existingEndCallback(...args)
-            resolve()
-          }
-        : resolve
+      let existingEndCallback = transition.end
+      transition.end = (...args) => {
+        existingEndCallback && existingEndCallback(args)
+        // null the callback to enable memory cleanup
+        existingEndCallback = null
+        resolve()
+      }
       node.set(transition.prop, { transition })
     } else {
       node.set(transition.prop, transition.value)
