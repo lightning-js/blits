@@ -41,8 +41,9 @@ import blitsPackageInfo from '../package.json' assert { type: 'json' }
 
 /**
  * @typedef {import('@lightningjs/renderer').RendererMain} RendererMain
- * @type {RendererMain|{}}
+ * @type {RendererMain}
  */
+// @ts-ignore - We ignore this because it will be replaced by the renderer once the app is launched
 export let renderer = {}
 export const stage = {}
 

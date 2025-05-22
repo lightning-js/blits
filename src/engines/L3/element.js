@@ -25,6 +25,12 @@ import Settings from '../../settings.js'
 // temporary counter to work around shader caching issues
 let counter = 0
 
+/**
+ * Creates a padding object from a value and direction.
+ * @param {number|object|string|undefined} padding - The padding value.
+ * @param {string} direction - The layout direction ('vertical' or 'horizontal').
+ * @returns {{start: number, end: number, oppositeStart: number, oppositeEnd: number}} The padding object.
+ */
 const createPaddingObject = (padding, direction) => {
   if (padding === undefined) {
     return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
@@ -67,6 +73,11 @@ const createPaddingObject = (padding, direction) => {
   return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
 }
 
+/**
+ * Layout function for arranging children in a layout container.
+ * @param {object} config - The layout configuration object.
+ * @this {import('@/component.js').BlitsElement}
+ */
 const layoutFn = function (config) {
   const position = config.direction === 'vertical' ? 'y' : 'x'
   const oppositePosition = config.direction === 'vertical' ? 'x' : 'y'
@@ -135,18 +146,40 @@ const layoutFn = function (config) {
   }
 }
 
+/**
+ * Checks if a value is a transition object.
+ * @param {any} value - The value to check.
+ * @returns {boolean} True if the value is a transition object, false otherwise.
+ */
 const isTransition = (value) => {
   return value !== null && typeof value === 'object' && 'transition' in value === true
 }
 
+/**
+ * Checks if a string is an object string (starts and ends with curly braces).
+ * @param {string} str - The string to check.
+ * @returns {boolean} True if the string is an object string, false otherwise.
+ */
 const isObjectString = (str) => {
   return typeof str === 'string' && str.startsWith('{') && str.endsWith('}')
 }
 
+/**
+ * Parses a string into an object, converting single quotes to double and adding quotes to keys.
+ * @param {string} str - The string to parse.
+ * @returns {object} The parsed object.
+ */
 const parseToObject = (str) => {
   return JSON.parse(str.replace(/'/g, '"').replace(/([\w-_]+)\s*:/g, '"$1":'))
 }
 
+/**
+ * Parses a percentage string or returns the value as-is.
+ * @param {string|number} v - The value to parse (may be a percentage string).
+ * @param {string} base - The base property name ('width' or 'height').
+ * @returns {number|string} The parsed value as a number or the original value.
+ * @this {{ element: { config: { parent?: { node?: Record<string, number> } } } }}
+ */
 const parsePercentage = function (v, base) {
   if (typeof v !== 'string') {
     return v
@@ -160,6 +193,11 @@ const parsePercentage = function (v, base) {
   return v
 }
 
+/**
+ * Unpacks a transition value from an object or returns the value as-is.
+ * @param {any} v - The value to unpack.
+ * @returns {any} The unpacked value.
+ */
 const unpackTransition = (v) => {
   if (typeof v !== 'object' || v === null) return v
   if (v.constructor === Object) {
@@ -180,6 +218,10 @@ const colorMap = {
   right: 'colorRight',
 }
 
+/**
+ * Default text settings for text nodes (initialized on first use).
+ * @type {object|null}
+ */
 let textDefaults = null
 
 /**
