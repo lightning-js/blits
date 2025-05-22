@@ -182,6 +182,12 @@ const colorMap = {
 
 let textDefaults = null
 
+/**
+ * @typedef {import('@/component.js').BlitsElement} BlitsElement
+ *
+ * This is always a BlitsElement
+ * @this {BlitsElement} this
+ */
 const propsTransformer = {
   set parent(v) {
     this.props['parent'] = v === 'root' ? renderer.root : v.node
@@ -447,29 +453,11 @@ const propsTransformer = {
   },
 }
 
-/**
- * Should this live here?
- *
- * @typedef {Object} BlitsElement
- * @property {Object} props - Proxy-like object containing transformed props.
- * @property {Object<string, any>} props.props - The actual props applied to the node.
- * @property {Object<string, any>} props.raw - The raw input props.
- * @property {Object<string, any>} scheduledTransitions - Tracks transitions by property name.
- * @property {Object} config - Element config, including node and parent references.
- * @property {Object} component - Reference to the owning Blits component.
- * @property {string[]} effectNames - Names of active shader effects.
- * @property {number} counter - Unique counter used for shader workarounds.
- * @property {any} node - The underlying renderer node (e.g., WebGL node or text node).
- * @property {any} parent - Shortcut to node's parent.
- * @property {any[]} children - Filtered list of children owned by this element.
- * @property {string|number|null} nodeId - ID of the node, if available.
- * @property {string|null} ref - Ref name (if defined).
- * @property {function(Object):void} populate - Initializes the element with props and hooks.
- * @property {function(string, any):void} set - Updates a single property.
- * @property {function(string, any, Object):void} animate - Animates a property with transition options.
- * @property {function():void} destroy - Destroys the underlying node and cancels transitions.
- */
 const Element = {
+  /**
+   * Populates the element with data
+   * @param {import('@/component.js').BlitsElementProps} data
+   */
   populate(data) {
     const props = data
     props['node'] = this.config.node
@@ -481,6 +469,7 @@ const Element = {
     this.props.element = this
 
     this.props['parent'] = props['parent'] || this.config.parent
+    //@ts-ignore This might be a left over from the old code?
     delete props.parent
 
     this.props.raw = data
@@ -528,12 +517,24 @@ const Element = {
       })
     }
   },
+  /**
+   * Set an individual property on the node
+   *
+   * @this {import('@/component').BlitsElement} this
+   *
+   * @param {import('@/component.js').BlitsElementProps} prop
+   * @param {any} value
+   * @returns {void}
+   */
   set(prop, value) {
     if (value === undefined) return
+    // @ts-ignore
     if (this.props.raw[prop] === value) return
+    // @ts-ignore
     this.props.raw[prop] = value
 
     this.props.props = {}
+    // @ts-ignore
     this.props[prop] = unpackTransition(value)
 
     const propsKeys = Object.keys(this.props.props)
@@ -676,6 +677,13 @@ const Element = {
   },
 }
 
+/**
+ * Returns a new Blits Element
+ *
+ * @param {Object} config - The configuration object for the element
+ * @param {import('@/component.js').BlitsComponent} component - The component to which the element belongs
+ * @returns {import('@/component.js').BlitsElement} - The new Blits Element
+ */
 export default (config, component) => {
   if (textDefaults === null) {
     textDefaults = {
