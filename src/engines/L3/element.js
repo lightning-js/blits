@@ -620,6 +620,8 @@ const Element = {
     f.start()
   },
   destroy() {
+    if (this.node === null) return
+
     Log.debug('Deleting  Node', this.nodeId)
     this.node.destroy()
 
@@ -632,6 +634,9 @@ const Element = {
         if (transition.f !== undefined) transition.f.stop()
       }
     }
+
+    // remove node reference
+    this.node = null
   },
   get nodeId() {
     return this.node && this.node.id

@@ -57,10 +57,36 @@ export default {
       this.$clearIntervals()
       eventListeners.removeListeners(this)
       deleteChildren(this[symbols.children])
+      this[symbols.children].length = 0
       removeGlobalEffects(this[symbols.effects])
       this[symbols.state] = {}
       this[symbols.props] = {}
+      this[symbols.computed] = null
+      this.lifecycle = null
       this[symbols.effects].length = 0
+      this.parent = null
+      this.rootParent = null
+      this[symbols.wrapper] = null
+      this[symbols.originalState] = null
+      this[symbols.slots].length = 0
+
+      delete this[symbols.computed]
+      delete this.lifecycle
+      delete this[symbols.effects]
+      delete this.parent
+      delete this.rootParent
+      delete this[symbols.wrapper]
+      delete this[symbols.originalState]
+      delete this[symbols.children]
+      delete this[symbols.slots]
+      delete this.componentId
+      delete this[symbols.id]
+      delete this.ref
+
+      this[symbols.holder].destroy()
+      this[symbols.holder] = null
+      delete this[symbols.holder]
+
       Log.debug(`Destroyed component ${this.componentId}`)
     },
     writable: false,
