@@ -24,6 +24,7 @@ import { reactive, getRaw } from './lib/reactivity/reactive.js'
 import { effect } from './lib/reactivity/effect.js'
 import Lifecycle from './lib/lifecycle.js'
 import symbols from './lib/symbols.js'
+import { increment } from './lib/stats.js'
 
 import { stage, renderer } from './launch.js'
 
@@ -211,6 +212,9 @@ const Component = (name = required('name'), config = required('config')) => {
 
     // finaly set the lifecycle state to ready (in the next tick)
     setTimeout(() => (this.lifecycle.state = 'ready'))
+
+    // Example: Increment component creation
+    increment('components', 'created')
 
     // and return this
     return this

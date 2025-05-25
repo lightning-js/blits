@@ -18,6 +18,7 @@
 import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import engine from './engine.js'
+import { startLogging } from './lib/stats.js'
 import blitsPackageInfo from '../package.json' assert { type: 'json' }
 
 export let renderer = {}
@@ -41,6 +42,10 @@ export default (App, target, settings) => {
   Settings.set(settings)
 
   initLog()
+
+  if (settings.enableStatsLogger) {
+    startLogging()
+  }
 
   rendererVersion().then((v) => {
     Log.info('Blits Version ', blitsPackageInfo.version)

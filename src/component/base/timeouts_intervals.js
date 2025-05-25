@@ -16,6 +16,7 @@
  */
 
 import symbols from '../../lib/symbols.js'
+import { increment, decrement } from '../../lib/stats.js'
 
 export default {
   $setTimeout: {
@@ -23,12 +24,14 @@ export default {
       const timeoutId = setTimeout(
         () => {
           this[symbols.timeouts] = this[symbols.timeouts].filter((id) => id !== timeoutId)
+          decrement('timeouts', 'deleted')
           fn.apply(null, params)
         },
         ms,
         params
       )
       this[symbols.timeouts].push(timeoutId)
+      increment('timeouts', 'created')
       return timeoutId
     },
     writable: false,
@@ -40,6 +43,7 @@ export default {
       if (this[symbols.timeouts].indexOf(timeoutId) > -1) {
         this[symbols.timeouts] = this[symbols.timeouts].filter((id) => id !== timeoutId)
         clearTimeout(timeoutId)
+        decrement('timeouts', 'deleted')
       }
     },
     writable: false,
@@ -50,6 +54,7 @@ export default {
     value: function () {
       for (let i = 0; i < this[symbols.timeouts].length; i++) {
         clearTimeout(this[symbols.timeouts][i])
+        decrement('timeouts', 'deleted')
       }
       this[symbols.timeouts] = []
     },
@@ -61,6 +66,7 @@ export default {
     value: function (fn, ms, ...params) {
       const intervalId = setInterval(() => fn.apply(null, params), ms, params)
       this[symbols.intervals].push(intervalId)
+      increment('intervals', 'created')
       return intervalId
     },
     writable: false,
@@ -72,6 +78,7 @@ export default {
       if (this[symbols.intervals].indexOf(intervalId) > -1) {
         this[symbols.intervals] = this[symbols.intervals].filter((id) => id !== intervalId)
         clearInterval(intervalId)
+        decrement('intervals', 'deleted')
       }
     },
     writable: false,
@@ -82,6 +89,7 @@ export default {
     value: function () {
       for (let i = 0; i < this[symbols.intervals].length; i++) {
         clearInterval(this[symbols.intervals][i])
+        decrement('intervals', 'active')
       }
       this[symbols.intervals] = []
     },

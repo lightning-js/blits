@@ -15,6 +15,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { increment, decrement } from './stats'
+
 const eventsMap = new Map()
 const callbackCache = new Map()
 
@@ -34,6 +36,9 @@ export default {
 
     components.add({ cb, priority })
     callbackCache.delete(event) // Invalidate the callbackCache when a new callback is added
+
+    // Log the event listener creation
+    increment('eventListeners', 'created')
   },
 
   deregisterListener(component, event) {
@@ -46,6 +51,9 @@ export default {
       componentsMap.delete(component)
       eventsMap.set(event, componentsMap)
       callbackCache.delete(event)
+
+      // Log the event listener deletion
+      decrement('eventListeners', 'deleted')
     }
   },
 
