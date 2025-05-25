@@ -183,18 +183,6 @@ const required = (name) => {
  */
 
 /**
- * Example usage:
- *
- * const MyComponent = Component('MyComponent', {
- *   template: '<div>Hello {{name}}</div>',
- *   state() { return { name: 'World' } },
- *   hooks: { attach() { ... } },
- * });
- *
- * const instance = MyComponent({ props: { name: 'Alice' } }, parentEl, parentComponent, rootComponent);
- */
-
-/**
  * Component factory function
  * @param {string} name - The name of the component
  * @param {BlitsComponentConfig} config - The configuration object for the component
