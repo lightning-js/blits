@@ -83,23 +83,29 @@ function updateRollingAverage(category, currentActive, intervalInSeconds) {
   }
 }
 
+/**
+ * Format stats for a specific category for display.
+ * @param {string} category - The category to format stats for.
+ * @param {number} intervalInSeconds - The interval in seconds for rolling average calculation.
+ * @returns {string} - Formatted stats string.
+ */
+function formatStats(category, intervalInSeconds) {
+  const { created, deleted, active } = stats[category]
+  const loadAverages = updateRollingAverage(category, active, intervalInSeconds)
+
+  return `Active: ${active}, Created: ${created}, Deleted: ${deleted}, Load: ${loadAverages.oneMin}, ${loadAverages.fiveMin}, ${loadAverages.fifteenMin}`
+}
+
 function logStats() {
   if (!__BLITS_STATS__) return
   const intervalInSeconds = loggingInterval / 1000
 
-  const formatStats = (category) => {
-    const { created, deleted, active } = stats[category]
-    const loadAverages = updateRollingAverage(category, active, intervalInSeconds)
-
-    return `Active: ${active}, Created: ${created}, Deleted: ${deleted}, Load: ${loadAverages.oneMin}, ${loadAverages.fiveMin}, ${loadAverages.fifteenMin}`
-  }
-
   Log.info('--- System Statistics ---')
-  Log.info('Components:', formatStats('components'))
-  Log.info('Elements:', formatStats('elements'))
-  Log.info('Listeners:', formatStats('eventListeners'))
-  Log.info('Timeouts:', formatStats('timeouts'))
-  Log.info('Intervals:', formatStats('intervals'))
+  Log.info('Components:', formatStats('components', intervalInSeconds))
+  Log.info('Elements:', formatStats('elements', intervalInSeconds))
+  Log.info('Listeners:', formatStats('eventListeners', intervalInSeconds))
+  Log.info('Timeouts:', formatStats('timeouts', intervalInSeconds))
+  Log.info('Intervals:', formatStats('intervals', intervalInSeconds))
 
   const memInfo = renderer?.stage?.txMemManager.getMemoryInfo() || null
   if (memInfo) {

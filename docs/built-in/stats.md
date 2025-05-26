@@ -1,6 +1,8 @@
 # Blits Stats & Performance Logging
 
-Blits provides a highly-performant, production-optimized stats and system logging mechanism. This feature is **entirely opt-in** and is controlled at build time using a Vite flag. When disabled, all stats code is removed from the final bundle for maximum performance.
+Blits provides a highly-performant stats and system logging mechanism. This feature is **entirely opt-in** and is controlled at build time using a Vite flag. When disabled, all stats code is removed from the final bundle for maximum performance.
+
+Ideally this is only enabled in development or test builds for performance validation.
 
 ## Enabling Stats Logging
 
@@ -34,8 +36,7 @@ export default defineConfig({
 
 ## No Runtime Settings
 
-- There is **no runtime setting** for enabling/disabling stats. The only way to enable stats is at build time using the Vite flag.
-- The previous `enableStatsLogger` setting in Blits settings is now deprecated and ignored.
+There is **no runtime setting** for enabling/disabling stats. The only way to enable stats is at build time using the Vite flag.
 
 ## What Gets Logged?
 
@@ -55,6 +56,9 @@ Elements:   Active: 20, Created: 40, Deleted: 20, Load: 0.20, 0.10, 0.02
 Listeners:  Active: 3, Created: 6, Deleted: 3, Load: 0.03, 0.01, 0.00
 Timeouts:   Active: 1, Created: 2, Deleted: 1, Load: 0.01, 0.00, 0.00
 Intervals:  Active: 2, Created: 4, Deleted: 2, Load: 0.02, 0.01, 0.00
+--- Renderer Memory Info ---
+Memory used: 27.27 Mb, Renderable: 25.62 Mb, Target: 160.00 Mb, Critical: 200.00 Mb
+Textures loaded 6, renderable textures: 3
 -------------------------
 ```
 
@@ -64,32 +68,27 @@ Blits includes a built-in component that displays real-time stats in the top lef
 
 ```js
 // Import the component
-import { BlitsStatsOverlay } from 'blits'
+import { StatsOverlay } from 'blits'
 
 // Add it to your root component
 export default Component('App', {
   template: `
     <Element>
       <!-- Your app content -->
-      <BlitsStatsOverlay />
+      <StatsOverlay />
     </Element>
   `
 })
 ```
 
-The `BlitsStatsOverlay` component:
-- Only renders when `__BLITS_STATS__` is enabled
-- Shows real-time stats for components, elements, listeners, timeouts and intervals
+The `StatsOverlay` component:
+- Only updates when `__BLITS_STATS__` is enabled
+- Shows real-time stats for components, elements, listeners, timeouts and intervals as well as texture and memory usage statistics
 - Displays renderer memory information when available
 - Automatically updates every 500ms
-- Has zero impact when stats are disabled (the component returns null)
+- Has zero impact when stats are disabled
 
 ## Best Practices
 
 - **Enable stats only for development or diagnostics builds.**
 - For production, keep `__BLITS_STATS__` set to `false` for optimal performance.
-- You can safely leave `increment`/`decrement` calls in your code—they will be removed from the bundle when stats are disabled.
-
----
-
-For more details, see the implementation in `src/lib/stats.js` and usages throughout the codebase.

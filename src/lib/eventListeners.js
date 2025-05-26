@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { increment, decrement, BLITS_STATS_ENABLED } from './stats'
+import { increment, decrement, BLITS_STATS_ENABLED } from './stats.js'
 
 const eventsMap = new Map()
 const callbackCache = new Map()
