@@ -17,7 +17,7 @@
 
 import { renderer } from './launch.js'
 import colors from '../../lib/colors/colors.js'
-import { increment, decrement } from '../../lib/stats.js'
+import { increment, BLITS_STATS_ENABLED, decrement } from '../../lib/stats.js'
 
 import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
@@ -508,7 +508,7 @@ const Element = {
     }
 
     // Increment element creation
-    increment('elements', 'created')
+    BLITS_STATS_ENABLED && increment('elements', 'created')
   },
   set(prop, value) {
     if (value === undefined) return
@@ -643,7 +643,7 @@ const Element = {
     this.node = null
 
     // Decrement element deletion
-    decrement('elements', 'deleted')
+    BLITS_STATS_ENABLED && decrement('elements', 'deleted')
   },
   get nodeId() {
     return this.node && this.node.id

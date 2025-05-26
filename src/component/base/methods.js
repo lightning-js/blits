@@ -21,7 +21,7 @@ import eventListeners from '../../lib/eventListeners.js'
 import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
 import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
-import { decrement } from '../../lib/stats.js'
+import { BLITS_STATS_ENABLED, decrement } from '../../lib/stats.js'
 
 export default {
   focus: {
@@ -88,7 +88,7 @@ export default {
       delete this[symbols.holder]
 
       Log.debug(`Destroyed component ${this.componentId}`)
-      decrement('components', 'deleted')
+      BLITS_STATS_ENABLED && decrement('components', 'deleted')
     },
     writable: false,
     enumerable: true,
