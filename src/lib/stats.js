@@ -1,4 +1,4 @@
-import { Log } from './log'
+import { Log } from './log.js'
 import { renderer } from '../launch.js'
 
 // Vite flag for enabling stats (should be replaced at build time)
