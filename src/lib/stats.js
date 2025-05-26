@@ -98,14 +98,8 @@ function formatStats(category, intervalInSeconds) {
 
 function logStats() {
   if (!__BLITS_STATS__) return
-  const intervalInSeconds = loggingInterval / 1000
 
-  Log.info('--- System Statistics ---')
-  Log.info('Components:', formatStats('components', intervalInSeconds))
-  Log.info('Elements:', formatStats('elements', intervalInSeconds))
-  Log.info('Listeners:', formatStats('eventListeners', intervalInSeconds))
-  Log.info('Timeouts:', formatStats('timeouts', intervalInSeconds))
-  Log.info('Intervals:', formatStats('intervals', intervalInSeconds))
+  printStats()
 
   const memInfo = renderer?.stage?.txMemManager.getMemoryInfo() || null
   if (memInfo) {
@@ -120,7 +114,43 @@ function logStats() {
     Log.info(
       `Textures loaded ${memInfo.loadedTextures}, renderable textures: ${memInfo.renderableTexturesLoaded}`
     )
-    Log.info('------------------------------')
+  }
+}
+
+const formatStats = (category) => {
+  const { created, deleted, active } = stats[category]
+  return `Active: ${active}, Created: ${created}, Deleted: ${deleted}`
+}
+
+export function printStats() {
+  if (!__BLITS_STATS__) return
+
+  Log.info('------------------------------')
+  Log.info('--- System Statistics ---')
+  Log.info('URL: ', window.location.href)
+  Log.info('Components:', formatStats('components'))
+  Log.info('Elements:', formatStats('elements'))
+  Log.info('Listeners:', formatStats('eventListeners'))
+  Log.info('Timeouts:', formatStats('timeouts'))
+  Log.info('Intervals:', formatStats('intervals'))
+}
+
+export function resetStats() {
+  if (!__BLITS_STATS__) return
+  for (const category in stats) {
+    if (Object.prototype.hasOwnProperty.call(stats, category)) {
+      stats[category].created = 0
+      stats[category].deleted = 0
+      stats[category].active = 0
+    }
+  }
+  for (const category in rollingAverages) {
+    if (Object.prototype.hasOwnProperty.call(rollingAverages, category)) {
+      rollingAverages[category].oneMin = 0
+      rollingAverages[category].fiveMin = 0
+      rollingAverages[category].fifteenMin = 0
+      rollingAverages[category].lastActive = 0
+    }
   }
 }
 
