@@ -98,7 +98,23 @@ function formatStats(category, intervalInSeconds) {
 
 function logStats() {
   if (!__BLITS_STATS__) return
+
   printStats()
+
+  const memInfo = renderer?.stage?.txMemManager.getMemoryInfo() || null
+  if (memInfo) {
+    Log.info('--- Renderer Memory Info ---')
+    Log.info(
+      `Memory used: ${bytesToMb(memInfo.memUsed)} Mb, Renderable: ${bytesToMb(
+        memInfo.renderableMemUsed
+      )} Mb, Target: ${bytesToMb(memInfo.targetThreshold)} Mb, Critical: ${bytesToMb(
+        memInfo.criticalThreshold
+      )} Mb`
+    )
+    Log.info(
+      `Textures loaded ${memInfo.loadedTextures}, renderable textures: ${memInfo.renderableTexturesLoaded}`
+    )
+  }
 }
 
 const formatStats = (category) => {
@@ -117,21 +133,24 @@ export function printStats() {
   Log.info('Listeners:', formatStats('eventListeners'))
   Log.info('Timeouts:', formatStats('timeouts'))
   Log.info('Intervals:', formatStats('intervals'))
+}
 
-  const memInfo = renderer?.stage?.txMemManager.getMemoryInfo() || null
-  if (memInfo) {
-    Log.info('--- Renderer Memory Info ---')
-    Log.info(
-      `Memory used: ${bytesToMb(memInfo.memUsed)} Mb, Renderable: ${bytesToMb(
-        memInfo.renderableMemUsed
-      )} Mb, Target: ${bytesToMb(memInfo.targetThreshold)} Mb, Critical: ${bytesToMb(
-        memInfo.criticalThreshold
-      )} Mb`
-    )
-    Log.info(
-      `Textures loaded ${memInfo.loadedTextures}, renderable textures: ${memInfo.renderableTexturesLoaded}`
-    )
-    Log.info('------------------------------')
+export function resetStats() {
+  if (!__BLITS_STATS__) return
+  for (const category in stats) {
+    if (Object.prototype.hasOwnProperty.call(stats, category)) {
+      stats[category].created = 0
+      stats[category].deleted = 0
+      stats[category].active = 0
+    }
+  }
+  for (const category in rollingAverages) {
+    if (Object.prototype.hasOwnProperty.call(rollingAverages, category)) {
+      rollingAverages[category].oneMin = 0
+      rollingAverages[category].fiveMin = 0
+      rollingAverages[category].fifteenMin = 0
+      rollingAverages[category].lastActive = 0
+    }
   }
 }
 
