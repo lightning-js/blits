@@ -20,7 +20,18 @@ const stats = __BLITS_STATS__
     }
   : null
 
+const rollingAverages = __BLITS_STATS__
+  ? {
+      components: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
+      elements: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
+      eventListeners: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
+      timeouts: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
+      intervals: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
+    }
+  : null
+
 let isLoggingEnabled = false
+let loggingInterval = 10000 // Default interval in milliseconds
 
 /**
  * Increment a specific statistic in the given category.
@@ -120,28 +131,23 @@ export function printStats() {
     Log.info(
       `Textures loaded ${memInfo.loadedTextures}, renderable textures: ${memInfo.renderableTexturesLoaded}`
     )
-  }
-}
-
-export function resetStats() {
-  if (!__BLITS_STATS__) return
-  for (const category in stats) {
-    if (Object.prototype.hasOwnProperty.call(stats, category)) {
-      stats[category].created = 0
-      stats[category].deleted = 0
-      stats[category].active = 0
-    }
+    Log.info('------------------------------')
   }
 }
 
 /**
+ * Start periodic logging of system statistics.
+ * Logs statistics at the configured interval using the internal logger.
  * Enables logging functionality.
+ * @param {number} [interval=10000] - The logging interval in milliseconds.
  */
-export function enableLogging() {
+export function startLogging(interval = 10000) {
   if (!__BLITS_STATS__) return
   if (isLoggingEnabled) return
   isLoggingEnabled = true
+  loggingInterval = interval
   logStats()
+  setInterval(logStats, loggingInterval)
 }
 
 /**
