@@ -20,18 +20,7 @@ const stats = __BLITS_STATS__
     }
   : null
 
-const rollingAverages = __BLITS_STATS__
-  ? {
-      components: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
-      elements: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
-      eventListeners: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
-      timeouts: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
-      intervals: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
-    }
-  : null
-
 let isLoggingEnabled = false
-let loggingInterval = 10000 // Default interval in milliseconds
 
 /**
  * Increment a specific statistic in the given category.
@@ -98,23 +87,7 @@ function formatStats(category, intervalInSeconds) {
 
 function logStats() {
   if (!__BLITS_STATS__) return
-
   printStats()
-
-  const memInfo = renderer?.stage?.txMemManager.getMemoryInfo() || null
-  if (memInfo) {
-    Log.info('--- Renderer Memory Info ---')
-    Log.info(
-      `Memory used: ${bytesToMb(memInfo.memUsed)} Mb, Renderable: ${bytesToMb(
-        memInfo.renderableMemUsed
-      )} Mb, Target: ${bytesToMb(memInfo.targetThreshold)} Mb, Critical: ${bytesToMb(
-        memInfo.criticalThreshold
-      )} Mb`
-    )
-    Log.info(
-      `Textures loaded ${memInfo.loadedTextures}, renderable textures: ${memInfo.renderableTexturesLoaded}`
-    )
-  }
 }
 
 const formatStats = (category) => {
@@ -133,6 +106,21 @@ export function printStats() {
   Log.info('Listeners:', formatStats('eventListeners'))
   Log.info('Timeouts:', formatStats('timeouts'))
   Log.info('Intervals:', formatStats('intervals'))
+
+  const memInfo = renderer?.stage?.txMemManager.getMemoryInfo() || null
+  if (memInfo) {
+    Log.info('--- Renderer Memory Info ---')
+    Log.info(
+      `Memory used: ${bytesToMb(memInfo.memUsed)} Mb, Renderable: ${bytesToMb(
+        memInfo.renderableMemUsed
+      )} Mb, Target: ${bytesToMb(memInfo.targetThreshold)} Mb, Critical: ${bytesToMb(
+        memInfo.criticalThreshold
+      )} Mb`
+    )
+    Log.info(
+      `Textures loaded ${memInfo.loadedTextures}, renderable textures: ${memInfo.renderableTexturesLoaded}`
+    )
+  }
 }
 
 export function resetStats() {
@@ -144,29 +132,16 @@ export function resetStats() {
       stats[category].active = 0
     }
   }
-  for (const category in rollingAverages) {
-    if (Object.prototype.hasOwnProperty.call(rollingAverages, category)) {
-      rollingAverages[category].oneMin = 0
-      rollingAverages[category].fiveMin = 0
-      rollingAverages[category].fifteenMin = 0
-      rollingAverages[category].lastActive = 0
-    }
-  }
 }
 
 /**
- * Start periodic logging of system statistics.
- * Logs statistics at the configured interval using the internal logger.
  * Enables logging functionality.
- * @param {number} [interval=10000] - The logging interval in milliseconds.
  */
-export function startLogging(interval = 10000) {
+export function enableLogging() {
   if (!__BLITS_STATS__) return
   if (isLoggingEnabled) return
   isLoggingEnabled = true
-  loggingInterval = interval
   logStats()
-  setInterval(logStats, loggingInterval)
 }
 
 /**
