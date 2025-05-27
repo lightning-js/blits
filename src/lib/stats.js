@@ -20,18 +20,7 @@ const stats = __BLITS_STATS__
     }
   : null
 
-const rollingAverages = __BLITS_STATS__
-  ? {
-      components: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
-      elements: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
-      eventListeners: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
-      timeouts: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
-      intervals: { oneMin: 0, fiveMin: 0, fifteenMin: 0, lastActive: 0 },
-    }
-  : null
-
 let isLoggingEnabled = false
-let loggingInterval = 10000 // Default interval in milliseconds
 
 /**
  * Increment a specific statistic in the given category.
@@ -61,60 +50,9 @@ export function decrement(category, type) {
   }
 }
 
-function updateRollingAverage(category, currentActive, intervalInSeconds) {
-  if (!__BLITS_STATS__) return { oneMin: 0, fiveMin: 0, fifteenMin: 0 }
-  const averages = rollingAverages[category]
-  const diff = currentActive - averages.lastActive
-  averages.lastActive = currentActive
-
-  // Update rolling averages using exponential moving average formula
-  const oneMinFactor = intervalInSeconds / 60
-  const fiveMinFactor = intervalInSeconds / 300
-  const fifteenMinFactor = intervalInSeconds / 900
-
-  averages.oneMin = averages.oneMin * (1 - oneMinFactor) + diff * oneMinFactor
-  averages.fiveMin = averages.fiveMin * (1 - fiveMinFactor) + diff * fiveMinFactor
-  averages.fifteenMin = averages.fifteenMin * (1 - fifteenMinFactor) + diff * fifteenMinFactor
-
-  return {
-    oneMin: averages.oneMin.toFixed(2),
-    fiveMin: averages.fiveMin.toFixed(2),
-    fifteenMin: averages.fifteenMin.toFixed(2),
-  }
-}
-
-/**
- * Format stats for a specific category for display.
- * @param {string} category - The category to format stats for.
- * @param {number} intervalInSeconds - The interval in seconds for rolling average calculation.
- * @returns {string} - Formatted stats string.
- */
-function formatStats(category, intervalInSeconds) {
-  const { created, deleted, active } = stats[category]
-  const loadAverages = updateRollingAverage(category, active, intervalInSeconds)
-
-  return `Active: ${active}, Created: ${created}, Deleted: ${deleted}, Load: ${loadAverages.oneMin}, ${loadAverages.fiveMin}, ${loadAverages.fifteenMin}`
-}
-
 function logStats() {
   if (!__BLITS_STATS__) return
-
   printStats()
-
-  const memInfo = renderer?.stage?.txMemManager.getMemoryInfo() || null
-  if (memInfo) {
-    Log.info('--- Renderer Memory Info ---')
-    Log.info(
-      `Memory used: ${bytesToMb(memInfo.memUsed)} Mb, Renderable: ${bytesToMb(
-        memInfo.renderableMemUsed
-      )} Mb, Target: ${bytesToMb(memInfo.targetThreshold)} Mb, Critical: ${bytesToMb(
-        memInfo.criticalThreshold
-      )} Mb`
-    )
-    Log.info(
-      `Textures loaded ${memInfo.loadedTextures}, renderable textures: ${memInfo.renderableTexturesLoaded}`
-    )
-  }
 }
 
 const formatStats = (category) => {
@@ -133,6 +71,21 @@ export function printStats() {
   Log.info('Listeners:', formatStats('eventListeners'))
   Log.info('Timeouts:', formatStats('timeouts'))
   Log.info('Intervals:', formatStats('intervals'))
+
+  const memInfo = renderer?.stage?.txMemManager.getMemoryInfo() || null
+  if (memInfo) {
+    Log.info('--- Renderer Memory Info ---')
+    Log.info(
+      `Memory used: ${bytesToMb(memInfo.memUsed)} Mb, Renderable: ${bytesToMb(
+        memInfo.renderableMemUsed
+      )} Mb, Target: ${bytesToMb(memInfo.targetThreshold)} Mb, Critical: ${bytesToMb(
+        memInfo.criticalThreshold
+      )} Mb`
+    )
+    Log.info(
+      `Textures loaded ${memInfo.loadedTextures}, renderable textures: ${memInfo.renderableTexturesLoaded}`
+    )
+  }
 }
 
 export function resetStats() {
@@ -144,29 +97,16 @@ export function resetStats() {
       stats[category].active = 0
     }
   }
-  for (const category in rollingAverages) {
-    if (Object.prototype.hasOwnProperty.call(rollingAverages, category)) {
-      rollingAverages[category].oneMin = 0
-      rollingAverages[category].fiveMin = 0
-      rollingAverages[category].fifteenMin = 0
-      rollingAverages[category].lastActive = 0
-    }
-  }
 }
 
 /**
- * Start periodic logging of system statistics.
- * Logs statistics at the configured interval using the internal logger.
  * Enables logging functionality.
- * @param {number} [interval=10000] - The logging interval in milliseconds.
  */
-export function startLogging(interval = 10000) {
+export function enableLogging() {
   if (!__BLITS_STATS__) return
   if (isLoggingEnabled) return
   isLoggingEnabled = true
-  loggingInterval = interval
   logStats()
-  setInterval(logStats, loggingInterval)
 }
 
 /**
