@@ -21,6 +21,8 @@ import { increment, decrement, BLITS_STATS_ENABLED } from '../../lib/stats.js'
 export default {
   $setTimeout: {
     value: function (fn, ms, ...params) {
+      // early exit when component is marked as end of life
+      if (this.eol === true) return
       const timeoutId = setTimeout(
         () => {
           this[symbols.timeouts] = this[symbols.timeouts].filter((id) => id !== timeoutId)
@@ -64,6 +66,8 @@ export default {
   },
   $setInterval: {
     value: function (fn, ms, ...params) {
+      // early exit when component is marked as end of life
+      if (this.eol === true) return
       const intervalId = setInterval(() => fn.apply(null, params), ms, params)
       this[symbols.intervals].push(intervalId)
       BLITS_STATS_ENABLED && increment('intervals', 'created')

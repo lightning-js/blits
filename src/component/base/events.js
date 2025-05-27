@@ -29,6 +29,8 @@ export default {
   },
   $listen: {
     value: function (event, callback, priority = 0) {
+      // early exit when component is marked as end of life
+      if (this.eol === true) return
       eventListeners.registerListener(this, event, callback, priority)
     },
     writable: false,

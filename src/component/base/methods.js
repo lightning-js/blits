@@ -53,6 +53,7 @@ export default {
   },
   destroy: {
     value: function () {
+      this.eol = true
       this.lifecycle.state = 'destroy'
       this.$clearTimeouts()
       this.$clearIntervals()
