@@ -21,6 +21,7 @@ import colors from '../../lib/colors/colors.js'
 import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
+import { acquire, recycle } from '../../lib/pool.js'
 
 // temporary counter to work around shader caching issues
 let counter = 0
@@ -479,9 +480,21 @@ const Element = {
       this.props.props['color'] = 0
     }
 
-    this.node = props.__textnode
-      ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
-      : renderer.createNode(this.props.props)
+    this.node = acquire(props.__textnode ? 'textnode' : 'corenode')
+
+    if (this.node === null) {
+      this.node = props.__textnode
+        ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
+        : renderer.createNode(this.props.props)
+
+      Log.info('Created new Node', this.nodeId, 'for Element', this.counter)
+    } else {
+      Log.info('Acquired Node', this.nodeId, 'from pool for Element', this.counter)
+      // if we got a node from the pool, we need to reset its properties
+      for (const prop in this.props.props) {
+        this.node[prop] = this.props.props[prop]
+      }
+    }
 
     if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
       this.node.on('loaded', (el, { type, dimensions }) => {
@@ -620,12 +633,24 @@ const Element = {
     f.start()
   },
   destroy() {
-    if (this.node === null) return
+    if (!this.node) return
 
-    Log.debug('Deleting  Node', this.nodeId)
-    this.node.destroy()
+    const isTextNode = '__textnode' in this.props.raw && this.props.raw.__textnode === true
+    const nodeType = isTextNode ? 'textnode' : 'corenode'
 
-    // Clearing transition end callback functions
+    // Add it to the recycle pool
+    const recycled = recycle(nodeType, this.node)
+    if (recycled === true) {
+      resetCoreNode(this.node)
+      Log.info(`Recycled ${nodeType} ${this.nodeId} to pool`)
+    } else {
+      Log.info(`Could not recycle ${nodeType} ${this.nodeId}, destroying it`)
+
+      // Destroy the node
+      this.node.destroy()
+    }
+
+    // Clear transitions quickly
     const transitionProps = Object.keys(this.scheduledTransitions)
     for (let i = 0; i < transitionProps.length; i++) {
       const transition = this.scheduledTransitions[transitionProps[i]]
@@ -637,6 +662,17 @@ const Element = {
 
     // remove node reference
     this.node = null
+    // this.component = null
+    // this.config.parent = null
+    // this.props.props.parent = null
+
+    // add element to the pool
+    // I cant get this to work nicely, commented out for now
+    // const wasReleased = recycle('element', this)
+    // if (wasReleased === true) {
+    //   Log.info(`Recycled Element ${this.counter} to pool`)
+    //   return
+    // }
   },
   get nodeId() {
     return this.node && this.node.id
@@ -654,6 +690,41 @@ const Element = {
   },
 }
 
+/**
+ *
+ * @param {import('@lightningjs/renderer').INode} node
+ */
+const resetCoreNode = (node) => {
+  // Reset core node properties
+  node.src = null
+  node.texture = null
+  // node.shader = null - this will only work in v3 of the Renderer, so we leave it out for now
+  node.rtt = false
+  node.alpha = 1
+  node.color = 0x00000000
+  node.width = 0
+  node.height = 0
+  node.x = 0
+  node.y = 0
+  node.zIndex = 0
+  node.rotation = 0
+  node.pivotX = 0
+  node.pivotY = 0
+  node.scaleX = 1
+  node.scaleY = 1
+  node.mountX = 0
+  node.mountY = 0
+  node.clipping = false
+  node.parent = null
+}
+
+/**
+ * Returns a new Blits Element
+ *
+ * @param {Object} config - The configuration object for the element
+ * @param {import('@/component.js').BlitsComponent} component - The component to which the element belongs
+ * @returns {import('@/component.js').BlitsElement} - The new Blits Element
+ */
 export default (config, component) => {
   if (textDefaults === null) {
     textDefaults = {
@@ -661,6 +732,23 @@ export default (config, component) => {
       fontFamily: Settings.get('defaultFont', 'sans-serif'),
     }
   }
+
+  // Try to get an element from the pool first for better performance
+  const pooled = acquire('element')
+
+  // Fast path for pooled elements
+  if (pooled) {
+    Log.info(`Reused Element ${pooled.nodeId} from pool for component ${component.componentId}`)
+
+    pooled.config = config
+    pooled.component = component
+    pooled.counter = counter++
+    pooled.props = Object.assign(Object.create(propsTransformer), { props: {} })
+    pooled.scheduledTransitions = {}
+    return pooled
+  }
+
+  // Slow path - create a new element if pool is empty
   return Object.assign(Object.create(Element), {
     props: Object.assign(Object.create(propsTransformer), { props: {} }),
     scheduledTransitions: {},

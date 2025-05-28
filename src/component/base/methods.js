@@ -21,6 +21,7 @@ import eventListeners from '../../lib/eventListeners.js'
 import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
 import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
+import { recycle } from '../../lib/pool.js'
 
 export default {
   focus: {
@@ -59,10 +60,8 @@ export default {
       deleteChildren(this[symbols.children])
       this[symbols.children].length = 0
       removeGlobalEffects(this[symbols.effects])
-      this[symbols.state] = {}
-      this[symbols.props] = {}
-      this[symbols.computed] = null
-      this.lifecycle = {}
+
+      // Early cleanup regardless of pooling
       this[symbols.effects].length = 0
       this.parent = null
       this.rootParent = null
@@ -82,11 +81,56 @@ export default {
       delete this[symbols.id]
       delete this.ref
 
-      this[symbols.holder].destroy()
-      this[symbols.holder] = null
-      delete this[symbols.holder]
+      // Detach the Wrapper from the Holder
+      if (this[symbols.wrapper].node) this[symbols.wrapper].node.parent = null
 
-      Log.debug(`Destroyed component ${this.componentId}`)
+      // Delete the Holder? should we do this?
+      if (this[symbols.holder]) {
+        if (this[symbols.holder].node) this[symbols.holder].node.destroy()
+        if (this[symbols.holder].config) this[symbols.holder].config.parent = null
+        this[symbols.holder].destroy()
+        this[symbols.holder] = null
+        delete this[symbols.holder]
+      }
+
+      // Reset component state properties to null
+      for (const key in this[symbols.state]) {
+        if (typeof this[symbols.state][key] !== 'function') {
+          this[symbols.state][key] = null
+        }
+      }
+
+      // Release to pool
+      const wasReleased = recycle('component', this)
+      if (wasReleased === true) {
+        Log.info(`Recycled component ${this.componentId} to pool`)
+        return
+      }
+
+      Log.info(`Component ${this.componentId} cannot be recycled, destroying it instead`)
+      this[symbols.state] = {}
+      this[symbols.props] = {}
+      this[symbols.computed] = null
+      this.lifecycle = {}
+
+      // If we can't release to pool, fully destroy the component
+      if (this[symbols.holder]) {
+        if (this[symbols.holder].node) this[symbols.holder].node.destroy()
+        if (this[symbols.holder].config) this[symbols.holder].config.parent = null
+        this[symbols.holder].destroy()
+        this[symbols.holder] = null
+        delete this[symbols.holder]
+      }
+
+      if (this[symbols.wrapper]) {
+        if (this[symbols.wrapper].node) this[symbols.wrapper].node.destroy()
+        if (this[symbols.wrapper].config) this[symbols.wrapper].config.parent = null
+        this[symbols.wrapper].destroy()
+        this[symbols.wrapper] = null
+        delete this[symbols.wrapper]
+      }
+
+      Log.info(`Destroyed component ${this.componentId}`)
     },
     writable: false,
     enumerable: true,

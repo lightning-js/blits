@@ -24,6 +24,7 @@ import { reactive, getRaw } from './lib/reactivity/reactive.js'
 import { effect } from './lib/reactivity/effect.js'
 import Lifecycle from './lib/lifecycle.js'
 import symbols from './lib/symbols.js'
+import { acquire } from './lib/pool.js'
 
 import { stage, renderer } from './launch.js'
 
@@ -270,8 +271,90 @@ const Component = (name = required('name'), config = required('config')) => {
       config.code = codegenerator.call(config, parser(config.template, name))
     }
 
-    // create an instance of the component, using base as the prototype (which contains Base)
-    return component.call(Object.create(base), options, parentEl, parentComponent, rootComponent)
+    // Try to get a component from the pool first
+    let pooledComponent = acquire('component')
+    if (pooledComponent === null) {
+      // If no pooled component is available, create a new instance
+      Log.info(`Creating new component instance for ${name}`)
+      return component.call(Object.create(base), options, parentEl, parentComponent, rootComponent)
+    }
+
+    Log.info(`Reusing pooled component ${name}`)
+
+    // Reset the component with new options and references
+    pooledComponent.componentId = createHumanReadableId(name)
+    pooledComponent[symbols.id] = createInternalId()
+    pooledComponent.parent = parentComponent
+    pooledComponent.rootParent = rootComponent
+    pooledComponent[symbols.holder] = parentEl
+
+    // Reassign children
+    pooledComponent[symbols.children] =
+      config.code.render.apply(stage, [
+        parentEl,
+        pooledComponent,
+        config,
+        globalComponents,
+        effect,
+        getRaw,
+        Log,
+      ]) || []
+
+    // Set new props
+    pooledComponent[symbols.props] = reactive(options.props || {}, Settings.get('reactivityMode'))
+
+    // const newProps = options.props || {}
+    // for (const key in pooledComponent[symbols.props]) {
+    //   if (key in newProps) {
+    //     pooledComponent[symbols.props][key] = newProps[key]
+    //   } else {
+    //     pooledComponent[symbols.props][key] = null
+    //   }
+    // }
+
+    // Reset state
+    const newState =
+      (config.state && typeof config.state === 'function' && config.state.apply(pooledComponent)) ||
+      {}
+    newState.hasFocus = false
+
+    for (const key in pooledComponent[symbols.originalState]) {
+      pooledComponent[symbols.originalState][key] = key in newState ? newState[key] : null
+    }
+
+    for (const key in pooledComponent[symbols.state]) {
+      pooledComponent[symbols.state][key] = key in newState ? newState[key] : null
+    }
+
+    // Reconnect to the scene graph
+    pooledComponent[symbols.holder] = parentEl
+
+    // attach the wrapper node to the holder
+    pooledComponent[symbols.wrapper] = pooledComponent[symbols.children][0]
+    pooledComponent[symbols.wrapper].node.parent = pooledComponent[symbols.holder].node
+
+    // Reset lifecycle state
+    pooledComponent.lifecycle.previous = null
+    pooledComponent.lifecycle.current = null
+    pooledComponent.lifecycle.state = 'init'
+
+    // Re-run effects to update bindings with new state/props
+    const effects = config.code.effects
+    for (let i = 0; i < effects.length; i++) {
+      effects[i](
+        pooledComponent,
+        pooledComponent[symbols.children],
+        config,
+        globalComponents,
+        rootComponent,
+        effect
+      )
+    }
+
+    // Schedule transition to ready state
+    setTimeout(() => (pooledComponent.lifecycle.state = 'ready'))
+
+    return pooledComponent
   }
 
   // store the config on the factory, in order to access the config
