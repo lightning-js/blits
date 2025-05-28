@@ -24,6 +24,7 @@
   - [Directives](/built-in/directives.md)
   - [For loop](/built-in/for-loop.md)
   - [Layout](/built-in/layout.md)
+  - [Stats](/built-in/stats.md)
 - Router
   - [Basics](/router/basics.md)
   - [Hooks](/router/hooks.md)
