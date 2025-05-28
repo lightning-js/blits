@@ -18,6 +18,13 @@
 import eventListeners from '../../lib/eventListeners.js'
 
 export default {
+  /**
+   * Emits an event to all registered listeners for the given event name.
+   *
+   * @param {string} event - The name of the event to emit.
+   * @param {any} params - The parameters to pass to the event listeners.
+   * @returns {boolean} True if all listeners executed, false otherwise.
+   */
   $emit: {
     value: function (event, params) {
       // returning if all listeners executed
@@ -27,6 +34,14 @@ export default {
     enumerable: true,
     configurable: false,
   },
+  /**
+   * Registers a listener callback for a specific event.
+   *
+   * @param {string} event - The name of the event to listen for.
+   * @param {Function} callback - The callback function to execute when the event is emitted.
+   * @param {number} [priority=0] - The priority of the listener (higher runs first).
+   * @returns {void}
+   */
   $listen: {
     value: function (event, callback, priority = 0) {
       // early exit when component is marked as end of life
@@ -37,6 +52,12 @@ export default {
     enumerable: true,
     configurable: false,
   },
+  /**
+   * Deregisters a listener for a specific event.
+   *
+   * @param {string} event - The name of the event to stop listening for.
+   * @returns {void}
+   */
   $unlisten: {
     value: function (event) {
       eventListeners.deregisterListener(this, event)

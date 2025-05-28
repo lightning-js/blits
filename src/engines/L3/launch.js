@@ -26,7 +26,8 @@ import colors from '../../lib/colors/colors.js'
 import fontLoader from './fontLoader.js'
 import shaderLoader from './shaderLoader.js'
 
-export let renderer = {}
+/** @type {RendererMain|null} */
+export let renderer = null
 
 const renderEngine = (settings) => {
   const renderMode = 'renderMode' in settings ? settings.renderMode : 'webgl'
@@ -63,6 +64,14 @@ const textureMemorySettings = (settings) => {
   }
 }
 
+/**
+ * Launch the render engine and application
+ *
+ * @param {import('@/launch.js').BlitsAppFactory} App - Factory function that returns the application instance (extends BlitsComponent with .quit())
+ * @param {HTMLElement} target - The target element to render the application into
+ * @param {Partial<import('@/launch.js').BlitsSettings>} [settings] - The settings for the renderer
+ *
+ */
 export default (App, target, settings = {}) => {
   renderer = new RendererMain(
     {

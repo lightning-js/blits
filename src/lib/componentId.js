@@ -18,18 +18,31 @@
 const counters = {}
 let counter = 0
 
+/**
+ * Creates a human-readable component ID string for a given component name.
+ *
+ * @param {string} name - The name of the component.
+ * @returns {string} The generated human-readable component ID.
+ */
 export const createHumanReadableId = (name) => {
   return `BlitsComponent::${name}_${(counters[name] = (counters[name] || 0) + 1)}`
 }
 
+/**
+ * Generates a new unique internal numeric ID.
+ *
+ * @returns {number} The next unique internal ID.
+ */
 export const createInternalId = () => {
   return ++counter
 }
 
 /**
- * Resets the counter value back to 0.
+ * Resets the internal counter value back to 0.
  * Used in automated tests to ensure consistent results, not intended
  * to be used in the actual framework code!
+ *
+ * @returns {void}
  */
 export const resetCounter = () => {
   counter = 0

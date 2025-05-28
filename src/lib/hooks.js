@@ -19,15 +19,36 @@ import symbols from './symbols.js'
 
 const cbs = {}
 
+/**
+ * Emits a registered hook for a given identifier, calling the hook with the provided scope and data.
+ *
+ * @param {string|symbol} hook - The name or symbol of the hook to emit.
+ * @param {string} identifier - The unique identifier for the hook set.
+ * @param {object} scope - The value of `this` inside the hook function.
+ * @param {Array} [data=[]] - Arguments to pass to the hook function.
+ */
 export const emit = (hook, identifier, scope, data = []) => {
   cbs[identifier] && cbs[identifier][hook] && cbs[identifier][hook].apply(scope, data)
 }
 
+/**
+ * Emits a registered symbol-based hook for a given identifier, calling the hook with the provided scope.
+ *
+ * @param {string|symbol} hook - The name or symbol of the hook to emit (will be mapped to a symbol).
+ * @param {string} identifier - The unique identifier for the hook set.
+ * @param {object} scope - The value of `this` inside the hook function.
+ */
 export const privateEmit = (hook, identifier, scope) => {
   const symHook = symbols[hook]
   cbs[identifier] && cbs[identifier][symHook] && cbs[identifier][symHook].apply(scope)
 }
 
+/**
+ * Registers a set of hooks (functions) for a given identifier.
+ *
+ * @param {Object<string,Function>|Object<symbol,Function>} hooks - An object whose keys are hook names or symbols and values are functions.
+ * @param {string} identifier - The unique identifier for the hook set.
+ */
 export const registerHooks = (hooks = {}, identifier) => {
   cbs[identifier] = {}
   // Combines enumerable keys and symbol properties of the 'hooks' object
