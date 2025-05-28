@@ -1,5 +1,11 @@
 # Changelog
 
+_28 may 2025_
+
+## v1.29.2
+
+- Added end of life flag to prevent timers, intervals and listeners to be registered after component destroy
+
 _22 may 2025_
 
 ## v1.29.1
