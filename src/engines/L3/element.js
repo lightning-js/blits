@@ -76,7 +76,7 @@ const createPaddingObject = (padding, direction) => {
 /**
  * Layout function for arranging children in a layout container.
  * @param {object} config - The layout configuration object.
- * @this {import('@/component.js').BlitsElement}
+ * @this {import('../../component.js').BlitsElement}
  */
 const layoutFn = function (config) {
   const position = config.direction === 'vertical' ? 'y' : 'x'
@@ -225,7 +225,7 @@ const colorMap = {
 let textDefaults = null
 
 /**
- * @typedef {import('@/component.js').BlitsElement} BlitsElement
+ * @typedef {import('../../component.js').BlitsElement} BlitsElement
  *
  * This is always a BlitsElement
  * @this {BlitsElement} this
@@ -498,7 +498,7 @@ const propsTransformer = {
 const Element = {
   /**
    * Populates the element with data
-   * @param {import('@/component.js').BlitsElementProps} data
+   * @param {import('../../component.js').BlitsElementProps} data
    */
   populate(data) {
     const props = data
@@ -562,9 +562,9 @@ const Element = {
   /**
    * Set an individual property on the node
    *
-   * @this {import('@/component').BlitsElement} this
+   * @this {import('../../component').BlitsElement} this
    *
-   * @param {import('@/component.js').BlitsElementProps} prop
+   * @param {import('../..//component.js').BlitsElementProps} prop
    * @param {any} value
    * @returns {void}
    */
@@ -723,8 +723,8 @@ const Element = {
  * Returns a new Blits Element
  *
  * @param {Object} config - The configuration object for the element
- * @param {import('@/component.js').BlitsComponent} component - The component to which the element belongs
- * @returns {import('@/component.js').BlitsElement} - The new Blits Element
+ * @param {import('../../component.js').BlitsComponent} component - The component to which the element belongs
+ * @returns {import('../../component.js').BlitsElement} - The new Blits Element
  */
 export default (config, component) => {
   if (textDefaults === null) {

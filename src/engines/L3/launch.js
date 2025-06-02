@@ -67,9 +67,9 @@ const textureMemorySettings = (settings) => {
 /**
  * Launch the render engine and application
  *
- * @param {import('@/launch.js').BlitsAppFactory} App - Factory function that returns the application instance (extends BlitsComponent with .quit())
+ * @param {import('../../launch.js').BlitsAppFactory} App - Factory function that returns the application instance (extends BlitsComponent with .quit())
  * @param {HTMLElement} target - The target element to render the application into
- * @param {Partial<import('@/launch.js').BlitsSettings>} [settings] - The settings for the renderer
+ * @param {Partial<import('../../launch.js').BlitsSettings>} [settings] - The settings for the renderer
  *
  */
 export default (App, target, settings = {}) => {

@@ -26,9 +26,9 @@ import Announcer from '../announcer/announcer.js'
 import Settings from '../settings.js'
 
 /**
- * @typedef {import('@/component.js').BlitsComponentFactory} BlitsComponentFactory - The component of the route
- * @typedef {import('@/component.js').BlitsComponent} BlitsComponent - The element of the route
- * @typedef {import('@/engines/L3/element.js').BlitsElement} BlitsElement - The element of the route
+ * @typedef {import('../component.js').BlitsComponentFactory} BlitsComponentFactory - The component of the route
+ * @typedef {import('../component.js').BlitsComponent} BlitsComponent - The element of the route
+ * @typedef {import('../engines/L3/element.js').BlitsElement} BlitsElement - The element of the route
  *
  * @typedef {Object} Route
  * @property {string} path - The path of the route
@@ -121,7 +121,7 @@ const isString = (v) => typeof v === 'string'
  *
  * @param {string} path
  * @param {Route[]} routes
- * @returns {false|Route}
+ * @returns {Route}
  */
 export const matchHash = (path, routes = []) => {
   // remove trailing slashes
@@ -182,6 +182,7 @@ export const matchHash = (path, routes = []) => {
     }
   }
 
+  // @ts-ignore - Remove me when we have a better way to handle this
   return matchingRoute
 }
 
@@ -204,15 +205,7 @@ export const navigate = async function () {
   if (this.parent[symbols.routes]) {
     let previousRoute = currentRoute //? Object.assign({}, currentRoute) : undefined
     const { hash, path, queryParams } = getHash()
-    const routeOrFalse = matchHash(path, this.parent[symbols.routes])
-
-    if (!routeOrFalse) {
-      // If no route is found, probably handle with a generic route?
-      return
-    }
-
-    /** @typedef {Route} */
-    let route = routeOrFalse
+    let route = matchHash(path, this.parent[symbols.routes])
 
     // Adding the location hash to the route if it exists.
     if (hash !== null) {
@@ -263,7 +256,7 @@ export const navigate = async function () {
         route.transition = route.transition(previousRoute, route)
       }
 
-      /** @type {import('@/engines/L3/element.js').BlitsElement} */
+      /** @type {import('../engines/L3/element.js').BlitsElement} */
       let holder
       let routeData
 

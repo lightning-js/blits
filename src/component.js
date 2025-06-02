@@ -104,7 +104,7 @@ const required = (name) => {
  * @property {function(any): any} triggerLayout - Triggers a layout update for the element.
  *
  * @typedef {Object} BlitsLifecycle
- * @property {BlitsComponent} component - The component WVB do we need this here again?
+ * @property {BlitsComponent} component - The Blits comonent instance this lifecycle belongs to.
  * @property {'init'|'ready'|'destroyed'} current - The current lifecycle state of the component.
  * @property {'init'|'ready'|'destroyed'|null} previous - The previous lifecycle state of the component.
  * @property {string} state - The current lifecycle state of the component.
