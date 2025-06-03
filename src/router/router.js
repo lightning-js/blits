@@ -25,6 +25,30 @@ import Focus from '../focus.js'
 import Announcer from '../announcer/announcer.js'
 import Settings from '../settings.js'
 
+/**
+ * @typedef {import('../component.js').BlitsComponentFactory} BlitsComponentFactory - The component of the route
+ * @typedef {import('../component.js').BlitsComponent} BlitsComponent - The element of the route
+ * @typedef {import('../engines/L3/element.js').BlitsElement} BlitsElement - The element of the route
+ *
+ * @typedef {Object} Route
+ * @property {string} path - The path of the route
+ * @property {string} hash - The hash of the route
+ * @property {Object} params - The params of the route
+ * @property {Object} data - The data of the route
+ * @property {Object} options - The options of the route
+ * @property {Object} hooks - The hooks of the route
+ * @property {Object} transition - The transition of the route
+ * @property {Object} announce - The announce of the route
+ * @property {(options: Object, parentEl: BlitsElement, parentComponent: BlitsComponent, rootComponent?: BlitsComponent) => BlitsComponent} component - The component factory of the route
+ *
+ * @typedef {Object} Hash
+ * @property {string} path - The path of the hash
+ * @property {URLSearchParams} queryParams - The query params of the hash
+ * @property {string} hash - The hash
+ *
+ */
+
+/** @type {Route} */
 export let currentRoute
 export const state = reactive(
   {
@@ -40,6 +64,14 @@ export const state = reactive(
 
 // Changed from WeakMap to Map to allow for caching of views by the url hash.
 // We are manually doing the cleanup of the cache when the route is not marked as keepAlive.
+
+/**
+ * @typedef {Object} CacheMapEntry
+ * @property {BlitsComponent|BlitsComponentFactory} view - The view of the route
+ * @property {BlitsComponent} focus - The focus of the route
+ */
+
+/** @type {Map<String, CacheMapEntry>} */
 const cacheMap = new Map()
 const history = []
 
@@ -48,6 +80,10 @@ let navigationData = {}
 let navigatingBack = false
 let previousFocus
 
+/**
+ * Get the current hash
+ * @returns {Hash}
+ */
 export const getHash = () => {
   const hashParts = (document.location.hash || '/').replace(/^#/, '').split('?')
   return {
@@ -65,14 +101,34 @@ const normalizePath = (path) => {
       .toLowerCase()
   )
 }
+
+/**
+ * Check if a value is an object
+ * @param {any} v
+ * @returns {boolean} True if v is an object
+ */
 const isObject = (v) => typeof v === 'object' && v !== null
 
+/**
+ * Check if a value is a function
+ * @param {any} v
+ * @returns {boolean} True if v is a string
+ */
 const isString = (v) => typeof v === 'string'
 
+/**
+ * Match a path to a route
+ *
+ * @param {string} path
+ * @param {Route[]} routes
+ * @returns {Route}
+ */
 export const matchHash = (path, routes = []) => {
   // remove trailing slashes
   const originalPath = path.replace(/^\/+|\/+$/g, '')
   path = normalizePath(path)
+
+  /** @type {boolean|Route} */
   let matchingRoute = false
   let i = 0
   while (!matchingRoute && i < routes.length) {
@@ -126,9 +182,22 @@ export const matchHash = (path, routes = []) => {
     }
   }
 
+  // @ts-ignore - Remove me when we have a better way to handle this
   return matchingRoute
 }
 
+/**
+ * Navigate to a route
+ *
+ * This isn't the prettiest way to do this, but it works. The reason is that extends
+ * only works for Classes or Factory functions. As such we need to use this
+ * @typedef {BlitsComponent & {
+ *   activeView: BlitsComponent
+ * }} RouterViewComponent
+ *
+ * @this {RouterViewComponent} this
+ * @returns {Promise<void>}
+ */
 export const navigate = async function () {
   Announcer.stop()
   Announcer.clear()
@@ -178,6 +247,7 @@ export const navigate = async function () {
       }
       // apply default transition if none specified
       if (!('transition' in route)) {
+        /** @ts-ignore */
         route.transition = fadeInFadeOutTransition
       }
       // a transition can be a function returning a dynamic transition object
@@ -186,8 +256,10 @@ export const navigate = async function () {
         route.transition = route.transition(previousRoute, route)
       }
 
+      /** @type {import('../engines/L3/element.js').BlitsElement} */
       let holder
       let routeData
+
       let { view, focus } = cacheMap.get(route.hash) || {}
 
       // Announce route change if a message has been specified for this route
@@ -236,7 +308,9 @@ export const navigate = async function () {
           }
         }
         if (typeof view === 'function') {
-          view = view({ props }, holder, this)
+          // had to inline this because the tscompiler does not like LHS reassignments
+          // that also change the type of the variable in a variable union
+          view = /** @type {BlitsComponentFactory} */ (view)({ props }, holder, this)
         }
       } else {
         holder = view[symbols.holder]
@@ -267,7 +341,7 @@ export const navigate = async function () {
       previousFocus = Focus.get()
 
       // set focus to the view that we're routing to
-      focus ? focus.$focus() : view.$focus()
+      focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
 
       // apply before settings to holder element
       if (route.transition.before) {
@@ -321,6 +395,13 @@ export const navigate = async function () {
   state.navigating = false
 }
 
+/**
+ * Remove the currently active view
+ *
+ * @param {Route} route
+ * @param {BlitsComponent} view
+ * @param {Object} transition
+ */
 const removeView = async (route, view, transition) => {
   // apply out transition
   if (transition) {
