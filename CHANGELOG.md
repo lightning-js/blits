@@ -1,5 +1,13 @@
 # Changelog
 
+_03 jun 2025_
+
+## v1.29.3
+
+- Added first batch internal JS doc types
+- Added documentation on Launch settings
+- Fixed issue with reactivity effects being shared (and retained) on the prototype
+
 _28 may 2025_
 
 ## v1.29.2

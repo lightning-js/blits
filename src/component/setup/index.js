@@ -32,8 +32,6 @@ let counter = 0
 export default function (component, config) {
   component[symbols.identifier] = ++counter
 
-  component[symbols.effects] = []
-
   // setup hooks
   registerHooks(config.hooks, component[symbols.identifier])
 

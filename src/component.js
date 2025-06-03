@@ -44,11 +44,149 @@ const required = (name) => {
 }
 
 /**
+ * @typedef {function} BlitsComponentFactory
+ * @param {object} opts - The options for the component instance
+ * @param {BlitsComponent} parentEl - The parent element for the component instance
+ * @param {BlitsComponent} parentComponent - The parent component for the component instance
+ * @param {BlitsComponent} rootComponent - The root component for the component instance
+ * @returns {BlitsComponent} - The component instance
+ */
+
+/**
+ *  Structure of a Blits component:
+ *  Component:
+ *   <Holder>
+ *      <Wrapper>
+ *           []<Elements>
+ *      </Wrapper>
+ *   </Holder>
+ *
+ * A Blits Element
+ * @typedef {Object} BlitsAnnouncer
+ * @property {(message: string) => void} assertive - Function to assertively announce a message.
+ * @property {() => void} clear - Function to clear the announcer.
+ * @property {() => void} disable - Function to disable the announcer.
+ * @property {() => void} enable - Function to enable the announcer.
+ * @property {(delay: number) => void} pause - Function to pause the announcer.
+ * @property {(message: string) => void} polite - Function to politely announce a message.
+ * @property {(message: string, politeness: 'off'|'polite'|'assertive') => void} announce - Function to announce a message with specified politeness.
+ * @property {() => void} stop - Function to stop the announcer.
+ * @property {(v: boolean) => void} toggle - Function to toggle the announcer.
+ *
+ * @typedef {Object} BlitsElementConfig
+ * @property {BlitsElement} parent - The parent element of this element.
+ * @property {any} node - The node object for the element.
+ *
+ * @typedef {Object} BlitsElementProps
+ * @property {boolean} __textnode - Indicates if the element is a text node.
+ * @property {boolean} __layout - Indicates if the element is a layout node.
+ * @property {BlitsElement} element - The element to which the props belong?? Do we need this?
+ * @property {BlitsElementConfig} config - Configuration object for the element.
+ * @property {Object<string, any>} props - The props object containing the properties of the element.
+ * @property {Object<string, any>} raw - The raw input props.
+ * @property {Object<string, any>} scheduledTransitions - Tracks transitions by property name.
+ *
+ * @typedef {Object} BlitsElement
+ * @property {BlitsComponent} component - Reference to the owning Blits component.
+ * @property {BlitsElementConfig} config - Configuration object for the element.
+ * @property {number} counter - Unique counter used for shader workarounds. FIXME?
+ * @property {string[]} effectNames - Names of active shader effects.
+ * @property {any} node - The underlying renderer node (e.g., WebGL node or text node).
+ * @property {BlitsElementProps} props - Proxy-like object containing transformed props.
+ * @property {any[]} children - WVB I cant see this populated? Filtered list of children owned by this element. FIXME?
+ * @property {any} parent - WVB Shortcut to the parent CoreNode?
+ * @property {number} nodeId - ID of the CoreNode, if available.
+ * @property {string|null} ref - Ref name (if defined).
+ * @property {function(Object):void} populate - Initializes the element with props and hooks.
+ * @property {function(string, any):void} set - Updates a single property.
+ * @property {function(string, any, Object):void} animate - Animates a property with transition options.
+ * @property {function():void} destroy - Destroys the underlying node and cancels transitions.
+ * @property {function(any): any} triggerLayout - Triggers a layout update for the element.
+ *
+ * @typedef {Object} BlitsLifecycle
+ * @property {BlitsComponent} component - The Blits comonent instance this lifecycle belongs to.
+ * @property {'init'|'ready'|'destroyed'} current - The current lifecycle state of the component.
+ * @property {'init'|'ready'|'destroyed'|null} previous - The previous lifecycle state of the component.
+ * @property {string} state - The current lifecycle state of the component.
+ *
+ * @typedef {object} BlitsComponent
+ * Main properties of the Blits component:
+ * @property {string} componentId - The unique identifier for the component instance
+ * @property {BlitsLifecycle} lifecycle - The lifecycle object for the component instance
+ * @property {BlitsComponent} parent - The parent component of the current component instance
+ * @property {BlitsComponent} rootParent - Reference to the root component in case of slots, otherwise this is the same as parent
+ * @property {BlitsComponent|BlitsElement[]} [children] - The children of the component instance
+ * @property {BlitsElement} [holder] - The wrapper of the entire component instance
+ * @property {number} [id] - The internal ID for the component instance
+ * @property {number} [identifier] - The identifier for the component instance WVB Whats the difference with id?
+ * @property {any[]} [intervals] - The intervals created by the component instance WVB Fixme
+ * @property {Object<string, any>} [originalState] - The original state of the component instance
+ * @property {Object<string, any>} [props] - The reactive properties of the component instance
+ * @property {any[]} [slots] - The slots of the component instance WVB Fixme
+ * @property {Object<string, any>} [state] - The reactive state of the component instance
+ * @property {any[]} [timeouts] - The timeouts created by the component instance
+ * @property {BlitsElement} [wrapper] - The reference to the outer element of the component instance
+ * @property {object} [effects] - The effects of the component instance
+ * @property {object} [watchers] - The watchers of the component instance
+ * @property {Object<string, any>} computedKeys - The computed keys of the component instance
+ * @property {any[]} [effects] - The effects of the component instance
+ * @property {string[]} [propKeys] - The keys of the props of the component instance
+ * @property {any[]} [stateKeys] - The keys of the state of the component instance
+ * Single props:
+ * @property {object} activeView - The active view of the component instance
+ * @property {boolean} hasFocus - Indicates if the component has focus
+ * @property {string} ref - The reference name of the component instance
+ * @property {number|undefined} index - The index in a for loop
+ * @property {number|undefined} activeRow - The active row in a for loop
+ * @property {string} color - The color of the component instance
+ * @property {number} radius - The radius of the component instance
+ * @property {number} size - The size of the component instance
+ * Methods:
+ * @property {function(): void} destroy - Destroys the component and its children, clearing listeners and effects.
+ * @property {function(any): any} focus - ⚠️ Deprecated. Use `$focus()` instead.
+ * @property {function(string): any} select - ⚠️ Deprecated. Use `$select(ref)` instead.
+ * @property {function(string, object): {type: string, props: object}} shader - Creates a shader definition object.
+ * @property {function(string): void} trigger - ⚠️ Deprecated. Use `$trigger(key)` instead.
+ * @property {function(): void} unfocus - Clears the focus state and sets lifecycle to 'unfocus'.
+ * Builtins:
+ * @property {BlitsAnnouncer} $announcer - The announcer object for the component instance
+ * @property {() => void} $clearTimeouts - Clears all timeouts created by the component instance
+ * @property {(timeoutId: number) => void} $clearTimeout - Clears all timeouts created by the component instance
+ * @property {() => void} $clearIntervals - Clears all intervals created by the component instance
+ * @property {(intervalId: number) => void} $clearInterval - Clears all intervals created by the component instance
+ * @property {Object} $colors - The colors object for the component instance
+ * @property {(event: string, params: object) => void} $emit - Emits an event with the specified parameters
+ * @property {function(any): void} $focus - Sets the component focus state and delegates to the Focus manager.
+ * @property {Object} $language - The language object for the component instance
+ * @property {function(any): any} $listen - The listen object for the component instance
+ * @property {Object} $log - The log object for the component instance
+ * @property {Object} $router - The router object for the component instance
+ * @property {function(string): any} $select - Selects a child component by `ref`.
+ * @property {function(any): any} $setInterval - Sets an interval for the component instance
+ * @property {function(any): any} $setTimeout - Sets a timeout for the component instance
+ * @property {function(any): any} $size - The size object for the component instance
+ * @property {function(any): any} $sizes - The sizes object for the component instance
+ * @property {function(string): void} $trigger - Forces a reactivity trigger on a property in `originalState`.
+ * @property {function(any): any} $unlisten - The unlisten object for the component instance
+ *
+ */
+
+/**
+ * @typedef {Object} BlitsComponentConfig
+ * @property {string} template - The template string for the component.
+ * @property {function(this: BlitsComponent): Object} [state] - State factory function.
+ * @property {Object} [hooks] - Lifecycle hooks (frameTick, idle, attach, detach, enter, exit, etc).
+ * @property {Object} [code] - Compiled render/effects code (render: Function, effects: Function[]).
+ * @property {string} [name] - Optional name for the component.
+ * @property {any} [data] - Optional static data for the component.
+ * @property {Object} [options] - Optional options for the component.
+ */
+
+/**
  * Component factory function
  * @param {string} name - The name of the component
- * @param {object} config - The configuration object for the component
- * @returns {function} - A factory function that creates a new component instance
- *
+ * @param {BlitsComponentConfig} config - The configuration object for the component
+ * @returns {BlitsComponentFactory} - The component factory function
  */
 const Component = (name = required('name'), config = required('config')) => {
   let base = undefined
@@ -167,6 +305,7 @@ const Component = (name = required('name'), config = required('config')) => {
     // setup (and execute) all the generated side effects based on the
     // reactive bindings define in the template
     const effects = config.code.effects
+    this[symbols.effects] = []
     for (let i = 0; i < effects.length; i++) {
       const eff = () => {
         effects[i](this, this[symbols.children], config, globalComponents, rootComponent, effect)
@@ -216,11 +355,21 @@ const Component = (name = required('name'), config = required('config')) => {
     return this
   }
 
+  /**
+   * Component factory function
+   * @typedef {BlitsComponentFactory}
+   * @param {Object} options
+   * @param {BlitsComponent} parentEl
+   * @param {BlitsComponent} parentComponent
+   * @param {BlitsComponent} rootComponent
+   * @returns {BlitsComponent}
+   */
   const factory = (options = {}, parentEl, parentComponent, rootComponent) => {
     if (Base[symbols['launched']] === false) {
       // Register user defined plugins once on the Base object (after launch)
       const pluginKeys = Object.keys(plugins)
       const pluginKeysLength = pluginKeys.length
+      /** @type {Object} */
       const pluginInstances = {}
       for (let i = 0; i < pluginKeysLength; i++) {
         const pluginName = pluginKeys[i]
