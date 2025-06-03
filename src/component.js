@@ -305,6 +305,7 @@ const Component = (name = required('name'), config = required('config')) => {
     // setup (and execute) all the generated side effects based on the
     // reactive bindings define in the template
     const effects = config.code.effects
+    this[symbols.effects] = []
     for (let i = 0; i < effects.length; i++) {
       const eff = () => {
         effects[i](this, this[symbols.children], config, globalComponents, rootComponent, effect)
