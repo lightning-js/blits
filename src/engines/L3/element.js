@@ -686,10 +686,7 @@ const Element = {
   },
   destroy() {
     if (this.node === null) return
-
-    Log.debug('Deleting  Node', this.nodeId)
-    this.node.destroy()
-
+    Log.debug('Deleting Node', this.nodeId)
     // Clearing transition end callback functions
     const transitionProps = Object.keys(this.scheduledTransitions)
     for (let i = 0; i < transitionProps.length; i++) {
@@ -700,7 +697,35 @@ const Element = {
       }
     }
 
-    // remove node reference
+    // not setting to null and deleting,
+    // because transition stopped might still be fired (maybe a renderer fix resolves that)
+    this.scheduledTransitions = {}
+
+    this.component = null
+    delete this.component
+
+    this.config = null
+    delete this.config
+
+    this.counter = null
+    delete this.counter
+
+    this.props.raw = {}
+    this.props.element = null
+    this.props.props = null
+    this.props = {}
+    delete this.props
+
+    this.effectNames.length = 0
+    delete this.effectNames
+
+    this.triggerLayout = null
+    delete this.triggerLayout
+
+    this.forComponent = null
+    delete this.forComponent
+
+    this.node.destroy()
     this.node = null
   },
   get nodeId() {
