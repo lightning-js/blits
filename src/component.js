@@ -53,6 +53,9 @@ const required = (name) => {
  */
 
 /**
+ * @typedef {import('@lightningjs/renderer').IAnimationController} IAnimationController
+ * @typedef {import('@lightningjs/renderer').INode} node
+ *
  *  Structure of a Blits component:
  *  Component:
  *   <Holder>
@@ -77,6 +80,10 @@ const required = (name) => {
  * @property {BlitsElement} parent - The parent element of this element.
  * @property {any} node - The node object for the element.
  *
+ * @typedef {Object<string, any>} BlitsElementTransition
+ * @property {Object} v - List of props?
+ * @property {IAnimationController} animation - The transition object for the element.
+ *
  * @typedef {Object} BlitsElementProps
  * @property {boolean} __textnode - Indicates if the element is a text node.
  * @property {boolean} __layout - Indicates if the element is a layout node.
@@ -84,14 +91,14 @@ const required = (name) => {
  * @property {BlitsElementConfig} config - Configuration object for the element.
  * @property {Object<string, any>} props - The props object containing the properties of the element.
  * @property {Object<string, any>} raw - The raw input props.
- * @property {Object<string, any>} scheduledTransitions - Tracks transitions by property name.
  *
  * @typedef {Object} BlitsElement
  * @property {BlitsComponent} component - Reference to the owning Blits component.
  * @property {BlitsElementConfig} config - Configuration object for the element.
+ * @property {Object<string, BlitsElementTransition>} scheduledTransitions - Tracks transitions by property name.
  * @property {number} counter - Unique counter used for shader workarounds. FIXME?
  * @property {string[]} effectNames - Names of active shader effects.
- * @property {any} node - The underlying renderer node (e.g., WebGL node or text node).
+ * @property {node} node - The underlying renderer node (e.g., WebGL node or text node).
  * @property {BlitsElementProps} props - Proxy-like object containing transformed props.
  * @property {any[]} children - WVB I cant see this populated? Filtered list of children owned by this element. FIXME?
  * @property {any} parent - WVB Shortcut to the parent CoreNode?
@@ -132,6 +139,7 @@ const required = (name) => {
  * @property {any[]} [effects] - The effects of the component instance
  * @property {string[]} [propKeys] - The keys of the props of the component instance
  * @property {any[]} [stateKeys] - The keys of the state of the component instance
+ * @property {boolean} [eol] - Indicates if the component instance is marked as end of life
  * Single props:
  * @property {object} activeView - The active view of the component instance
  * @property {boolean} hasFocus - Indicates if the component has focus

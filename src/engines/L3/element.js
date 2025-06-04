@@ -564,7 +564,7 @@ const Element = {
    *
    * @this {import('../../component').BlitsElement} this
    *
-   * @param {import('../..//component.js').BlitsElementProps} prop
+   * @param {import('../../component.js').BlitsElementProps} prop
    * @param {any} value
    * @returns {void}
    */
@@ -602,6 +602,14 @@ const Element = {
       this.config.parent.triggerLayout(this.config.parent.props)
     }
   },
+  /**
+   * @this {import('../../component.js').BlitsElement} this
+   *
+   * @param {string} prop
+   * @param {string|number} value
+   * @param {Object|number} transition
+   * @returns
+   */
   animate(prop, value, transition) {
     // check if a transition is already scheduled to run on the same prop
     // and cancels it if it does
@@ -696,7 +704,13 @@ const Element = {
       const transition = this.scheduledTransitions[transitionProps[i]]
       if (transition !== undefined) {
         transition.canceled = true
-        if (transition.f !== undefined) transition.f.stop()
+        const rAnimation = transition.f
+        if (rAnimation !== undefined) {
+          rAnimation.stop()
+          rAnimation.off('stopped')
+          rAnimation.off('tick')
+          rAnimation.off('animating')
+        }
       }
     }
 
