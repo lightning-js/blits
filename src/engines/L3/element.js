@@ -17,6 +17,7 @@
 
 import { renderer } from './launch.js'
 import colors from '../../lib/colors/colors.js'
+import { increment, BLITS_STATS_ENABLED, decrement } from '../../lib/stats.js'
 
 import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
@@ -558,6 +559,9 @@ const Element = {
         this.config.parent.triggerLayout(this.config.parent.props)
       })
     }
+
+    // Increment element creation
+    BLITS_STATS_ENABLED && increment('elements', 'created')
   },
   /**
    * Set an individual property on the node
@@ -702,6 +706,9 @@ const Element = {
 
     // remove node reference
     this.node = null
+
+    // Decrement element deletion
+    BLITS_STATS_ENABLED && decrement('elements', 'deleted')
   },
   get nodeId() {
     return this.node && this.node.id

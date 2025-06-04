@@ -15,6 +15,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { increment, decrement, BLITS_STATS_ENABLED } from './stats.js'
+
 const eventsMap = new Map()
 const callbackCache = new Map()
 
@@ -43,6 +45,9 @@ export default {
 
     components.add({ cb, priority })
     callbackCache.delete(event) // Invalidate the callbackCache when a new callback is added
+
+    // Log the event listener creation
+    BLITS_STATS_ENABLED && increment('eventListeners', 'created')
   },
 
   /**
@@ -62,6 +67,9 @@ export default {
       componentsMap.delete(component)
       eventsMap.set(event, componentsMap)
       callbackCache.delete(event)
+
+      // Log the event listener deletion
+      BLITS_STATS_ENABLED && decrement('eventListeners', 'deleted')
     }
   },
 
@@ -119,5 +127,7 @@ export default {
         }
       }
     }
+
+    BLITS_STATS_ENABLED && decrement('eventListeners', 'deleted')
   },
 }
