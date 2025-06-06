@@ -2,6 +2,14 @@
 
 _03 jun 2025_
 
+## v1.29.4
+
+- Removed excessive shader creation for effects
+- Added explicit cleanup of effects in for loop
+- Improved element destruction
+
+_03 jun 2025_
+
 ## v1.29.3
 
 - Added first batch internal JS doc types
