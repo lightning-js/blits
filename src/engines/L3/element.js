@@ -381,34 +381,12 @@ const propsTransformer = {
         v[i].props.color = colors.normalize(v[i].props.color)
       }
     }
-    const effectNames = {}
     if (this.element.node === undefined) {
-      this.element.effectNames = []
       this.props['shader'] = renderer.createShader('DynamicShader', {
         effects: v.map((effect) => {
-          let name = effect.type
-          if (effectNames[name] !== undefined) {
-            name += ++effectNames[name]
-          } else {
-            effectNames[name] = 1
-          }
-          name += this.element.counter
-          this.element.effectNames.push(name)
-          // temporary add counter to work around shader caching issues
-          return renderer.createEffect(effect.type, effect.props, name)
+          return renderer.createEffect(effect.type, effect.props)
         }),
       })
-    } else {
-      for (let i = 0; i < v.length; i++) {
-        const name = this.element.effectNames[i]
-        // temporary add counter to work around shader caching issues
-        const target = this.element.node.shader.props[name]
-        const props = Object.keys(v[i].props)
-        if (target == undefined) continue
-        for (let j = 0; j < props.length; j++) {
-          target[props[j]] = v[i].props[props[j]]
-        }
-      }
     }
   },
   set clipping(v) {
@@ -674,7 +652,7 @@ const Element = {
         return
       }
       // fire transition end callback when animation ends (if specified)
-      if (transition.end && typeof transition.end === 'function') {
+      if (this.node !== undefined && transition.end && typeof transition.end === 'function') {
         transition.end.call(this.component, this, prop, this.node[prop])
       }
       // remove the prop from scheduled transitions
@@ -687,9 +665,7 @@ const Element = {
   destroy() {
     if (this.node === null) return
 
-    Log.debug('Deleting  Node', this.nodeId)
-    this.node.destroy()
-
+    Log.debug('Deleting Node', this.nodeId)
     // Clearing transition end callback functions
     const transitionProps = Object.keys(this.scheduledTransitions)
     for (let i = 0; i < transitionProps.length; i++) {
@@ -700,7 +676,32 @@ const Element = {
       }
     }
 
-    // remove node reference
+    // not setting to null and deleting,
+    // because transition stopped might still be fired (maybe a renderer fix resolves that)
+    this.scheduledTransitions = {}
+
+    this.component = null
+    delete this.component
+
+    this.config = null
+    delete this.config
+
+    this.counter = null
+    delete this.counter
+
+    this.props.raw = {}
+    this.props.element = null
+    this.props.props = null
+    this.props = {}
+    delete this.props
+
+    this.triggerLayout = null
+    delete this.triggerLayout
+
+    this.forComponent = null
+    delete this.forComponent
+
+    this.node.destroy()
     this.node = null
   },
   get nodeId() {
@@ -738,7 +739,6 @@ export default (config, component) => {
     scheduledTransitions: {},
     config,
     component,
-    effectNames: [],
     counter: counter++,
   })
 }
