@@ -511,6 +511,7 @@ const generateForLoopCode = function (templateObject, parent) {
         }
         effect(eff${index}, ${key})
         effects.push(eff${index})
+        component[Symbol.for('effects')].push(eff${index})
       `)
     } else {
       // props shouldn't be wrapped in an effect, but simply passed on
@@ -562,17 +563,21 @@ const generateForLoopCode = function (templateObject, parent) {
 
   ctx.renderCode.push(`
     let forEffects${forStartCounter}
-    effect(() => {
+    const eff${forStartCounter} = () => {
       component[Symbol.for('removeGlobalEffects')](forEffects${forStartCounter})
       forEffects${forStartCounter} = null
       forEffects${forStartCounter} = forloop${forStartCounter}(${cast(
     result[2],
     ':for'
   )}, elms, created${forStartCounter})
-    }, ['${effectKey}', ${effectKeys.join(',')}] )
+    }
+
+    component[Symbol.for('effects')].push(eff${forStartCounter})
+
+    effect(eff${forStartCounter}, ['${effectKey}', ${effectKeys.join(',')}] )
   `)
 
-  outerScopeEffects.forEach((effect) => {
+  outerScopeEffects.forEach((effect, outerScopeEffectsIndex) => {
     const matches = [...effect.matchAll(scopeRegex)]
 
     let l = matches.length
@@ -589,7 +594,7 @@ const generateForLoopCode = function (templateObject, parent) {
     }
 
     ctx.renderCode.push(`
-      effect(() => {
+      const eff${forStartCounter}_${outerScopeEffectsIndex} = () => {
         void ${refs.join(', ')}
         for(let __index = 0; __index < ${interpolate(result[2])}.length; __index++) {
           if(__index < from${forStartCounter} || __index >= to${forStartCounter}) continue
@@ -602,7 +607,9 @@ const generateForLoopCode = function (templateObject, parent) {
     ctx.renderCode.push(`
           ${effect}
         }
-      })
+      }
+      component[Symbol.for('effects')].push(eff${forStartCounter}_${outerScopeEffectsIndex})
+      effect(eff${forStartCounter}_${outerScopeEffectsIndex})
     `)
   })
 

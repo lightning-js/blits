@@ -195,6 +195,8 @@ const Component = (name = required('name'), config = required('config')) => {
     // generate a human readable ID for the component instance (i.e. Blits::ComponentName1)
     this.componentId = createHumanReadableId(name)
 
+    this[symbols.effects] = []
+
     // instantiate a lifecycle object for this instance
     this.lifecycle = Object.assign(Object.create(Lifecycle), {
       component: this,
@@ -305,7 +307,6 @@ const Component = (name = required('name'), config = required('config')) => {
     // setup (and execute) all the generated side effects based on the
     // reactive bindings define in the template
     const effects = config.code.effects
-    this[symbols.effects] = []
     for (let i = 0; i < effects.length; i++) {
       const eff = () => {
         effects[i](this, this[symbols.children], config, globalComponents, rootComponent, effect)
