@@ -22,9 +22,10 @@ export default {
     value: function (fn, ms, ...params) {
       // early exit when component is marked as end of life
       if (this.eol === true) return
+
       const timeoutId = setTimeout(
         () => {
-          this[symbols.timeouts] = this[symbols.timeouts].filter((id) => id !== timeoutId)
+          this.$clearTimeout(timeoutId)
           fn.apply(null, params)
         },
         ms,
@@ -39,8 +40,9 @@ export default {
   },
   $clearTimeout: {
     value: function (timeoutId) {
-      if (this[symbols.timeouts].indexOf(timeoutId) > -1) {
-        this[symbols.timeouts] = this[symbols.timeouts].filter((id) => id !== timeoutId)
+      const index = this[symbols.timeouts].indexOf(timeoutId)
+      if (index > -1) {
+        this[symbols.timeouts].splice(index, 1)
         clearTimeout(timeoutId)
       }
     },

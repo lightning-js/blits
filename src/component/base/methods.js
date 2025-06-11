@@ -66,13 +66,22 @@ export default {
     value: function () {
       this.eol = true
       this.lifecycle.state = 'destroy'
+
+      for (let key in this[symbols.state]) {
+        if (Array.isArray(this[symbols.state][key])) {
+          this[symbols.state][key] = []
+        }
+      }
+
       this.$clearTimeouts()
       this.$clearIntervals()
       eventListeners.removeListeners(this)
       deleteChildren(this[symbols.children])
       this[symbols.children].length = 0
       removeGlobalEffects(this[symbols.effects])
+
       this[symbols.state] = {}
+
       this[symbols.props] = {}
       this[symbols.computed] = null
       this.lifecycle = {}
