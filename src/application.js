@@ -22,6 +22,8 @@ import Settings from './settings.js'
 import symbols from './lib/symbols.js'
 import { DEFAULT_HOLD_TIMEOUT_MS } from './constants.js'
 
+import { BLITS_STATS_ENABLED, resetStats, printStats } from './lib/stats.js'
+
 const Application = (config) => {
   const defaultKeyMap = {
     ArrowLeft: 'left',
@@ -60,6 +62,15 @@ const Application = (config) => {
 
     keyDownHandler = async (e) => {
       const key = keyMap[e.key] || keyMap[e.keyCode] || e.key || e.keyCode
+
+      if (BLITS_STATS_ENABLED) {
+        if (key === 'p') {
+          printStats()
+        } else if (key === 'r') {
+          resetStats()
+        }
+      }
+
       // intercept key press if specified in main Application component
       if (
         this[symbols.inputEvents] !== undefined &&
