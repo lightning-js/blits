@@ -322,8 +322,8 @@ test('Component - Instance should initialize hook events', (assert) => {
   )
   assert.equal(
     nodeCalls[3].args[0],
-    'outOfViewport',
-    '`outOfViewport` event should be registered in the wrapper'
+    'outOfBounds',
+    '`outOfBounds` event should be registered in the wrapper'
   )
   assert.end()
 })
