@@ -298,7 +298,7 @@ const Component = (name = required('name'), config = required('config')) => {
 
       // outOfViewport event emitting a lifecycle exit event
       if (config.hooks.exit) {
-        this[symbols.wrapper].node.on('outOfViewport', () => {
+        this[symbols.wrapper].node.on('outOfBounds', () => {
           this.lifecycle.state = 'exit'
         })
       }
