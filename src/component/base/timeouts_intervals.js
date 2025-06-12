@@ -75,9 +75,10 @@ export default {
   },
   $clearInterval: {
     value: function (intervalId) {
-      if (this[symbols.intervals].indexOf(intervalId) > -1) {
-        this[symbols.intervals] = this[symbols.intervals].filter((id) => id !== intervalId)
-        clearInterval(intervalId)
+      const index = this[symbols.intervals].indexOf(intervalId)
+      if (index > -1) {
+        this[symbols.intervals].splice(index, 1)
+        clearTimeout(intervalId)
       }
     },
     writable: false,
