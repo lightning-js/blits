@@ -1,6 +1,13 @@
 # Changelog
 
-_03 jun 2025_
+_12 jun 2025_
+
+## v1.29.4
+
+- Simplified timeout and interval cleanup
+- Added explicit reset of component state upon destruction
+
+_06 jun 2025_
 
 ## v1.29.4
 
