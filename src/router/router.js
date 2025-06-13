@@ -433,6 +433,8 @@ const removeView = async (route, view, transition) => {
     view.destroy()
     view = null
   }
+
+  previousFocus = null
 }
 
 const setOrAnimate = (node, transition, shouldAnimate = true) => {
