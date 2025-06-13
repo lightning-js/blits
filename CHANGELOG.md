@@ -1,6 +1,14 @@
 # Changelog
 
-_03 jun 2025_
+_12 jun 2025_
+
+## v1.29.5
+
+- Simplified timeout and interval cleanup
+- Added explicit reset of component state upon destruction
+- Fixed `exit` lifecycle hook
+
+_06 jun 2025_
 
 ## v1.29.4
 
