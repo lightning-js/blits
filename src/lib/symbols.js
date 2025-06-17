@@ -2,6 +2,7 @@
  * Symbol registry for internal framework properties and generated code.
  *
  * @typedef {Object} BlitsSymbols
+ * @property {symbol} cleanup
  * @property {symbol} currentView
  * @property {symbol} cursorTagStart
  * @property {symbol} computedKeys
@@ -51,6 +52,7 @@
  * @type {BlitsSymbols}
  */
 export default {
+  cleanup: Symbol('cleanup'),
   currentView: Symbol('currentView'),
   cursorTagStart: Symbol('cursorTagStart'),
   computedKeys: Symbol('computedKeys'),
