@@ -113,6 +113,15 @@
     ]
   },
   {
+    "text": "Performance",
+    "items": [
+      {
+        "text": "Lazy Loading",
+        "link": "/performance/lazy-loading"
+      }
+    ]
+  },
+  {
     "text": "Router",
     "items": [
       {
