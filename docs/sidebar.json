@@ -158,5 +158,14 @@
         "link": "/plugins/global_app_state"
       }
     ]
+  },
+  {
+    "text": "Performance",
+    "items": [
+      {
+        "text": "Lazy loading",
+        "link": "/performance/lazy-loading"
+      }
+    ]
   }
 ]
