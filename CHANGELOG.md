@@ -1,5 +1,14 @@
 # Changelog
 
+_24 jun 2025_
+
+## v1.30.0
+
+- Added documentation on lazy loading performance
+- Bumped renderer to v2.14.0 (simplified texture throttling)
+- Fixed bug in announcer when utterance is cancelled
+
+
 _12 jun 2025_
 
 ## v1.29.5
