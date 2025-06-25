@@ -1,5 +1,19 @@
 # Changelog
 
+_25 jun 2025_
+
+## v1.30.2
+
+- Bumped renderer to v2.14.2
+
+
+_25 jun 2025_
+
+## v1.30.1
+
+- Bumped renderer to v2.14.1
+
+
 _24 jun 2025_
 
 ## v1.30.0
