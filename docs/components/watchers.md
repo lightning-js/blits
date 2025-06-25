@@ -32,3 +32,29 @@ The watcher function receives two arguments: the _new value_ and the _old value_
 ```
 
 In this example, whenever the value of state variable `alpha` changes, the `alpha` watcher function will be invoked. The function checks if the new value is greater than the old value and executes custom logic accordingly.
+
+## Watching nested states
+
+You can also define watchers for nested component states using dot notation to separate each attribute. This allows for deep-watching functionality while maintaining performance on low-resource devices.
+
+```javascript
+{
+  state() {
+    return {
+      size: { w: 0, h: 0 }
+    }
+  },
+  hooks: {
+    ready() {
+      this.size = { w: 200, h: 200 };
+    }
+  },
+  watch: {
+    'size.h'(h: number) {
+      // Execute some logic when the 'size.h' value changes
+    },
+  }
+}
+```
+
+In this example, whenever the value of the state variable attribute `size.h` changes, the `size.h` watcher function will be invoked.
