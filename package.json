@@ -19,7 +19,8 @@
     "lint:fix": "eslint '**/*.js' --fix",
     "prepublishOnly": "node scripts/prepublishOnly.js",
     "postpublish": "node scripts/postpublish.js",
-    "prepare": "husky"
+    "prepare": "husky",
+    "pack-preview": "npm pack --dry-run"
   },
   "types": "./index.d.ts",
   "lint-staged": {
