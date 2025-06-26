@@ -1,6 +1,9 @@
 packages/
 coverage
 
+# Original component files
+src/components/*.orig.js
+
 # Development files
 .editorconfig
 .eslintignore
