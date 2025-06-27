@@ -1,5 +1,15 @@
 # Changelog
 
+_27 jun 2025_
+
+## v1.31.0
+
+- Added dereferencing of previousFocus pointer to ensure memory release
+- Added npm ignore to reduce NPM package size
+- Added support for precompilation of `.mjs` files
+- Upgraded renderer to v2.14.3
+
+
 _25 jun 2025_
 
 ## v1.30.2
