@@ -17,6 +17,7 @@
 
 import Component from '../component.js'
 import Router from '../router/router.js'
+import symbols from '../lib/symbols.js'
 
 let hashchangeHandler = null
 
@@ -31,7 +32,10 @@ export default () =>
       }
     },
     hooks: {
-      ready() {
+      async ready() {
+        if (this.parent[symbols.routerHooks] && this.parent[symbols.routerHooks].init) {
+          await this.parent[symbols.routerHooks].init.apply(this.parent)
+        }
         hashchangeHandler = () => Router.navigate.apply(this)
         Router.navigate.apply(this)
         window.addEventListener('hashchange', hashchangeHandler)

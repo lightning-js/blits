@@ -207,18 +207,17 @@ export const navigate = async function () {
     const { hash, path, queryParams } = getHash()
     let route = matchHash(path, this.parent[symbols.routes])
 
-    // Adding the location hash to the route if it exists.
-    if (hash !== null) {
-      route.hash = hash
-    }
-
     currentRoute = route
     if (route) {
+      // Adding the location hash to the route if it exists.
+      if (hash !== null) {
+        route.hash = hash
+      }
       let beforeEachResult
       if (this.parent[symbols.routerHooks]) {
         const hooks = this.parent[symbols.routerHooks]
         if (hooks.beforeEach) {
-          beforeEachResult = await hooks.beforeEach(route, previousRoute)
+          beforeEachResult = await hooks.beforeEach.call(this.parent, route, previousRoute)
           if (isString(beforeEachResult)) {
             to(beforeEachResult)
             return
@@ -387,6 +386,10 @@ export const navigate = async function () {
       this.activeView = this[symbols.children][this[symbols.children].length - 1]
     } else {
       Log.error(`Route ${hash} not found`)
+      const routerHooks = this.parent[symbols.routerHooks]
+      if (routerHooks && typeof routerHooks.error === 'function') {
+        routerHooks.error.call(this.parent, `Route ${hash} not found`)
+      }
     }
   }
 
