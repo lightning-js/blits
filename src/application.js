@@ -47,6 +47,7 @@ const Application = (config) => {
   let keyDownHandler
   let keyUpHandler
   let holdTimeout
+  let lastInputTime = 0
 
   config.hooks[symbols.destroy] = function () {
     document.removeEventListener('keydown', keyDownHandler)
@@ -59,7 +60,26 @@ const Application = (config) => {
     const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
 
     keyDownHandler = async (e) => {
+      const currentTime = performance.now()
+      /** @type {number} Input throttle time in milliseconds (0 = disabled) */
+      const throttleMs = Settings.get('inputThrottle', 0)
+      const isInternalEvent = e._blitsInternal === true
+
       const key = keyMap[e.key] || keyMap[e.keyCode] || e.key || e.keyCode
+      if (throttleMs === 0 || isInternalEvent) {
+        return await processInput.call(this, e, key)
+      }
+
+      const timeSinceLastInput = currentTime - lastInputTime
+      if (timeSinceLastInput < throttleMs) {
+        return
+      }
+
+      lastInputTime = currentTime
+      await processInput.call(this, e, key)
+    }
+
+    const processInput = async function (e, key) {
       // intercept key press if specified in main Application component
       if (
         this[symbols.inputEvents] !== undefined &&
