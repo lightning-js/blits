@@ -4,6 +4,12 @@ _30 Jun 2024_
 
 ## v1.31.1
 
+- Upgraded renderer to v2.15.0
+
+_30 Jun 2024_
+
+## v1.31.1
+
 - Upgraded renderer to v2.14.4
 
 _27 jun 2025_
