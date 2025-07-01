@@ -207,6 +207,18 @@ export const navigate = async function () {
     const { hash, path, queryParams } = getHash()
     let route = matchHash(path, this.parent[symbols.routes])
 
+    const queryParamsData = {}
+    const queryParamsEntries = [...queryParams.entries()]
+    for (let i = 0; i < queryParamsEntries.length; i++) {
+      queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
+    }
+
+    route.data = {
+      ...navigationData,
+      ...route.data,
+      ...queryParamsData,
+    }
+
     currentRoute = route
     if (route) {
       // Adding the location hash to the route if it exists.
@@ -257,7 +269,6 @@ export const navigate = async function () {
 
       /** @type {import('../engines/L3/element.js').BlitsElement} */
       let holder
-      let routeData
 
       let { view, focus } = cacheMap.get(route.hash) || {}
 
@@ -278,23 +289,11 @@ export const navigate = async function () {
         holder.set('w', '100%')
         holder.set('h', '100%')
 
-        const queryParamsData = {}
-        const queryParamsEntries = [...queryParams.entries()]
-        for (let i = 0; i < queryParamsEntries.length; i++) {
-          queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
-        }
-
-        routeData = {
-          ...navigationData,
-          ...route.data,
-          ...queryParamsData,
-        }
-
         // merge props with potential route params, navigation data and route data to be injected into the component instance
         const props = {
           ...this[symbols.props],
           ...route.params,
-          ...routeData,
+          ...route.data,
         }
 
         view = await route.component({ props }, holder, this)
@@ -368,7 +367,7 @@ export const navigate = async function () {
       state.path = route.path
       state.params = route.params
       state.hash = hash
-      state.data = routeData
+      state.data = route.data
 
       // apply in transition
       if (route.transition.in) {
