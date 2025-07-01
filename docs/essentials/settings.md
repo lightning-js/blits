@@ -62,6 +62,7 @@ Example font object:
 |----------------|-----------|-------------|
 | `keymap`       | `object`  | Custom key mapping for input events |
 | `holdTimeout`  | `number`  | Time (ms) to consider a key press as hold |
+| `inputThrottle`| `number`  | Input throttle time (ms) to prevent rapid successive inputs |
 
 ## Renderer
 
@@ -104,6 +105,8 @@ Blits.Launch(App, 'app', {
     ArrowLeft: 'left',
     ArrowRight: 'right',
   },
+  holdTimeout: 50,
+  inputThrottle: 100, // Throttle inputs to 100ms window
   gpuMemory: {
     max: 200,
     target: 0.8,

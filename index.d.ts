@@ -966,6 +966,17 @@ declare module '@lightningjs/blits' {
      */
     holdTimeout?: number,
     /**
+     * Input throttle time in milliseconds to prevent rapid successive inputs
+     *
+     * Within the throttle window, only one input will be processed immediately  Subsequent
+     * inputs are ignored until the scheduled input is processed.
+     *
+     * Set to `0` to disable input throttling.
+     *
+     * Defaults to `0` (disabled)
+     */
+    inputThrottle?: number,
+    /**
      * Custom canvas object used to render the App to.
      *
      * When not provided, the Lightning renderer will create a
