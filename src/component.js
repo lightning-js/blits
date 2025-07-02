@@ -188,6 +188,9 @@ const required = (name) => {
  * @param {BlitsComponentConfig} config - The configuration object for the component
  * @returns {BlitsComponentFactory} - The component factory function
  */
+
+const readyList = []
+
 const Component = (name = required('name'), config = required('config')) => {
   let base = undefined
 
@@ -349,8 +352,7 @@ const Component = (name = required('name'), config = required('config')) => {
       }
     }
 
-    // finaly set the lifecycle state to ready (in the next tick)
-    setTimeout(() => (this.lifecycle.state = 'ready'))
+    this.lifecycle.state = 'ready'
 
     // and return this
     return this

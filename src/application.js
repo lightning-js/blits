@@ -110,8 +110,8 @@ const Application = (config) => {
     document.addEventListener('keydown', keyDownHandler)
     document.addEventListener('keyup', keyUpHandler)
 
-    // next tick
-    setTimeout(() => Focus.set(this))
+    this.lifecycle.state = 'ready'
+    Focus.set(this)
   }
 
   return Component('App', config)
