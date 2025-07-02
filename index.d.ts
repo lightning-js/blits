@@ -481,6 +481,7 @@ declare module '@lightningjs/blits' {
   }
 
   export interface RouterHooks {
+    init?: () => Promise<> | void;
     beforeEach?: (to: Route, from: Route) => string | Route | Promise<string | Route> | void;
     error?: (err: string) => string | Route | Promise<string | Route> | void;
   }
