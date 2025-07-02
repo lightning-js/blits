@@ -383,8 +383,8 @@ export const navigate = async function () {
           await setOrAnimate(holder, route.transition.in, shouldAnimate)
         }
       }
-
-      this.activeView = this[symbols.children][this[symbols.children].length - 1]
+      const children = this[symbols.children]
+      this.activeView = children[children.length - 1]
     } else {
       Log.error(`Route ${hash} not found`)
     }
