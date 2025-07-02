@@ -13,6 +13,7 @@
  * @property {symbol} index
  * @property {symbol} init
  * @property {symbol} inputEvents
+ * @property {symbol} internalEvent
  * @property {symbol} intervals
  * @property {symbol} launched
  * @property {symbol} level
@@ -62,6 +63,7 @@ export default {
   index: Symbol('index'),
   init: Symbol('init'),
   inputEvents: Symbol('inputEvents'),
+  internalEvent: Symbol('internalEvent'),
   intervals: Symbol('intervals'),
   launched: Symbol('launched'),
   level: Symbol('level'),

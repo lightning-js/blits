@@ -48,7 +48,10 @@ export default {
           focusedComponent = component
           focusedComponent.lifecycle.state = 'focus'
           if (event instanceof KeyboardEvent) {
-            document.dispatchEvent(new KeyboardEvent('keydown', event))
+            const internalEvent = new KeyboardEvent('keydown', event)
+            // @ts-ignore - this is an internal event
+            internalEvent[symbols.internalEvent] = true
+            document.dispatchEvent(internalEvent)
           } else {
             focusChain = []
           }
