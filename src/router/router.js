@@ -207,18 +207,29 @@ export const navigate = async function () {
     const { hash, path, queryParams } = getHash()
     let route = matchHash(path, this.parent[symbols.routes])
 
-    // Adding the location hash to the route if it exists.
-    if (hash !== null) {
-      route.hash = hash
+    const queryParamsData = {}
+    const queryParamsEntries = [...queryParams.entries()]
+    for (let i = 0; i < queryParamsEntries.length; i++) {
+      queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
+    }
+
+    route.data = {
+      ...navigationData,
+      ...route.data,
+      ...queryParamsData,
     }
 
     currentRoute = route
     if (route) {
+      // Adding the location hash to the route if it exists.
+      if (hash !== null) {
+        route.hash = hash
+      }
       let beforeEachResult
       if (this.parent[symbols.routerHooks]) {
         const hooks = this.parent[symbols.routerHooks]
         if (hooks.beforeEach) {
-          beforeEachResult = await hooks.beforeEach(route, previousRoute)
+          beforeEachResult = await hooks.beforeEach.call(this.parent, route, previousRoute)
           if (isString(beforeEachResult)) {
             to(beforeEachResult)
             return
@@ -258,7 +269,6 @@ export const navigate = async function () {
 
       /** @type {import('../engines/L3/element.js').BlitsElement} */
       let holder
-      let routeData
 
       let { view, focus } = cacheMap.get(route.hash) || {}
 
@@ -279,23 +289,11 @@ export const navigate = async function () {
         holder.set('w', '100%')
         holder.set('h', '100%')
 
-        const queryParamsData = {}
-        const queryParamsEntries = [...queryParams.entries()]
-        for (let i = 0; i < queryParamsEntries.length; i++) {
-          queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
-        }
-
-        routeData = {
-          ...navigationData,
-          ...route.data,
-          ...queryParamsData,
-        }
-
         // merge props with potential route params, navigation data and route data to be injected into the component instance
         const props = {
           ...this[symbols.props],
           ...route.params,
-          ...routeData,
+          ...route.data,
         }
 
         view = await route.component({ props }, holder, this)
@@ -369,7 +367,7 @@ export const navigate = async function () {
       state.path = route.path
       state.params = route.params
       state.hash = hash
-      state.data = routeData
+      state.data = route.data
 
       // apply in transition
       if (route.transition.in) {
@@ -387,6 +385,10 @@ export const navigate = async function () {
       this.activeView = children[children.length - 1]
     } else {
       Log.error(`Route ${hash} not found`)
+      const routerHooks = this.parent[symbols.routerHooks]
+      if (routerHooks && typeof routerHooks.error === 'function') {
+        routerHooks.error.call(this.parent, `Route ${hash} not found`)
+      }
     }
   }
 
