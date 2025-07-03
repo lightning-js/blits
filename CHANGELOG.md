@@ -1,6 +1,23 @@
 # Changelog
 
-_30 Jun 2024_
+_02 Jul 2025_
+
+## v1.32.0
+
+- Added global router hooks `init` and `error`
+- Fixed issues with `this` scope in global router hooks
+- Fixed issue with `data` in `beforeEach` route not being complete
+- Added input throttling functionality
+- Optimized performance of children retrieval in `<Layout>`
+- Added documentation on global router hooks
+
+_30 Jun 2025_
+
+## v1.31.1
+
+- Upgraded renderer to v2.15.0
+
+_30 Jun 2025_
 
 ## v1.31.1
 

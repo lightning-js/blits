@@ -22,9 +22,6 @@ import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 
-// temporary counter to work around shader caching issues
-let counter = 0
-
 /**
  * Creates a padding object from a value and direction.
  * @param {number|object|string|undefined} padding - The padding value.
@@ -90,10 +87,11 @@ const layoutFn = function (config) {
 
   const children = this.node.children
   const childrenLength = children.length
+  const elementChildren = this.children
   let otherDimension = 0
   const gap = config.gap || 0
   for (let i = 0; i < childrenLength; i++) {
-    if (this.children[i] !== undefined && this.children[i].props.raw.show === false) {
+    if (elementChildren[i] !== undefined && elementChildren[i].props.raw.show === false) {
       continue
     }
     const node = children[i]
@@ -686,9 +684,6 @@ const Element = {
     this.config = null
     delete this.config
 
-    this.counter = null
-    delete this.counter
-
     this.props.raw = {}
     this.props.element = null
     this.props.props = null
@@ -714,9 +709,20 @@ const Element = {
     return this.node && this.node.parent
   },
   get children() {
-    return this.component[symbols.getChildren]().filter((child) => {
-      return child.parent === (this[symbols.isSlot] ? this.node.children[0] : this.node)
-    })
+    const allChildren = this.component[symbols.getChildren]()
+    const directChildren = []
+    const l = allChildren.length
+    for (let i = 0; i < l; i++) {
+      const child = allChildren[i]
+      if (
+        child !== undefined &&
+        child.parent === (this[symbols.isSlot] ? this.node.children[0] : this.node)
+      ) {
+        directChildren.push(child)
+      }
+    }
+
+    return directChildren
   },
 }
 
@@ -739,6 +745,5 @@ export default (config, component) => {
     scheduledTransitions: {},
     config,
     component,
-    counter: counter++,
   })
 }

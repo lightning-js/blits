@@ -59,19 +59,19 @@ const Application = (config) => {
     this.$announcer.toggle(Settings.get('announcer', false))
     const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
 
+    /** @type {number} Input throttle time in milliseconds (0 = disabled) */
+    const throttleMs = Settings.get('inputThrottle', 0)
+
     keyDownHandler = async (e) => {
       const currentTime = performance.now()
-      /** @type {number} Input throttle time in milliseconds (0 = disabled) */
-      const throttleMs = Settings.get('inputThrottle', 0)
-      const isInternalEvent = e._blitsInternal === true
 
       const key = keyMap[e.key] || keyMap[e.keyCode] || e.key || e.keyCode
-      if (throttleMs === 0 || isInternalEvent) {
+      // execute immediately when no throttle is specified or event is internal (bubbled up by focus manager)
+      if (throttleMs === 0 || e[symbols.internalEvent] === true) {
         return await processInput.call(this, e, key)
       }
 
-      const timeSinceLastInput = currentTime - lastInputTime
-      if (timeSinceLastInput < throttleMs) {
+      if (currentTime - lastInputTime < throttleMs) {
         return
       }
 

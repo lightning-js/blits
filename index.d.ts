@@ -481,14 +481,16 @@ declare module '@lightningjs/blits' {
   }
 
   export interface RouterHooks {
+    init?: () => Promise<> | void;
     beforeEach?: (to: Route, from: Route) => string | Route | Promise<string | Route> | void;
+    error?: (err: string) => string | Route | Promise<string | Route> | void;
   }
 
-  export interface RouterConfig {
+  export interface RouterConfig<P extends Props, S, M, C> {
     /**
      * Register hooks for the router
      */
-    hooks?: RouterHooks,
+    hooks?: RouterHooks & ComponentContext<P, S, M, C>,
 
     /**
      * Routes definition
@@ -511,7 +513,7 @@ declare module '@lightningjs/blits' {
       /**
        * Router Configuration
        */
-      router?: RouterConfig,
+      router?: RouterConfig<P, S, M, C>,
       routes?: never
     }
     |

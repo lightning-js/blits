@@ -68,3 +68,58 @@ export default Blits.Application({
   // ...
 })
 ```
+
+## Global router hooks
+
+Besides router hooks per route, as In the previous section, it is also possible to define _global_ hooks that are applicable to all routes / the router as a whole.
+
+In order to configure global router hooks the `routes` key in the Application configuration object should be wrapped inside a `router` key.
+
+Alongside the `router.routes` key we can now define a `router.hooks` object, which can have any of the following pre-defined hook functions:
+
+### `beforeEach()`
+
+Similar to the `before`-hook, the `beforeEach`-hook will be execute for every router navigation. This can be useful if you find yourself repeating the same functionality for many routes, for example an _authentication check_ or sending _telemetry_.
+
+The `beforeEach`-hooks functions the same as the `before`-hook. It receives the route being navigated to as its first argument and the route navigated from as the second. And it can also optionally return a value, which will influence the behaviour of the route change as explained in the previous section.
+
+### `init()`
+
+The `init`-hook is a router hook that will be invoked once when defined when the router is being instantiated. It can be used to do some onetime setup, required before starting the routing.
+
+The `init`-hook can be an asynchronous function. In this case the router will await the init function to resolve before comencing the first navigation.
+
+### `error()`
+
+The `error`-hook is a router hook that will be invoked when an error has occured. For example when routing to a non-existing route. It will receive an error message and the developer is free to implement any error handling functionality in this hook. This can be showing an Error popup, or navigating to a predefined 404 Not found route using the `this.$router.to()` method.
+
+
+```js
+export default Blits.Application({
+  // ...
+  router: {
+    // array with routes wrapped in router key
+    routes: [
+        {
+          path: '/video/details/:id',
+          component: Details,
+        }
+    ],
+    hooks: {
+      async init() {
+        this.someConfig = await retrieveSomeConfig()
+      },
+      beforeEach(to, from) {
+        if(protectedRoutes.indexOf(to.path) > -1 && this.loggedIn === false) {
+          return 'loginPage'
+        }
+      },
+      error(msg) {
+        this.showErrorModal(msg)
+      }
+    }
+  }
+
+  // ...
+})
+```
