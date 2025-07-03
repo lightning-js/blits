@@ -21,6 +21,8 @@ const syn = window.speechSynthesis
 
 const isAndroid = /android/i.test((window.navigator || {}).userAgent || '')
 
+const utterances = []
+
 let initialized = false
 let infinityTimer = null
 const clear = () => infinityTimer && clearTimeout(infinityTimer)
@@ -31,7 +33,9 @@ const resumeInfinity = (target) => {
   }
 
   syn.pause()
-  syn.resume()
+  setTimeout(() => {
+    syn.resume()
+  })
 
   infinityTimer = setTimeout(() => {
     resumeInfinity(target)
@@ -53,6 +57,10 @@ const initialize = () => {
 
 const speak = (options) => {
   const utterance = new SpeechSynthesisUtterance(options.message)
+
+  // push utterance into an array to prevent premature GC on certain devices
+  // causing the `onend`-event to not fire
+  utterances.push(utterance)
 
   utterance.lang = options.lang || defaultUtteranceProps.lang
   utterance.pitch = options.pitch || defaultUtteranceProps.pitch
@@ -79,6 +87,14 @@ const speak = (options) => {
     }
 
     syn.speak(utterance)
+  }).finally(() => {
+    // clean up utterance to prevent dangling utterances in memory
+    setTimeout(() => {
+      const index = utterances.indexOf(utterance)
+      if (index !== -1) {
+        utterances.splice(index)
+      }
+    })
   })
 }
 
