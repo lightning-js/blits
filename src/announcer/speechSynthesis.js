@@ -33,7 +33,9 @@ const resumeInfinity = (target) => {
   }
 
   syn.pause()
-  syn.resume()
+  setTimeout(() => {
+    syn.resume()
+  })
 
   infinityTimer = setTimeout(() => {
     resumeInfinity(target)
