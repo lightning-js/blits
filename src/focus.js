@@ -26,6 +26,20 @@ let setFocusTimeout
 
 export const keyUpCallbacks = new Map()
 
+/**
+ * Safely unfocus a component with error handling
+ * @param {Object} component - The component to unfocus
+ */
+const safeUnfocus = (component) => {
+  try {
+    if (component && typeof component.unfocus === 'function') {
+      component.unfocus()
+    }
+  } catch (error) {
+    console.warn('Error during unfocus operation:', error)
+  }
+}
+
 export default {
   _hold: false,
   set hold(v) {
@@ -38,43 +52,59 @@ export default {
     return focusedComponent
   },
   set(component, event) {
-    if (component === focusedComponent) return
+    const currentFocused = focusedComponent
+    const componentParent = component.parent
+    const isHold = this.hold
+
+    // early return if already focused
+    if (component === currentFocused) return
     clearTimeout(setFocusTimeout)
-    focusedComponent && focusedComponent !== component.parent && focusedComponent.unfocus()
-    focusChain.reverse().forEach((cmp) => cmp.unfocus())
-    if (component !== focusedComponent) {
-      setFocusTimeout = setTimeout(
-        () => {
-          focusedComponent = component
-          focusedComponent.lifecycle.state = 'focus'
-          if (event instanceof KeyboardEvent) {
-            const internalEvent = new KeyboardEvent('keydown', event)
-            // @ts-ignore - this is an internal event
-            internalEvent._blitsInternal = true
-            document.dispatchEvent(internalEvent)
-          } else {
-            focusChain = []
-          }
-        },
-        this.hold ? Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS) : 0
-      )
+
+    if (currentFocused && currentFocused !== componentParent) {
+      safeUnfocus(currentFocused)
     }
+
+    let i = focusChain.length
+    while (i--) {
+      safeUnfocus(focusChain[i])
+    }
+
+    // cache timeout value to avoid repeated computation
+    const timeoutMs = isHold ? Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS) : 0
+
+    setFocusTimeout = setTimeout(() => {
+      focusedComponent = component
+      component.lifecycle.state = 'focus'
+
+      if (event instanceof KeyboardEvent) {
+        const internalEvent = new KeyboardEvent('keydown', event)
+        // @ts-ignore - this is an internal event
+        internalEvent._blitsInternal = true
+        document.dispatchEvent(internalEvent)
+      } else {
+        focusChain.length = 0
+      }
+    }, timeoutMs)
   },
   input(key, event) {
     if (state.navigating === true) return
+
     focusChain = walkChain([focusedComponent], key)
     const componentWithInputEvent = focusChain.shift()
+    if (!componentWithInputEvent) return
 
-    if (componentWithInputEvent) {
-      let cb
-      if (componentWithInputEvent[symbols.inputEvents][key]) {
-        cb = componentWithInputEvent[symbols.inputEvents][key].call(componentWithInputEvent, event)
-      } else if (componentWithInputEvent[symbols.inputEvents].any) {
-        cb = componentWithInputEvent[symbols.inputEvents].any.call(componentWithInputEvent, event)
-      }
-      if (cb !== undefined) {
-        keyUpCallbacks.set(event.code, cb)
-      }
+    const inputEvents = componentWithInputEvent[symbols.inputEvents]
+    if (!inputEvents) return
+
+    let cb
+    if (inputEvents[key]) {
+      cb = inputEvents[key].call(componentWithInputEvent, event)
+    } else if (inputEvents.any) {
+      cb = inputEvents.any.call(componentWithInputEvent, event)
+    }
+
+    if (cb !== undefined) {
+      keyUpCallbacks.set(event.code, cb)
     }
   },
 }
