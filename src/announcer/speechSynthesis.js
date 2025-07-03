@@ -87,10 +87,12 @@ const speak = (options) => {
     syn.speak(utterance)
   }).finally(() => {
     // clean up utterance to prevent dangling utterances in memory
-    const index = utterances.indexOf(utterance)
-    if (index !== -1) {
-      utterances.splice(index)
-    }
+    setTimeout(() => {
+      const index = utterances.indexOf(utterance)
+      if (index !== -1) {
+        utterances.splice(index)
+      }
+    })
   })
 }
 
