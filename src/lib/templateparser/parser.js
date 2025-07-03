@@ -143,7 +143,7 @@ export default (template = '', componentName, parentComponent, filePath = null) 
       if (currentTag[symbols.type] === 'opening') {
         const tagContent = template.slice(cursor, template.indexOf('<', cursor))
         if (tagContent) {
-          currentTag.content = tagContent
+          currentTag[Symbol.for('tagContent')] = tagContent
           cursor += tagContent.length
         }
       }
