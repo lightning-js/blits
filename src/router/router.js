@@ -206,26 +206,17 @@ export const navigate = async function () {
     let previousRoute = currentRoute //? Object.assign({}, currentRoute) : undefined
     const { hash, path, queryParams } = getHash()
     let route = matchHash(path, this.parent[symbols.routes])
-    console.log('route', route)
     const queryParamsData = {}
     const queryParamsEntries = [...queryParams.entries()]
     for (let i = 0; i < queryParamsEntries.length; i++) {
       queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
     }
 
-    // debugger
-    console.log(navigationData?.data?.assetDetails?.title)
-    console.log(navigationData?.data?.assetDetails?.title)
-    console.log('route data', route.data)
     route.data = {
-      ...navigationData,
       ...route.data,
+      ...navigationData,
       ...queryParamsData,
     }
-
-    console.log('navigation data', navigationData)
-
-    console.log(route.data.data?.assetDetails?.title)
 
     currentRoute = route
     if (route) {
