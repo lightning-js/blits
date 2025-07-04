@@ -162,11 +162,14 @@ const generateElementCode = function (
         this.effectsCode.push(`
         if(typeof skip${counter} === 'undefined' ||
           skip${counter}.indexOf('${key.substring(1)}') === -1)
-          ${elm}.set('${key.substring(1)}', ${interpolate(templateObject[key], options.component)})
+          if(${elm} !== undefined) ${elm}.set('${key.substring(1)}', ${interpolate(
+          templateObject[key],
+          options.component
+        )})
         `)
       } else {
         this.effectsCode.push(`
-            ${elm}.set('${key.substring(1)}', ${interpolate(
+            if(${elm} !== undefined) ${elm}.set('${key.substring(1)}', ${interpolate(
           templateObject[key],
           options.component
         )})
