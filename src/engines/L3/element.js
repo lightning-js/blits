@@ -546,6 +546,7 @@ const Element = {
    */
   set(prop, value) {
     if (value === undefined) return
+    if (this.props === undefined) return
     // @ts-ignore
     if (this.props.raw[prop] === value) return
     // @ts-ignore
