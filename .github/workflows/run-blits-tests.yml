@@ -32,7 +32,7 @@ jobs:
 
     - name: Run Tests
       id: run-tests
-      run: npm run test > test-report.txt 2>&1 || echo "Command failed with exit code $?" >> test-report.txt
+      run: npm run test:ci > test-report.txt 2>&1 || echo "Command failed with exit code $?" >> test-report.txt
 
     - name: Analyze Test Results
       id: analyze-results
