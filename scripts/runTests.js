@@ -21,7 +21,7 @@ import { resolve } from 'path'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
-const __dirname = resolve(__filename, '..')
+const __dirname = resolve(__filename, '../..')
 
 try {
   // Find all *.test.js files excluding node_modules and packages

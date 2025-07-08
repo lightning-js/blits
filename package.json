@@ -13,7 +13,7 @@
     "./blitsFileConverter": "./src/lib/blitsfileconverter/blitsfileconverter.js"
   },
   "scripts": {
-    "test": "c8 node runTests.js",
+    "test": "c8 node scripts/runTests.js",
     "test:ci": "c8 npm run test:run",
     "test:run": "node -r global-jsdom/register ./node_modules/.bin/tape '{,!(node_modules|packages)/**/}*.test.js' | tap-diff",
     "lint": "eslint '**/*.js'",
