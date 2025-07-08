@@ -13,7 +13,7 @@
     "./blitsFileConverter": "./src/lib/blitsfileconverter/blitsfileconverter.js"
   },
   "scripts": {
-    "test": "c8 npm run test:run",
+    "test": "c8 node runTests.js",
     "test:run": "node -r global-jsdom/register ./node_modules/.bin/tape '{,!(node_modules|packages)/**/}*.test.js' | tap-diff",
     "lint": "eslint '**/*.js'",
     "lint:fix": "eslint '**/*.js' --fix",
@@ -38,6 +38,7 @@
     "eslint": "^8.8.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "fast-glob": "^3.3.3",
     "global-jsdom": "24.0.0",
     "husky": "^9.1.7",
     "jsdom": "24.0.0",
