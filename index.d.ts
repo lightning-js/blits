@@ -1015,6 +1015,15 @@ declare module '@lightningjs/blits' {
      * @default false
      */
     announcer?: boolean
+    /**
+     * Maximum FPS at which the App will be rendered
+     *
+     * Lowering the maximum FPS value can improve the overall experience on lower end devices.
+     * Targetting a lower FPS may gives the CPU more time to construct each frame leading to a smoother rendering.
+     *
+     * Defaults to `0` which means no maximum
+     */
+    maxFPS?: number
   }
 
   interface State {

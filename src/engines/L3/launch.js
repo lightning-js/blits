@@ -99,6 +99,7 @@ export default (App, target, settings = {}) => {
         textureProcessingTimeLimit: settings.textureProcessingTimeLimit,
         textureMemory: textureMemorySettings(settings),
         createImageBitmapSupport: 'auto',
+        targetFPS: 'maxFPS' in settings ? settings.maxFPS : 0,
       },
       ...(settings.advanced || {}),
     },
