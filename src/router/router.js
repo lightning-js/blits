@@ -132,7 +132,7 @@ export const matchHash = (path, routes = []) => {
   let matchingRoute = false
   let i = 0
   while (!matchingRoute && i < routes.length) {
-    const route = routes[i]
+    const route = { ...routes[i] }
     route.path = normalizePath(route.path)
     if (route.path === path) {
       route.params = {}
@@ -206,7 +206,6 @@ export const navigate = async function () {
     let previousRoute = currentRoute //? Object.assign({}, currentRoute) : undefined
     const { hash, path, queryParams } = getHash()
     let route = matchHash(path, this.parent[symbols.routes])
-
     const queryParamsData = {}
     const queryParamsEntries = [...queryParams.entries()]
     for (let i = 0; i < queryParamsEntries.length; i++) {
@@ -214,8 +213,8 @@ export const navigate = async function () {
     }
 
     route.data = {
-      ...navigationData,
       ...route.data,
+      ...navigationData,
       ...queryParamsData,
     }
 

@@ -10,6 +10,11 @@ _08 Jul 2025_
 - Optimized initial registration of routes
 - Added `maxFPS` launch setting
 
+_04 Jul 2025_
+
+## v1.32.1
+
+- Fixed issue with router data overwriting the orginal route definition
 
 _02 Jul 2025_
 
