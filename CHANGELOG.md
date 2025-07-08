@@ -1,5 +1,121 @@
 # Changelog
 
+_08 Jul 2025_
+
+## v1.33.0
+
+- Added dereferencing of previousFocus pointer to ensure memory cleanup
+- Improved cleanup of components (via explicit dereference of closure scope)
+- Optimized time function in logger
+- Optimized initial registration of routes
+- Added `maxFPS` launch setting
+
+_04 Jul 2025_
+
+## v1.32.1
+
+- Fixed issue with router data overwriting the orginal route definition
+
+_02 Jul 2025_
+
+## v1.32.0
+
+- Added global router hooks `init` and `error`
+- Fixed issues with `this` scope in global router hooks
+- Fixed issue with `data` in `beforeEach` route not being complete
+- Added input throttling functionality
+- Optimized performance of children retrieval in `<Layout>`
+- Added documentation on global router hooks
+
+_30 Jun 2025_
+
+## v1.31.1
+
+- Upgraded renderer to v2.15.0
+
+_30 Jun 2025_
+
+## v1.31.1
+
+- Upgraded renderer to v2.14.4
+
+_27 jun 2025_
+
+## v1.31.0
+
+- Added dereferencing of previousFocus pointer to ensure memory release
+- Added npm ignore to reduce NPM package size
+- Added support for precompilation of `.mjs` files
+- Upgraded renderer to v2.14.3
+
+
+_25 jun 2025_
+
+## v1.30.2
+
+- Bumped renderer to v2.14.2
+
+
+_25 jun 2025_
+
+## v1.30.1
+
+- Bumped renderer to v2.14.1
+
+
+_24 jun 2025_
+
+## v1.30.0
+
+- Added documentation on lazy loading performance
+- Bumped renderer to v2.14.0 (simplified texture throttling)
+- Fixed bug in announcer when utterance is cancelled
+
+
+_12 jun 2025_
+
+## v1.29.5
+
+- Simplified timeout and interval cleanup
+- Added explicit reset of component state upon destruction
+- Fixed `exit` lifecycle hook
+
+_06 jun 2025_
+
+## v1.29.4
+
+- Removed excessive shader creation for effects
+- Added explicit cleanup of effects in for loop
+- Improved element destruction
+
+_03 jun 2025_
+
+## v1.29.3
+
+- Added first batch internal JS doc types
+- Added documentation on Launch settings
+- Fixed issue with reactivity effects being shared (and retained) on the prototype
+
+_28 may 2025_
+
+## v1.29.2
+
+- Added end of life flag to prevent timers, intervals and listeners to be registered after component destroy
+
+_22 may 2025_
+
+## v1.29.1
+
+- Fixed issue with async and lifecycle ready error
+
+
+_22 may 2025_
+
+## v1.29.0
+
+- Fixed memory leaks
+- Added componentId in warning when modifying props directly for easier debugging
+
 _15 apr 2025_
 
 ## v1.28.0

@@ -19,6 +19,15 @@ const eventsMap = new Map()
 const callbackCache = new Map()
 
 export default {
+  /**
+   * Registers a listener callback for a specific event on a component.
+   *
+   * @param {object} component - The component instance to register the listener for.
+   * @param {string} event - The name of the event to listen for.
+   * @param {Function} cb - The callback function to execute when the event is emitted.
+   * @param {number} [priority=0] - The priority of the listener (higher runs first).
+   * @returns {void}
+   */
   registerListener(component, event, cb, priority = 0) {
     let componentsMap = eventsMap.get(event)
     if (componentsMap === undefined) {
@@ -36,6 +45,13 @@ export default {
     callbackCache.delete(event) // Invalidate the callbackCache when a new callback is added
   },
 
+  /**
+   * Deregisters a listener for a specific event on a component.
+   *
+   * @param {object} component - The component instance to deregister the listener for.
+   * @param {string} event - The name of the event to stop listening for.
+   * @returns {void}
+   */
   deregisterListener(component, event) {
     let componentsMap = eventsMap.get(event)
     if (componentsMap === undefined) {
@@ -49,6 +65,13 @@ export default {
     }
   },
 
+  /**
+   * Executes all registered listeners for a given event, in priority order.
+   *
+   * @param {string} event - The name of the event to emit.
+   * @param {any} params - The parameters to pass to the event listeners.
+   * @returns {boolean} True if all listeners executed without stopping propagation, false if any listener returned false.
+   */
   executeListeners(event, params) {
     const componentsMap = eventsMap.get(event)
     if (componentsMap === undefined || componentsMap.size === 0) {
@@ -78,6 +101,12 @@ export default {
     return true // All listeners executed without stopping propagation
   },
 
+  /**
+   * Removes all listeners for a given component from all events.
+   *
+   * @param {object} component - The component instance to remove listeners for.
+   * @returns {void}
+   */
   removeListeners(component) {
     for (const [event, componentsMap] of eventsMap) {
       if (componentsMap.has(component)) {

@@ -25,6 +25,30 @@ import Focus from '../focus.js'
 import Announcer from '../announcer/announcer.js'
 import Settings from '../settings.js'
 
+/**
+ * @typedef {import('../component.js').BlitsComponentFactory} BlitsComponentFactory - The component of the route
+ * @typedef {import('../component.js').BlitsComponent} BlitsComponent - The element of the route
+ * @typedef {import('../engines/L3/element.js').BlitsElement} BlitsElement - The element of the route
+ *
+ * @typedef {Object} Route
+ * @property {string} path - The path of the route
+ * @property {string} hash - The hash of the route
+ * @property {Object} params - The params of the route
+ * @property {Object} data - The data of the route
+ * @property {Object} options - The options of the route
+ * @property {Object} hooks - The hooks of the route
+ * @property {Object} transition - The transition of the route
+ * @property {Object} announce - The announce of the route
+ * @property {(options: Object, parentEl: BlitsElement, parentComponent: BlitsComponent, rootComponent?: BlitsComponent) => BlitsComponent} component - The component factory of the route
+ *
+ * @typedef {Object} Hash
+ * @property {string} path - The path of the hash
+ * @property {URLSearchParams} queryParams - The query params of the hash
+ * @property {string} hash - The hash
+ *
+ */
+
+/** @type {Route} */
 export let currentRoute
 export const state = reactive(
   {
@@ -40,6 +64,14 @@ export const state = reactive(
 
 // Changed from WeakMap to Map to allow for caching of views by the url hash.
 // We are manually doing the cleanup of the cache when the route is not marked as keepAlive.
+
+/**
+ * @typedef {Object} CacheMapEntry
+ * @property {BlitsComponent|BlitsComponentFactory} view - The view of the route
+ * @property {BlitsComponent} focus - The focus of the route
+ */
+
+/** @type {Map<String, CacheMapEntry>} */
 const cacheMap = new Map()
 const history = []
 
@@ -48,6 +80,10 @@ let navigationData = {}
 let navigatingBack = false
 let previousFocus
 
+/**
+ * Get the current hash
+ * @returns {Hash}
+ */
 export const getHash = () => {
   const hashParts = (document.location.hash || '/').replace(/^#/, '').split('?')
   return {
@@ -65,18 +101,38 @@ const normalizePath = (path) => {
       .toLowerCase()
   )
 }
+
+/**
+ * Check if a value is an object
+ * @param {any} v
+ * @returns {boolean} True if v is an object
+ */
 const isObject = (v) => typeof v === 'object' && v !== null
 
+/**
+ * Check if a value is a function
+ * @param {any} v
+ * @returns {boolean} True if v is a string
+ */
 const isString = (v) => typeof v === 'string'
 
+/**
+ * Match a path to a route
+ *
+ * @param {string} path
+ * @param {Route[]} routes
+ * @returns {Route}
+ */
 export const matchHash = (path, routes = []) => {
   // remove trailing slashes
   const originalPath = path.replace(/^\/+|\/+$/g, '')
   path = normalizePath(path)
+
+  /** @type {boolean|Route} */
   let matchingRoute = false
   let i = 0
   while (!matchingRoute && i < routes.length) {
-    const route = routes[i]
+    const route = { ...routes[i] }
     route.path = normalizePath(route.path)
     if (route.path === path) {
       route.params = {}
@@ -126,30 +182,53 @@ export const matchHash = (path, routes = []) => {
     }
   }
 
+  // @ts-ignore - Remove me when we have a better way to handle this
   return matchingRoute
 }
 
+/**
+ * Navigate to a route
+ *
+ * This isn't the prettiest way to do this, but it works. The reason is that extends
+ * only works for Classes or Factory functions. As such we need to use this
+ * @typedef {BlitsComponent & {
+ *   activeView: BlitsComponent
+ * }} RouterViewComponent
+ *
+ * @this {RouterViewComponent} this
+ * @returns {Promise<void>}
+ */
 export const navigate = async function () {
   Announcer.stop()
   Announcer.clear()
   state.navigating = true
   if (this.parent[symbols.routes]) {
-    let previousRoute = currentRoute ? Object.assign({}, currentRoute) : undefined
+    let previousRoute = currentRoute //? Object.assign({}, currentRoute) : undefined
     const { hash, path, queryParams } = getHash()
     let route = matchHash(path, this.parent[symbols.routes])
+    const queryParamsData = {}
+    const queryParamsEntries = [...queryParams.entries()]
+    for (let i = 0; i < queryParamsEntries.length; i++) {
+      queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
+    }
 
-    // Adding the location hash to the route if it exists.
-    if (hash !== null) {
-      route.hash = hash
+    route.data = {
+      ...route.data,
+      ...navigationData,
+      ...queryParamsData,
     }
 
     currentRoute = route
     if (route) {
+      // Adding the location hash to the route if it exists.
+      if (hash !== null) {
+        route.hash = hash
+      }
       let beforeEachResult
       if (this.parent[symbols.routerHooks]) {
         const hooks = this.parent[symbols.routerHooks]
         if (hooks.beforeEach) {
-          beforeEachResult = await hooks.beforeEach(route, previousRoute)
+          beforeEachResult = await hooks.beforeEach.call(this.parent, route, previousRoute)
           if (isString(beforeEachResult)) {
             to(beforeEachResult)
             return
@@ -178,6 +257,7 @@ export const navigate = async function () {
       }
       // apply default transition if none specified
       if (!('transition' in route)) {
+        /** @ts-ignore */
         route.transition = fadeInFadeOutTransition
       }
       // a transition can be a function returning a dynamic transition object
@@ -186,8 +266,9 @@ export const navigate = async function () {
         route.transition = route.transition(previousRoute, route)
       }
 
+      /** @type {import('../engines/L3/element.js').BlitsElement} */
       let holder
-      let routeData
+
       let { view, focus } = cacheMap.get(route.hash) || {}
 
       // Announce route change if a message has been specified for this route
@@ -207,23 +288,11 @@ export const navigate = async function () {
         holder.set('w', '100%')
         holder.set('h', '100%')
 
-        const queryParamsData = {}
-        const queryParamsEntries = [...queryParams.entries()]
-        for (let i = 0; i < queryParamsEntries.length; i++) {
-          queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
-        }
-
-        routeData = {
-          ...navigationData,
-          ...route.data,
-          ...queryParamsData,
-        }
-
         // merge props with potential route params, navigation data and route data to be injected into the component instance
         const props = {
           ...this[symbols.props],
           ...route.params,
-          ...routeData,
+          ...route.data,
         }
 
         view = await route.component({ props }, holder, this)
@@ -236,7 +305,9 @@ export const navigate = async function () {
           }
         }
         if (typeof view === 'function') {
-          view = view({ props }, holder, this)
+          // had to inline this because the tscompiler does not like LHS reassignments
+          // that also change the type of the variable in a variable union
+          view = /** @type {BlitsComponentFactory} */ (view)({ props }, holder, this)
         }
       } else {
         holder = view[symbols.holder]
@@ -267,7 +338,7 @@ export const navigate = async function () {
       previousFocus = Focus.get()
 
       // set focus to the view that we're routing to
-      focus ? focus.$focus() : view.$focus()
+      focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
 
       // apply before settings to holder element
       if (route.transition.before) {
@@ -290,14 +361,12 @@ export const navigate = async function () {
         if (oldView) {
           removeView(previousRoute, oldView, route.transition.out)
         }
-
-        previousRoute = undefined
       }
 
       state.path = route.path
       state.params = route.params
       state.hash = hash
-      state.data = routeData
+      state.data = route.data
 
       // apply in transition
       if (route.transition.in) {
@@ -311,10 +380,14 @@ export const navigate = async function () {
           await setOrAnimate(holder, route.transition.in, shouldAnimate)
         }
       }
-
-      this.activeView = this[symbols.children][this[symbols.children].length - 1]
+      const children = this[symbols.children]
+      this.activeView = children[children.length - 1]
     } else {
       Log.error(`Route ${hash} not found`)
+      const routerHooks = this.parent[symbols.routerHooks]
+      if (routerHooks && typeof routerHooks.error === 'function') {
+        routerHooks.error.call(this.parent, `Route ${hash} not found`)
+      }
     }
   }
 
@@ -323,6 +396,13 @@ export const navigate = async function () {
   state.navigating = false
 }
 
+/**
+ * Remove the currently active view
+ *
+ * @param {Route} route
+ * @param {BlitsComponent} view
+ * @param {Object} transition
+ */
 const removeView = async (route, view, transition) => {
   // apply out transition
   if (transition) {
@@ -354,20 +434,22 @@ const removeView = async (route, view, transition) => {
     view.destroy()
     view = null
   }
+
+  previousFocus = null
 }
 
 const setOrAnimate = (node, transition, shouldAnimate = true) => {
   return new Promise((resolve) => {
-    if (shouldAnimate) {
+    if (shouldAnimate === true) {
       // resolve the promise in the transition end-callback
       // ("extending" end callback when one is already specified)
-      const existingEndCallback = transition.end
-      transition.end = existingEndCallback
-        ? (...args) => {
-            existingEndCallback(...args)
-            resolve()
-          }
-        : resolve
+      let existingEndCallback = transition.end
+      transition.end = (...args) => {
+        existingEndCallback && existingEndCallback(args)
+        // null the callback to enable memory cleanup
+        existingEndCallback = null
+        resolve()
+      }
       node.set(transition.prop, { transition })
     } else {
       node.set(transition.prop, transition.value)

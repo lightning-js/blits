@@ -24,19 +24,16 @@ export default (component, data) => {
     routes = data.routes
   }
   component[symbols.routes] = []
-  Object.keys(routes).forEach((key) => {
-    // todo: validate routes[key] for expected format etc.
-    component[symbols.routes][key] = {
-      ...routes[key],
+
+  const l = routes.length
+  for (let i = 0; i < l; i++) {
+    component[symbols.routes][i] = routes[i]
+    // merge default route options with route specific options
+    component[symbols.routes][i].options = {
       ...{
-        // merge default route options with route specific options
-        options: {
-          ...{
-            inHistory: true,
-          },
-          ...routes[key].options,
-        },
+        inHistory: true,
       },
+      ...routes[i].options,
     }
-  })
+  }
 }

@@ -481,14 +481,16 @@ declare module '@lightningjs/blits' {
   }
 
   export interface RouterHooks {
+    init?: () => Promise<> | void;
     beforeEach?: (to: Route, from: Route) => string | Route | Promise<string | Route> | void;
+    error?: (err: string) => string | Route | Promise<string | Route> | void;
   }
 
-  export interface RouterConfig {
+  export interface RouterConfig<P extends Props, S, M, C> {
     /**
      * Register hooks for the router
      */
-    hooks?: RouterHooks,
+    hooks?: RouterHooks & ComponentContext<P, S, M, C>,
 
     /**
      * Routes definition
@@ -511,7 +513,7 @@ declare module '@lightningjs/blits' {
       /**
        * Router Configuration
        */
-      router?: RouterConfig,
+      router?: RouterConfig<P, S, M, C>,
       routes?: never
     }
     |
@@ -966,6 +968,17 @@ declare module '@lightningjs/blits' {
      */
     holdTimeout?: number,
     /**
+     * Input throttle time in milliseconds to prevent rapid successive inputs
+     *
+     * Within the throttle window, only one input will be processed immediately  Subsequent
+     * inputs are ignored until the scheduled input is processed.
+     *
+     * Set to `0` to disable input throttling.
+     *
+     * Defaults to `0` (disabled)
+     */
+    inputThrottle?: number,
+    /**
      * Custom canvas object used to render the App to.
      *
      * When not provided, the Lightning renderer will create a
@@ -1002,6 +1015,15 @@ declare module '@lightningjs/blits' {
      * @default false
      */
     announcer?: boolean
+    /**
+     * Maximum FPS at which the App will be rendered
+     *
+     * Lowering the maximum FPS value can improve the overall experience on lower end devices.
+     * Targetting a lower FPS may gives the CPU more time to construct each frame leading to a smoother rendering.
+     *
+     * Defaults to `0` which means no maximum
+     */
+    maxFPS?: number
   }
 
   interface State {
