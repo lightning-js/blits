@@ -22,14 +22,27 @@ export default function (templateObject = { children: [] }, devMode = false) {
   const ctx = {
     renderCode: [
       'const elms = []',
+      'const elementConfigs = []',
+      'const forloops = []',
+      'const props = []',
+      'const created = []',
+      'const skips = []',
       'let componentType',
-      'const rootComponent = component',
+      'let rootComponent = component',
       'let propData',
       'let slotComponent',
       'let inSlot = false',
       'let slotChildCounter = 0',
+      'let cmps = []',
     ],
     effectsCode: [],
+    cleanupCode: [
+      'rootComponent = null',
+      'propData = null',
+      'slotComponent = null',
+      'component = null',
+      'parent = null',
+    ],
     context: { props: [], components: this.components },
   }
 
@@ -57,7 +70,18 @@ export default function (templateObject = { children: [] }, devMode = false) {
     `)
   }
   generateCode.call(ctx, templateObject)
-  ctx.renderCode.push('return elms')
+  ctx.renderCode.push(`
+    return { elms, cleanup: () => {
+      ${ctx.cleanupCode.join('\n')}
+      cmps.length = 0
+      elms.length = 0
+      components.length = 0
+      elementConfigs.length = 0
+      forloops.length = 0
+      props.length = 0
+      skips.length = 0
+    }}
+  `)
 
   return {
     render: new Function(
@@ -124,7 +148,7 @@ const generateElementCode = function (
     `)
   }
 
-  renderCode.push(`const elementConfig${counter} = {}`)
+  renderCode.push(`elementConfigs[${counter}] = {}`)
 
   if (options.forloop) {
     renderCode.push(`if(${elm} === undefined) {`)
@@ -142,13 +166,13 @@ const generateElementCode = function (
   delete templateObject['children']
 
   if (templateObject[Symbol.for('componentType')] === 'Slot') {
-    renderCode.push(`elementConfig${counter}[Symbol.for('isSlot')] = true`)
+    renderCode.push(`elementConfigs[${counter}][Symbol.for('isSlot')] = true`)
   }
 
   Object.keys(templateObject).forEach((key) => {
     if (key === 'slot') {
       renderCode.push(`
-        elementConfig${counter}['parent'] = slotComponent[Symbol.for('slots')] !== undefined && Array.isArray(slotComponent[Symbol.for('slots')]) === true && slotComponent[Symbol.for('slots')].filter(slot => slot.ref === '${templateObject.slot}').shift() || parent
+        elementConfigs[${counter}]['parent'] = slotComponent[Symbol.for('slots')] !== undefined && Array.isArray(slotComponent[Symbol.for('slots')]) === true && slotComponent[Symbol.for('slots')].filter(slot => slot.ref === '${templateObject.slot}').shift() || parent
       `)
     }
 
@@ -160,8 +184,8 @@ const generateElementCode = function (
       if (options.holder && key === ':color') return
       if (options.holder) {
         this.effectsCode.push(`
-        if(typeof skip${counter} === 'undefined' ||
-          skip${counter}.indexOf('${key.substring(1)}') === -1)
+        if(typeof skips === 'undefined' || (typeof skips[${counter}] === 'undefined' ||
+          skips[${counter}].indexOf('${key.substring(1)}') === -1))
           ${elm}.set('${key.substring(1)}', ${interpolate(templateObject[key], options.component)})
         `)
       } else {
@@ -177,23 +201,28 @@ const generateElementCode = function (
         verifyVariables(value, renderCode, 'reactive')
       }
       renderCode.push(
-        `elementConfig${counter}['${key.substring(1)}'] = ${interpolate(value, options.component)}`
+        `elementConfigs[${counter}]['${key.substring(1)}'] = ${interpolate(
+          value,
+          options.component
+        )}`
       )
     } else {
       if (isDev === true && options.component !== 'scope.' && value.includes('$')) {
         verifyVariables(value, renderCode)
       }
-      renderCode.push(`elementConfig${counter}['${key}'] = ${cast(value, key, options.component)}`)
+      renderCode.push(
+        `elementConfigs[${counter}]['${key}'] = ${cast(value, key, options.component)}`
+      )
     }
   })
 
   if (options.holder === true) {
     renderCode.push(`
-    const skip${counter} = []
-    if(typeof cmp${counter} !== 'undefined') {
-      for(let key in cmp${counter}[Symbol.for('config')].props) {
-        delete elementConfig${counter}[cmp${counter}[Symbol.for('config')].props[key]]
-        skip${counter}.push(cmp${counter}[Symbol.for('config')].props[key])
+    skips[${counter}] = []
+    if(typeof cmps[${counter}] !== 'undefined') {
+      for(let key in cmps[${counter}][Symbol.for('config')].props) {
+        delete elementConfigs[${counter}][cmps[${counter}][Symbol.for('config')].props[key]]
+        skips[${counter}].push(cmps[${counter}][Symbol.for('config')].props[key])
       }
     }
     `)
@@ -203,7 +232,7 @@ const generateElementCode = function (
     renderCode.push(`if(${elm}.nodeId === undefined) {`)
   }
 
-  renderCode.push(`${elm}.populate(elementConfig${counter})`)
+  renderCode.push(`${elm}.populate(elementConfigs[${counter}])`)
 
   renderCode.push(`
     if(inSlot === true) {
@@ -234,10 +263,14 @@ const generateComponentCode = function (
   const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
 
   renderCode.push(`
-    const cmp${counter} =
+    cmps[${counter}] =
       (context.components && context.components['${
         templateObject[Symbol.for('componentType')]
       }']) || components['${templateObject[Symbol.for('componentType')]}']
+  `)
+
+  this.cleanupCode.push(`
+    cmps[${counter}] = null
   `)
 
   if ('key' in templateObject) {
@@ -263,10 +296,11 @@ const generateComponentCode = function (
   }
 
   if (parent) {
-    renderCode.push(`parent = ${parent}`)
+    renderCode.push(`parent = ${parent};`)
   }
 
-  renderCode.push(`const props${counter} = {}`)
+  renderCode.push(`props[${counter}] = {}`)
+  this.cleanupCode.push(`props[${counter}] = null`)
 
   if (options.forloop) {
     renderCode.push(`if(${elm} === undefined) {`)
@@ -284,28 +318,28 @@ const generateComponentCode = function (
         if (Array.isArray(propData) === true) {
           propData = getRaw(propData).slice(0)
         }
-        props${counter}['${key.substring(1)}'] = propData`)
+        props[${counter}]['${key.substring(1)}'] = propData`)
     } else {
       renderCode.push(
-        `props${counter}['${key}'] = ${cast(templateObject[key], key, options.component)}`
+        `props[${counter}]['${key}'] = ${cast(templateObject[key], key, options.component)}`
       )
     }
   })
 
   renderCode.push(`
-    componentType = props${counter}['is'] || '${templateObject[Symbol.for('componentType')]}'
+    componentType = props[${counter}]['is'] || '${templateObject[Symbol.for('componentType')]}'
 
-    let component${counter}
+    components[${counter}]
     if(typeof componentType === 'string') {
-      component${counter} = context.components && context.components[componentType] || components[componentType]
-      if(!component${counter}) {
+      components[${counter}] = context.components && context.components[componentType] || components[componentType]
+      if(!components[${counter}]) {
         throw new Error('Component "${templateObject[Symbol.for('componentType')]}" not found')
       }
     } else if(typeof componentType === 'function' && componentType[Symbol.for('isComponent')] === true) {
-      component${counter} = componentType
+      components[${counter}] = componentType
     }
 
-    ${elm} = component${counter}.call(null, {props: props${counter}}, ${parent}, component)
+    ${elm} = components[${counter}].call(null, {props: props[${counter}]}, ${parent}, component)
 
     if (${elm}[Symbol.for('slots')][0]) {
       parent = ${elm}[Symbol.for('slots')][0]
@@ -315,6 +349,8 @@ const generateComponentCode = function (
       parent = ${elm}[Symbol.for('children')][0]
     }
   `)
+
+  this.cleanupCode.push(`components[${counter}] = null`)
 
   if (options.forloop) {
     renderCode.push('}')
@@ -374,6 +410,7 @@ const generateForLoopCode = function (templateObject, parent) {
   const ctx = {
     renderCode: [],
     effectsCode: [],
+    cleanupCode: [],
     context: { props: [], components: this.components },
   }
 
@@ -395,12 +432,12 @@ const generateForLoopCode = function (templateObject, parent) {
   const forStartCounter = counter
 
   ctx.renderCode.push(`
-    const created${forStartCounter} = []
+    created[${forStartCounter}] = []
 
     let from${forStartCounter}
     let to${forStartCounter}
 
-    const forloop${forStartCounter} = (collection = [], elms, created) => {
+    forloops[${forStartCounter}] = (collection = [], elms, created) => {
       const rawCollection = getRaw(collection)
       const keys = new Set()
       let l = rawCollection.length
@@ -412,6 +449,12 @@ const generateForLoopCode = function (templateObject, parent) {
       while(l--) {
         const ${item} = rawCollection[l]
   `)
+
+  ctx.cleanupCode.push(`
+    created[${forStartCounter}].length = 0
+    forloops[${forStartCounter}] = null
+  `)
+
   // push reference of index variable
   if (index !== undefined) {
     ctx.renderCode.push(`
@@ -538,9 +581,10 @@ const generateForLoopCode = function (templateObject, parent) {
 
   for (let i = forStartCounter; i <= forEndCounter; i++) {
     destroyCode.push(`
-          elms[${i}][key] && elms[${i}][key].destroy()
-          delete elms[${i}][key]
-      `)
+        elms[${i}][key] && elms[${i}][key].destroy()
+        elms[${i}][key] = null
+        delete elms[${i}][key]
+    `)
   }
   destroyCode.push(`
       }
@@ -562,19 +606,17 @@ const generateForLoopCode = function (templateObject, parent) {
   const effectKeys = [...range.matchAll(effectKeysRegex)].map((match) => `'${match[1]}'`)
 
   ctx.renderCode.push(`
-    let forEffects${forStartCounter}
-    const eff${forStartCounter} = () => {
-      component[Symbol.for('removeGlobalEffects')](forEffects${forStartCounter})
-      forEffects${forStartCounter} = null
-      forEffects${forStartCounter} = forloop${forStartCounter}(${cast(
-    result[2],
-    ':for'
-  )}, elms, created${forStartCounter})
+    let eff${forStartCounter} = () => {
+      forloops[${forStartCounter}](${cast(result[2], ':for')}, elms, created[${forStartCounter}])
     }
 
     component[Symbol.for('effects')].push(eff${forStartCounter})
 
     effect(eff${forStartCounter}, ['${effectKey}', ${effectKeys.join(',')}] )
+  `)
+
+  ctx.cleanupCode.push(`
+    eff${forStartCounter} = null
   `)
 
   outerScopeEffects.forEach((effect, outerScopeEffectsIndex) => {
@@ -594,7 +636,7 @@ const generateForLoopCode = function (templateObject, parent) {
     }
 
     ctx.renderCode.push(`
-      const eff${forStartCounter}_${outerScopeEffectsIndex} = () => {
+      let eff${forStartCounter}_${outerScopeEffectsIndex} = () => {
         void ${refs.join(', ')}
         for(let __index = 0; __index < ${interpolate(result[2])}.length; __index++) {
           if(__index < from${forStartCounter} || __index >= to${forStartCounter}) continue
@@ -603,6 +645,7 @@ const generateForLoopCode = function (templateObject, parent) {
           scope['${item}'] = ${interpolate(result[2])}[__index]
           scope['key'] = ${forKey || '__index'}
     `)
+    ctx.cleanupCode.push(`eff${forStartCounter}_${outerScopeEffectsIndex} = null`)
 
     ctx.renderCode.push(`
           ${effect}
@@ -614,6 +657,7 @@ const generateForLoopCode = function (templateObject, parent) {
   })
 
   this.renderCode.push(ctx.renderCode.join('\n'))
+  this.cleanupCode.push(ctx.cleanupCode.join('\n'))
 }
 
 const generateCode = function (templateObject, parent = false, options = {}) {

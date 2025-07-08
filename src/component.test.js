@@ -214,7 +214,9 @@ test('Component - Instance should initialize children', (assert) => {
   const expected = []
   const config = {
     code: {
-      render: () => {},
+      render: () => {
+        return { elms: expected, cleanup: () => {} }
+      },
       effects: [],
     },
     state() {
@@ -223,7 +225,10 @@ test('Component - Instance should initialize children', (assert) => {
       }
     },
   }
-  const capture = assert.capture(config.code, 'render', () => expected)
+  const capture = assert.capture(config.code, 'render', () => {
+    return { elms: expected, cleanup: () => {} }
+  })
+
   const foo = Component('Foo', config)({}, parent)
 
   const children = foo[symbols.children]
@@ -242,7 +247,9 @@ test('Component - Instance should initialize wrapper', (assert) => {
   const expected = {}
   const config = {
     code: {
-      render: () => [expected],
+      render: () => {
+        return { elms: [expected], cleanup: () => {} }
+      },
       effects: [],
     },
   }
@@ -260,7 +267,9 @@ test('Component - Instance should initialize slots', (assert) => {
   }
   const config = {
     code: {
-      render: () => [{}, {}, expected, {}],
+      render: () => {
+        return { elms: [{}, {}, expected, {}], cleanup: () => {} }
+      },
       effects: [],
     },
   }
@@ -283,7 +292,9 @@ test('Component - Instance should initialize hook events', (assert) => {
   const nodeCapture = assert.capture(wrapper.node, 'on')
   const config = {
     code: {
-      render: () => [wrapper],
+      render: () => {
+        return { elms: [wrapper], cleanup: () => {} }
+      },
       effects: [],
     },
     hooks: {
@@ -334,7 +345,9 @@ test('Component - Instance should execute all side effects', (assert) => {
   const children = []
   const config = {
     code: {
-      render: () => children,
+      render: () => {
+        return { elms: children, cleanup: () => {} }
+      },
       effects: [capture],
     },
   }

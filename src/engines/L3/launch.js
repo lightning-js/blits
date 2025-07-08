@@ -26,8 +26,8 @@ import colors from '../../lib/colors/colors.js'
 import fontLoader from './fontLoader.js'
 import shaderLoader from './shaderLoader.js'
 
-/** @type {RendererMain|null} */
-export let renderer = null
+/** @type {RendererMain|{}} */
+export let renderer = {}
 
 const renderEngine = (settings) => {
   const renderMode = 'renderMode' in settings ? settings.renderMode : 'webgl'
@@ -99,6 +99,7 @@ export default (App, target, settings = {}) => {
         textureProcessingTimeLimit: settings.textureProcessingTimeLimit,
         textureMemory: textureMemorySettings(settings),
         createImageBitmapSupport: 'auto',
+        targetFPS: 'maxFPS' in settings ? settings.maxFPS : 0,
       },
       ...(settings.advanced || {}),
     },

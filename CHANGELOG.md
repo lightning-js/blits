@@ -1,5 +1,15 @@
 # Changelog
 
+_08 Jul 2025_
+
+## v1.33.0
+
+- Added dereferencing of previousFocus pointer to ensure memory cleanup
+- Improved cleanup of components (via explicit dereference of closure scope)
+- Optimized time function in logger
+- Optimized initial registration of routes
+- Added `maxFPS` launch setting
+
 _04 Jul 2025_
 
 ## v1.32.1
