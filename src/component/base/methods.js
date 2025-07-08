@@ -40,6 +40,7 @@ export default {
      * @this {import('../../component').BlitsComponent}
      */
     value: function (e) {
+      if (this.eol === true) return
       this[symbols.state].hasFocus = true
       Focus.set(this, e)
     },
@@ -103,10 +104,14 @@ export default {
       delete this.componentId
       delete this[symbols.id]
       delete this.ref
+      delete this[symbols.state].hasFocus
 
       this[symbols.holder].destroy()
       this[symbols.holder] = null
       delete this[symbols.holder]
+
+      this[symbols.cleanup]()
+      delete this[symbols.cleanup]
 
       Log.debug(`Destroyed component ${this.componentId}`)
     },
