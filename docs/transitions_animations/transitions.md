@@ -141,7 +141,7 @@ export default Blits.Component('Gold', {
   `,
   ///
   methods: {
-    transitionProgress(element, prop, progress, previousProgress) {
+    transitionProgress({element, prop, progress, previousProgress}) {
       if(progress >= 0.5 && previousProgress < 0.5) {
         // halfway through the transition
       }
