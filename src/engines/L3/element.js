@@ -616,7 +616,7 @@ const Element = {
     if (transition.progress !== undefined && typeof transition.progress === 'function') {
       let prevProgress = 0
       f.on('tick', (_node, { progress }) => {
-        transition.progress.call(this.component, this, prop, progress, prevProgress)
+        transition.progress.call(this.component, { element: this, prop, progress, prevProgress })
         prevProgress = progress
       })
     }
