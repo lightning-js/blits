@@ -29,7 +29,7 @@ export default (component, state = () => {}) => {
 
   const stateKeys = Object.keys(state.apply(component) || {})
   if (stateKeys.indexOf('hasFocus') > -1) {
-    Log.error(
+    Log.warn(
       'State `hasFocus` already exists as a built-in Component variable (to indicate whether the component currently has focus). Avoid using your own `hasFocus` key in the Component state'
     )
   } else {
