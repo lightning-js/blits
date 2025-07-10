@@ -48,6 +48,7 @@ const Application = (config) => {
   let keyUpHandler
   let holdTimeout
   let lastInputTime = 0
+  let lastInputKey = null
 
   config.hooks[symbols.destroy] = function () {
     document.removeEventListener('keydown', keyDownHandler)
@@ -66,8 +67,11 @@ const Application = (config) => {
       const currentTime = performance.now()
 
       const key = keyMap[e.key] || keyMap[e.keyCode] || e.key || e.keyCode
+      const sameKey = lastInputKey === key
+      lastInputKey = key
       // execute immediately when no throttle is specified or event is internal (bubbled up by focus manager)
-      if (throttleMs === 0 || e[symbols.internalEvent] === true) {
+      // or key is different from the last used key
+      if (throttleMs === 0 || e[symbols.internalEvent] === true || sameKey === false) {
         return await processInput.call(this, e, key)
       }
 

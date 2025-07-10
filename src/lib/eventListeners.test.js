@@ -234,3 +234,17 @@ test('cache invalidation', (t) => {
 
   t.end()
 })
+
+test('deregisterListener when no listeners are registered', (t) => {
+  resetModule()
+
+  const component = 'testComponent'
+  const event1 = 'testEvent1'
+
+  eventListener.deregisterListener(component, event1)
+
+  const result1 = eventListener.executeListeners(event1)
+  t.equal(result1, true, 'Should still return true for event1 as another component is registered')
+
+  t.end()
+})

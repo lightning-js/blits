@@ -21,9 +21,17 @@ const syn = window.speechSynthesis
 
 const isAndroid = /android/i.test((window.navigator || {}).userAgent || '')
 
+const utterances = new Map() // Strong references with unique keys
+
 let initialized = false
 let infinityTimer = null
-const clear = () => infinityTimer && clearTimeout(infinityTimer)
+
+const clear = () => {
+  if (infinityTimer) {
+    clearTimeout(infinityTimer)
+    infinityTimer = null
+  }
+}
 
 const resumeInfinity = (target) => {
   if (!target || infinityTimer) {
@@ -31,7 +39,9 @@ const resumeInfinity = (target) => {
   }
 
   syn.pause()
-  syn.resume()
+  setTimeout(() => {
+    syn.resume()
+  }, 0)
 
   infinityTimer = setTimeout(() => {
     resumeInfinity(target)
@@ -47,18 +57,20 @@ const defaultUtteranceProps = {
 }
 
 const initialize = () => {
-  defaultUtteranceProps.voice = syn.getVoices()[0]
+  const voices = syn.getVoices()
+  defaultUtteranceProps.voice = voices[0] || null
   initialized = true
 }
 
 const speak = (options) => {
   const utterance = new SpeechSynthesisUtterance(options.message)
-
+  const id = Date.now() + Math.random() // Unique ID for tracking
   utterance.lang = options.lang || defaultUtteranceProps.lang
   utterance.pitch = options.pitch || defaultUtteranceProps.pitch
   utterance.rate = options.rate || defaultUtteranceProps.rate
   utterance.voice = options.voice || defaultUtteranceProps.voice
   utterance.volume = options.volume || defaultUtteranceProps.volume
+  utterances.set(id, utterance) // Strong reference
 
   if (isAndroid === false) {
     utterance.onstart = () => {
@@ -72,9 +84,14 @@ const speak = (options) => {
 
   return new Promise((resolve, reject) => {
     utterance.onend = () => {
+      clear()
+      utterances.delete(id) // Cleanup
       resolve()
     }
+
     utterance.onerror = (e) => {
+      clear()
+      utterances.delete(id) // Cleanup
       reject(e)
     }
 

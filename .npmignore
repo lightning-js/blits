@@ -21,6 +21,7 @@ docs/
 **/*.spec.js
 test/
 tests/
+scripts/runTests.js
 
 # Misc
 banner.png
