@@ -1,5 +1,16 @@
 # Changelog
 
+_10 Jul 2025_
+
+## v1.34.0
+
+- Added storage plugin
+- Improved test coverage
+- Fixed announcer plugin to work on RDK devices where early GC was happening
+- Added check to throttle only the same input key in a row
+- Updated docs on transitions
+- Added warning when using `hasFocus` in component state
+
 _08 Jul 2025_
 
 ## v1.33.0
