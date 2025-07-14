@@ -970,8 +970,10 @@ declare module '@lightningjs/blits' {
     /**
      * Input throttle time in milliseconds to prevent rapid successive inputs
      *
-     * Within the throttle window, only one input will be processed immediately  Subsequent
-     * inputs are ignored until the scheduled input is processed.
+     * Within the throttle window, only one input will be processed immediately.
+     * Subsequent inputs _of the same key_ are ignored until the scheduled input is processed.
+     *
+     * Pressing a different key will be processed immediately.
      *
      * Set to `0` to disable input throttling.
      *
