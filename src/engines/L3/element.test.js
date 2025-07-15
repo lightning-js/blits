@@ -568,12 +568,299 @@ test('Element - Set `show` property as false', (assert) => {
   assert.end()
 })
 
-function createElement() {
-  const el = element({ parent: { node: { width: 1920, height: 1080 } } }, {})
-  el.populate({
+test('Element - Set `w` property through transition', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+
+  el.set('w', { transition: { value: 100 } })
+
+  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
+  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.end()
+})
+
+test('Element - Listen to transition start callback on `w` prop changes', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+
+  el.set('w', { transition: { value: 100, start: () => {} } })
+
+  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
+  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.end()
+})
+
+test('Element - Cancel transition running on same prop `W` ', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+
+  el.set('w', { transition: { value: 50 } })
+  el.set('w', { transition: { value: 100 } })
+
+  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
+  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.end()
+})
+
+test('Element - Trigger layout on parent element through transition', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement({ props: { __layout: true } })
+
+  el.set('w', { transition: { value: 100 } })
+
+  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
+  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.end()
+})
+
+test('Element - Trigger layout on parent element on changing property `W` ', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement({ props: { __layout: true } })
+
+  el.set('w', 100)
+
+  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
+  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.end()
+})
+
+test('Element - Create Text Node', (assert) => {
+  assert.capture(renderer, 'createTextNode', () => new EventEmitter())
+  const el = createElement({ props: { __textnode: true } })
+  const title = 'Welcome to Blits'
+
+  el.set('content', title)
+
+  assert.equal(el.node['text'], title, 'Node text parameter should be set')
+  assert.equal(el.props.props['text'], title, 'Props text parameter should be set')
+  assert.equal(el.props.raw['content'], title, "Props' raw map entry should be added")
+  assert.end()
+})
+
+test('Element - Create Text Node with supported props', (assert) => {
+  assert.capture(renderer, 'createTextNode', () => new EventEmitter())
+  const el = createElement({ props: { __textnode: true } })
+  const title = 'Welcome to Blits'
+
+  el.set('content', title)
+  assert.equal(el.node['text'], title, 'Node text parameter should be set')
+  assert.equal(el.props.props['text'], title, 'Props text parameter should be set')
+
+  el.set('textoverflow', true)
+  assert.equal(el.node['overflowSuffix'], undefined, 'Node textoverflow parameter should be set')
+  assert.equal(
+    el.props.props['textoverflow'],
+    undefined,
+    'Props textoverflow parameter should be set'
+  )
+
+  el.set('letterspacing', 10)
+  assert.equal(el.node['letterSpacing'], 10, 'Node letterSpacing parameter should be set')
+  assert.equal(el.props.props['letterSpacing'], 10, 'Props letterSpacing parameter should be set')
+
+  el.set('lineheight', 20)
+  assert.equal(el.node['lineHeight'], 20, 'Node lineHeight parameter should be set')
+  assert.equal(el.props.props['lineHeight'], 20, 'Props lineHeight parameter should be set')
+
+  assert.end()
+})
+
+test('Element - Create Text Node with supported props 2', (assert) => {
+  assert.capture(renderer, 'createTextNode', () => new EventEmitter())
+  const el = createElement({ props: { __textnode: true } })
+  const title = 'Welcome to Blits'
+
+  el.set('content', title)
+
+  el.set('maxheight', 35)
+  assert.equal(el.node['height'], 35, 'Node height parameter should be set')
+  assert.equal(el.props.props['height'], 35, 'Props textoverflow parameter should be set')
+  assert.equal(el.node['contain'], 'both', 'Node contain parameter should be set')
+  assert.equal(el.props.props['contain'], 'both', 'Props contain parameter should be set')
+
+  el.set('contain', 'width')
+  assert.equal(el.node['contain'], 'width', 'Node contain parameter should be set')
+  assert.equal(el.props.props['contain'], 'width', 'Props contain parameter should be set')
+
+  el.set('maxlines', 2)
+  assert.equal(el.node['maxLines'], 2, 'Node maxLines parameter should be set')
+  assert.equal(el.props.props['maxLines'], 2, 'Props maxLines parameter should be set')
+
+  el.set('align', 'center')
+  assert.equal(el.node['textAlign'], 'center', 'Node textAlign parameter should be set')
+  assert.equal(el.props.props['textAlign'], 'center', 'Props textAlign parameter should be set')
+
+  assert.end()
+})
+
+test('Element - Create Text Node with supported props 3', (assert) => {
+  assert.capture(renderer, 'createTextNode', () => new EventEmitter())
+  const el = createElement({ props: { __textnode: true } })
+  const title = 'Welcome to Blits'
+
+  el.set('content', title)
+
+  el.set('wordwrap', 500)
+  assert.equal(el.node['width'], 500, 'Node width parameter should be set')
+  assert.equal(el.props.props['width'], 500, 'Props width parameter should be set')
+  assert.equal(el.node['contain'], 'width', 'Node contain parameter should be set')
+  assert.equal(el.props.props['contain'], 'width', 'Props contain parameter should be set')
+
+  el.set('maxwidth', 500)
+  assert.equal(el.node['width'], 500, 'Node width parameter should be set')
+  assert.equal(el.props.props['width'], 500, 'Props width parameter should be set')
+  assert.equal(el.node['contain'], 'width', 'Node contain parameter should be set')
+  assert.equal(el.props.props['contain'], 'width', 'Props contain parameter should be set')
+
+  el.set('clipping', true)
+  assert.equal(el.node['clipping'], true, 'Node clipping parameter should be set')
+  assert.equal(el.props.props['clipping'], true, 'Props clipping parameter should be set')
+
+  el.set('overflow', true)
+  assert.equal(el.node['clipping'], false, 'overflow attribute should set node clipping parameter')
+  assert.equal(el.props.props['clipping'], false, 'Props clipping parameter should be set')
+
+  assert.end()
+})
+
+test('Element - Transition an element property with progress callback', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement({ props: { __layout: true } })
+
+  el.set('w', { transition: { value: 100, progress: () => {} } })
+
+  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
+  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.end()
+})
+
+test('Element - Transition an element property with end callback', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+
+  el.set('w', { transition: { value: 100, end: () => {} } })
+
+  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
+  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.end()
+})
+
+test('Element - Destroy created Element node', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+  el.set('w', { transition: { value: 100, duration: 4000 } })
+  el.destroy()
+  assert.equal(el.node, null, 'Node should set to null')
+  assert.equal(el.component, undefined, 'Component should be deleted from element')
+  assert.equal(el.props, undefined, 'Props should be deleted from element')
+  assert.equal(el.config, undefined, 'Config should be deleted from element')
+  assert.equal(el.triggerLayout, undefined, 'TriggerLayout should be deleted from element')
+  assert.end()
+})
+
+test('Element - Element with error callback', (assert) => {
+  const customNode = new CustomNode()
+  assert.capture(renderer, 'createNode', () => customNode)
+
+  const errorFun = () => {}
+  const el = createElement({
+    props: {
+      '@error': errorFun,
+    },
+  })
+  assert.equal(el.props['@error'], errorFun, 'Props @error parameter should be set')
+  assert.equal(el.props.raw['@error'], errorFun, "Prop's raw map entry should be added")
+
+  customNode.fail()
+  assert.end()
+})
+
+test('Element - Element with loaded callback', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+
+  const loadedFun = () => {}
+  const el = createElement({
+    props: {
+      '@loaded': loadedFun,
+    },
+  })
+  assert.equal(el.props['@loaded'], loadedFun, 'Props @loaded parameter should be set')
+  assert.equal(el.props.raw['@loaded'], loadedFun, "Prop's raw map entry should be added")
+
+  assert.end()
+})
+
+class CustomAnimator extends EventEmitter {
+  constructor(props, transObj) {
+    super()
+    this.props = props
+    this.transObj = transObj
+    this.state = 'init'
+  }
+
+  start() {
+    this.state = 'scheduled'
+    this.emit('animating')
+
+    let elapsed = 0
+    const tickInterval = this.transObj.duration / 10
+    const valueChunk = this.transObj.value / 10
+    let valueCounter = 0
+    const tickTimer = setInterval(() => {
+      elapsed += tickInterval
+      this.emit('tick', this, { progress: valueChunk * valueCounter })
+      valueCounter++
+      if (elapsed >= this.transObj.duration) {
+        clearInterval(tickTimer)
+        this.emit('stopped')
+      }
+    }, tickInterval)
+  }
+  stop() {
+    this.state = 'stopped'
+  }
+}
+
+class CustomNode extends EventEmitter {
+  constructor() {
+    super()
+
+    const loadedTimeout = setTimeout(() => {
+      this.emit('loaded', this, { type: '', dimensions: { width: 100, height: 100 } })
+      clearTimeout(loadedTimeout)
+    }, 0)
+  }
+
+  animate(props, transObj) {
+    const propsKeys = Object.keys(props)
+    this[propsKeys[0]] = props[propsKeys[0]]
+    const animationEmitter = new CustomAnimator(props, transObj)
+    return animationEmitter
+  }
+
+  destroy() {}
+  fail() {
+    this.emit('failed')
+  }
+}
+
+function createElement(props = {}) {
+  const el = element(
+    { parent: { node: { width: 1920, height: 1080 }, ...props, triggerLayout: () => {} } },
+    {}
+  )
+  const data = {
     parent: {
       node: new EventEmitter(),
     },
-  })
+  }
+  if (Object.keys(props).length !== 0) {
+    const propsKeys = Object.keys(props.props)
+    for (let i = 0; i < propsKeys.length; i++) {
+      data[propsKeys[i]] = props.props[propsKeys[i]]
+    }
+  }
+
+  el.populate(data)
   return el
 }
