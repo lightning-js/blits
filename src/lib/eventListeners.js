@@ -15,8 +15,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import symbols from './symbols'
-import { getRaw } from './reactivity/reactive'
+import symbols from './symbols.js'
+import { getRaw } from './reactivity/reactive.js'
 
 const eventsMap = new Map()
 const callbackCache = new Map()
