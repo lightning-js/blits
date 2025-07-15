@@ -262,8 +262,12 @@ declare module '@lightningjs/blits' {
      * Emit events that other components can listen to
      * @param name - name of the event to be emitted
      * @param data - optional data to be passed along
+     * @param byReference - whether or not to pass the data by reference.
+     * The default behaviour is passing the data object by reference (`true`).
+     * When explicitely passing `false` the object will be recursively cloned
+     * and cleaned from any potential reactivity before emitting
      */
-    $emit(name: string, data?: any): void;
+    $emit(name: string, data?: any, byReference?: boolean): void;
 
     /**
     * Set a timeout that is automatically cleaned upon component destroy

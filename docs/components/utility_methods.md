@@ -145,6 +145,21 @@ export default Blits.Component('MyComponent', {
 })
 ```
 
+#### Emitting data by reference
+
+When emitting a data object via de `$emit()`-method, the object will be passed _by reference_. This is default behaviour in JavaScript. As a result of this, when emitted data is manipulated in the `$listen` method, the original object is _also_ changed.
+
+With plain objects this is usually not a problem, but when you emit component `state` objects or `props`, you have to be aware that you may be reassigning an already reactive object or are updating an object that has reactive side effects attached to it.
+
+In these cases it could be helpful to not pass the original state or prop object (i.e. `this.items`) directly and / or as a whole, but instead _clone_ that object. Or construct a completely new data object with only those values required, at the moment of emitting.
+
+You can also have Blits handle this for you and pass the optional 3rd `byReference` parameter to the `$emit()`-method. By setting this to `false` the default JS behaviour of passing objects by reference will be bypassed and the object will be recursively cloned and cleaned from any potential reactivity before emitting - allowing you to safely interact with the emitted data after.
+
+```js
+// explicitely _not_ passing this.navigationResult by reference
+this.$emit('setMenuItems', this.naigationResult, false)
+```
+
 ### $listen
 
 The `$listen` utility method (which is available on each Blits Component) is designed to listen for events emitted by `this.$emit()`.

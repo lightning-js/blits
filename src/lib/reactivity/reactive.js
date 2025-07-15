@@ -47,6 +47,10 @@ const reactiveProxy = (original, _parent = null, _key, global) => {
   const handler = {
     get(target, key, receiver) {
       // return the original object instead of the proxied
+      if (key === symbols.isProxy) {
+        return true
+      }
+      // return the original object instead of the proxied
       if (key === symbols.raw) {
         return original
       }
