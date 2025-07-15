@@ -157,7 +157,7 @@ You can also have Blits handle this for you and pass the optional 3rd `byReferen
 
 ```js
 // explicitely _not_ passing this.navigationResult by reference
-this.$emit('setMenuItems', this.naigationResult, false)
+this.$emit('setMenuItems', this.navigationResult, false)
 ```
 
 ### $listen
