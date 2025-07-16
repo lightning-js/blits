@@ -155,6 +155,9 @@ In these cases it could be helpful to not pass the original state or prop object
 
 You can also have Blits handle this for you and pass the optional 3rd `byReference` parameter to the `$emit()`-method. By setting this to `false` the default JS behaviour of passing objects by reference will be bypassed and the object will be recursively cloned and cleaned from any potential reactivity before emitting - allowing you to safely interact with the emitted data after.
 
+Note that this recursive operation comes at a cost, especially when emitting large deep-nested data structures, at high frequency - evaluate per use case whether this may cause a performance issue or not.
+
+
 ```js
 // explicitely _not_ passing this.navigationResult by reference
 this.$emit('setMenuItems', this.navigationResult, false)
