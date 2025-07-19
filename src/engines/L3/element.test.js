@@ -21,6 +21,7 @@ import { renderer } from './launch.js'
 import { EventEmitter } from 'node:events'
 import { initLog } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
+import sinon from 'sinon'
 
 initLog()
 
@@ -574,19 +575,39 @@ test('Element - Set `w` property through transition', (assert) => {
 
   el.set('w', { transition: { value: 100 } })
 
-  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
   assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
   assert.end()
 })
 
 test('Element - Listen to transition start callback on `w` prop changes', (assert) => {
   assert.capture(renderer, 'createNode', () => new CustomNode())
+  const startSpy = sinon.spy()
   const el = createElement()
 
-  el.set('w', { transition: { value: 100, start: () => {} } })
+  el.set('w', { transition: { value: 100, start: startSpy } })
 
-  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
   assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.ok(startSpy.calledOnce, 'Transition start callback should be called once')
+  assert.equal(
+    startSpy.getCall(0).args.length,
+    3,
+    'Transition start callback should be called with three arguments'
+  )
+  assert.equal(
+    startSpy.getCall(0).args[0],
+    el,
+    'Transition start callback first argument should be element itself'
+  )
+  assert.equal(
+    startSpy.getCall(0).args[1],
+    'width',
+    'Transition start callback second argument should be `width` property'
+  )
+  assert.equal(
+    startSpy.getCall(0).args[2],
+    0,
+    'Transition start callback third argument value should be an initial value of `0`'
+  )
   assert.end()
 })
 
@@ -597,19 +618,165 @@ test('Element - Cancel transition running on same prop `W` ', (assert) => {
   el.set('w', { transition: { value: 50 } })
   el.set('w', { transition: { value: 100 } })
 
-  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
   assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
   assert.end()
 })
 
-test('Element - Trigger layout on parent element through transition', (assert) => {
+test('Element - Layout with horizontal direction layout use cases', (assert) => {
   assert.capture(renderer, 'createNode', () => new CustomNode())
-  const el = createElement({ props: { __layout: true } })
 
-  el.set('w', { transition: { value: 100 } })
+  const CHILD_1_WIDTH = 500
+  const CHILD_2_WIDTH = 250
+  const CHILD_HEIGHT = 0
+  const GAP = 30
 
-  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
-  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  const layoutUpdateSpy = sinon.spy()
+
+  const layoutEl = createLayoutElement('horizontal', GAP, layoutUpdateSpy)
+
+  // Creating two elements which will be children to parentEl
+  const child1 = element({ parent: layoutEl }, {})
+  const child2 = element({ parent: layoutEl }, {})
+
+  // To bind layout function to each children
+  child1.populate({})
+  child2.populate({})
+
+  // Adding children element nodes to layout Element node
+  layoutEl.node.children.push(child1.node)
+  layoutEl.node.children.push(child2.node)
+
+  // Initial width, x, y, height of each element is, 0
+  // Setting child1 width to 500, should effect child 2 X position
+  child1.set('w', CHILD_1_WIDTH)
+
+  assert.equal(child1.node['width'], CHILD_1_WIDTH, 'Child 1 Node width parameter should be set')
+  assert.equal(
+    child1.props.props['width'],
+    CHILD_1_WIDTH,
+    'Child 1 Props width parameter should be set'
+  )
+  assert.equal(
+    child2.node['x'],
+    CHILD_1_WIDTH + GAP,
+    'Child 2 Node X parameter should be layout gap + child 1 width'
+  )
+
+  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback should be called 3 times')
+  assert.equal(
+    layoutUpdateSpy.getCall(0).args.length,
+    2,
+    'Layout updated callback should be called with 2 arguments'
+  )
+  assert.equal(
+    layoutUpdateSpy.getCall(2).args[0].w,
+    CHILD_1_WIDTH,
+    'Layout width should be equal to Child1 width'
+  )
+  assert.equal(
+    layoutUpdateSpy.getCall(2).args[0].h,
+    CHILD_HEIGHT,
+    'Layout height should be equal to Child1 or Child 2 height'
+  )
+
+  child2.set('w', CHILD_2_WIDTH)
+  assert.equal(child2.node['width'], CHILD_2_WIDTH, 'Child 2 Node width parameter should be set')
+  assert.equal(
+    child2.props.props['width'],
+    CHILD_2_WIDTH,
+    'Child 2 Props width parameter should be set'
+  )
+  assert.equal(layoutUpdateSpy.callCount, 4, 'Layout updated callback call count should be 4')
+  assert.equal(
+    layoutUpdateSpy.getCall(3).args[0].w,
+    CHILD_1_WIDTH + GAP + CHILD_2_WIDTH,
+    'Layout width should be equal to Child1 width + gap + Child2 width'
+  )
+  assert.equal(
+    layoutUpdateSpy.getCall(3).args[0].h,
+    CHILD_HEIGHT,
+    'Layout height should be equal to Child1 or Child 2 height'
+  )
+
+  assert.end()
+})
+
+test('Element - Layout with vertical direction use case', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+
+  const CHILD_1_HEIGHT = 500
+  const CHILD_2_HEIGHT = 250
+  const CHILD_WIDTH = 0
+  const GAP = 30
+
+  const layoutUpdateSpy = sinon.spy()
+
+  const layoutEl = createLayoutElement('vertical', GAP, layoutUpdateSpy)
+
+  // Creating two elements which will be children to parentEl
+  const child1 = element({ parent: layoutEl }, {})
+  const child2 = element({ parent: layoutEl }, {})
+
+  // To bind layout function to each children
+  child1.populate({})
+  child2.populate({})
+
+  // Adding children element nodes to layout Element node
+  layoutEl.node.children.push(child1.node)
+  layoutEl.node.children.push(child2.node)
+
+  // Initial width, x, y, height of each element is, 0
+  // Setting Child1 height to 500, should effect Child 2 Y position
+  child1.set('h', CHILD_1_HEIGHT)
+
+  assert.equal(child1.node['height'], CHILD_1_HEIGHT, 'Child 1 Node height parameter should be set')
+  assert.equal(
+    child1.props.props['height'],
+    CHILD_1_HEIGHT,
+    'Child 1 Props height parameter should be set'
+  )
+  assert.equal(
+    child2.node['y'],
+    CHILD_1_HEIGHT + GAP,
+    'Child 2 Node y parameter should be layout gap + Child 1 height'
+  )
+
+  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback should be called 3 times')
+  assert.equal(
+    layoutUpdateSpy.getCall(0).args.length,
+    2,
+    'Layout updated callback should be called with 2 arguments'
+  )
+  assert.equal(
+    layoutUpdateSpy.getCall(2).args[0].h,
+    CHILD_1_HEIGHT,
+    'Layout height should be equal to Child1 height'
+  )
+  assert.equal(
+    layoutUpdateSpy.getCall(2).args[0].w,
+    CHILD_WIDTH,
+    'Layout width should be equal to Child1 or Child 2 width'
+  )
+
+  child2.set('h', CHILD_2_HEIGHT)
+  assert.equal(child2.node['height'], CHILD_2_HEIGHT, 'Child 2 Node height parameter should be set')
+  assert.equal(
+    child2.props.props['height'],
+    CHILD_2_HEIGHT,
+    'Child 2 Props height parameter should be set'
+  )
+  assert.equal(layoutUpdateSpy.callCount, 4, 'Layout updated callback call count should be 4')
+  assert.equal(
+    layoutUpdateSpy.getCall(3).args[0].h,
+    CHILD_1_HEIGHT + GAP + CHILD_2_HEIGHT,
+    'Layout height should be equal to Child1 height + gap + Child2 height'
+  )
+  assert.equal(
+    layoutUpdateSpy.getCall(3).args[0].w,
+    CHILD_WIDTH,
+    'Layout w should be equal to Child1 or Child 2 width'
+  )
+
   assert.end()
 })
 
@@ -725,12 +892,15 @@ test('Element - Create Text Node with supported props 3', (assert) => {
 
 test('Element - Transition an element property with progress callback', (assert) => {
   assert.capture(renderer, 'createNode', () => new CustomNode())
-  const el = createElement({ props: { __layout: true } })
 
-  el.set('w', { transition: { value: 100, progress: () => {} } })
+  const el = createElement()
 
-  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
+  const progSpy = sinon.spy()
+
+  el.set('w', { transition: { value: 100, progress: progSpy } })
+
   assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  // assert.equal(progSpy.callCount, 10, 'Transition progress callback should be called 10 times')
   assert.end()
 })
 
@@ -738,10 +908,12 @@ test('Element - Transition an element property with end callback', (assert) => {
   assert.capture(renderer, 'createNode', () => new CustomNode())
   const el = createElement()
 
-  el.set('w', { transition: { value: 100, end: () => {} } })
+  const endSpy = sinon.spy()
 
-  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
+  el.set('w', { transition: { value: 100, end: endSpy } })
+
   assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  // assert.ok(endSpy.calledOnce, 'Transition end callback should be called only once')
   assert.end()
 })
 
@@ -762,16 +934,18 @@ test('Element - Element with error callback', (assert) => {
   const customNode = new CustomNode()
   assert.capture(renderer, 'createNode', () => customNode)
 
-  const errorFun = () => {}
+  const errSpy = sinon.spy()
+
   const el = createElement({
     props: {
-      '@error': errorFun,
+      '@error': errSpy,
     },
   })
-  assert.equal(el.props['@error'], errorFun, 'Props @error parameter should be set')
-  assert.equal(el.props.raw['@error'], errorFun, "Prop's raw map entry should be added")
 
+  assert.equal(el.props['@error'], errSpy, 'Props @error parameter should be set')
+  assert.equal(el.props.raw['@error'], errSpy, "Prop's raw map entry should be added")
   customNode.fail()
+  assert.ok(errSpy.calledOnce, 'error callback should be called once')
   assert.end()
 })
 
@@ -791,8 +965,9 @@ test('Element - Element with loaded callback', (assert) => {
 })
 
 class CustomAnimator extends EventEmitter {
-  constructor(props, transObj) {
+  constructor(node, props, transObj) {
     super()
+    this.node = node
     this.props = props
     this.transObj = transObj
     this.state = 'init'
@@ -804,14 +979,16 @@ class CustomAnimator extends EventEmitter {
 
     let elapsed = 0
     const tickInterval = this.transObj.duration / 10
-    const valueChunk = this.transObj.value / 10
+    const propsKeys = Object.keys(this.props)
+    const valueChunk = this.props[propsKeys[0]] / 10
     let valueCounter = 0
     const tickTimer = setInterval(() => {
       elapsed += tickInterval
-      this.emit('tick', this, { progress: valueChunk * valueCounter })
       valueCounter++
+      this.emit('tick', {}, { progress: valueChunk * valueCounter })
       if (elapsed >= this.transObj.duration) {
         clearInterval(tickTimer)
+        this.node[propsKeys[0]] = this.props[propsKeys[0]]
         this.emit('stopped')
       }
     }, tickInterval)
@@ -824,6 +1001,14 @@ class CustomAnimator extends EventEmitter {
 class CustomNode extends EventEmitter {
   constructor() {
     super()
+    // setting initial props of renderer node
+    this.width = 0
+    this.x = 0
+    this.height = 0
+    this.y = 0
+
+    // setting children to empty []
+    this.children = []
 
     const loadedTimeout = setTimeout(() => {
       this.emit('loaded', this, { type: '', dimensions: { width: 100, height: 100 } })
@@ -832,9 +1017,7 @@ class CustomNode extends EventEmitter {
   }
 
   animate(props, transObj) {
-    const propsKeys = Object.keys(props)
-    this[propsKeys[0]] = props[propsKeys[0]]
-    const animationEmitter = new CustomAnimator(props, transObj)
+    const animationEmitter = new CustomAnimator(this, props, transObj)
     return animationEmitter
   }
 
@@ -842,13 +1025,14 @@ class CustomNode extends EventEmitter {
   fail() {
     this.emit('failed')
   }
+
+  addChildren(el) {
+    this.children.push(el)
+  }
 }
 
 function createElement(props = {}) {
-  const el = element(
-    { parent: { node: { width: 1920, height: 1080 }, ...props, triggerLayout: () => {} } },
-    {}
-  )
+  const el = element({ parent: { node: { width: 1920, height: 1080 } } }, {})
   const data = {
     parent: {
       node: new EventEmitter(),
@@ -863,4 +1047,36 @@ function createElement(props = {}) {
 
   el.populate(data)
   return el
+}
+
+function createLayoutElement(direction, gap, layoutUpdateSpy) {
+  let layoutElNode
+
+  // creating component object to fake children
+  const comp = {
+    [symbols.getChildren]: () => {
+      return [
+        {
+          props: { raw: { show: true } },
+          parent: layoutElNode,
+        },
+        {
+          props: { raw: { show: true } },
+          parent: layoutElNode,
+        },
+      ]
+    },
+  }
+
+  // element to break chain of parent element layoutFn trigger
+  const grandParent = element({ parent: new EventEmitter(), props: {} }, {})
+
+  // Layout Element
+  const layoutEl = element({ parent: grandParent }, comp)
+
+  // Populating layout element with configuration
+  layoutEl.populate({ __layout: true, direction: direction, gap: gap, '@updated': layoutUpdateSpy })
+  layoutElNode = layoutEl.node
+
+  return layoutEl
 }
