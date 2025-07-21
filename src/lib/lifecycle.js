@@ -70,7 +70,7 @@ export default {
    * @param {string} v - The new lifecycle state.
    */
   set state(v) {
-    if (states.indexOf(v) > -1 && (v !== this.current || v === 'focus')) {
+    if (states.indexOf(v) > -1 && v !== this.current) {
       Log.debug(
         `Setting lifecycle state from ${this.current} to ${v} for ${this.component.componentId}`
       )
