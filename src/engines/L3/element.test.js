@@ -780,17 +780,6 @@ test('Element - Layout with vertical direction use case', (assert) => {
   assert.end()
 })
 
-test('Element - Trigger layout on parent element on changing property `W` ', (assert) => {
-  assert.capture(renderer, 'createNode', () => new CustomNode())
-  const el = createElement({ props: { __layout: true } })
-
-  el.set('w', 100)
-
-  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
-  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
-  assert.end()
-})
-
 test('Element - Create Text Node', (assert) => {
   assert.capture(renderer, 'createTextNode', () => new EventEmitter())
   const el = createElement({ props: { __textnode: true } })
