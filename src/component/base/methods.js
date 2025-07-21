@@ -40,7 +40,6 @@ export default {
      * @this {import('../../component').BlitsComponent}
      */
     value: function (e) {
-      this[symbols.state].hasFocus = true
       Focus.set(this, e)
     },
     writable: false,

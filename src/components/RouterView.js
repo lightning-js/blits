@@ -43,9 +43,6 @@ export default () =>
       destroy() {
         window.removeEventListener('hashchange', hashchangeHandler, false)
       },
-      focus() {
-        this.activeView && this.activeView.$focus()
-      },
     },
     input: {
       back(e) {
