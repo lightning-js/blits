@@ -207,20 +207,19 @@ export const navigate = async function () {
     const { hash, path, queryParams } = getHash()
     let route = matchHash(path, this.parent[symbols.routes])
 
-    const queryParamsData = {}
-    const queryParamsEntries = [...queryParams.entries()]
-    for (let i = 0; i < queryParamsEntries.length; i++) {
-      queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
-    }
-
-    route.data = {
-      ...navigationData,
-      ...route.data,
-      ...queryParamsData,
-    }
-
     currentRoute = route
     if (route) {
+      const queryParamsData = {}
+      const queryParamsEntries = [...queryParams.entries()]
+      for (let i = 0; i < queryParamsEntries.length; i++) {
+        queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
+      }
+
+      route.data = {
+        ...navigationData,
+        ...route.data,
+        ...queryParamsData,
+      }
       // Adding the location hash to the route if it exists.
       if (hash !== null) {
         route.hash = hash

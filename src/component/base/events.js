@@ -23,12 +23,16 @@ export default {
    *
    * @param {string} event - The name of the event to emit.
    * @param {any} params - The parameters to pass to the event listeners.
+   * @param byReference - whether or not to pass the data by reference.
+   * The default behaviour is passing the data object by reference (`true`).
+   * When explicitely passing `false` the object will be recursively cloned
+   * and cleaned from any potential reactivity before emitting
    * @returns {boolean} True if all listeners executed, false otherwise.
    */
   $emit: {
-    value: function (event, params) {
+    value: function (event, params, byReference = true) {
       // returning if all listeners executed
-      return eventListeners.executeListeners(event, params)
+      return eventListeners.executeListeners(event, params, byReference)
     },
     writable: false,
     enumerable: true,

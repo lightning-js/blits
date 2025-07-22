@@ -15,8 +15,29 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import symbols from './symbols.js'
+import { getRaw } from './reactivity/reactive.js'
+
 const eventsMap = new Map()
 const callbackCache = new Map()
+
+function isProxy(obj) {
+  return obj && typeof obj === 'object' && obj[symbols.isProxy] === true
+}
+
+function deepUnproxyClone(obj) {
+  if (obj === null || typeof obj !== 'object') return obj
+
+  const raw = isProxy(obj) ? getRaw(obj) : obj
+  const result = Array.isArray(raw) ? [] : {}
+
+  for (const key of Object.keys(raw)) {
+    const value = raw[key]
+    result[key] = value && typeof value === 'object' ? deepUnproxyClone(value) : value
+  }
+
+  return result
+}
 
 export default {
   /**
@@ -70,9 +91,16 @@ export default {
    *
    * @param {string} event - The name of the event to emit.
    * @param {any} params - The parameters to pass to the event listeners.
+   * @param byReference - whether or not to pass the data by reference.
+   * The default behaviour is passing the data object by reference (`true`).
+   * When explicitely passing `false` the object will be recursively cloned
+   * and cleaned from any potential reactivity before emitting
    * @returns {boolean} True if all listeners executed without stopping propagation, false if any listener returned false.
    */
-  executeListeners(event, params) {
+  executeListeners(event, params, byReference) {
+    if (byReference === false) {
+      params = deepUnproxyClone(params)
+    }
     const componentsMap = eventsMap.get(event)
     if (componentsMap === undefined || componentsMap.size === 0) {
       return true // No listeners, so execution can be considered successful

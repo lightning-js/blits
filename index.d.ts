@@ -262,8 +262,12 @@ declare module '@lightningjs/blits' {
      * Emit events that other components can listen to
      * @param name - name of the event to be emitted
      * @param data - optional data to be passed along
+     * @param byReference - whether or not to pass the data by reference.
+     * The default behaviour is passing the data object by reference (`true`).
+     * When explicitely passing `false` the object will be recursively cloned
+     * and cleaned from any potential reactivity before emitting
      */
-    $emit(name: string, data?: any): void;
+    $emit(name: string, data?: any, byReference?: boolean): void;
 
     /**
     * Set a timeout that is automatically cleaned upon component destroy
@@ -970,8 +974,10 @@ declare module '@lightningjs/blits' {
     /**
      * Input throttle time in milliseconds to prevent rapid successive inputs
      *
-     * Within the throttle window, only one input will be processed immediately  Subsequent
-     * inputs are ignored until the scheduled input is processed.
+     * Within the throttle window, only one input will be processed immediately.
+     * Subsequent inputs _of the same key_ are ignored until the scheduled input is processed.
+     *
+     * Pressing a different key will be processed immediately.
      *
      * Set to `0` to disable input throttling.
      *
@@ -1015,6 +1021,15 @@ declare module '@lightningjs/blits' {
      * @default false
      */
     announcer?: boolean
+    /**
+     * Maximum FPS at which the App will be rendered
+     *
+     * Lowering the maximum FPS value can improve the overall experience on lower end devices.
+     * Targetting a lower FPS may gives the CPU more time to construct each frame leading to a smoother rendering.
+     *
+     * Defaults to `0` which means no maximum
+     */
+    maxFPS?: number
   }
 
   interface State {
