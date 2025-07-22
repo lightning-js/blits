@@ -120,13 +120,13 @@ class localCookie {
 		// What about cookies we got from the server? ¯\_(ツ)_/¯
 		// They should have the HttpOnly flag, so we shouldn't be able to delete them
 		document.cookie.split(";").forEach( (c) => {
-			document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=Max-Age=-99999999");
+			document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=;Max-Age=-99999999");
 		});
 
 		return //return undefined
 	}
 	_getCookieKeys() {
-		return document.cookie.split(";").map((item)=>item.split("=")[0])
+		return document.cookie.split(";").map((item)=>item.trim().split("=")[0])
 	}
 }
 
