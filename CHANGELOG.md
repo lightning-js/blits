@@ -1,5 +1,17 @@
 # Changelog
 
+_22 Jul 2025_
+
+## v1.35.0
+
+- Added `byReference` param to `this.$emit()` to allow passing data without passing it by reference
+- Refactored focus handling
+  - more performant
+  - more robust for reassigning focus programatically (i.e. without direct key handling)
+  - fixed some cases where `$hasFocus` flag wasn't reset upon unfocus
+  - add logging of active focus chain upon focus changes
+- Improved overall test coverage to almost 80% (Blits Element, Focus, Theme plugin, Storage plugin)
+
 _10 Jul 2025_
 
 ## v1.34.0

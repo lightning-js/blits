@@ -16,6 +16,7 @@
  * @property {symbol} inputEvents
  * @property {symbol} internalEvent
  * @property {symbol} intervals
+ * @property {symbol} isProxy
  * @property {symbol} launched
  * @property {symbol} level
  * @property {symbol} methodKeys
@@ -67,6 +68,7 @@ export default {
   inputEvents: Symbol('inputEvents'),
   internalEvent: Symbol('internalEvent'),
   intervals: Symbol('intervals'),
+  isProxy: Symbol('isProxy'),
   launched: Symbol('launched'),
   level: Symbol('level'),
   methodKeys: Symbol('methodKeys'),
