@@ -146,6 +146,7 @@ const stop = () => {
 }
 
 const clear = () => {
+  isProcessing = false
   queue.length = 0
 }
 

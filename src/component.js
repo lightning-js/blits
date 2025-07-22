@@ -243,16 +243,18 @@ const Component = (name = required('name'), config = required('config')) => {
 
     // execute the render code that constructs the initial state of the component
     // and store the children result (a flat map of elements and components)
-    this[symbols.children] =
-      config.code.render.apply(stage, [
-        parentEl,
-        this,
-        config,
-        globalComponents,
-        effect,
-        getRaw,
-        Log,
-      ]) || []
+    const { elms, cleanup } = config.code.render.apply(stage, [
+      parentEl,
+      this,
+      config,
+      globalComponents,
+      effect,
+      getRaw,
+      Log,
+    ]) || { elms: [], cleanup: () => {} }
+
+    this[symbols.children] = elms
+    this[symbols.cleanup] = cleanup
 
     // create a reference to the wrapper element of the component (i.e. the root Element of the component)
     this[symbols.wrapper] = this[symbols.children][0]
