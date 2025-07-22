@@ -44,13 +44,16 @@ export default {
     // early return if already focused
     if (component === focusedComponent) return
 
+    if (focusChain.length === 0) {
+      focusChain = getAncestors([component])
+    }
+
     // unfocus currently focused components
     if (focusedComponent !== null) {
       if (focusChain[focusChain.length - 1] === component.parent) {
         focusChain.push(component)
       } else {
         const newFocusChain = getAncestors([component])
-
         let i = focusChain.length
         while (i--) {
           // don't unfocus when part of the new focus chain
@@ -61,6 +64,14 @@ export default {
       }
     }
 
+    // ensure that all components in the focus path have focus state
+    let i = 0
+    while (i < focusChain.length - 1) {
+      focusChain[i].lifecycle.state = 'focus'
+      i++
+    }
+
+    // and finally set focus to the leaf component
     if (this.hold === true) {
       setFocusTimeout = setTimeout(() => {
         setFocus(component, event)
@@ -132,6 +143,7 @@ const setFocus = (component, event) => {
     '\nFocus chain:\n',
     focusChain.map((c, index) => '\t'.repeat(index) + '↳ ' + c.componentId).join('\n')
   )
+
   focusedComponent = component
   component.lifecycle.state = 'focus'
 
