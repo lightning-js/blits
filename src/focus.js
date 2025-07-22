@@ -66,7 +66,7 @@ export default {
 
     // ensure that all components in the focus path have focus state
     let i = 0
-    while (i < focusChain.length) {
+    while (i < focusChain.length - 1) {
       focusChain[i].lifecycle.state = 'focus'
       i++
     }
