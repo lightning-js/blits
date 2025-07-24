@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.35.1
+
+_24 Jul 2025_
+
+- (Re) added next tick when setting focus to prevent any potential race conditions
+
 _22 Jul 2025_
 
 ## v1.35.0
