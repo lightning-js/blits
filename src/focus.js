@@ -72,13 +72,10 @@ export default {
     }
 
     // and finally set focus to the leaf component
-    if (this.hold === true) {
-      setFocusTimeout = setTimeout(() => {
-        setFocus(component, event)
-      }, Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS))
-    } else {
-      setFocus(component, event)
-    }
+    setFocusTimeout = setTimeout(
+      () => setFocus(component, event),
+      this.hold === true ? Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS) : 0
+    )
   },
   input(key, event) {
     if (state.navigating === true) return

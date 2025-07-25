@@ -44,13 +44,15 @@ test('Setting focus', (assert) => {
 
   Focus.set(component)
 
-  assert.equal(Focus.get(), component, 'Focused component should be set as new focused component')
-  assert.equal(
-    component.lifecycle.state,
-    'focus',
-    'Focused component should have the lifecycle state "focus"'
-  )
-  assert.end()
+  setTimeout(() => {
+    assert.equal(Focus.get(), component, 'Focused component should be set as new focused component')
+    assert.equal(
+      component.lifecycle.state,
+      'focus',
+      'Focused component should have the lifecycle state "focus"'
+    )
+    assert.end()
+  })
 })
 
 test('Focussing along focus path', (assert) => {
@@ -70,19 +72,21 @@ test('Focussing along focus path', (assert) => {
 
   Focus.set(component)
 
-  assert.equal(
-    component.lifecycle.state,
-    'focus',
-    'Focused component should have the lifecycle state "focus"'
-  )
+  setTimeout(() => {
+    assert.equal(
+      component.lifecycle.state,
+      'focus',
+      'Focused component should have the lifecycle state "focus"'
+    )
 
-  assert.equal(
-    parent.lifecycle.state,
-    'focus',
-    'Parent of focused component should also have the lifecycle state "focus" (as part of the focus chain)'
-  )
+    assert.equal(
+      parent.lifecycle.state,
+      'focus',
+      'Parent of focused component should also have the lifecycle state "focus" (as part of the focus chain)'
+    )
 
-  assert.end()
+    assert.end()
+  })
 })
 
 test('Unfocus focus chain', (assert) => {
@@ -109,33 +113,36 @@ test('Unfocus focus chain', (assert) => {
 
   Focus.set(component)
 
-  assert.equal(
-    component.lifecycle.state,
-    'focus',
-    'Focused component should have the lifecycle state "focus"'
-  )
+  setTimeout(() => {
+    assert.equal(
+      component.lifecycle.state,
+      'focus',
+      'Focused component should have the lifecycle state "focus"'
+    )
 
-  Focus.set(otherComponent)
+    Focus.set(otherComponent)
 
-  assert.equal(
-    otherComponent.lifecycle.state,
-    'focus',
-    'Focused component should have the lifecycle state "focus"'
-  )
+    setTimeout(() => {
+      assert.equal(
+        otherComponent.lifecycle.state,
+        'focus',
+        'Focused component should have the lifecycle state "focus"'
+      )
 
-  assert.equal(
-    component.lifecycle.state,
-    'unfocus',
-    'Previously focused component should have the lifecycle state "focus"'
-  )
+      assert.equal(
+        component.lifecycle.state,
+        'unfocus',
+        'Previously focused component should have the lifecycle state "focus"'
+      )
 
-  assert.equal(
-    parent.lifecycle.state,
-    'unfocus',
-    'Parent of previously focused component should also have the lifecycle state "unfocus" (as part of the focus chain)'
-  )
-
-  assert.end()
+      assert.equal(
+        parent.lifecycle.state,
+        'unfocus',
+        'Parent of previously focused component should also have the lifecycle state "unfocus" (as part of the focus chain)'
+      )
+      assert.end()
+    })
+  })
 })
 
 test('Unfocus partial focus chain', (assert) => {
@@ -170,31 +177,35 @@ test('Unfocus partial focus chain', (assert) => {
 
   Focus.set(component)
 
-  assert.equal(
-    component.lifecycle.state,
-    'focus',
-    'Focused component should have the lifecycle state "focus"'
-  )
+  setTimeout(() => {
+    assert.equal(
+      component.lifecycle.state,
+      'focus',
+      'Focused component should have the lifecycle state "focus"'
+    )
 
-  Focus.set(otherComponent)
+    Focus.set(otherComponent)
 
-  assert.equal(
-    otherComponent.lifecycle.state,
-    'focus',
-    'Focused component should have the lifecycle state "focus"'
-  )
+    setTimeout(() => {
+      assert.equal(
+        otherComponent.lifecycle.state,
+        'focus',
+        'Focused component should have the lifecycle state "focus"'
+      )
 
-  assert.equal(
-    component.lifecycle.state,
-    'unfocus',
-    'Previously focused component should have the lifecycle state "focus"'
-  )
+      assert.equal(
+        component.lifecycle.state,
+        'unfocus',
+        'Previously focused component should have the lifecycle state "focus"'
+      )
 
-  assert.equal(
-    grandparent.lifecycle.state,
-    'focus',
-    'Grandparent of previously focused component should still have the lifecycle state "focus" (as part of the new focus chain)'
-  )
+      assert.equal(
+        grandparent.lifecycle.state,
+        'focus',
+        'Grandparent of previously focused component should still have the lifecycle state "focus" (as part of the new focus chain)'
+      )
 
-  assert.end()
+      assert.end()
+    })
+  })
 })
