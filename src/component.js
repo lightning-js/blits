@@ -111,6 +111,7 @@ const required = (name) => {
  *
  * @typedef {object} BlitsComponent
  * Main properties of the Blits component:
+ * @property {boolean?} eol - Indicates when a component is End of Life
  * @property {string} componentId - The unique identifier for the component instance
  * @property {BlitsLifecycle} lifecycle - The lifecycle object for the component instance
  * @property {BlitsComponent} parent - The parent component of the current component instance

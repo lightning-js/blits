@@ -17,6 +17,8 @@
 
 import test from 'tape'
 import Focus from './focus.js'
+import Component from './component.js'
+import { stage } from './launch.js'
 
 test('Focus type', (assert) => {
   const expected = 'object'
@@ -209,3 +211,37 @@ test('Unfocus partial focus chain', (assert) => {
     })
   })
 })
+
+// @todo
+// this test case needs some changes to the codebase in order to work
+// these changes will help testablity in general
+
+// test('Pass focus to parent when destroyed while having focus', (assert) => {
+//   const parent = {
+//     componentId: 'parent',
+//     lifecycle: {
+//       state: 'init',
+//     },
+//   }
+//   const component = {
+//     componentId: 'comp1',
+//     parent,
+//     lifecycle: {
+//       state: 'init',
+//     },
+//   }
+
+//   Focus.set(component)
+
+//   setTimeout(() => {
+//     assert.equal(Focus.get(), component, 'Component should have focus')
+
+//     component.destroy()
+
+//     setTimeout(() => {
+//       assert.equal(Focus.get(), parent, 'Parent should have focus')
+//     })
+
+//     assert.end()
+//   })
+// })
