@@ -40,6 +40,10 @@ export default {
      * @this {import('../../component').BlitsComponent}
      */
     value: function (e) {
+      // force refocus when the component is already in focused state
+      if (this.lifecycle.state === 'focus') {
+        this.lifecycle.state = 'refocus'
+      }
       Focus.set(this, e)
     },
     writable: false,
@@ -65,6 +69,10 @@ export default {
     value: function () {
       this.eol = true
       this.lifecycle.state = 'destroy'
+
+      // when destroying a component that currently has focus
+      // pass focus to the parent so we don't get lost in focus limbo
+      if (this.hasFocus === true) this.parent.$focus()
 
       for (let key in this[symbols.state]) {
         if (Array.isArray(this[symbols.state][key])) {
