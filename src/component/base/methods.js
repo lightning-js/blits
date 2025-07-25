@@ -40,6 +40,10 @@ export default {
      * @this {import('../../component').BlitsComponent}
      */
     value: function (e) {
+      // force refocus when the component is already in focused state
+      if (this.lifecycle.state === 'focus') {
+        this.lifecycle.state = 'refocus'
+      }
       Focus.set(this, e)
     },
     writable: false,
