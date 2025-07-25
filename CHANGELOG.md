@@ -1,10 +1,11 @@
 # Changelog
 
-## v1.35.1
+## v1.35.2
 
-_24 Jul 2025_
+_25 Jul 2025_
 
-- (Re) added next tick when setting focus to prevent any potential race conditions
+- Fixed issue with focus getting lost when destroying a focused component
+- Fixed issue with refocusing a component that's already in the focus chain (i.e. `this.parent.$focus()`)
 
 _22 Jul 2025_
 
