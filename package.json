@@ -15,7 +15,8 @@
   "scripts": {
     "test": "c8 node scripts/runTests.js",
     "test:ci": "c8 npm run test:run",
-    "test:run": "node -r global-jsdom/register ./node_modules/.bin/tape '{,!(node_modules|packages)/**/}*.test.js' | tap-filter test-fail | tap-diff",
+    "test:run": "node -r global-jsdom/register ./node_modules/.bin/tape '{,!(node_modules|packages)/**/}*.test.js' | tap-diff",
+    "test:run:failures": "node -r global-jsdom/register ./node_modules/.bin/tape '{,!(node_modules|packages)/**/}*.test.js' |  tap-filter test-fail | tap-diff",
     "lint": "eslint '**/*.js'",
     "lint:fix": "eslint '**/*.js' --fix",
     "prepublishOnly": "node scripts/prepublishOnly.js",
