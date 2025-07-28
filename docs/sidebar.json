@@ -42,6 +42,10 @@
       {
         "text": "Displaying text",
         "link": "/essentials/displaying_text"
+      },
+      {
+        "text": "Application settings",
+        "link": "/essentials/settings"
       }
     ]
   },
@@ -109,6 +113,15 @@
     ]
   },
   {
+    "text": "Performance",
+    "items": [
+      {
+        "text": "Lazy Loading",
+        "link": "/performance/lazy-loading"
+      }
+    ]
+  },
+  {
     "text": "Router",
     "items": [
       {
@@ -164,6 +177,15 @@
       {
         "text": "Global App State",
         "link": "/plugins/global_app_state"
+      }
+    ]
+  },
+  {
+    "text": "Performance",
+    "items": [
+      {
+        "text": "Lazy loading",
+        "link": "/performance/lazy-loading"
       }
     ]
   }

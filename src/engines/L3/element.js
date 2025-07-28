@@ -24,9 +24,12 @@ import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 import shaders from '../../lib/shaders/shaders.js'
 
-// temporary counter to work around shader caching issues
-let counter = 0
-
+/**
+ * Creates a padding object from a value and direction.
+ * @param {number|object|string|undefined} padding - The padding value.
+ * @param {string} direction - The layout direction ('vertical' or 'horizontal').
+ * @returns {{start: number, end: number, oppositeStart: number, oppositeEnd: number}} The padding object.
+ */
 const createPaddingObject = (padding, direction) => {
   if (padding === undefined) {
     return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
@@ -69,6 +72,11 @@ const createPaddingObject = (padding, direction) => {
   return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
 }
 
+/**
+ * Layout function for arranging children in a layout container.
+ * @param {object} config - The layout configuration object.
+ * @this {import('../../component.js').BlitsElement}
+ */
 const layoutFn = function (config) {
   const position = config.direction === 'vertical' ? 'y' : 'x'
   const oppositePosition = config.direction === 'vertical' ? 'x' : 'y'
@@ -81,10 +89,11 @@ const layoutFn = function (config) {
 
   const children = this.node.children
   const childrenLength = children.length
+  const elementChildren = this.children
   let otherDimension = 0
   const gap = config.gap || 0
   for (let i = 0; i < childrenLength; i++) {
-    if (this.children[i] !== undefined && this.children[i].props.raw.show === false) {
+    if (elementChildren[i] !== undefined && elementChildren[i].props.raw.show === false) {
       continue
     }
     const node = children[i]
@@ -137,6 +146,13 @@ const layoutFn = function (config) {
   }
 }
 
+/**
+ * Parses a percentage string or returns the value as-is.
+ * @param {string|number} v - The value to parse (may be a percentage string).
+ * @param {string} base - The base property name ('width' or 'height').
+ * @returns {number|string} The parsed value as a number or the original value.
+ * @this {{ element: { config: { parent?: { node?: Record<string, number> } } } }}
+ */
 const parsePercentage = function (v, base) {
   if (typeof v !== 'string') {
     return v
@@ -150,6 +166,11 @@ const parsePercentage = function (v, base) {
   return v
 }
 
+/**
+ * Unpacks a transition value from an object or returns the value as-is.
+ * @param {any} v - The value to unpack.
+ * @returns {any} The unpacked value.
+ */
 const unpackTransition = (v) => {
   if (typeof v !== 'object' || v === null) return v
   if (v.constructor === Object) {
@@ -170,8 +191,18 @@ const colorMap = {
   right: 'colorRight',
 }
 
+/**
+ * Default text settings for text nodes (initialized on first use).
+ * @type {object|null}
+ */
 let textDefaults = null
 
+/**
+ * @typedef {import('../../component.js').BlitsElement} BlitsElement
+ *
+ * This is always a BlitsElement
+ * @this {BlitsElement} this
+ */
 const propsTransformer = {
   set parent(v) {
     this.props['parent'] = v === 'root' ? renderer.root : v.node
@@ -458,6 +489,10 @@ const propsTransformer = {
 }
 
 const Element = {
+  /**
+   * Populates the element with data
+   * @param {import('../../component.js').BlitsElementProps} props
+   */
   populate(props) {
     props['node'] = this.config.node
 
@@ -468,6 +503,7 @@ const Element = {
     this.props.element = this
 
     this.props['parent'] = props['parent'] || this.config.parent
+    //@ts-ignore This might be a left over from the old code?
     delete props.parent
 
     this.props.raw = props
@@ -526,12 +562,24 @@ const Element = {
       })
     }
   },
+  /**
+   * Set an individual property on the node
+   *
+   * @this {import('../../component').BlitsElement} this
+   *
+   * @param {import('../..//component.js').BlitsElementProps} prop
+   * @param {any} value
+   * @returns {void}
+   */
   set(prop, value) {
     if (value === undefined) return
+    // @ts-ignore
     if (this.props.raw[prop] === value) return
+    // @ts-ignore
     this.props.raw[prop] = value
 
     this.props.props = {}
+    // @ts-ignore
     this.props[prop] = unpackTransition(value)
 
     const propsKeys = Object.keys(this.props.props)
@@ -629,7 +677,7 @@ const Element = {
         return
       }
       // fire transition end callback when animation ends (if specified)
-      if (transition.end && typeof transition.end === 'function') {
+      if (this.node !== undefined && transition.end && typeof transition.end === 'function') {
         transition.end.call(this.component, this, prop, this.node[prop])
       }
       // remove the prop from scheduled transitions
@@ -640,9 +688,9 @@ const Element = {
     f.start()
   },
   destroy() {
-    Log.debug('Deleting  Node', this.nodeId)
-    this.node.destroy()
+    if (this.node === null) return
 
+    Log.debug('Deleting Node', this.nodeId)
     // Clearing transition end callback functions
     const transitionProps = Object.keys(this.scheduledTransitions)
     for (let i = 0; i < transitionProps.length; i++) {
@@ -652,6 +700,31 @@ const Element = {
         if (transition.f !== undefined) transition.f.stop()
       }
     }
+
+    // not setting to null and deleting,
+    // because transition stopped might still be fired (maybe a renderer fix resolves that)
+    this.scheduledTransitions = {}
+
+    this.component = null
+    delete this.component
+
+    this.config = null
+    delete this.config
+
+    this.props.raw = {}
+    this.props.element = null
+    this.props.props = null
+    this.props = {}
+    delete this.props
+
+    this.triggerLayout = null
+    delete this.triggerLayout
+
+    this.forComponent = null
+    delete this.forComponent
+
+    this.node.destroy()
+    this.node = null
   },
   get nodeId() {
     return this.node && this.node.id
@@ -663,12 +736,30 @@ const Element = {
     return this.node && this.node.parent
   },
   get children() {
-    return this.component[symbols.getChildren]().filter((child) => {
-      return child.parent === (this[symbols.isSlot] ? this.node.children[0] : this.node)
-    })
+    const allChildren = this.component[symbols.getChildren]()
+    const directChildren = []
+    const l = allChildren.length
+    for (let i = 0; i < l; i++) {
+      const child = allChildren[i]
+      if (
+        child !== undefined &&
+        child.parent === (this[symbols.isSlot] ? this.node.children[0] : this.node)
+      ) {
+        directChildren.push(child)
+      }
+    }
+
+    return directChildren
   },
 }
 
+/**
+ * Returns a new Blits Element
+ *
+ * @param {Object} config - The configuration object for the element
+ * @param {import('../../component.js').BlitsComponent} component - The component to which the element belongs
+ * @returns {import('../../component.js').BlitsElement} - The new Blits Element
+ */
 export default (config, component) => {
   if (textDefaults === null) {
     textDefaults = {
@@ -681,7 +772,5 @@ export default (config, component) => {
     scheduledTransitions: {},
     config,
     component,
-    effectNames: [],
-    counter: counter++,
   })
 }

@@ -19,6 +19,7 @@ import symbols from './lib/symbols.js'
 import { state } from './router/router.js'
 import Settings from './settings.js'
 import { DEFAULT_HOLD_TIMEOUT_MS } from './constants.js'
+import { Log } from './lib/log.js'
 
 let focusedComponent = null
 let focusChain = []
@@ -38,53 +39,115 @@ export default {
     return focusedComponent
   },
   set(component, event) {
-    if (component === focusedComponent) return
     clearTimeout(setFocusTimeout)
-    focusedComponent && focusedComponent !== component.$parent && focusedComponent.unfocus()
-    focusChain.reverse().forEach((cmp) => cmp.unfocus())
-    if (component !== focusedComponent) {
-      setFocusTimeout = setTimeout(
-        () => {
-          focusedComponent = component
-          focusedComponent[symbols.lifecycle].state = 'focus'
-          if (event instanceof KeyboardEvent) {
-            document.dispatchEvent(new KeyboardEvent('keydown', event))
-          } else {
-            focusChain = []
-          }
-        },
-        this.hold ? Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS) : 0
-      )
+
+    // early return if already focused
+    if (component === focusedComponent) return
+
+    if (focusChain.length === 0) {
+      focusChain = getAncestors([component])
     }
+
+    // unfocus currently focused components
+    if (focusedComponent !== null) {
+      if (focusChain[focusChain.length - 1] === component[symbols.parent]) {
+        focusChain.push(component)
+      } else {
+        const newFocusChain = getAncestors([component])
+        let i = focusChain.length
+        while (i--) {
+          // don't unfocus when part of the new focus chain
+          if (newFocusChain.indexOf(focusChain[i]) > -1) break
+          focusChain[i][symbols.lifecycle].state = 'unfocus'
+        }
+        focusChain = newFocusChain
+      }
+    }
+
+    // ensure that all components in the focus path have focus state
+    let i = 0
+    while (i < focusChain.length - 1) {
+      focusChain[i][symbols.lifecycle].state = 'focus'
+      i++
+    }
+
+    // and finally set focus to the leaf component
+    setFocusTimeout = setTimeout(
+      () => setFocus(component, event),
+      this.hold === true ? Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS) : 0
+    )
   },
   input(key, event) {
     if (state.navigating === true) return
-    focusChain = walkChain([focusedComponent], key)
-    const componentWithInputEvent = focusChain.shift()
 
-    if (componentWithInputEvent) {
-      let cb
-      if (componentWithInputEvent[symbols.inputEvents][key]) {
-        cb = componentWithInputEvent[symbols.inputEvents][key].call(componentWithInputEvent, event)
-      } else if (componentWithInputEvent[symbols.inputEvents].any) {
-        cb = componentWithInputEvent[symbols.inputEvents].any.call(componentWithInputEvent, event)
-      }
-      if (cb !== undefined) {
-        keyUpCallbacks.set(event.code, cb)
-      }
+    const componentWithInputEvent = getComponentWithInputEvent(focusedComponent, key)
+
+    if (componentWithInputEvent === null) return
+
+    const inputEvents = componentWithInputEvent[symbols.inputEvents]
+
+    let cb
+    if (inputEvents[key]) {
+      cb = inputEvents[key].call(componentWithInputEvent, event)
+    } else if (inputEvents.any) {
+      cb = inputEvents.any.call(componentWithInputEvent, event)
+    }
+
+    if (cb !== undefined) {
+      keyUpCallbacks.set(event.code, cb)
     }
   },
 }
 
-const walkChain = (components, key) => {
+/**
+ * Recursive function that retrieves the ancestors of a component
+ * @param {Array} components
+ * @returns array components
+ */
+const getAncestors = (components) => {
+  if (components[0][symbols.parent] !== undefined) {
+    components.unshift(components[0][symbols.parent])
+    return getAncestors(components)
+  }
+  return components
+}
+
+/**
+ * Get the component in the ancestors chain that has a handler for a certain key code
+ * @param {Object} component
+ * @param {String} key
+ * @returns component
+ */
+const getComponentWithInputEvent = (component, key) => {
   if (
-    components[0][symbols.inputEvents] &&
-    (typeof components[0][symbols.inputEvents][key] === 'function' ||
-      typeof components[0][symbols.inputEvents].any === 'function')
+    component[symbols.inputEvents] &&
+    (typeof component[symbols.inputEvents][key] === 'function' ||
+      typeof component[symbols.inputEvents].any === 'function')
   ) {
-    return components
-  } else if (components[0].$parent) {
-    components.unshift(components[0].$parent)
-    return walkChain(components, key)
-  } else return []
+    return component
+  } else if (component[symbols.parent] !== undefined) {
+    return getComponentWithInputEvent(component[symbols.parent], key)
+  } else return null
+}
+
+/**
+ * Set the focus to the Component
+ * @param {Object} component  - The component fo focus
+ * @param {KeyboardEvent} event - Keyboard event
+ */
+const setFocus = (component, event) => {
+  Log.info(
+    '\nFocus chain:\n',
+    focusChain.map((c, index) => '\t'.repeat(index) + '↳ ' + c.$componentId).join('\n')
+  )
+
+  focusedComponent = component
+  component[symbols.lifecycle].state = 'focus'
+
+  if (event instanceof KeyboardEvent) {
+    const internalEvent = new KeyboardEvent('keydown', event)
+    // @ts-ignore - this is an internal event
+    internalEvent[symbols.internalEvent] = true
+    document.dispatchEvent(internalEvent)
+  }
 }

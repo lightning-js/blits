@@ -17,6 +17,7 @@
 
 import Component from '../component.js'
 import Router from '../router/router.js'
+import symbols from '../lib/symbols.js'
 
 let hashchangeHandler = null
 
@@ -31,7 +32,13 @@ export default () =>
       }
     },
     hooks: {
-      ready() {
+      async ready() {
+        if (
+          this[symbols.parent][symbols.routerHooks] &&
+          this[symbols.parent][symbols.routerHooks].init
+        ) {
+          await this[symbols.parent][symbols.routerHooks].init.apply(this[symbols.parent])
+        }
         hashchangeHandler = () => Router.navigate.apply(this)
         Router.navigate.apply(this)
         window.addEventListener('hashchange', hashchangeHandler)
@@ -47,7 +54,7 @@ export default () =>
       back(e) {
         const navigating = Router.back.call(this)
         if (navigating === false) {
-          this.$parent.$focus(e)
+          this[symbols.parent].$focus(e)
         }
       },
     },

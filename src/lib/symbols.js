@@ -1,4 +1,62 @@
+/**
+ * Symbol registry for internal framework properties and generated code.
+ *
+ * @typedef {Object} BlitsSymbols
+ * @property {symbol} cleanup
+ * @property {symbol} currentView
+ * @property {symbol} cursorTagStart
+ * @property {symbol} computedKeys
+ * @property {symbol} destroy
+ * @property {symbol} getChildren
+ * @property {symbol} holder
+ * @property {symbol} id
+ * @property {symbol} identifier
+ * @property {symbol} index
+ * @property {symbol} init
+ * @property {symbol} inputEvents
+ * @property {symbol} internalEvent
+ * @property {symbol} intervals
+ * @property {symbol} isProxy
+ * @property {symbol} launched
+ * @property {symbol} level
+ * @property {symbol} lifecycle
+ * @property {symbol} methodKeys
+ * @property {symbol} originalState
+ * @property {symbol} propKeys
+ * @property {symbol} raw
+ * @property {symbol} ready
+ * @property {symbol} renderer
+ * @property {symbol} routes
+ * @property {symbol} routerHooks
+ * @property {symbol} settings
+ * @property {symbol} state
+ * @property {symbol} stateKeys
+ * @property {symbol} textnode
+ * @property {symbol} timeouts
+ * @property {symbol} type
+ * @property {symbol} watchers
+ * @property {symbol} watchKeys
+ * @property {symbol} wrapper
+ * @property {symbol} children
+ * @property {symbol} components
+ * @property {symbol} config
+ * @property {symbol} isSlot
+ * @property {symbol} props
+ * @property {symbol} parent
+ * @property {symbol} slots
+ * @property {symbol} componentType
+ * @property {symbol} isComponent
+ * @property {symbol} effects
+ * @property {symbol} removeGlobalEffects
+ */
+
+/**
+ * Internal symbol registry for Blits framework and generated code.
+ *
+ * @type {BlitsSymbols}
+ */
 export default {
+  cleanup: Symbol('cleanup'),
   currentView: Symbol('currentView'),
   cursorTagStart: Symbol('cursorTagStart'),
   computedKeys: Symbol('computedKeys'),
@@ -10,7 +68,9 @@ export default {
   index: Symbol('index'),
   init: Symbol('init'),
   inputEvents: Symbol('inputEvents'),
+  internalEvent: Symbol('internalEvent'),
   intervals: Symbol('intervals'),
+  isProxy: Symbol('isProxy'),
   launched: Symbol('launched'),
   level: Symbol('level'),
   lifecycle: Symbol('lifecycle'),

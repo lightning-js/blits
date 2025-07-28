@@ -36,6 +36,13 @@ export default {
     enumerable: true,
     configurable: false,
   },
+  $id: {
+    get: function () {
+      return this[symbols.id]
+    },
+    enumerable: true,
+    configurable: false,
+  },
   [symbols.renderer]: {
     value: () => renderer,
     writable: false,
@@ -53,7 +60,7 @@ export default {
                 return Object.values(child).map((c) => {
                   // ugly hack .. but the point is to reference the right component
                   c.forComponent =
-                    c[Symbol.for('config')] && c[Symbol.for('config')].$parent.component
+                    c[Symbol.for('config')] && c[Symbol.for('config')][symbols.parent].component
                   return c
                 })
               }
