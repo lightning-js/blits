@@ -44,7 +44,7 @@ export default {
     // early return if already focused
     if (component === focusedComponent) return
 
-    if (focusChain.length === 0) {
+    if (focusedComponent === null) {
       focusChain = getAncestors([component])
     }
 
