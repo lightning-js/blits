@@ -96,6 +96,8 @@ export default Blits.Component('Poster', {
 
 Whenever you navigate to a new page, the URL hash will automatically be updated. Unless specified otherwise, navigating to a new page, will add that route to the history stack. The `back` input action is automatically wired up to navigate back down the history stack.
 
+By default, every time you navigate to a new route, the application focus will be automatically passed to the newly loaded page. If you instead want to maintain the current focus (for example in a widget that sits above your RouterView), you can use `passFocus: false` as part of the router options.
+
 ## Deeplinking
 
 The Router plugin has support for deeplinking. When the App is loaded with a URL hash (i.e. `#/pages/settings/network`), the router will try to match that hash to a defined route. This means that your app can be deep linked into, by simply providing the correct URL hash.
