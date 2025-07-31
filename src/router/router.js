@@ -216,8 +216,8 @@ export const navigate = async function () {
       }
 
       route.data = {
-        ...navigationData,
         ...route.data,
+        ...navigationData,
         ...queryParamsData,
       }
       // Adding the location hash to the route if it exists.
