@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.35.3
+
+_31 Jul 2025_
+
+- Fixed issue with navigation data being overridden by route data.
+- Fixed issue with incorrect focus chain paths.
+
 ## v1.35.2
 
 _25 Jul 2025_
