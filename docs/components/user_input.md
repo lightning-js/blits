@@ -72,6 +72,21 @@ When a component handles a key press by having a corresponding function specifie
 }
 ```
 
+If you don't want to focus the direct parent when propagating an input event, you can return `false` within the handler, which will find the nearest ancestor that handles the input event and immediately move focus to it without triggering the focus handlers for any elements inbetween.
+
+```javascript
+{
+  input: {
+    up() {
+      // on some condition where your component doesn't need focus anymore, return false to propagate focus to the nearest ancestor that handles the same input
+      if (focusIndex === 0) {
+        return false;
+      }
+    },
+  }
+}
+```
+
 ## Intercepting key input
 
 In addition to the Event handling chain explained above. Blits offers the option to _intercept_ key presses at the root level of the Application, before they reach the currently focused Component. This can be useful in certain situation where you want to globally disable all key presses, or when implementing an override key press handler.
