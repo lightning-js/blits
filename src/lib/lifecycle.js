@@ -77,12 +77,13 @@ export default {
       this.previous = this.current
       this.current = v
       if (v === 'refocus') return
-      if (v === 'focus') this.component[symbols.state].hasFocus = true
-      if (v === 'unfocus') this.component[symbols.state].hasFocus = false
       // emit 'private' hook
       privateEmit(v, this.component[symbols.identifier], this.component)
       // emit 'public' hook
       emit(v, this.component[symbols.identifier], this.component)
+      // update the built-in hasFocus state variable
+      if (v === 'focus') this.component[symbols.state].hasFocus = true
+      if (v === 'unfocus') this.component[symbols.state].hasFocus = false
     }
   },
 }
