@@ -93,7 +93,11 @@ export default {
       cb = inputEvents.any.call(componentWithInputEvent, event)
     }
 
-    if (cb !== undefined) {
+    // if the callback returns false, fallback to the nearest ancestor with a matching input event
+    if (cb === false && !!componentWithInputEvent.parent) {
+      const ancestorWithInputEvent = getComponentWithInputEvent(componentWithInputEvent.parent, key)
+      ancestorWithInputEvent?.$focus(event)
+    } else if (cb !== undefined) {
       keyUpCallbacks.set(event.code, cb)
     }
   },
