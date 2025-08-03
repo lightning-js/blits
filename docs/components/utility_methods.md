@@ -89,6 +89,19 @@ The `$focus`-method accepts an optional `event` parameter, which is of the type 
 
 This can be used to _bubble up_ input events (specified in the `input` key of the component configuration object) and helps to create a smooth experience, preventing a user to click multiple times.
 
+When a Component receives focus the `focus` lifecycle-hook is invoke. Additionally the built in state variable `hasFocus` is set from `false` to `true`.
+
+#### Focus chain
+
+It's worth noting that the when a Component is _focused_ it's parents will _also_ be set to focused as part of the _focus chain_. Each parent will have it's `focus` lifecycle-hook invoked and the `hasFocus` state variable will be set to true.
+
+When moving the focus to a different Component, all components that are in a focused state, but are not part of the new _focus chain_ to said Component will be put into `unfocus` state (i.e. `unfocus` lifecycle hook is invoked and `hasFocus` is set to `false`). For shared ancestors of the new Component to gain focus, the `focus` lifecycle hook is _not_ called again.
+
+#### Refocus
+
+When the `$focus` method is called on a Component that is already is a focused state (either because it is the focused Component, or becasue it's an ancestor of the focused Component, and thus part of a focus chain) it is essentially being _refocused_. In this case the `focus`-lifecycle hook is invoked again, making sure that _focus_ functionality is executed.
+
+> Tip: a _refocus_ can be distinguished from a _fresh focus_, by checking the value of the  built-in `hasFocus` state variable. In the event of a refocus the `hasFocus` is already set to `true` when invoking the `focus`-hook. When it's a fresh focus the value is `false`.
 
 ### $trigger
 
