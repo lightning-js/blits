@@ -2,6 +2,13 @@
 
 ## v1.35.3
 
+_03 Aug 2025_
+
+- Changed order of `focus`-hook and `hasFocus` variable to distinguish between focus and refocus
+- Updated focus related documentation
+
+## v1.35.3
+
 _31 Jul 2025_
 
 - Fixed issue with navigation data being overridden by route data.
