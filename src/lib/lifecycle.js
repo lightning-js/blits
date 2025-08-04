@@ -70,18 +70,20 @@ export default {
    * @param {string} v - The new lifecycle state.
    */
   set state(v) {
-    if (states.indexOf(v) > -1 && v !== this.current) {
+    if ((states.indexOf(v) > -1 && v !== this.current) || v === 'refocus') {
       Log.debug(
         `Setting lifecycle state from ${this.current} to ${v} for ${this.component.componentId}`
       )
       this.previous = this.current
       this.current = v
-      if (this.current === 'focus') this.component[symbols.state].$hasFocus = true
-      if (this.current === 'unfocus') this.component[symbols.state].$hasFocus = false
+      if (v === 'refocus') return
       // emit 'private' hook
       privateEmit(v, this.component[symbols.identifier], this.component)
       // emit 'public' hook
       emit(v, this.component[symbols.identifier], this.component)
+      // update the built-in hasFocus state variable
+      if (v === 'focus') this.component[symbols.state].$hasFocus = true
+      if (v === 'unfocus') this.component[symbols.state].$hasFocus = false
     }
   },
 }

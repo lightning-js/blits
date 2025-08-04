@@ -216,8 +216,8 @@ export const navigate = async function () {
       }
 
       route.data = {
-        ...navigationData,
         ...route.data,
+        ...navigationData,
         ...queryParamsData,
       }
       // Adding the location hash to the route if it exists.
@@ -341,8 +341,10 @@ export const navigate = async function () {
       // keep reference to the previous focus for storing in cache
       previousFocus = Focus.get()
 
-      // set focus to the view that we're routing to
-      focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
+      // set focus to the view that we're routing to (unless explicitly disabling passing focus)
+      if (route.options.passFocus !== false) {
+        focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
+      }
 
       // apply before settings to holder element
       if (route.transition.before) {

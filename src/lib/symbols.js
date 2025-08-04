@@ -26,6 +26,7 @@
  * @property {symbol} raw
  * @property {symbol} ready
  * @property {symbol} renderer
+ * @property {symbol} rootParent
  * @property {symbol} routes
  * @property {symbol} routerHooks
  * @property {symbol} settings

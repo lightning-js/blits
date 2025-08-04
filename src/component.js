@@ -198,6 +198,8 @@ const Component = (name = required('name'), config = required('config')) => {
 
     this[symbols.effects] = []
 
+    this[symbols.effects] = []
+
     // instantiate a lifecycle object for this instance
     this[symbols.lifecycle] = Object.assign(Object.create(Lifecycle), {
       component: this,
