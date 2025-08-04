@@ -30,7 +30,6 @@ Since props are used to pass information from a parent to a child, it's importan
 For more advanced usage, you can define props using an array with an `object` for each prop, instead of just a string with the accepted name. Within each prop object, you can:
 
 - Specify a _default value_ for the prop if it's omitted.
-- _Validate_ the value of the prop based on certain criteria.
 - Mark the prop as _required_.
 - Apply a `cast` function to modify the value passed as a prop.
 
@@ -46,9 +45,6 @@ export default Blits.Component('MyComponent', {
       key: 'alpha',
       default: 0.5,
       required: true,
-      validate(v) {
-        return v <= 1 && v >= 0;
-      },
       cast: Number
     }
   ]
