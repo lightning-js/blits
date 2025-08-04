@@ -65,7 +65,7 @@ test('Focussing along focus path', (assert) => {
   }
   const component = {
     componentId: 'comp1',
-    parent,
+    [symbols.parent]: parent,
     [symbols.lifecycle]: {
       state: 'init',
     },
@@ -99,7 +99,7 @@ test('Unfocus focus chain', (assert) => {
   }
   const component = {
     componentId: 'comp1',
-    parent,
+    [symbols.parent]: parent,
     [symbols.lifecycle]: {
       state: 'init',
     },
@@ -155,7 +155,7 @@ test('Unfocus partial focus chain', (assert) => {
   }
   const parent = {
     componentId: 'parent',
-    parent: grandparent,
+    [symbols.parent]: grandparent,
     [symbols.lifecycle]: {
       state: 'init',
     },
@@ -170,7 +170,7 @@ test('Unfocus partial focus chain', (assert) => {
 
   const otherComponent = {
     componentId: 'other',
-    parent: grandparent,
+    [symbols.parent]: grandparent,
     [symbols.lifecycle]: {
       state: 'init',
     },
