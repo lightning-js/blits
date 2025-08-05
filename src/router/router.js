@@ -337,6 +337,9 @@ export const navigate = async function () {
       // keep reference to the previous focus for storing in cache
       previousFocus = Focus.get()
 
+      const children = this[symbols.children]
+      this.activeView = children[children.length - 1]
+
       // set focus to the view that we're routing to
       focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
 
@@ -380,8 +383,6 @@ export const navigate = async function () {
           await setOrAnimate(holder, route.transition.in, shouldAnimate)
         }
       }
-      const children = this[symbols.children]
-      this.activeView = children[children.length - 1]
     } else {
       Log.error(`Route ${hash} not found`)
       const routerHooks = this.parent[symbols.routerHooks]
