@@ -15,6 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { Log } from '../lib/log.js'
 import speechSynthesis from './speechSynthesis.js'
 
 let active = false
@@ -70,7 +71,7 @@ const addToQueue = (message, politeness, delay = false) => {
   done.cancel = () => {
     const index = queue.findIndex((item) => item.id === id)
     if (index !== -1) queue.splice(index, 1)
-    isProcessing = false
+    Log.debug(`Announcer - removed from queue: "${message}" (id: ${id})`)
     resolveFn('canceled')
   }
 
@@ -91,6 +92,8 @@ const addToQueue = (message, politeness, delay = false) => {
   } else {
     queue.push({ delay, resolveFn, id })
   }
+
+  Log.debug(`Announcer - added to queue: "${message}" (id: ${id})`)
 
   setTimeout(() => {
     processQueue()
@@ -118,17 +121,22 @@ const processQueue = async () => {
     if (debounce !== null) clearTimeout(debounce)
     // add some easing when speaking the messages to reduce stuttering
     debounce = setTimeout(() => {
+      Log.debug(`Announcer - speaking: "${message}" (id: ${id})`)
+
       speechSynthesis
-        .speak({ message })
+        .speak({ message, id })
         .then(() => {
-          isProcessing = false
+          Log.debug(`Announcer - finished speaking: "${message}" (id: ${id})`)
+
           currentId = null
+          isProcessing = false
           resolveFn('finished')
           processQueue()
         })
         .catch((e) => {
-          isProcessing = false
           currentId = null
+          isProcessing = false
+          Log.debug(`Announcer - error ("${e.error}") while speaking: "${message}" (id: ${id})`)
           resolveFn(e.error)
           processQueue()
         })

@@ -64,7 +64,7 @@ const initialize = () => {
 
 const speak = (options) => {
   const utterance = new SpeechSynthesisUtterance(options.message)
-  const id = Date.now() + Math.random() // Unique ID for tracking
+  const id = options.id
   utterance.lang = options.lang || defaultUtteranceProps.lang
   utterance.pitch = options.pitch || defaultUtteranceProps.pitch
   utterance.rate = options.rate || defaultUtteranceProps.rate
