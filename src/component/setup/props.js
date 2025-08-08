@@ -55,8 +55,10 @@ export default (component, props = {}) => {
         return key in this[symbols.props] ? this[symbols.props][key] : prop
       },
       set(v) {
-        Log.warn(`Warning! Avoid mutating props directly (${key})`)
-        this[symbols.props][key] = v
+        Log.warn(
+          `Warning! Avoid mutating props directly (prop "${prop.key}" in component "${this.componentId}")`
+        )
+        this[symbols.props][prop.key] = v
       },
     })
   }

@@ -21,12 +21,18 @@ jobs:
       with:
         node-version: 20.16.0
 
+    - name: Save PR Information
+      run: |
+        echo '${{ github.event.pull_request.number }}' > ./pr_number.txt
+        echo '${{ github.event.pull_request.head.repo.full_name }}' > ./pr_repo.txt
+        echo '${{ github.event.pull_request.head.ref }}' > ./pr_branch.txt
+
     - name: Install Dependencies
       run: npm install
 
     - name: Run Tests
       id: run-tests
-      run: npm run test > test-report.txt 2>&1 || echo "Command failed with exit code $?" >> test-report.txt
+      run: npm run test:ci > test-report.txt 2>&1 || echo "Command failed with exit code $?" >> test-report.txt
 
     - name: Analyze Test Results
       id: analyze-results
@@ -91,18 +97,14 @@ jobs:
            * Outputs results and saves result files
            */
           function outputResults(results) {
-            // Create test results directory and files
             try {
-              fs.mkdirSync('./test-results', { recursive: true });
-
-              // Write results files
-              fs.writeFileSync('./test-results/timestamp.txt', results.timestamp);
-              fs.writeFileSync('./test-results/summary.txt', results.summary);
-              fs.writeFileSync('./test-results/failed.txt', results.testsFailed.toString());
+              fs.writeFileSync('./timestamp.txt', results.timestamp);
+              fs.writeFileSync('./summary.txt', results.summary);
+              fs.writeFileSync('./failed.txt', results.testsFailed.toString());
 
               // Save error output if it exists
               if (results.error) {
-                fs.writeFileSync('./test-results/error.txt', results.error);
+                fs.writeFileSync('./error.txt', results.error);
               }
             } catch (err) {
               console.error('Error saving test results:', err);
@@ -124,7 +126,15 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: test-results
-        path: ./test-results/
+        path: |
+
+          ./timestamp.txt
+          ./summary.txt
+          ./failed.txt
+          ./error.txt
+          ./pr_number.txt
+          ./pr_repo.txt
+          ./pr_branch.txt
 
     # Fail the workflow if tests failed
     - name: Check Test Status

@@ -1,2 +1,31 @@
 packages/
 coverage
+
+# Original component files
+src/components/*.orig.js
+
+# Development files
+.editorconfig
+.eslintignore
+.eslintrc.cjs
+.github/
+.husky/
+.vscode/
+jsconfig.json
+
+# Documentation
+docs/
+
+# Tests
+**/*.test.js
+**/*.spec.js
+test/
+tests/
+scripts/runTests.js
+
+# Misc
+banner.png
+.git/
+
+# Build files
+.c8rc*

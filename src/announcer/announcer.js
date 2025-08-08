@@ -70,6 +70,7 @@ const addToQueue = (message, politeness, delay = false) => {
   done.cancel = () => {
     const index = queue.findIndex((item) => item.id === id)
     if (index !== -1) queue.splice(index, 1)
+    isProcessing = false
     resolveFn('canceled')
   }
 
@@ -145,6 +146,7 @@ const stop = () => {
 }
 
 const clear = () => {
+  isProcessing = false
   queue.length = 0
 }
 

@@ -25,7 +25,7 @@ import { WebGlShaderType } from '@lightningjs/renderer/webgl';
 declare module '@lightningjs/blits' {
 
 
-  export interface AnnouncerUtterance extends Promise {
+  export interface AnnouncerUtterance extends Promise<T> {
     /**
      * Removes a specific message from the announcement queue,
      * to make sure it isn't spoke out.
@@ -189,7 +189,30 @@ declare module '@lightningjs/blits' {
 
   // todo: specify valid route options
   export interface RouteOptions {
-    [key: string]: any
+    /**
+     * Whether the page navigation should be added to the history stack
+     * used when navigating back using `this.$router.back()`
+     *
+     * @default true
+     */
+    inHistory: Boolean
+    /**
+     * Whether the page should be kept alive when navigating away. Can be useful
+     * for a homepage where the state should be fully retained when navigating back
+     * from a details page
+     *
+     * @default false
+     */
+    keepAlive: Boolean
+    /**
+     * Whether the focus should be delegated to the page that's being navigated to.
+     * Can be useful when navigating to a new page from a widget / menu overlaying the
+     * RouterView, where the widget should maintain the focus (instead of the new page, which
+     * is the default behaviour)
+     *
+     * @default true
+     */
+    passFocus: Boolean
   }
 
   export interface Router {
@@ -252,7 +275,7 @@ declare module '@lightningjs/blits' {
     *
     * @returns Boolean
     */
-    hasFocus: boolean,
+    $hasFocus: boolean,
 
     /**
     * Listen to events emitted by other components
@@ -264,8 +287,12 @@ declare module '@lightningjs/blits' {
      * Emit events that other components can listen to
      * @param name - name of the event to be emitted
      * @param data - optional data to be passed along
+     * @param byReference - whether or not to pass the data by reference.
+     * The default behaviour is passing the data object by reference (`true`).
+     * When explicitely passing `false` the object will be recursively cloned
+     * and cleaned from any potential reactivity before emitting
      */
-    $emit(name: string, data?: any): void;
+    $emit(name: string, data?: any, byReference?: boolean): void;
 
     /**
     * Set a timeout that is automatically cleaned upon component destroy
@@ -467,14 +494,16 @@ declare module '@lightningjs/blits' {
   }
 
   export interface RouterHooks {
-    beforeEach?: (to: Route, from: Route) => string | Route | Promise<string | Route>;
+    init?: () => Promise<> | void;
+    beforeEach?: (to: Route, from: Route) => string | Route | Promise<string | Route> | void;
+    error?: (err: string) => string | Route | Promise<string | Route> | void;
   }
 
-  export interface RouterConfig {
+  export interface RouterConfig<P extends Props, S, M, C> {
     /**
      * Register hooks for the router
      */
-    hooks?: RouterHooks,
+    hooks?: RouterHooks & ComponentContext<P, S, M, C>,
 
     /**
      * Routes definition
@@ -497,7 +526,7 @@ declare module '@lightningjs/blits' {
       /**
        * Router Configuration
        */
-      router?: RouterConfig,
+      router?: RouterConfig<P, S, M, C>,
       routes?: never
     }
     |
@@ -608,7 +637,7 @@ declare module '@lightningjs/blits' {
     /**
      * Extra route options
      */
-    options?: object // todo: specify which options are available,
+    options?: RouteOptions
     /**
      * Message to be announced when visiting the route (often used for accessibility purposes)
      *
@@ -936,6 +965,19 @@ declare module '@lightningjs/blits' {
      */
     holdTimeout?: number,
     /**
+     * Input throttle time in milliseconds to prevent rapid successive inputs
+     *
+     * Within the throttle window, only one input will be processed immediately.
+     * Subsequent inputs _of the same key_ are ignored until the scheduled input is processed.
+     *
+     * Pressing a different key will be processed immediately.
+     *
+     * Set to `0` to disable input throttling.
+     *
+     * Defaults to `0` (disabled)
+     */
+    inputThrottle?: number,
+    /**
      * Custom canvas object used to render the App to.
      *
      * When not provided, the Lightning renderer will create a
@@ -972,6 +1014,15 @@ declare module '@lightningjs/blits' {
      * @default false
      */
     announcer?: boolean
+    /**
+     * Maximum FPS at which the App will be rendered
+     *
+     * Lowering the maximum FPS value can improve the overall experience on lower end devices.
+     * Targetting a lower FPS may gives the CPU more time to construct each frame leading to a smoother rendering.
+     *
+     * Defaults to `0` which means no maximum
+     */
+    maxFPS?: number
   }
 
   interface State {
