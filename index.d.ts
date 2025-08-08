@@ -195,7 +195,7 @@ declare module '@lightningjs/blits' {
      *
      * @default true
      */
-    inHistory: Boolean
+    inHistory?: Boolean
     /**
      * Whether the page should be kept alive when navigating away. Can be useful
      * for a homepage where the state should be fully retained when navigating back
@@ -203,7 +203,7 @@ declare module '@lightningjs/blits' {
      *
      * @default false
      */
-    keepAlive: Boolean
+    keepAlive?: Boolean
     /**
      * Whether the focus should be delegated to the page that's being navigated to.
      * Can be useful when navigating to a new page from a widget / menu overlaying the
@@ -212,7 +212,7 @@ declare module '@lightningjs/blits' {
      *
      * @default true
      */
-    passFocus: Boolean
+    passFocus?: Boolean
   }
 
   export interface Router {

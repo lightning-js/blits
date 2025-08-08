@@ -1,6 +1,13 @@
 # Changelog
 
-## v1.35.3
+## v1.35.5
+
+_06 Aug 2025_
+
+-  Fixed timing routerview causing focus to be passed to previous page
+
+
+## v1.35.4
 
 _03 Aug 2025_
 
