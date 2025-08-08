@@ -72,7 +72,7 @@ const textureMemorySettings = (settings) => {
  * @param {Partial<import('../../launch.js').BlitsSettings>} [settings] - The settings for the renderer
  *
  */
-export default async (App, target, settings = {}) => {
+export default (App, target, settings = {}) => {
   renderer = new RendererMain(
     {
       ...{
@@ -116,7 +116,7 @@ export default async (App, target, settings = {}) => {
     }
   }
 
-  await shaderLoader()
+  shaderLoader()
   fontLoader()
   initApp()
 

@@ -1,5 +1,7 @@
 import Settings from '../../settings.js'
 import { renderer } from './launch.js'
+import * as webglShaders from '@lightningjs/renderer/webgl/shaders'
+import * as canvasShaders from '@lightningjs/renderer/canvas/shaders'
 
 function registerBlitsDefaultShaders(
   shManager,
@@ -24,17 +26,9 @@ function registerBlitsDefaultShaders(
   shManager.registerShaderType('linearGradient', LinearGradient)
 }
 
-/**
- * vite does not like dynamic links, this resolves that issue
- */
-const shaderModules = {
-  webgl: () => import('@lightningjs/renderer/webgl/shaders'),
-  canvas: () => import('@lightningjs/renderer/canvas/shaders'),
-}
-
-export default async () => {
+export default () => {
   const stage = renderer.stage
-  const renderMode = Settings.get('renderMode', 'webgl')
+
   const {
     Rounded,
     Border,
@@ -45,7 +39,7 @@ export default async () => {
     HolePunch,
     RadialGradient,
     LinearGradient,
-  } = await shaderModules[renderMode]()
+  } = Settings.get('renderMode', 'webgl') === 'webgl' ? webglShaders : canvasShaders
 
   registerBlitsDefaultShaders(
     stage.shManager,

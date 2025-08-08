@@ -19,7 +19,6 @@ import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import engine from './engine.js'
 import blitsPackageInfo from '../package.json' assert { type: 'json' }
-
 /**
  * @typedef {Object} Font
  * @property {string} family - Name of the font family
