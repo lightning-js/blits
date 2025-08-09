@@ -1,0 +1,30 @@
+{
+  "name": "visual-tests",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "npm test:visual",
+    "test:visual": "node ./src/index.js",
+    "build:examples": "cd ../examples && npm run build",
+    "build:docker": "node ./src/build-docker.js ",
+    "serve-examples": "cd ../examples && npm run preview",
+    "node-version": "node --version"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "execa": "^8.0.1",
+    "fs-extra": "^11.1.1",
+    "yargs": "^17.7.2",
+    "pngjs": "^7.0.0",
+    "pixelmatch": "^6.0.0"
+  },
+  "devDependencies": {
+    "playwright": "1.49.0",
+    "wait-port": "^1.1.0"
+  }
+}

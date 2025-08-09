@@ -51,7 +51,8 @@ async function rendererVersion() {
   let rendererPackageInfo
   try {
     // Dynamically import the renderer package.json
-    rendererPackageInfo = await import('../../renderer/package.json')
+    const renderePackage = '../../renderer/package.json'
+    rendererPackageInfo = await import(renderePackage)
     if (rendererPackageInfo !== undefined) {
       return rendererPackageInfo.version
     }
