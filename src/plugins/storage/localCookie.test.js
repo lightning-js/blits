@@ -37,7 +37,6 @@ test('Local Storage - Clear items ', (assert) => {
   ls.setItem('a', 'a')
   ls.setItem('b', 'b')
   const r = ls.clear()
-  console.log('Keys', ls.keys())
   assert.equal(r, undefined, 'Local storage clear function should return undefined')
   assert.equal(ls.getItem('a'), null, 'Should not have a value for key "a"')
   assert.equal(ls.getItem('b'), null, 'Should not have a value for key "b"')
