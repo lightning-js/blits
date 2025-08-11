@@ -68,14 +68,7 @@ const addToQueue = (message, politeness, delay = false) => {
     resolveFn = resolve
   })
 
-  // augment the promise with a cancel function
-  done.remove = done.cancel = () => {
-    const index = queue.findIndex((item) => item.id === id)
-    if (index !== -1) queue.splice(index, 1)
-    Log.debug(`Announcer - removed from queue: "${message}" (id: ${id})`)
-    resolveFn('canceled')
-  }
-
+  // augment the promise with a cancel / remove function
   done.remove = done.cancel = () => {
     const index = queue.findIndex((item) => item.id === id)
     if (index !== -1) queue.splice(index, 1)
