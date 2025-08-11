@@ -9,7 +9,7 @@ _11 Aug 2025_
 - Fixed sidebar in docs
 - Added debug log messages to Announcer
 - Added `remove()` function as (preferred) alias for announcer `message.cancel()`
-- Fixed issue with removing a messages causing an interupt of current message being read out
+- Fixed issue with removing a messages causing an interrupt of current message being read out
 
 ## v1.35.5
 
