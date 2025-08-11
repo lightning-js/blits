@@ -117,4 +117,6 @@ export default {
   effects: Symbol.for('effects'),
   // Symbol 'removeGlobalEffects' utilized within generated code
   removeGlobalEffects: Symbol.for('removeGlobalEffects'),
+  // Symbol 'removeGlobalEffects' utilized within generated code
+  tagContent: Symbol.for('tagContent'),
 }
