@@ -18,23 +18,50 @@
 import eventListeners from '../../lib/eventListeners.js'
 
 export default {
+  /**
+   * Emits an event to all registered listeners for the given event name.
+   *
+   * @param {string} event - The name of the event to emit.
+   * @param {any} params - The parameters to pass to the event listeners.
+   * @param byReference - whether or not to pass the data by reference.
+   * The default behaviour is passing the data object by reference (`true`).
+   * When explicitely passing `false` the object will be recursively cloned
+   * and cleaned from any potential reactivity before emitting
+   * @returns {boolean} True if all listeners executed, false otherwise.
+   */
   $emit: {
-    value: function (event, params) {
+    value: function (event, params, byReference = true) {
       // returning if all listeners executed
-      return eventListeners.executeListeners(event, params)
+      return eventListeners.executeListeners(event, params, byReference)
     },
     writable: false,
     enumerable: true,
     configurable: false,
   },
+  /**
+   * Registers a listener callback for a specific event.
+   *
+   * @param {string} event - The name of the event to listen for.
+   * @param {Function} callback - The callback function to execute when the event is emitted.
+   * @param {number} [priority=0] - The priority of the listener (higher runs first).
+   * @returns {void}
+   */
   $listen: {
     value: function (event, callback, priority = 0) {
+      // early exit when component is marked as end of life
+      if (this.eol === true) return
       eventListeners.registerListener(this, event, callback, priority)
     },
     writable: false,
     enumerable: true,
     configurable: false,
   },
+  /**
+   * Deregisters a listener for a specific event.
+   *
+   * @param {string} event - The name of the event to stop listening for.
+   * @returns {void}
+   */
   $unlisten: {
     value: function (event) {
       eventListeners.deregisterListener(this, event)

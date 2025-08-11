@@ -83,12 +83,25 @@ export default Blits.Component('MyComponent', {
 })
 ```
 
-Another frequent case is that focus is passed on to the parent Component. The parent component is available on the Component scope as `this.parent`. So passing the focus to the parent is as simple as calling `this.parent.$focus()`.
+Another frequent case is that focus is passed on to the parent Component. The parent component is available on the Component scope as `this.$parent`. So passing the focus to the parent is as simple as calling `this.$parent.$focus()`.
 
 The `$focus`-method accepts an optional `event` parameter, which is of the type `KeyboardEvent`. When the `event` parameter is provided, not only will the selected Component receive focus, but the input event will be emitted again on the component that just received focus.
 
 This can be used to _bubble up_ input events (specified in the `input` key of the component configuration object) and helps to create a smooth experience, preventing a user to click multiple times.
 
+When a Component receives focus the `focus` lifecycle-hook is invoke. Additionally the built in state variable `hasFocus` is set from `false` to `true`.
+
+#### Focus chain
+
+It's worth noting that the when a Component is _focused_ it's parents will _also_ be set to focused as part of the _focus chain_. Each parent will have it's `focus` lifecycle-hook invoked and the `hasFocus` state variable will be set to true.
+
+When moving the focus to a different Component, all components that are in a focused state, but are not part of the new _focus chain_ to said Component will be put into `unfocus` state (i.e. `unfocus` lifecycle hook is invoked and `hasFocus` is set to `false`). For shared ancestors of the new Component to gain focus, the `focus` lifecycle hook is _not_ called again.
+
+#### Refocus
+
+When the `$focus` method is called on a Component that is already is a focused state (either because it is the focused Component, or becasue it's an ancestor of the focused Component, and thus part of a focus chain) it is essentially being _refocused_. In this case the `focus`-lifecycle hook is invoked again, making sure that _focus_ functionality is executed.
+
+> Tip: a _refocus_ can be distinguished from a _fresh focus_, by checking the value of the  built-in `hasFocus` state variable. In the event of a refocus the `hasFocus` is already set to `true` when invoking the `focus`-hook. When it's a fresh focus the value is `false`.
 
 ### $trigger
 
@@ -123,7 +136,7 @@ export default Blits.Component('MyComponent', {
 When working with Components in Blits you will often want to send data from one to another. In the case of (direct) child Component, using
 props is the defacto way for inter-component communication.
 
-For passing data from a child to a parent component, you may be tempted to use the `this.parent` reference and change the state directly. While this works, it does create a strict dependency on the parent, meaning the child Component only works properly when tied directly to a specific parent. This reduces reusability of Components and may cause limitations or problems later on.
+For passing data from a child to a parent component, you may be tempted to use the `this.$parent` reference and change the state directly. While this works, it does create a strict dependency on the parent, meaning the child Component only works properly when tied directly to a specific parent. This reduces reusability of Components and may cause limitations or problems later on.
 
 Instead the `this.$emit()` method can be used, which is available on each Component as a utility function. It's designed to easily emit data to anywhere in an App. The first argument is the `name` of the event that will be emitted (i.e. `changeBackground`) and optionally a second argument with additional `data` can be passed.
 
@@ -143,6 +156,24 @@ export default Blits.Component('MyComponent', {
     }
   }
 })
+```
+
+#### Emitting data by reference
+
+When emitting a data object via de `$emit()`-method, the object will be passed _by reference_. This is default behaviour in JavaScript. As a result of this, when emitted data is manipulated in the `$listen` method, the original object is _also_ changed.
+
+With plain objects this is usually not a problem, but when you emit component `state` objects or `props`, you have to be aware that you may be reassigning an already reactive object or are updating an object that has reactive side effects attached to it.
+
+In these cases it could be helpful to not pass the original state or prop object (i.e. `this.items`) directly and / or as a whole, but instead _clone_ that object. Or construct a completely new data object with only those values required, at the moment of emitting.
+
+You can also have Blits handle this for you and pass the optional 3rd `byReference` parameter to the `$emit()`-method. By setting this to `false` the default JS behaviour of passing objects by reference will be bypassed and the object will be recursively cloned and cleaned from any potential reactivity before emitting - allowing you to safely interact with the emitted data after.
+
+Note that this recursive operation comes at a cost, especially when emitting large deep-nested data structures, at high frequency - evaluate per use case whether this may cause a performance issue or not.
+
+
+```js
+// explicitely _not_ passing this.navigationResult by reference
+this.$emit('setMenuItems', this.navigationResult, false)
 ```
 
 ### $listen

@@ -73,17 +73,17 @@ test('Component - Instance should create component Id', (assert) => {
   const barInstance0 = bar()
 
   assert.equal(
-    fooInstance0.componentId,
+    fooInstance0.$componentId,
     'BlitsComponent::Foo_1',
     'First Foo instance should have correct id'
   )
   assert.equal(
-    fooInstance1.componentId,
+    fooInstance1.$componentId,
     'BlitsComponent::Foo_2',
     'Second Foo instance should have correct id'
   )
   assert.equal(
-    barInstance0.componentId,
+    barInstance0.$componentId,
     'BlitsComponent::Bar_1',
     'First Bar instance should have correct id'
   )
@@ -93,18 +93,22 @@ test('Component - Instance should create component Id', (assert) => {
 test('Component - Instance should initiate lifecycle object', (assert) => {
   const foo = Component('Foo', {})()
 
-  assert.ok(foo.lifecycle, 'Lifecycle object should be initialized')
+  assert.ok(foo[symbols.lifecycle], 'Lifecycle object should be initialized')
   assert.equal(
-    foo.lifecycle.component,
+    foo[symbols.lifecycle].component,
     foo,
     'Lifecycle object should have a reference to foo instance'
   )
   assert.equal(
-    foo.lifecycle.previous,
+    foo[symbols.lifecycle].previous,
     null,
     'Lifecycle object should have previous state not initialized'
   )
-  assert.equal(foo.lifecycle.current, 'init', 'Lifecycle object should have initial current state')
+  assert.equal(
+    foo[symbols.lifecycle].current,
+    'init',
+    'Lifecycle object should have initial current state'
+  )
   assert.end()
 })
 
@@ -115,7 +119,7 @@ test('Component - Instance should set a parent reference', (assert) => {
   const foo = Component('Foo', {})({}, parentElement, parentComponent)
 
   assert.equal(
-    foo.parent,
+    foo.$parent,
     parentComponent,
     'Foo instance object should have parent component object reference'
   )
@@ -133,7 +137,7 @@ test('Component - Instance should set a root reference', (assert) => {
   const foo = Component('Foo', {})({}, {}, {}, root)
 
   assert.equal(
-    foo.rootParent,
+    foo[symbols.rootParent],
     root,
     'Foo instance object should have root component object reference'
   )
@@ -187,7 +191,7 @@ test('Component - Instance should initialize originalState', (assert) => {
   const state = foo[symbols.originalState]
 
   assert.equal(state.foo, 'bar', 'Foo instance should store originalState properties')
-  assert.equal(state.hasFocus, false, 'Foo instance should store originalState hasFocus property')
+  assert.equal(state.$hasFocus, false, 'Foo instance should store originalState $hasFocus property')
   assert.end()
 })
 
@@ -214,7 +218,9 @@ test('Component - Instance should initialize children', (assert) => {
   const expected = []
   const config = {
     code: {
-      render: () => {},
+      render: () => {
+        return { elms: expected, cleanup: () => {} }
+      },
       effects: [],
     },
     state() {
@@ -223,7 +229,10 @@ test('Component - Instance should initialize children', (assert) => {
       }
     },
   }
-  const capture = assert.capture(config.code, 'render', () => expected)
+  const capture = assert.capture(config.code, 'render', () => {
+    return { elms: expected, cleanup: () => {} }
+  })
+
   const foo = Component('Foo', config)({}, parent)
 
   const children = foo[symbols.children]
@@ -242,7 +251,9 @@ test('Component - Instance should initialize wrapper', (assert) => {
   const expected = {}
   const config = {
     code: {
-      render: () => [expected],
+      render: () => {
+        return { elms: [expected], cleanup: () => {} }
+      },
       effects: [],
     },
   }
@@ -260,7 +271,9 @@ test('Component - Instance should initialize slots', (assert) => {
   }
   const config = {
     code: {
-      render: () => [{}, {}, expected, {}],
+      render: () => {
+        return { elms: [{}, {}, expected, {}], cleanup: () => {} }
+      },
       effects: [],
     },
   }
@@ -283,7 +296,9 @@ test('Component - Instance should initialize hook events', (assert) => {
   const nodeCapture = assert.capture(wrapper.node, 'on')
   const config = {
     code: {
-      render: () => [wrapper],
+      render: () => {
+        return { elms: [wrapper], cleanup: () => {} }
+      },
       effects: [],
     },
     hooks: {
@@ -322,8 +337,8 @@ test('Component - Instance should initialize hook events', (assert) => {
   )
   assert.equal(
     nodeCalls[3].args[0],
-    'outOfViewport',
-    '`outOfViewport` event should be registered in the wrapper'
+    'outOfBounds',
+    '`outOfBounds` event should be registered in the wrapper'
   )
   assert.end()
 })
@@ -334,7 +349,9 @@ test('Component - Instance should execute all side effects', (assert) => {
   const children = []
   const config = {
     code: {
-      render: () => children,
+      render: () => {
+        return { elms: children, cleanup: () => {} }
+      },
       effects: [capture],
     },
   }
@@ -380,7 +397,7 @@ test('Component - Instance should have ready state after the next process tick',
 
   setTimeout(() => {
     assert.equal(
-      foo.lifecycle.state,
+      foo[symbols.lifecycle].state,
       'ready',
       'Foo component lifecycle should be eventually in a ready state'
     )

@@ -42,6 +42,10 @@
       {
         "text": "Displaying text",
         "link": "/essentials/displaying_text"
+      },
+      {
+        "text": "Application settings",
+        "link": "/essentials/settings"
       }
     ]
   },
@@ -126,6 +130,27 @@
     ]
   },
   {
+    "text": "Shader",
+    "items": [
+      {
+        "text": "Importing Shaders",
+        "link": "/shaders/importing-shaders"
+      },
+      {
+        "text": "WebGl Shaders",
+        "link": "/built-in/webgl-shadertypes"
+      },
+      {
+        "text": "Canvase Shaders",
+        "link": "/built-in/webgl-shadertypes"
+      },
+      {
+        "text": "v2 Conversion Guide",
+        "link": "/built-in/v2-conversion-guide"
+      }
+    ]
+  },
+  {
     "text": "Plugins",
     "items": [
       {
@@ -143,6 +168,19 @@
       {
         "text": "Global App State",
         "link": "/plugins/global_app_state"
+      },
+      {
+        "text": "Storage",
+        "link": "/plugins/storage"
+      }
+    ]
+  },
+  {
+    "text": "Performance",
+    "items": [
+      {
+        "text": "Lazy loading",
+        "link": "/performance/lazy-loading"
       }
     ]
   }

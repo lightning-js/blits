@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "1.28.0",
+  "version": "1.35.5",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
@@ -13,13 +13,16 @@
     "./blitsFileConverter": "./src/lib/blitsfileconverter/blitsfileconverter.js"
   },
   "scripts": {
-    "test": "c8 npm run test:run",
+    "test": "c8 node scripts/runTests.js",
+    "test:ci": "c8 npm run test:run",
     "test:run": "node -r global-jsdom/register ./node_modules/.bin/tape '{,!(node_modules|packages)/**/}*.test.js' | tap-diff",
+    "test:run:failures": "node -r global-jsdom/register ./node_modules/.bin/tape '{,!(node_modules|packages)/**/}*.test.js' |  tap-filter test-fail | tap-diff",
     "lint": "eslint '**/*.js'",
     "lint:fix": "eslint '**/*.js' --fix",
     "prepublishOnly": "node scripts/prepublishOnly.js",
     "postpublish": "node scripts/postpublish.js",
-    "prepare": "husky"
+    "prepare": "husky",
+    "pack-preview": "npm pack --dry-run"
   },
   "types": "./index.d.ts",
   "lint-staged": {
@@ -37,17 +40,20 @@
     "eslint": "^8.8.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "fast-glob": "^3.3.3",
     "global-jsdom": "24.0.0",
     "husky": "^9.1.7",
     "jsdom": "24.0.0",
     "lint-staged": "^15.5.0",
     "prettier": "^2.5.1",
+    "sinon": "^21.0.0",
     "tap-diff": "^0.1.1",
+    "tap-filter": "^1.0.3",
     "tape": "^5.5.0"
   },
   "dependencies": {
     "@lightningjs/msdf-generator": "^1.1.1",
-    "@lightningjs/renderer": "^2.13.2"
+    "@lightningjs/renderer": "^3.0.0-beta9"
   },
   "repository": {
     "type": "git",

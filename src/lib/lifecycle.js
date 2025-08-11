@@ -19,6 +19,10 @@ import { Log } from './log.js'
 import { emit, privateEmit } from './hooks.js'
 import symbols from './symbols.js'
 
+/**
+ * List of valid lifecycle states for a component.
+ * @type {Array<string>}
+ */
 const states = [
   'init', // fired upon component instantiation
   'ready', // fired when component instantiated, reactivity setup done and template spawned
@@ -31,23 +35,55 @@ const states = [
   'exit', // fired when leaving the visible viewport
 ]
 
+/**
+ * Lifecycle state manager for components.
+ *
+ * @typedef {Object} Lifecycle
+ * @property {string|null} previous - The previous lifecycle state.
+ * @property {string|null} current - The current lifecycle state.
+ * @property {Object} [component] - The component instance this lifecycle belongs to.
+ * @property {string|null} state - The current lifecycle state (getter/setter).
+ */
+
+/**
+ * Lifecycle state management object for components.
+ * Handles state transitions and emits corresponding hooks.
+ *
+ * @type {Lifecycle}
+ * @this {Lifecycle & {component: Object}}
+ * The 'component' property is expected to be set by the component instance at runtime.
+ */
 export default {
   previous: null,
   current: null,
+  /**
+   * Gets the current lifecycle state.
+   * @this {Lifecycle & {component: Object}}
+   * @returns {string|null}
+   */
   get state() {
     return this.current
   },
+  /**
+   * Sets the lifecycle state and emits hooks if the state is valid and changed.
+   * @this {Lifecycle & {component: Object}}
+   * @param {string} v - The new lifecycle state.
+   */
   set state(v) {
-    if (states.indexOf(v) > -1 && (v !== this.current || v === 'focus')) {
+    if ((states.indexOf(v) > -1 && v !== this.current) || v === 'refocus') {
       Log.debug(
         `Setting lifecycle state from ${this.current} to ${v} for ${this.component.componentId}`
       )
       this.previous = this.current
       this.current = v
+      if (v === 'refocus') return
       // emit 'private' hook
       privateEmit(v, this.component[symbols.identifier], this.component)
       // emit 'public' hook
       emit(v, this.component[symbols.identifier], this.component)
+      // update the built-in hasFocus state variable
+      if (v === 'focus') this.component[symbols.state].$hasFocus = true
+      if (v === 'unfocus') this.component[symbols.state].$hasFocus = false
     }
   },
 }
