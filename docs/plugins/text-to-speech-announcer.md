@@ -117,4 +117,4 @@ Alternatively the announcer can be enabled or disabled run time by using one of 
 
 - `this.$announcer.enable()` - activates the announcer
 - `this.$announcer.disable()` - deactivates the announcer
-- `this.$announcer.disable(true/false)` - turns the announcer or on off
+- `this.$announcer.disable(true/false)` - turns the announcer on or off
