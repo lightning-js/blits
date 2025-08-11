@@ -100,7 +100,7 @@ Blits.Component('MyTile', {
     unfocus() {
       // when unfocused interrupt the message if it's already being spoken out
       this.message.stop()
-      // and remove the message to remove it from the queue
+      // and remove the message from the queue
       this.message.remove()
     }
   }
