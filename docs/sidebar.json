@@ -113,15 +113,6 @@
     ]
   },
   {
-    "text": "Performance",
-    "items": [
-      {
-        "text": "Lazy Loading",
-        "link": "/performance/lazy-loading"
-      }
-    ]
-  },
-  {
     "text": "Router",
     "items": [
       {
@@ -177,6 +168,10 @@
       {
         "text": "Global App State",
         "link": "/plugins/global_app_state"
+      },
+      {
+        "text": "Storage",
+        "link": "/plugins/storage"
       }
     ]
   },

@@ -18,6 +18,7 @@
 import Component from '../component.js'
 import Router from '../router/router.js'
 import symbols from '../lib/symbols.js'
+import Focus from '../focus.js'
 
 let hashchangeHandler = null
 
@@ -47,7 +48,9 @@ export default () =>
         window.removeEventListener('hashchange', hashchangeHandler, false)
       },
       focus() {
-        this.activeView && this.activeView.$focus()
+        if (this.activeView && Focus.get() === this) {
+          this.activeView.$focus()
+        }
       },
     },
     input: {
