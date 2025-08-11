@@ -340,8 +340,10 @@ export const navigate = async function () {
       const children = this[symbols.children]
       this.activeView = children[children.length - 1]
 
-      // set focus to the view that we're routing to
-      focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
+      // set focus to the view that we're routing to (unless explicitly disabling passing focus)
+      if (route.options.passFocus !== false) {
+        focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
+      }
 
       // apply before settings to holder element
       if (route.transition.before) {

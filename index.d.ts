@@ -187,7 +187,30 @@ declare module '@lightningjs/blits' {
 
   // todo: specify valid route options
   export interface RouteOptions {
-    [key: string]: any
+    /**
+     * Whether the page navigation should be added to the history stack
+     * used when navigating back using `this.$router.back()`
+     *
+     * @default true
+     */
+    inHistory?: Boolean
+    /**
+     * Whether the page should be kept alive when navigating away. Can be useful
+     * for a homepage where the state should be fully retained when navigating back
+     * from a details page
+     *
+     * @default false
+     */
+    keepAlive?: Boolean
+    /**
+     * Whether the focus should be delegated to the page that's being navigated to.
+     * Can be useful when navigating to a new page from a widget / menu overlaying the
+     * RouterView, where the widget should maintain the focus (instead of the new page, which
+     * is the default behaviour)
+     *
+     * @default true
+     */
+    passFocus?: Boolean
   }
 
   export interface Router {
@@ -628,7 +651,7 @@ declare module '@lightningjs/blits' {
     /**
      * Extra route options
      */
-    options?: object // todo: specify which options are available,
+    options?: RouteOptions
     /**
      * Message to be announced when visiting the route (often used for accessibility purposes)
      *

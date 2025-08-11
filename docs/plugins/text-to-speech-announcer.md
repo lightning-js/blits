@@ -79,7 +79,7 @@ In some cases you may not want to clear the entire queue, but instead cancel out
 
 Imagine an App with a row of tiles, it's possible that before the title of the role is being spoken out, the user already navigates through the tiles within the row. Traditionally you'd use the focus event to speak out info about each tile (i.e. adding tot the queue). You don't want all previously focused tiles to still be announced, but would still want the category of the row to be announced, making clearing the queue not required.
 
-The `speak()`-method return a Promise that also contains a `cancel()` function. When called, it will cancel that specific message and remove it from the queue before it can be spoken out.
+The `speak()`-method return a Promise that also contains a `remove()` function. When called, it will remove it from the queue before it can be spoken out.
 
 Additionally if you want to _interrupt_ a specific messages as it's being spoken out as well and go straight to the next message in the queue (i.e. the newly focused item, for example). You can use the `stop()` message that is returned on the Promise returned by the `speak()`-method.
 
@@ -100,8 +100,8 @@ Blits.Component('MyTile', {
     unfocus() {
       // when unfocused interrupt the message if it's already being spoken out
       this.message.stop()
-      // and cancel the message to remove it from the queue
-      this.message.cancel()
+      // and remove the message from the queue
+      this.message.remove()
     }
   }
 })
@@ -117,4 +117,4 @@ Alternatively the announcer can be enabled or disabled run time by using one of 
 
 - `this.$announcer.enable()` - activates the announcer
 - `this.$announcer.disable()` - deactivates the announcer
-- `this.$announcer.disable(true/false)` - turns the announcer or on off
+- `this.$announcer.disable(true/false)` - turns the announcer on or off

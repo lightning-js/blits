@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.36.0
+
+_11 Aug 2025_
+
+- Added `passFocus` option to route options to prevent focus being passed to page navigated to
+- Added missing type definitions for Route options
+- Fixed sidebar in docs
+- Added debug log messages to Announcer
+- Added `remove()` function as (preferred) alias for announcer `message.cancel()`
+- Fixed issue with removing a messages causing an interrupt of current message being read out
+
 ## v1.35.5
 
 _06 Aug 2025_
