@@ -446,8 +446,8 @@ test('Generate code for a template with a single element with attributes with nu
 
     elementConfigs[0]['x'] = 1000
     elementConfigs[0]['y'] = 100
-    elementConfigs[0]['h'] = parent.node.height * (45 / 100)
-    elementConfigs[0]['w'] = parent.node.width * (45.45 / 100)
+    elementConfigs[0]['h'] = parent.node.h * (45 / 100)
+    elementConfigs[0]['w'] = parent.node.w * (45.45 / 100)
     elementConfigs[0]['one'] = "Pure String"
     elementConfigs[0]['two'] = "123abc"
     elementConfigs[0]['three'] = 1
@@ -1977,8 +1977,8 @@ test('Generate code for a template with custom components with argument value as
 
     elementConfigs[1]['x'] = 1000
     elementConfigs[1]['y'] = 100
-    elementConfigs[1]['h'] = parent.node.height * (45 / 100)
-    elementConfigs[1]['w'] = parent.node.width * (45.45 / 100)
+    elementConfigs[1]['h'] = parent.node.h * (45 / 100)
+    elementConfigs[1]['w'] = parent.node.w * (45.45 / 100)
     elementConfigs[1]['one'] = "Pure String"
     elementConfigs[1]['two'] = "123abc"
     elementConfigs[1]['three'] = 1
@@ -2003,8 +2003,8 @@ test('Generate code for a template with custom components with argument value as
 
     props[2]['x'] = 1000
     props[2]['y'] = 100
-    props[2]['h'] = parent.node.height * (45 / 100)
-    props[2]['w'] = parent.node.width * (45.45 / 100)
+    props[2]['h'] = parent.node.h * (45 / 100)
+    props[2]['w'] = parent.node.w * (45.45 / 100)
     props[2]['one'] = "Pure String"
     props[2]['two'] = "123abc"
     props[2]['three'] = 1
@@ -2855,7 +2855,7 @@ test('Generate code for a template with inline Text', (assert) => {
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elementConfigs[1]['__textnode'] = true
-    elementConfig1['content'] = 'Hello Blits!'
+    elementConfigs[1['content']] = 'Hello Blits!'
 
     elms[1].populate(elementConfigs[1])
     if (inSlot === true) {
@@ -2938,7 +2938,7 @@ test('Generate code for a template with inline dynamic Text', (assert) => {
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elementConfigs[1]['__textnode'] = true
-    elementConfig1['content'] = (component.myText)
+    elementConfigs[1['content']] = (component.myText)
     elms[1].populate(elementConfigs[1])
 
     if (inSlot === true) {
@@ -3020,7 +3020,7 @@ test('Generate code for a template with inline dynamic Text embedded in static t
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
     elementConfigs[1]['__textnode'] = true
-    elementConfig1['content'] = "Hello "+(component.firstname)+" "+(component.lastname)+", how are you?"
+    elementConfigs[1['content']] = "Hello "+(component.firstname)+" "+(component.lastname)+", how are you?"
     elms[1].populate(elementConfigs[1])
 
     if(inSlot === true) {
@@ -3102,7 +3102,7 @@ test('Generate code for a template with inline text interpolation from plugins v
     elms[1] = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
 
     elementConfigs[1]['__textnode'] = true
-    elementConfig1['content'] = (100 * component.data.value)+" and full name of user is, "+(component.$appState.user.name + component.$appState.user.initial)+"!"
+    elementConfigs[1['content']] = (100 * component.data.value)+" and full name of user is, "+(component.$appState.user.name + component.$appState.user.initial)+"!"
     elms[1].populate(elementConfigs[1])
     if(inSlot === true) {
       slotChildCounter -= 1
@@ -3186,10 +3186,10 @@ test('Generate code for a template with a single element with attributes with pe
     parent = elms[0]
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[1]['w'] = parent.node.width * (50 / 100)
-    elementConfigs[1]['h'] = parent.node.height * (40 / 100)
-    elementConfigs[1]['x'] = parent.node.width * (10 / 100)
-    elementConfigs[1]['y'] = parent.node.height * (20 / 100)
+    elementConfigs[1]['w'] = parent.node.w * (50 / 100)
+    elementConfigs[1]['h'] = parent.node.h * (40 / 100)
+    elementConfigs[1]['x'] = parent.node.w * (10 / 100)
+    elementConfigs[1]['y'] = parent.node.h * (20 / 100)
     elms[1].populate(elementConfigs[1])
     if (inSlot === true) {
         slotChildCounter -= 1

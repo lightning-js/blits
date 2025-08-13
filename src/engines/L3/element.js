@@ -81,8 +81,8 @@ const layoutFn = function (config) {
   const position = config.direction === 'vertical' ? 'y' : 'x'
   const oppositePosition = config.direction === 'vertical' ? 'x' : 'y'
   const oppositeMount = config.direction === 'vertical' ? 'mountX' : 'mountY'
-  const dimension = config.direction === 'vertical' ? 'height' : 'width'
-  const oppositeDimension = config.direction === 'vertical' ? 'width' : 'height'
+  const dimension = config.direction === 'vertical' ? 'h' : 'w'
+  const oppositeDimension = config.direction === 'vertical' ? 'w' : 'h'
   const padding = createPaddingObject(config.padding, config.direction)
 
   let offset = padding.start
@@ -100,17 +100,10 @@ const layoutFn = function (config) {
     node[position] = offset
     node[oppositePosition] = padding.oppositeStart
     // todo: temporary text check, due to 1px width of empty text node
-    if (dimension === 'width') {
-      offset += node.width + (node.width !== ('text' in node ? 1 : 0) ? gap : 0)
+    if (dimension === 'w') {
+      offset += node.w + (node.w !== ('text' in node ? 1 : 0) ? gap : 0)
     } else {
-      offset +=
-        'text' in node
-          ? node.width > 1
-            ? node.height + gap
-            : 0
-          : node.height !== 0
-            ? node.height + gap
-            : 0
+      offset += 'text' in node ? (node.w > 1 ? node.h + gap : 0) : node.h !== 0 ? node.h + gap : 0
     }
     otherDimension = Math.max(
       otherDimension,
@@ -137,7 +130,7 @@ const layoutFn = function (config) {
 
   // emit an updated event
   if (config['@updated'] !== undefined) {
-    config['@updated']({ w: this.node.width, h: this.node.height }, this)
+    config['@updated']({ w: this.node.w, h: this.node.h }, this)
   }
 
   // trigger layout on parent if parent is a layout
@@ -211,22 +204,24 @@ const propsTransformer = {
     this.props['rotation'] = v * (Math.PI / 180)
   },
   set w(v) {
-    this.props['width'] = parsePercentage.call(this, v, 'width')
+    this.props['w'] = parsePercentage.call(this, v, 'w')
   },
   set width(v) {
-    this.props['width'] = parsePercentage.call(this, v, 'width')
+    console.log('deprecated')
+    this.props['w'] = parsePercentage.call(this, v, 'w')
   },
   set h(v) {
-    this.props['height'] = parsePercentage.call(this, v, 'height')
+    this.props['h'] = parsePercentage.call(this, v, 'h')
   },
   set height(v) {
-    this.props['height'] = parsePercentage.call(this, v, 'height')
+    console.log('deprecated')
+    this.props['h'] = parsePercentage.call(this, v, 'h')
   },
   set x(v) {
-    this.props['x'] = parsePercentage.call(this, v, 'width')
+    this.props['x'] = parsePercentage.call(this, v, 'w')
   },
   set y(v) {
-    this.props['y'] = parsePercentage.call(this, v, 'height')
+    this.props['y'] = parsePercentage.call(this, v, 'h')
   },
   set z(v) {
     this.props['zIndex'] = v
@@ -250,7 +245,7 @@ const propsTransformer = {
       this.props['color'] = this.props['src'] ? 0xffffffff : 0x00000000
     }
     // apply auto sizing when no width or height specified
-    if (!('w' in this.raw) && !('w' in this.raw) && !('h' in this.raw) && !('height' in this.raw)) {
+    if (!('w' in this.raw) && !('h' in this.raw)) {
       this.props['autosize'] = true
     }
   },
@@ -416,11 +411,6 @@ const propsTransformer = {
   set size(v) {
     this.props['fontSize'] = v
   },
-  set wordwrap(v) {
-    Log.warn('The wordwrap attribute is deprecated, use maxwidth instead')
-    this.props['width'] = v
-    this.props['contain'] = 'width'
-  },
   set maxwidth(v) {
     this.props['maxWidth'] = v
   },
@@ -536,7 +526,7 @@ const Element = {
 
     if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
       this.node.on('loaded', (el, { type, dimensions }) => {
-        props['@loaded']({ w: dimensions.width, h: dimensions.height, type }, this)
+        props['@loaded']({ w: dimensions.w, h: dimensions.h, type }, this)
       })
     }
 

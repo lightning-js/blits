@@ -149,7 +149,7 @@ You can also get information about the node during the update function:
 {
   update(node) {
     //creates a vec2 uniform
-    this.uniform2f('u_halfSize', node.width / 2, node.height / 2)
+    this.uniform2f('u_halfSize', node.w / 2, node.h / 2)
   }
 }
 ```

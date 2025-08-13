@@ -771,12 +771,10 @@ const cast = (val = '', key = false, component = 'component.') => {
     castedValue = parseFloat(val)
     if (val.endsWith('%')) {
       const map = {
-        w: 'width',
-        width: 'width',
-        x: 'width',
-        h: 'height',
-        height: 'height',
-        y: 'height',
+        w: 'w',
+        x: 'w',
+        h: 'h',
+        y: 'h',
       }
       const base = map[key]
       if (base) {

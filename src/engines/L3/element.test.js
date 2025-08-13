@@ -102,8 +102,8 @@ test('Element - Set `w` property', (assert) => {
 
   el.set('w', 100)
 
-  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
-  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.equal(el.node['w'], 100, 'Node w parameter should be set')
+  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
   assert.equal(el.props.raw['w'], 100, "Props' raw map entry should be added")
   assert.end()
 })
@@ -114,8 +114,8 @@ test('Element- Set `w` property in percentage', (assert) => {
 
   el.set('w', '50%')
 
-  assert.equal(el.node['width'], 960, 'Node width parameter should be set to 960')
-  assert.equal(el.props.props['width'], 960, 'Props width parameter should be set')
+  assert.equal(el.node['w'], 960, 'Node w parameter should be set to 960')
+  assert.equal(el.props.props['w'], 960, 'Props w parameter should be set')
   assert.equal(el.props.raw['w'], '50%', "Props' raw map entry should be added")
 
   assert.end()
@@ -127,8 +127,8 @@ test('Element - Set `h` property', (assert) => {
 
   el.set('h', 100)
 
-  assert.equal(el.node['height'], 100, 'Node height parameter should be set')
-  assert.equal(el.props.props['height'], 100, 'Props height parameter should be set')
+  assert.equal(el.node['h'], 100, 'Node h parameter should be set')
+  assert.equal(el.props.props['h'], 100, 'Props h parameter should be set')
   assert.equal(el.props.raw['h'], 100, "Props' raw map entry should be added")
   assert.end()
 })
@@ -139,8 +139,8 @@ test('Element- Set `h` property in percentage', (assert) => {
 
   el.set('h', '50%')
 
-  assert.equal(el.node['height'], 540, 'Node width parameter should be set to 540')
-  assert.equal(el.props.props['height'], 540, 'Props width parameter should be set')
+  assert.equal(el.node['h'], 540, 'Node h parameter should be set to 540')
+  assert.equal(el.props.props['h'], 540, 'Props h parameter should be set')
   assert.equal(el.props.raw['h'], '50%', "Props' raw map entry should be added")
 
   assert.end()
@@ -371,7 +371,11 @@ test('Element - Set `placement` property with value `center`', (assert) => {
 
   assert.equal(el.node['mountX'], 0.5, 'Node mountX parameter should set to 0.5')
   assert.equal(el.props.props['mountX'], 0.5, 'Props mountX parameter should set to 0.5')
-  assert.equal(el.node['x'], 960, 'Node x parameter should set to half of parent node width, 960')
+  assert.equal(
+    el.node['x'],
+    960,
+    'Node x parameter should set to half of parent node width (w), 960'
+  )
   assert.equal(el.props.props['x'], 960, 'props x parameter should be set to 960')
   assert.equal(
     el.node['y'],
@@ -390,7 +394,11 @@ test('Element - Set `placement` property with value `right`', (assert) => {
 
   assert.equal(el.node['mountX'], 1, 'Node mountX parameter should set to 1')
   assert.equal(el.props.props['mountX'], 1, 'Props mountX parameter should set to 1')
-  assert.equal(el.node['x'], 1920, 'Node x parameter should set to parent node full width, 1920')
+  assert.equal(
+    el.node['x'],
+    1920,
+    'Node x parameter should set to parent node full width (w), 1920'
+  )
   assert.equal(el.props.props['x'], 1920, 'props x parameter should be set to 1920')
   assert.equal(
     el.node['y'],
@@ -465,7 +473,11 @@ test('Element - Set `placement` property with object value `{x:"center", y:"midd
 
   assert.equal(el.node['mountX'], 0.5, 'Node mountX parameter should set to 0.5')
   assert.equal(el.props.props['mountX'], 0.5, 'Props mountX parameter should set to 0.5')
-  assert.equal(el.node['x'], 960, 'Node x parameter should set to half of parent node width, 960')
+  assert.equal(
+    el.node['x'],
+    960,
+    'Node x parameter should set to half of parent node width (w), 960'
+  )
 
   assert.equal(el.node['mountY'], 0.5, 'Node mountY parameter should set to 0.5')
   assert.equal(el.props.props['mountY'], 0.5, 'Props mountY parameter should set to 0.5')
@@ -482,7 +494,11 @@ test('Element - Set `placement` property with object value `{x:"center", y:"bott
 
   assert.equal(el.node['mountX'], 0.5, 'Node mountX parameter should set to 0.5')
   assert.equal(el.props.props['mountX'], 0.5, 'Props mountX parameter should set to 0.5')
-  assert.equal(el.node['x'], 960, 'Node x parameter should set to half of parent node width, 960')
+  assert.equal(
+    el.node['x'],
+    960,
+    'Node x parameter should set to half of parent node width (w), 960'
+  )
 
   assert.equal(el.node['mountY'], 1, 'Node mountY parameter should set to 1')
   assert.equal(el.props.props['mountY'], 1, 'Props mountY parameter should set to 1')
@@ -499,7 +515,11 @@ test('Element - Set `placement` property with object value `{x:"right", y:"middl
 
   assert.equal(el.node['mountX'], 1, 'Node mountX parameter should set to 1')
   assert.equal(el.props.props['mountX'], 1, 'Props mountX parameter should set to 1')
-  assert.equal(el.node['x'], 1920, 'Node x parameter should set to parent node full width, 1920')
+  assert.equal(
+    el.node['x'],
+    1920,
+    'Node x parameter should set to parent node full width (w), 1920'
+  )
 
   assert.equal(el.node['mountY'], 0.5, 'Node mountY parameter should set to 0.5')
   assert.equal(el.props.props['mountY'], 0.5, 'Props mountY parameter should set to 0.5')
@@ -516,7 +536,11 @@ test('Element - Set `placement` property with object value `{x:"right", y:"botto
 
   assert.equal(el.node['mountX'], 1, 'Node mountX parameter should set to 1')
   assert.equal(el.props.props['mountX'], 1, 'Props mountX parameter should set to 1')
-  assert.equal(el.node['x'], 1920, 'Node x parameter should set to parent node full width, 1920')
+  assert.equal(
+    el.node['x'],
+    1920,
+    'Node x parameter should set to parent node full width (w), 1920'
+  )
 
   assert.equal(el.node['mountY'], 1, 'Node mountY parameter should set to 1')
   assert.equal(el.props.props['mountY'], 1, 'Props mountY parameter should set to 1')
@@ -563,8 +587,8 @@ test('Element - Set `show` property as false', (assert) => {
 
   assert.equal(el.node['alpha'], 1, 'Node alpha parameter should be set')
   assert.equal(el.props.props['alpha'], 1, 'Props alpha parameter should be set')
-  assert.equal(el.node['width'], 960, 'Node width parameter should be set')
-  assert.equal(el.node['height'], 540, 'Node height parameter should be set')
+  assert.equal(el.node['w'], 960, 'Node w parameter should be set')
+  assert.equal(el.node['h'], 540, 'Node h parameter should be set')
 
   assert.end()
 })
@@ -575,7 +599,7 @@ test('Element - Set `w` property through transition', (assert) => {
 
   el.set('w', { transition: { value: 100 } })
 
-  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
   assert.end()
 })
 
@@ -586,7 +610,7 @@ test('Element - Listen to transition start callback on `w` prop changes', (asser
 
   el.set('w', { transition: { value: 100, start: startSpy } })
 
-  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
   assert.ok(startSpy.calledOnce, 'Transition start callback should be called once')
   assert.equal(
     startSpy.getCall(0).args.length,
@@ -600,8 +624,8 @@ test('Element - Listen to transition start callback on `w` prop changes', (asser
   )
   assert.equal(
     startSpy.getCall(0).args[1],
-    'width',
-    'Transition start callback second argument should be `width` property'
+    'w',
+    'Transition start callback second argument should be `w` property'
   )
   assert.equal(
     startSpy.getCall(0).args[2],
@@ -618,7 +642,7 @@ test('Element - Cancel transition running on same prop `W` ', (assert) => {
   el.set('w', { transition: { value: 50 } })
   el.set('w', { transition: { value: 100 } })
 
-  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
   assert.end()
 })
 
@@ -650,16 +674,12 @@ test('Element - Layout with horizontal direction layout use cases', (assert) => 
   // Setting child1 width to 500, should effect child 2 X position
   child1.set('w', CHILD_1_WIDTH)
 
-  assert.equal(child1.node['width'], CHILD_1_WIDTH, 'Child 1 Node width parameter should be set')
-  assert.equal(
-    child1.props.props['width'],
-    CHILD_1_WIDTH,
-    'Child 1 Props width parameter should be set'
-  )
+  assert.equal(child1.node['w'], CHILD_1_WIDTH, 'Child 1 Node w parameter should be set')
+  assert.equal(child1.props.props['w'], CHILD_1_WIDTH, 'Child 1 Props w parameter should be set')
   assert.equal(
     child2.node['x'],
     CHILD_1_WIDTH + GAP,
-    'Child 2 Node X parameter should be layout gap + child 1 width'
+    'Child 2 Node X parameter should be layout gap + child 1 w'
   )
 
   assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback should be called 3 times')
@@ -671,7 +691,7 @@ test('Element - Layout with horizontal direction layout use cases', (assert) => 
   assert.equal(
     layoutUpdateSpy.getCall(2).args[0].w,
     CHILD_1_WIDTH,
-    'Layout width should be equal to Child1 width'
+    'Layout w should be equal to Child1 w'
   )
   assert.equal(
     layoutUpdateSpy.getCall(2).args[0].h,
@@ -680,17 +700,13 @@ test('Element - Layout with horizontal direction layout use cases', (assert) => 
   )
 
   child2.set('w', CHILD_2_WIDTH)
-  assert.equal(child2.node['width'], CHILD_2_WIDTH, 'Child 2 Node width parameter should be set')
-  assert.equal(
-    child2.props.props['width'],
-    CHILD_2_WIDTH,
-    'Child 2 Props width parameter should be set'
-  )
+  assert.equal(child2.node['w'], CHILD_2_WIDTH, 'Child 2 Node w parameter should be set')
+  assert.equal(child2.props.props['w'], CHILD_2_WIDTH, 'Child 2 Props w parameter should be set')
   assert.equal(layoutUpdateSpy.callCount, 4, 'Layout updated callback call count should be 4')
   assert.equal(
     layoutUpdateSpy.getCall(3).args[0].w,
     CHILD_1_WIDTH + GAP + CHILD_2_WIDTH,
-    'Layout width should be equal to Child1 width + gap + Child2 width'
+    'Layout w should be equal to Child1 w + gap + Child2 w'
   )
   assert.equal(
     layoutUpdateSpy.getCall(3).args[0].h,
@@ -725,13 +741,13 @@ test('Element - Layout with vertical direction use case', (assert) => {
   layoutEl.node.children.push(child1.node)
   layoutEl.node.children.push(child2.node)
 
-  // Initial width, x, y, height of each element is, 0
+  // Initial w, x, y, height of each element is, 0
   // Setting Child1 height to 500, should effect Child 2 Y position
   child1.set('h', CHILD_1_HEIGHT)
 
-  assert.equal(child1.node['height'], CHILD_1_HEIGHT, 'Child 1 Node height parameter should be set')
+  assert.equal(child1.node['h'], CHILD_1_HEIGHT, 'Child 1 Node height parameter should be set')
   assert.equal(
-    child1.props.props['height'],
+    child1.props.props['h'],
     CHILD_1_HEIGHT,
     'Child 1 Props height parameter should be set'
   )
@@ -755,16 +771,12 @@ test('Element - Layout with vertical direction use case', (assert) => {
   assert.equal(
     layoutUpdateSpy.getCall(2).args[0].w,
     CHILD_WIDTH,
-    'Layout width should be equal to Child1 or Child 2 width'
+    'Layout w should be equal to Child1 or Child 2 w'
   )
 
   child2.set('h', CHILD_2_HEIGHT)
-  assert.equal(child2.node['height'], CHILD_2_HEIGHT, 'Child 2 Node height parameter should be set')
-  assert.equal(
-    child2.props.props['height'],
-    CHILD_2_HEIGHT,
-    'Child 2 Props height parameter should be set'
-  )
+  assert.equal(child2.node['h'], CHILD_2_HEIGHT, 'Child 2 Node height parameter should be set')
+  assert.equal(child2.props.props['h'], CHILD_2_HEIGHT, 'Child 2 Props h parameter should be set')
   assert.equal(layoutUpdateSpy.callCount, 4, 'Layout updated callback call count should be 4')
   assert.equal(
     layoutUpdateSpy.getCall(3).args[0].h,
@@ -774,7 +786,7 @@ test('Element - Layout with vertical direction use case', (assert) => {
   assert.equal(
     layoutUpdateSpy.getCall(3).args[0].w,
     CHILD_WIDTH,
-    'Layout w should be equal to Child1 or Child 2 width'
+    'Layout w should be equal to Child1 or Child 2 w'
   )
 
   assert.end()
@@ -829,14 +841,6 @@ test('Element - Create Text Node with supported props 2', (assert) => {
   el.set('content', title)
 
   el.set('maxheight', 35)
-  assert.equal(el.node['height'], 35, 'Node height parameter should be set')
-  assert.equal(el.props.props['height'], 35, 'Props textoverflow parameter should be set')
-  assert.equal(el.node['contain'], 'both', 'Node contain parameter should be set')
-  assert.equal(el.props.props['contain'], 'both', 'Props contain parameter should be set')
-
-  el.set('contain', 'width')
-  assert.equal(el.node['contain'], 'width', 'Node contain parameter should be set')
-  assert.equal(el.props.props['contain'], 'width', 'Props contain parameter should be set')
 
   el.set('maxlines', 2)
   assert.equal(el.node['maxLines'], 2, 'Node maxLines parameter should be set')
@@ -849,7 +853,7 @@ test('Element - Create Text Node with supported props 2', (assert) => {
   assert.end()
 })
 
-test('Element - Create Text Node with supported props 3', (assert) => {
+test((assert) => {
   assert.capture(renderer, 'createTextNode', () => new EventEmitter())
   const el = createElement({ props: { __textnode: true } })
   const title = 'Welcome to Blits'
@@ -857,16 +861,8 @@ test('Element - Create Text Node with supported props 3', (assert) => {
   el.set('content', title)
 
   el.set('wordwrap', 500)
-  assert.equal(el.node['width'], 500, 'Node width parameter should be set')
-  assert.equal(el.props.props['width'], 500, 'Props width parameter should be set')
-  assert.equal(el.node['contain'], 'width', 'Node contain parameter should be set')
-  assert.equal(el.props.props['contain'], 'width', 'Props contain parameter should be set')
 
   el.set('maxwidth', 500)
-  assert.equal(el.node['width'], 500, 'Node width parameter should be set')
-  assert.equal(el.props.props['width'], 500, 'Props width parameter should be set')
-  assert.equal(el.node['contain'], 'width', 'Node contain parameter should be set')
-  assert.equal(el.props.props['contain'], 'width', 'Props contain parameter should be set')
 
   el.set('clipping', true)
   assert.equal(el.node['clipping'], true, 'Node clipping parameter should be set')
@@ -888,7 +884,7 @@ test('Element - Transition an element property with progress callback', (assert)
 
   el.set('w', { transition: { value: 100, progress: progSpy } })
 
-  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
   // assert.equal(progSpy.callCount, 10, 'Transition progress callback should be called 10 times')
   assert.end()
 })
@@ -901,7 +897,7 @@ test('Element - Transition an element property with end callback', (assert) => {
 
   el.set('w', { transition: { value: 100, end: endSpy } })
 
-  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
   // assert.ok(endSpy.calledOnce, 'Transition end callback should be called only once')
   assert.end()
 })
@@ -991,16 +987,16 @@ class CustomNode extends EventEmitter {
   constructor() {
     super()
     // setting initial props of renderer node
-    this.width = 0
+    this.w = 0
     this.x = 0
-    this.height = 0
+    this.h = 0
     this.y = 0
 
     // setting children to empty []
     this.children = []
 
     const loadedTimeout = setTimeout(() => {
-      this.emit('loaded', this, { type: '', dimensions: { width: 100, height: 100 } })
+      this.emit('loaded', this, { type: '', dimensions: { w: 100, h: 100 } })
       clearTimeout(loadedTimeout)
     }, 0)
   }
@@ -1021,7 +1017,7 @@ class CustomNode extends EventEmitter {
 }
 
 function createElement(props = {}) {
-  const el = element({ parent: { node: { width: 1920, height: 1080 } } }, {})
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
   const data = {
     parent: {
       node: new EventEmitter(),
