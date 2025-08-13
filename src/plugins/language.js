@@ -41,8 +41,8 @@ export default {
         Object.keys(translations).length === 0
           ? 'No translations loaded. Please load a file with translations or specify a translations object manually'
           : language in translations === false
-          ? `Language ${language} not available in the loaded translations`
-          : false
+            ? `Language ${language} not available in the loaded translations`
+            : false
       if (warningMsg) {
         Log.warn(warningMsg)
         // set the current language in the reactive state
@@ -127,12 +127,15 @@ export default {
           return Object.keys(
             // maps array input to an object {0: 'item1', 1: 'item2'}
             Array.isArray(replacements) ? Object.assign({}, replacements) : replacements
-          ).reduce((text, replacementKey) => {
-            return text.replace(
-              new RegExp('{\\s?' + replacementKey + '\\s?}', 'g'),
-              replacements[replacementKey]
-            )
-          }, (dictionary && dictionary[key]) || key)
+          ).reduce(
+            (text, replacementKey) => {
+              return text.replace(
+                new RegExp('{\\s?' + replacementKey + '\\s?}', 'g'),
+                replacements[replacementKey]
+              )
+            },
+            (dictionary && dictionary[key]) || key
+          )
         }
       },
       get language() {
