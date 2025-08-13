@@ -26,6 +26,7 @@ import colors from '../../lib/colors/colors.js'
 import fontLoader from './fontLoader.js'
 import shaderLoader from './shaderLoader.js'
 
+/** @type {RendererMain|{}} */
 export let renderer = {}
 
 const renderEngine = (settings) => {
@@ -63,7 +64,15 @@ const textureMemorySettings = (settings) => {
   }
 }
 
-export default async (App, target, settings = {}) => {
+/**
+ * Launch the render engine and application
+ *
+ * @param {import('../../launch.js').BlitsAppFactory} App - Factory function that returns the application instance (extends BlitsComponent with .quit())
+ * @param {HTMLElement} target - The target element to render the application into
+ * @param {Partial<import('../../launch.js').BlitsSettings>} [settings] - The settings for the renderer
+ *
+ */
+export default (App, target, settings = {}) => {
   renderer = new RendererMain(
     {
       ...{
@@ -90,6 +99,7 @@ export default async (App, target, settings = {}) => {
         textureProcessingTimeLimit: settings.textureProcessingTimeLimit,
         textureMemory: textureMemorySettings(settings),
         createImageBitmapSupport: 'auto',
+        targetFPS: 'maxFPS' in settings ? settings.maxFPS : 0,
       },
       ...(settings.advanced || {}),
     },
@@ -106,7 +116,7 @@ export default async (App, target, settings = {}) => {
     }
   }
 
-  await shaderLoader()
+  shaderLoader()
   fontLoader()
   initApp()
 

@@ -19,6 +19,12 @@ jobs:
         # Needed to compare changes against base branch
         fetch-depth: 0
 
+    - name: Save PR Information
+      run: |
+        echo '${{ github.event.pull_request.number }}' > ./pr_number.txt
+        echo '${{ github.event.pull_request.head.repo.full_name }}' > ./pr_repo.txt
+        echo '${{ github.event.pull_request.head.ref }}' > ./pr_branch.txt
+
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
@@ -110,7 +116,11 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: lint-results
-        path: ./lint-results/
+        path: |
+          ./lint-results/
+          ./pr_number.txt
+          ./pr_repo.txt
+          ./pr_branch.txt
 
     # Fail the workflow if linting errors found
     - name: Check Lint Status

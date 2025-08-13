@@ -31,7 +31,12 @@ export default function () {
       const fileExtension = path.extname(filePath)
 
       // we should only precompile .blits, .js and .ts files
-      if (fileExtension === '.js' || fileExtension === '.ts' || fileExtension === '.blits') {
+      if (
+        fileExtension === '.js' ||
+        fileExtension === '.ts' ||
+        fileExtension === '.blits' ||
+        fileExtension === '.mjs'
+      ) {
         return compiler(source, filePath, config.mode)
       }
 

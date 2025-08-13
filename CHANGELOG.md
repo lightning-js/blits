@@ -1,5 +1,186 @@
 # Changelog
 
+## v1.35.5
+
+_06 Aug 2025_
+
+-  Fixed timing routerview causing focus to be passed to previous page
+
+
+## v1.35.4
+
+_03 Aug 2025_
+
+- Changed order of `focus`-hook and `hasFocus` variable to distinguish between focus and refocus
+- Updated focus related documentation
+
+## v1.35.3
+
+_31 Jul 2025_
+
+- Fixed issue with navigation data being overridden by route data.
+- Fixed issue with incorrect focus chain paths.
+
+## v1.35.2
+
+_25 Jul 2025_
+
+- Fixed issue with focus getting lost when destroying a focused component
+- Fixed issue with refocusing a component that's already in the focus chain (i.e. `this.parent.$focus()`)
+
+## v1.35.1
+
+_24 Jul 2025_
+
+- (Re) added next tick when setting focus to prevent any potential race conditions
+
+_22 Jul 2025_
+
+## v1.35.0
+
+- Added `byReference` param to `this.$emit()` to allow passing data without passing it by reference
+- Refactored focus handling
+  - more performant
+  - more robust for reassigning focus programatically (i.e. without direct key handling)
+  - fixed some cases where `$hasFocus` flag wasn't reset upon unfocus
+  - add logging of active focus chain upon focus changes
+- Improved overall test coverage to almost 80% (Blits Element, Focus, Theme plugin, Storage plugin)
+
+_10 Jul 2025_
+
+## v1.34.0
+
+- Added storage plugin
+- Improved test coverage
+- Fixed announcer plugin to work on RDK devices where early GC was happening
+- Added check to throttle only the same input key in a row
+- Updated docs on transitions
+- Added warning when using `hasFocus` in component state
+
+_08 Jul 2025_
+
+## v1.33.0
+
+- Added dereferencing of previousFocus pointer to ensure memory cleanup
+- Improved cleanup of components (via explicit dereference of closure scope)
+- Optimized time function in logger
+- Optimized initial registration of routes
+- Added `maxFPS` launch setting
+
+_04 Jul 2025_
+
+## v1.32.1
+
+- Fixed issue with router data overwriting the orginal route definition
+
+_02 Jul 2025_
+
+## v1.32.0
+
+- Added global router hooks `init` and `error`
+- Fixed issues with `this` scope in global router hooks
+- Fixed issue with `data` in `beforeEach` route not being complete
+- Added input throttling functionality
+- Optimized performance of children retrieval in `<Layout>`
+- Added documentation on global router hooks
+
+_30 Jun 2025_
+
+## v1.31.1
+
+- Upgraded renderer to v2.15.0
+
+_30 Jun 2025_
+
+## v1.31.1
+
+- Upgraded renderer to v2.14.4
+
+_27 jun 2025_
+
+## v1.31.0
+
+- Added dereferencing of previousFocus pointer to ensure memory release
+- Added npm ignore to reduce NPM package size
+- Added support for precompilation of `.mjs` files
+- Upgraded renderer to v2.14.3
+
+
+_25 jun 2025_
+
+## v1.30.2
+
+- Bumped renderer to v2.14.2
+
+
+_25 jun 2025_
+
+## v1.30.1
+
+- Bumped renderer to v2.14.1
+
+
+_24 jun 2025_
+
+## v1.30.0
+
+- Added documentation on lazy loading performance
+- Bumped renderer to v2.14.0 (simplified texture throttling)
+- Fixed bug in announcer when utterance is cancelled
+
+
+_12 jun 2025_
+
+## v1.29.5
+
+- Simplified timeout and interval cleanup
+- Added explicit reset of component state upon destruction
+- Fixed `exit` lifecycle hook
+
+_06 jun 2025_
+
+## v1.29.4
+
+- Removed excessive shader creation for effects
+- Added explicit cleanup of effects in for loop
+- Improved element destruction
+
+_03 jun 2025_
+
+## v1.29.3
+
+- Added first batch internal JS doc types
+- Added documentation on Launch settings
+- Fixed issue with reactivity effects being shared (and retained) on the prototype
+
+_28 may 2025_
+
+## v1.29.2
+
+- Added end of life flag to prevent timers, intervals and listeners to be registered after component destroy
+
+_22 may 2025_
+
+## v1.29.1
+
+- Fixed issue with async and lifecycle ready error
+
+
+_22 may 2025_
+
+## v1.29.0
+
+- Fixed memory leaks
+- Added componentId in warning when modifying props directly for easier debugging
+
+_15 apr 2025_
+
+## v1.28.0
+
+- Added graceful handling of announcer when speechSynthesis API is not available
+- Renamed `beforeAll` method on router to `beforeEach` (as specified in the type definitions)
+- Fixed detection of correct PR to comment for github workflows
+
 _15 apr 2025_
 
 ## v1.27.1

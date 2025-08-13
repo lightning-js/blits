@@ -18,7 +18,7 @@
 import test from 'tape'
 import parser from './parser.js'
 import symbols from '../symbols.js'
-const { componentType } = symbols
+const { componentType, tagContent } = symbols
 import { initLog } from '../log.js'
 initLog()
 
@@ -742,7 +742,7 @@ test('Parse template with inline text between tags', (assert) => {
             x: '40',
             y: '40',
             color: '0xfb923cff',
-            content: 'Lorem ipsum',
+            [tagContent]: 'Lorem ipsum',
           },
         ],
       },
@@ -781,29 +781,89 @@ test('Parse template with multiple inline texts between different tags', (assert
             x: '40',
             y: '40',
             color: '0xfb923cff',
-            content: 'Lorem ipsum',
+            [tagContent]: 'Lorem ipsum',
           },
           {
             [componentType]: 'Element',
-            content: 'dolor sit amet',
+            [tagContent]: 'dolor sit amet',
           },
           {
             [componentType]: 'Element',
             children: [
               {
                 [componentType]: 'Text',
-                content: 'consectetur adipiscing elit',
+                [tagContent]: 'consectetur adipiscing elit',
               },
               {
                 [componentType]: 'Element',
                 children: [
                   {
                     [componentType]: 'Text',
-                    content: 'sed do eiusmod tempor',
+                    [tagContent]: 'sed do eiusmod tempor',
                   },
                 ],
               },
             ],
+          },
+        ],
+      },
+    ],
+  }
+
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with dynamic variable as inline text', (assert) => {
+  const template = `
+  <Element>
+    <Text x="90" y="200" size="32">{{$title}}</Text>
+  </Element>
+  `
+
+  const expected = {
+    children: [
+      {
+        [componentType]: 'Element',
+        children: [
+          {
+            [componentType]: 'Text',
+            x: '90',
+            y: '200',
+            size: '32',
+            [tagContent]: '{{$title}}',
+          },
+        ],
+      },
+    ],
+  }
+
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with dynamic variable and additional string as inline text', (assert) => {
+  const template = `
+  <Element>
+    <Text x="90" y="200" size="32">Welcome to Blits {{$version}}</Text>
+  </Element>
+  `
+
+  const expected = {
+    children: [
+      {
+        [componentType]: 'Element',
+        children: [
+          {
+            [componentType]: 'Text',
+            x: '90',
+            y: '200',
+            size: '32',
+            [tagContent]: 'Welcome to Blits {{$version}}',
           },
         ],
       },

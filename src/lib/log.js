@@ -19,13 +19,24 @@ import Settings from '../settings.js'
 
 const n = () => {}
 
-const time = () =>
-  new Date().toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
+const pad = (n) => String(n).padStart(2, '0')
 
+/**
+ * Returns the current time as a locale time string (hh:mm:ss).
+ * @returns {string} The current time string.
+ */
+const time = () => {
+  const now = new Date()
+  return pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds())
+}
+
+/**
+ * Returns a logger object for the given context, with info, warn, debug, and error methods.
+ * Logging methods are no-ops if the debug level does not match.
+ *
+ * @param {string} context - The context label for log messages.
+ * @returns {Object} Logger object with info, warn, debug, and error methods.
+ */
 const logger = (context) => {
   const level = Settings.get('debugLevel')
   const log = {}

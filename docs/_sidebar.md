@@ -38,3 +38,6 @@
   - [Language](/plugins/language.md)
   - [Theme](/plugins/theme.md)
   - [Global App State](/plugins/global_app_state.md)
+  - [Storage](/plugins/storage.md)
+- Performance
+  - [Lazy loading]('/performance/lazy-loading.md')
