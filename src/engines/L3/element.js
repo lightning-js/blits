@@ -422,15 +422,10 @@ const propsTransformer = {
     this.props['contain'] = 'width'
   },
   set maxwidth(v) {
-    this.props['width'] = v
-    this.props['contain'] = 'width'
+    this.props['maxWidth'] = v
   },
   set maxheight(v) {
-    this.props['height'] = v
-    this.props['contain'] = 'both'
-  },
-  set contain(v) {
-    this.props['contain'] = v
+    this.props['maxHeight'] = v
   },
   set maxlines(v) {
     this.props['maxLines'] = v
