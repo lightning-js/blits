@@ -3,9 +3,9 @@ import { renderer } from './launch.js'
 
 const fontTypeMapping = {
   sdf: 'sdf',
-  msdf: 'msdf',
+  msdf: 'sdf',
   canvas: 'canvas',
-  web: 'web',
+  web: 'canvas',
 }
 
 export default () => {
@@ -16,7 +16,6 @@ export default () => {
     const type = fontTypeMapping[font.type] || 'sdf'
 
     if (type === 'sdf') {
-      console.log('load font family', font)
       stage.loadFont('sdf', {
         fontFamily: font.family,
         atlasUrl: font.json || (font.file && font.file.replace(/\.[^.]+$/, `.${font.type}.png`)),
