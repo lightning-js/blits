@@ -422,15 +422,10 @@ const propsTransformer = {
     this.props['contain'] = 'width'
   },
   set maxwidth(v) {
-    this.props['width'] = v
-    this.props['contain'] = 'width'
+    this.props['maxWidth'] = v
   },
   set maxheight(v) {
-    this.props['height'] = v
-    this.props['contain'] = 'both'
-  },
-  set contain(v) {
-    this.props['contain'] = v
+    this.props['maxHeight'] = v
   },
   set maxlines(v) {
     this.props['maxLines'] = v
@@ -538,6 +533,12 @@ const Element = {
     this.node = props.__textnode
       ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
       : renderer.createNode(this.props.props)
+
+    // hack
+    if (props.__textnode) {
+      if (!this.node.parent.width) this.node.parent.width = 1
+      if (!this.node.parent.height) this.node.parent.height = 1
+    }
 
     if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
       this.node.on('loaded', (el, { type, dimensions }) => {

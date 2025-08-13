@@ -225,10 +225,10 @@ const generateElementCode = function (
 
     if (containsInterpolation === false) {
       // Inline text is treated as static content when interpolation is not defined.
-      renderCode.push(`elementConfig${counter}['content'] = '${val}'`)
+      renderCode.push(`elementConfigs[${counter}['content']] = '${val}'`)
     } else {
       const output = parseTagContent(val, options.component)
-      renderCode.push(`elementConfig${counter}['content'] = ${output}`)
+      renderCode.push(`elementConfigs[${counter}['content']] = ${output}`)
 
       const variableRegEx = /\{\{\s*(?=[^}]*\$).+?\s*\}\}/
       // Check if the interpolation contains $ variable
