@@ -96,9 +96,12 @@ const Application = (config) => {
 
       Focus.input(key, e)
       clearTimeout(holdTimeout)
-      holdTimeout = setTimeout(() => {
-        Focus.hold = true
-      }, Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS))
+      holdTimeout = setTimeout(
+        () => {
+          Focus.hold = true
+        },
+        Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS)
+      )
     }
 
     keyUpHandler = (e) => {
