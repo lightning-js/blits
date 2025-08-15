@@ -10,7 +10,7 @@ const fontTypeMapping = {
 
 export default () => {
   const stage = renderer.stage
-  console.log(Object.keys(stage), stage.loadFont)
+
   const fonts = Settings.get('fonts', [])
   for (let i = 0; i < fonts.length; i++) {
     const font = fonts[i]
