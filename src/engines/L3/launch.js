@@ -116,11 +116,9 @@ export default (App, target, settings = {}) => {
     }
   }
 
-  setTimeout(() => {
-    shaderLoader()
-    fontLoader()
-    initApp()
-  }, 1000)
+  shaderLoader()
+  fontLoader()
+  initApp()
 
   return renderer
 }
