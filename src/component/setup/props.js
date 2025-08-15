@@ -47,12 +47,14 @@ export default (component, props = {}) => {
 
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i]
-    const prop = props[key]
+    const defaultPropValue = props[key]
 
     Object.defineProperty(component, key, {
       get() {
         if (this[symbols.props] === undefined) return undefined
-        return key in this[symbols.props] ? this[symbols.props][key] : prop
+        // if the key is specified independent of the value (falsy, null, undefined) use that value
+        // otherwise return the default prop value
+        return key in this[symbols.props] ? this[symbols.props][key] : defaultPropValue
       },
       set(v) {
         Log.warn(
