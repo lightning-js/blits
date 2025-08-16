@@ -429,7 +429,7 @@ const generateForLoopCode = function (templateObject, parent) {
     .replace(')', '')
     .split(/\s*,\s*/)
 
-  const scopeRegex = new RegExp(`(scope\\.(?!${item}\\.|${index}|key)(\\w+))`, 'gi')
+  const scopeRegex = new RegExp(`(scope\\.(?!${item}\\.|${index}|key)(\\$?\\w+))`, 'gi')
 
   // local context
   const ctx = {
@@ -553,9 +553,9 @@ const generateForLoopCode = function (templateObject, parent) {
   }
 
   // separate effects that only rely on variables in the itteration
-  const innerScopeEffects = ctx.effectsCode.filter(
-    (effect) => [...effect.matchAll(scopeRegex)].length === 0
-  )
+  const innerScopeEffects = ctx.effectsCode.filter((effect) => {
+    return [...effect.matchAll(scopeRegex)].length === 0
+  })
 
   // separate effects that (also) rely on variables in the outer scope
   const outerScopeEffects = ctx.effectsCode.filter(
