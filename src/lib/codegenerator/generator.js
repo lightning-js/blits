@@ -244,10 +244,14 @@ const generateElementCode = function (
   if (options.holder === true) {
     renderCode.push(`
     skips[${counter}] = []
-    if(typeof cmps[${counter}] !== 'undefined') {
-      for(let key in cmps[${counter}][Symbol.for('config')].props) {
-        delete elementConfigs[${counter}][cmps[${counter}][Symbol.for('config')].props[key]]
-        skips[${counter}].push(cmps[${counter}][Symbol.for('config')].props[key])
+    if(typeof cmps[${counter}] !== 'undefined' && cmps[${counter}][Symbol.for('config')].props !== undefined) {
+      // attributes that are a prop should be removed from element config (even if it's a know element prop)
+      let props = cmps[${counter}][Symbol.for('config')].props
+      if(Array.isArray(props) === false) props = Object.keys(cmps[${counter}][Symbol.for('config')].props)
+      for(let k = 0; k < props.length; k++) {
+        const key = props[k]
+        delete elementConfigs[${counter}][key]
+        skips[${counter}].push(key)
       }
     }
     `)
