@@ -80,7 +80,7 @@ export default function (templateObject = { children: [] }, devMode = false) {
       forloops.length = 0
       props.length = 0
       skips.length = 0
-    }}
+    }, skips}
   `)
 
   return {
@@ -96,7 +96,16 @@ export default function (templateObject = { children: [] }, devMode = false) {
     ),
     effects: ctx.effectsCode.map(
       (code) =>
-        new Function('component', 'elms', 'context', 'components', 'rootComponent', 'effect', code)
+        new Function(
+          'component',
+          'elms',
+          'context',
+          'components',
+          'rootComponent',
+          'skips',
+          'effect',
+          code
+        )
     ),
     context: ctx.context,
   }

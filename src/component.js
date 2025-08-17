@@ -245,7 +245,7 @@ const Component = (name = required('name'), config = required('config')) => {
 
     // execute the render code that constructs the initial state of the component
     // and store the children result (a flat map of elements and components)
-    const { elms, cleanup } = config.code.render.apply(stage, [
+    const { elms, cleanup, skips } = config.code.render.apply(stage, [
       parentEl,
       this,
       config,
@@ -313,7 +313,15 @@ const Component = (name = required('name'), config = required('config')) => {
     const effects = config.code.effects
     for (let i = 0; i < effects.length; i++) {
       const eff = () => {
-        effects[i](this, this[symbols.children], config, globalComponents, rootComponent, effect)
+        effects[i](
+          this,
+          this[symbols.children],
+          config,
+          globalComponents,
+          rootComponent,
+          skips,
+          effect
+        )
       }
       // store reference to the effect
       this[symbols.effects].push(eff)

@@ -25,7 +25,7 @@ let hashchangeHandler = null
 export default () =>
   Component('RouterView', {
     template: `
-      <Element w="100%" height="100%"></Element>
+      <Element w="100%" h="100%"></Element>
     `,
     state() {
       return {
