@@ -29,7 +29,10 @@ const normalizeProps = (props) => {
     if (typeof prop === 'string') {
       out[prop] = undefined
     } else {
-      out[prop.key] = prop.default
+      Log.error(
+        'Defining props as an array of objects is no longer supported. Please use the new format: an object with key-value pairs.'
+      )
+      break
     }
   }
   return out
