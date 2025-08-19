@@ -83,7 +83,7 @@ test('Get value of props', (assert) => {
   assert.end()
 })
 
-test.only('Passing props as an object', (assert) => {
+test('Passing props as an object', (assert) => {
   initLogTest(assert)
   const capture = assert.capture(console, 'error')
   const component = new Function()
