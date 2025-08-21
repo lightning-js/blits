@@ -107,8 +107,8 @@ const layoutFn = function (config) {
             ? node.height + gap
             : 0
           : node.height !== 0
-          ? node.height + gap
-          : 0
+            ? node.height + gap
+            : 0
     }
     otherDimension = Math.max(
       otherDimension,

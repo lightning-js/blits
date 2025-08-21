@@ -41,8 +41,8 @@ export default (component, props = []) => {
           this[symbols.props] !== undefined && prop.key in this[symbols.props]
             ? this[symbols.props][prop.key]
             : 'default' in prop
-            ? prop.default
-            : undefined
+              ? prop.default
+              : undefined
         )
 
         if (prop.required === true && value === undefined) {
