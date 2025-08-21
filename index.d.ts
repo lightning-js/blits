@@ -679,6 +679,16 @@ declare module '@lightningjs/blits' {
     data?: {
       [key: string]: any
     }
+
+    /** 
+     * Metadata attached to the route, 
+     * used for navigation logic like access control or others,
+     * Not reactive and not passed as props to components
+     * 
+     */
+    meta?: {
+      [key: string]: any
+    }
   }
 
   type ComponentFactory = () => void
