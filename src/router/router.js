@@ -220,6 +220,11 @@ export const navigate = async function () {
         ...navigationData,
         ...queryParamsData,
       }
+      state.path = route.path
+      state.params = route.params || {}
+      state.hash = hash
+      state.data = route.data || {}
+
       // Adding the location hash to the route if it exists.
       if (hash !== null) {
         route.hash = hash
@@ -367,11 +372,6 @@ export const navigate = async function () {
           removeView(previousRoute, oldView, route.transition.out)
         }
       }
-
-      state.path = route.path
-      state.params = route.params
-      state.hash = hash
-      state.data = route.data
 
       // apply in transition
       if (route.transition.in) {
