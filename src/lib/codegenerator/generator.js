@@ -191,9 +191,9 @@ const generateElementCode = function (
       } else {
         this.effectsCode.push(`
             ${elm}.set('${key.substring(1)}', ${interpolate(
-          templateObject[key],
-          options.component
-        )})
+              templateObject[key],
+              options.component
+            )})
           `)
       }
       // value.includes('.') === false &&
@@ -310,9 +310,9 @@ const generateComponentCode = function (
     if (isReactiveKey(key)) {
       this.effectsCode.push(`
         ${elm}[Symbol.for('props')]['${key.substring(1)}'] = ${interpolate(
-        templateObject[key],
-        options.component
-      )}`)
+          templateObject[key],
+          options.component
+        )}`)
       renderCode.push(`
         propData = ${interpolate(templateObject[key], options.component)}
         if (Array.isArray(propData) === true) {

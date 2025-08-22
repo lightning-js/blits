@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.37.0
+
+_22 Aug 2025_
+
+- Added Route options check before checking passFocus flag
+- Added support for additional metadata in Route config (for associating arbitrary data to a route)
+- Upgraded dev dependencies to latest versions
+
 ## v1.36.0
 
 _11 Aug 2025_
