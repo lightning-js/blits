@@ -25,7 +25,7 @@ Each route in this array, is an Object literal that includes the following key p
 - `hooks` (optional) - hooks such as `before` can be defined to execute code before navigating to the route
 - `options` (optional) - additional options defining route behaviour, such as `keepAlive` and `inHistory`
 - `transitions` (optional) - used to define custom transitions between pages
-- `meta` (optional) - an object with arbitray data associated with a route (like `auth: true/false`, a route ID or route description). Not reactive or passed as props to a component. Available in the `before` and `beforeEach` router hooks.
+- `meta` (optional) - an object with arbitrary data associated with a route (like `auth: true/false`, a route ID or route description). Not reactive or passed as props to a component. Available in the `before` and `beforeEach` router hooks.
 
 ### Dynamic routes with params
 

@@ -681,7 +681,7 @@ declare module '@lightningjs/blits' {
     }
 
     /**
-     * Metadata attached to the route, can be used to add any arbitray
+     * Metadata attached to the route, can be used to add any arbitrary
      * data to a route such as `auth: true/false`, a route ID or route description
      * Note that this data is not reactive and not passed as props to components.
      * The metadata is available in the router `before` or `beforeEach` hooks
