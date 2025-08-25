@@ -485,8 +485,19 @@ test('Get route object from Match hash when navigating using to() method', (asse
   )
   assert.equal(
     Object.keys(result.options).length,
-    0,
-    'The results object should contain a options key with zero props'
+    4,
+    'The results object should contain the default options object'
+  )
+
+  assert.deepEqual(
+    Object.entries(result.options),
+    [
+      ['inHistory', true],
+      ['keepAlive', false],
+      ['passFocus', true],
+      ['reuseComponent', false],
+    ],
+    'The results object should contain the default options object'
   )
   assert.end()
 })
