@@ -27,6 +27,13 @@ Each route in this array, is an Object literal that includes the following key p
 - `transitions` (optional) - used to define custom transitions between pages
 - `meta` (optional) - an object with arbitrary data associated with a route (like `auth: true/false`, a route ID or route description). Not reactive or passed as props to a component. Available in the `before` and `beforeEach` router hooks.
 
+### Route options
+
+- `inHistory` - Whether the page navigation should be added to the history stack, used when navigating back using `this.$router.back()`
+- `keepAlive` - Whether the page should be kept alive (in memory) when navigating away
+- `passFocus` - Whether the focus should be delegated to the page that's being navigated to
+- `reuseComponent` - Whether the router should reuse the current page component instance (when matching with the Component specified for the route that we're routing to)
+
 ### Dynamic routes with params
 
 Besides static routes such as `/account` and `/settings/wifi/advanced`, the Blits router also supports dynamic routes where URI parts can contain params.
