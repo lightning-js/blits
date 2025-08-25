@@ -208,6 +208,7 @@ export const navigate = async function () {
     let route = matchHash(path, this.parent[symbols.routes])
 
     currentRoute = route
+
     if (route) {
       const queryParamsData = {}
       const queryParamsEntries = [...queryParams.entries()]
@@ -271,6 +272,24 @@ export const navigate = async function () {
 
       let { view, focus } = cacheMap.get(route.hash) || {}
 
+      // merge props with potential route params, navigation data and route data to be injected into the component instance
+      const props = {
+        ...this[symbols.props],
+        ...route.params,
+        ...route.data,
+      }
+
+      if (
+        previousRoute &&
+        route.component === previousRoute.component &&
+        route.options.reuseComponent === true
+      ) {
+        view = this[symbols.children][this[symbols.children].length - 1]
+        for (const prop in props) {
+          view[symbols.props][prop] = props[prop]
+        }
+      }
+
       // Announce route change if a message has been specified for this route
       if (route.announce) {
         if (typeof route.announce === 'string') {
@@ -287,13 +306,6 @@ export const navigate = async function () {
         holder.populate({})
         holder.set('w', '100%')
         holder.set('h', '100%')
-
-        // merge props with potential route params, navigation data and route data to be injected into the component instance
-        const props = {
-          ...this[symbols.props],
-          ...route.params,
-          ...route.data,
-        }
 
         view = await route.component({ props }, holder, this)
 
@@ -359,7 +371,7 @@ export const navigate = async function () {
       let shouldAnimate = false
 
       // apply out out transition on previous view
-      if (previousRoute) {
+      if (previousRoute && !route.options.reuseComponent) {
         // only animate when there is a previous route
         shouldAnimate = true
         const oldView = this[symbols.children].splice(1, 1).pop()

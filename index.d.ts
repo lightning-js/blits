@@ -211,6 +211,13 @@ declare module '@lightningjs/blits' {
      * @default true
      */
     passFocus?: Boolean
+    /**
+     * Whether the router should reuse the current page component instance (when matching with the Component
+     * specified for the route that we're routing to).
+     *
+     * @default true
+     */
+    reuseComponent?: Boolean
   }
 
   export interface Router {
