@@ -202,6 +202,7 @@ export const navigate = async function () {
   Announcer.stop()
   Announcer.clear()
   state.navigating = true
+  let reuse = false
   if (this.parent[symbols.routes]) {
     let previousRoute = currentRoute //? Object.assign({}, currentRoute) : undefined
     const { hash, path, queryParams } = getHash()
@@ -284,6 +285,7 @@ export const navigate = async function () {
         route.component === previousRoute.component &&
         route.options.reuseComponent === true
       ) {
+        reuse = true
         view = this[symbols.children][this[symbols.children].length - 1]
         for (const prop in props) {
           view[symbols.props][prop] = props[prop]
@@ -371,7 +373,7 @@ export const navigate = async function () {
       let shouldAnimate = false
 
       // apply out out transition on previous view
-      if (previousRoute && !route.options.reuseComponent) {
+      if (previousRoute && reuse === false) {
         // only animate when there is a previous route
         shouldAnimate = true
         const oldView = this[symbols.children].splice(1, 1).pop()
