@@ -176,7 +176,7 @@ export const matchHash = (path, routes = []) => {
   }
 
   if (matchingRoute) {
-    matchingRoute.options = { ...matchingRoute.options, ...overrideOptions }
+    matchingRoute.options = { ...defaultOptions, ...matchingRoute.options, ...overrideOptions }
     if (!matchingRoute.data) {
       matchingRoute.data = {}
     }
@@ -184,6 +184,17 @@ export const matchHash = (path, routes = []) => {
 
   // @ts-ignore - Remove me when we have a better way to handle this
   return matchingRoute
+}
+
+/**
+ * Default Route options
+ *
+ */
+const defaultOptions = {
+  inHistory: true,
+  keepAlive: false,
+  passFocus: true,
+  reuseComponent: false,
 }
 
 /**
@@ -283,7 +294,8 @@ export const navigate = async function () {
       if (
         previousRoute &&
         route.component === previousRoute.component &&
-        route.options.reuseComponent === true
+        route.options.reuseComponent === true &&
+        route.options.keepAlive !== true
       ) {
         reuse = true
         view = this[symbols.children][this[symbols.children].length - 1]
