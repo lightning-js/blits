@@ -186,3 +186,41 @@ export default Blits.Component('MyComponent', {
   }
 })
 ```
+
+## Routing Tips
+
+### Reusing Components with Dynamic Imports in Route Definitions
+Inline arrow functions prevent reuse component feature, following use case fais in reuse feature.
+  ```js
+  {
+    path: '/sample1',
+    component: () => import('./pages/SamplePage.js'),
+    options: { reuseComponent: true }
+  },
+  {
+    path: '/sample2',
+    component: () => import('./pages/SamplePage.js'),
+    options: { reuseComponent: true }
+  }
+
+```
+  Although both routes load the same file (SamplePage.js), each component is defined using a new arrow function. In JavaScript, every arrow function is a unique reference, even if it returns the same result
+
+  To enable reuse, define the import function once and use it across routes:
+
+  ```js
+    const sampleLoader = () => import('./pages/SamplePage.js');
+
+    {
+      path: '/sample1',
+      component: sampleLoader,
+      options: { reuseComponent: true }
+    },
+    {
+      path: '/sample2',
+      component: sampleLoader,
+      options: { reuseComponent: true }
+    }
+  ```
+
+
