@@ -34,6 +34,9 @@ Each route in this array, is an Object literal that includes the following key p
 - `passFocus` - Whether the focus should be delegated to the page that's being navigated to
 - `reuseComponent` - Whether the router should reuse the current page component instance (when matching with the Component specified for the route that we're routing to)
 
+> [!WARNING]
+> keepAlive and reuseComponent are mutually exclusive and can't be set to true at the same time.
+
 ### Dynamic routes with params
 
 Besides static routes such as `/account` and `/settings/wifi/advanced`, the Blits router also supports dynamic routes where URI parts can contain params.

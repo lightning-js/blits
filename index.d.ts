@@ -185,15 +185,31 @@ declare module '@lightningjs/blits' {
     [key: string]: any
   }
 
-  // todo: specify valid route options
-  export interface RouteOptions {
+  /**
+   * Router Options that can be used at the same time.
+   */
+  interface ConcurrentRouteOpts {
     /**
      * Whether the page navigation should be added to the history stack
      * used when navigating back using `this.$router.back()`
      *
      * @default true
      */
-    inHistory?: Boolean
+    inHistory?: boolean,
+    passFocus?: boolean,
+  }
+
+  /**
+   * Route Options that can't be true at the same time
+   */
+  type MutualExclusiveRouteOpts = {
+    /**
+     * Whether the router should reuse the current page component instance (when matching with the Component
+     * specified for the route that we're routing to).
+     *
+     * @default true
+     */
+    reuseComponent?: true,
     /**
      * Whether the page should be kept alive when navigating away. Can be useful
      * for a homepage where the state should be fully retained when navigating back
@@ -201,24 +217,25 @@ declare module '@lightningjs/blits' {
      *
      * @default false
      */
-    keepAlive?: Boolean
-    /**
-     * Whether the focus should be delegated to the page that's being navigated to.
-     * Can be useful when navigating to a new page from a widget / menu overlaying the
-     * RouterView, where the widget should maintain the focus (instead of the new page, which
-     * is the default behaviour)
-     *
-     * @default true
-     */
-    passFocus?: Boolean
+    keepAlive?: false
+  } | {
     /**
      * Whether the router should reuse the current page component instance (when matching with the Component
      * specified for the route that we're routing to).
      *
      * @default true
      */
-    reuseComponent?: Boolean
+    reuseComponent?: false,
+    /**
+     * Whether the page should be kept alive when navigating away. Can be useful
+     * for a homepage where the state should be fully retained when navigating back
+     * from a details page
+     *
+     * @default false
+     */
+    keepAlive?: true
   }
+  export type RouteOptions = ConcurrentRouteOpts & MutualExclusiveRouteOpts;
 
   export interface Router {
     /**
