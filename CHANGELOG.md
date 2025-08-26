@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.38.0
+
+_26 Aug 2025_
+
+- Added `reuseComponent` to route options to enable navigating to the same page and reusing the same page component instance
+
 ## v1.37.0
 
 _22 Aug 2025_
