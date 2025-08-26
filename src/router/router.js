@@ -345,7 +345,7 @@ export const navigate = async function () {
       this.activeView = children[children.length - 1]
 
       // set focus to the view that we're routing to (unless explicitly disabling passing focus)
-      if (route.options.passFocus !== false) {
+      if (route.options === undefined || route.options.passFocus !== false) {
         focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
       }
 
