@@ -390,7 +390,7 @@ export const navigate = async function () {
         shouldAnimate = true
         const oldView = this[symbols.children].splice(1, 1).pop()
         if (oldView) {
-          removeView(previousRoute, oldView, route.transition.out)
+          removeView(previousRoute, oldView, route.transition.out, navigatingBack)
         }
       }
 
@@ -432,7 +432,7 @@ export const navigate = async function () {
  * @param {BlitsComponent} view
  * @param {Object} transition
  */
-const removeView = async (route, view, transition) => {
+const removeView = async (route, view, transition, navigatingBack) => {
   // apply out transition
   if (transition) {
     if (Array.isArray(transition)) {
