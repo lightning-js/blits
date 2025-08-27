@@ -153,6 +153,9 @@ export default {
      * @this {import('../../component').BlitsComponent}
      */
     value: function (ref) {
+      // early exit when component is marked as end of life
+      if (this.eol === true) return
+
       let selected = null
       this[symbols.children].forEach((child) => {
         if (Array.isArray(child)) {
