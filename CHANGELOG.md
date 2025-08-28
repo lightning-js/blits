@@ -5,6 +5,7 @@
 _28 Aug 2025_
 
 - Added guard around emiting events and selecting elements after Component destroy
+- Fixed issue with `navigatingBack`
 
 ## v1.38.0
 
