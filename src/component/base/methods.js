@@ -84,7 +84,7 @@ export default {
       this.$clearIntervals()
       eventListeners.removeListeners(this)
       deleteChildren(this[symbols.children])
-      this[symbols.children].length = 0
+      // this[symbols.children].length = 0
       removeGlobalEffects(this[symbols.effects])
 
       this[symbols.state] = {}
