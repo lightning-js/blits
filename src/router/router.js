@@ -479,9 +479,10 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
         existingEndCallback = null
         resolve()
       }
-      node.set(transition.prop, { transition })
+      if (node !== undefined) node.set(transition.prop, { transition })
+      else resolve()
     } else {
-      node.set(transition.prop, transition.value)
+      node !== undefined && node.set(transition.prop, transition.value)
       resolve()
     }
   })

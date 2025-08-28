@@ -31,6 +31,7 @@ export default {
    */
   $emit: {
     value: function (event, params, byReference = true) {
+      // early exit when component is marked as end of life
       if (this.eol === true) return
       // returning if all listeners executed
       return eventListeners.executeListeners(event, params, byReference)
