@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.38.1
+
+_28 Aug 2025_
+
+- Added guard around emiting events and selecting elements after Component destroy
+
 ## v1.38.0
 
 _26 Aug 2025_
