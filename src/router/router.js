@@ -176,6 +176,7 @@ export const matchHash = (path, routes = []) => {
   }
 
   if (matchingRoute) {
+    matchingRoute = Object.assign({}, matchingRoute) // clone to avoid overwriting original options
     matchingRoute.options = { ...defaultOptions, ...matchingRoute.options, ...overrideOptions }
     if (!matchingRoute.data) {
       matchingRoute.data = {}
@@ -215,7 +216,7 @@ export const navigate = async function () {
   state.navigating = true
   let reuse = false
   if (this.parent[symbols.routes]) {
-    let previousRoute = currentRoute //? Object.assign({}, currentRoute) : undefined
+    let previousRoute = currentRoute ? Object.assign({}, currentRoute) : undefined
     const { hash, path, queryParams } = getHash()
     let route = matchHash(path, this.parent[symbols.routes])
 
