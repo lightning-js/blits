@@ -255,5 +255,5 @@ const deleteChildren = function (children) {
     children[i] = null
   }
 
-  children.length = 0
+  children && (children.length = 0)
 }
