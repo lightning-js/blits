@@ -240,6 +240,7 @@ export default {
  * @param {import('../../component').BlitsComponent[]} children
  */
 const deleteChildren = function (children) {
+  if (!children) return
   for (let i = 0; i < children.length; i++) {
     if (!children[i]) return
     // call destroy when method is available on child
