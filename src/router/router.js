@@ -358,7 +358,9 @@ export const navigate = async function () {
         }
       }
 
-      this[symbols.children].push(view)
+      if (reuse === false) {
+        this[symbols.children].push(view)
+      }
 
       // keep reference to the previous focus for storing in cache
       previousFocus = Focus.get()
