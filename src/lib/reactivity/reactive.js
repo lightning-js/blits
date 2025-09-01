@@ -155,7 +155,7 @@ const reactiveDefineProperty = (target, global) => {
       if (Object.getPrototypeOf(target[key]) === Object.prototype) {
         return reactiveDefineProperty(target[key])
       } else if (Array.isArray(target[key]) === true) {
-        for (let i = 0; i < arrayPatchMethods.length - 1; i++) {
+        for (let i = 0; i < arrayPatchMethods.length; i++) {
           target[key][arrayPatchMethods[i]] = function (v) {
             Array.prototype[arrayPatchMethods[i]].call(this, v)
             trigger(target, key)
