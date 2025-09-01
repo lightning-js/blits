@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.38.2
+
+_1 Sept 2025_
+
+- Fixed issue with `reuseComponent` storing the same page multiple times
+- Fixed last array patch method (sort) not triggering reactivity
+
+
 ## v1.38.1
 
 _28 Aug 2025_
