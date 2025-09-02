@@ -78,7 +78,7 @@ export default {
       this[symbols.state] = {}
 
       this[symbols.props] = {}
-      this[symbols.computed] = null
+      this[symbols.computedKeys] = null
       this[symbols.lifecycle] = {}
       this[symbols.effects].length = 0
       this[symbols.parent] = null
@@ -87,7 +87,7 @@ export default {
       this[symbols.originalState] = null
       this[symbols.slots].length = 0
 
-      delete this[symbols.computed]
+      delete this[symbols.computedKeys]
       delete this[symbols.effects]
       delete this[symbols.parent]
       delete this[symbols.rootParent]
@@ -95,7 +95,6 @@ export default {
       delete this[symbols.originalState]
       delete this[symbols.children]
       delete this[symbols.slots]
-      delete this.componentId
       delete this[symbols.id]
       delete this.ref
       delete this[symbols.state].$hasFocus
@@ -107,7 +106,8 @@ export default {
       this[symbols.cleanup]()
       delete this[symbols.cleanup]
 
-      Log.debug(`Destroyed component ${this.componentId}`)
+      Log.debug(`Destroyed component ${this.$componentId}`)
+      delete this.$componentId
     },
     writable: false,
     enumerable: true,

@@ -72,7 +72,7 @@ export default {
   set state(v) {
     if ((states.indexOf(v) > -1 && v !== this.current) || v === 'refocus') {
       Log.debug(
-        `Setting lifecycle state from ${this.current} to ${v} for ${this.component.componentId}`
+        `Setting lifecycle state from ${this.current} to ${v} for ${this.component.$componentId}`
       )
       this.previous = this.current
       this.current = v
