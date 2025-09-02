@@ -85,11 +85,12 @@ let previousFocus
  * @returns {Hash}
  */
 export const getHash = () => {
-  const hashParts = (document.location.hash || '/').replace(/^#/, '').split('?')
+  const hash = document.location.hash || '/'
+  const hashParts = hash.replace(/^#/, '').split('?')
   return {
     path: hashParts[0],
     queryParams: new URLSearchParams(hashParts[1]),
-    hash: document.location.hash,
+    hash: hash,
   }
 }
 
@@ -116,33 +117,49 @@ const isObject = (v) => typeof v === 'object' && v !== null
  */
 const isString = (v) => typeof v === 'string'
 
+const queryParamsToObject = (queryParams) => {
+  if (!queryParams) return {}
+  const object = {}
+  const queryParamsEntries = [...queryParams.entries()]
+  for (let i = 0; i < queryParamsEntries.length; i++) {
+    object[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
+  }
+
+  return object
+}
+
 /**
  * Match a path to a route
  *
- * @param {string} path
+ * @param {object} hashObject
  * @param {Route[]} routes
  * @returns {Route}
  */
-export const matchHash = (path, routes = []) => {
+export const matchHash = ({ hash, path, queryParams }, routes = []) => {
   // remove trailing slashes
   const originalPath = path.replace(/^\/+|\/+$/g, '')
-  path = normalizePath(path)
+  const originalNormalizedPath = normalizePath(path)
+
+  const override = {
+    hash: hash,
+    queryParams: queryParamsToObject(queryParams),
+    path: path,
+  }
 
   /** @type {boolean|Route} */
   let matchingRoute = false
   let i = 0
   while (!matchingRoute && i < routes.length) {
     const route = routes[i]
-    route.path = normalizePath(route.path)
-    if (route.path === path) {
-      route.params = {}
-      matchingRoute = route
-    } else if (route.path.indexOf(':') > -1) {
+    const normalizedPath = normalizePath(route.path)
+    if (normalizePath(normalizedPath) === originalNormalizedPath) {
+      matchingRoute = makeRouteObject(route, override)
+    } else if (normalizedPath.indexOf(':') > -1) {
       // match dynamic route parts
-      const dynamicRouteParts = [...route.path.matchAll(/:([^\s/]+)/gi)]
+      const dynamicRouteParts = [...normalizedPath.matchAll(/:([^\s/]+)/gi)]
 
       // construct a regex for the route with dynamic parts
-      let dynamicRoutePartsRegex = route.path
+      let dynamicRoutePartsRegex = normalizedPath
       dynamicRouteParts.reverse().forEach((part) => {
         dynamicRoutePartsRegex =
           dynamicRoutePartsRegex.substring(0, part.index) +
@@ -157,29 +174,24 @@ export const matchHash = (path, routes = []) => {
 
       if (match) {
         // map the route params to a params object
-        route.params = dynamicRouteParts.reverse().reduce((acc, part, index) => {
+        const params = dynamicRouteParts.reverse().reduce((acc, part, index) => {
           acc[part[1]] = match[index + 1]
           return acc
         }, {})
-        matchingRoute = route
+
+        matchingRoute = makeRouteObject(route, { params })
       }
-    } else if (route.path.endsWith('*')) {
-      const regex = new RegExp(route.path.replace(/\/?\*/, '/?([^\\s]*)'), 'i')
-      const match = path.match(regex)
+    } else if (normalizedPath.endsWith('*')) {
+      const regex = new RegExp(normalizedPath.replace(/\/?\*/, '/?([^\\s]*)'), 'i')
+      const match = originalNormalizedPath.match(regex)
 
       if (match) {
-        if (match[1]) route.params = { path: match[1] }
-        matchingRoute = route
+        let params = {}
+        if (match[1]) params.path = match[1]
+        matchingRoute = makeRouteObject(route, { params })
       }
     }
     i++
-  }
-
-  if (matchingRoute) {
-    matchingRoute.options = { ...defaultOptions, ...matchingRoute.options, ...overrideOptions }
-    if (!matchingRoute.data) {
-      matchingRoute.data = {}
-    }
   }
 
   // @ts-ignore - Remove me when we have a better way to handle this
@@ -195,6 +207,22 @@ const defaultOptions = {
   keepAlive: false,
   passFocus: true,
   reuseComponent: false,
+}
+
+const makeRouteObject = (route, overrides) => {
+  const cleanRoute = {
+    hash: overrides.hash,
+    path: route.path,
+    component: route.component,
+    transition: 'transition' in route ? route.transition : fadeInFadeOutTransition,
+    options: { ...defaultOptions, ...route.options, ...overrideOptions },
+    announce: route.announce || false,
+    hooks: route.hooks || {},
+    data: { ...route.data, ...navigationData, ...overrides.queryParams },
+    params: overrides.params || {},
+  }
+
+  return cleanRoute
 }
 
 /**
@@ -216,27 +244,11 @@ export const navigate = async function () {
   let reuse = false
   if (this.parent[symbols.routes]) {
     let previousRoute = currentRoute //? Object.assign({}, currentRoute) : undefined
-    const { hash, path, queryParams } = getHash()
-    let route = matchHash(path, this.parent[symbols.routes])
+    let route = matchHash(getHash(), this.parent[symbols.routes])
 
     currentRoute = route
 
     if (route) {
-      const queryParamsData = {}
-      const queryParamsEntries = [...queryParams.entries()]
-      for (let i = 0; i < queryParamsEntries.length; i++) {
-        queryParamsData[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
-      }
-
-      route.data = {
-        ...route.data,
-        ...navigationData,
-        ...queryParamsData,
-      }
-      // Adding the location hash to the route if it exists.
-      if (hash !== null) {
-        route.hash = hash
-      }
       let beforeEachResult
       if (this.parent[symbols.routerHooks]) {
         const hooks = this.parent[symbols.routerHooks]
@@ -249,30 +261,33 @@ export const navigate = async function () {
         }
       }
       // If the resolved result is an object, assign it to the target route object
-      route = isObject(beforeEachResult) ? beforeEachResult : route
+      if (isObject(beforeEachResult) === true) {
+        route = beforeEachResult
+      }
 
       let beforeHookOutput
-      if (route.hooks) {
-        if (route.hooks.before) {
-          beforeHookOutput = await route.hooks.before.call(this.parent, route, previousRoute)
-          if (isString(beforeHookOutput)) {
-            currentRoute = previousRoute
-            to(beforeHookOutput)
-            return
-          }
+      if (route.hooks.before) {
+        beforeHookOutput = await route.hooks.before.call(this.parent, route, previousRoute)
+        if (isString(beforeHookOutput)) {
+          currentRoute = previousRoute
+          to(beforeHookOutput)
+          return
         }
       }
-      route = isObject(beforeHookOutput) ? beforeHookOutput : route
+      // If the resolved result is an object, assign it to the target route object
+      if (isObject(beforeHookOutput) === true) {
+        route = beforeHookOutput
+      }
       // add the previous route (technically still the current route at this point)
-      // into the history stack, unless navigating back or inHistory flag of route is false
-      if (navigatingBack === false && previousRoute && previousRoute.options.inHistory === true) {
+      // into the history stack when inHistory is true and we're not navigating back
+      if (
+        previousRoute !== undefined &&
+        previousRoute.options.inHistory === true &&
+        navigatingBack === false
+      ) {
         history.push(previousRoute)
       }
-      // apply default transition if none specified
-      if (!('transition' in route)) {
-        /** @ts-ignore */
-        route.transition = fadeInFadeOutTransition
-      }
+
       // a transition can be a function returning a dynamic transition object
       // based on current and previous route
       if (typeof route.transition === 'function') {
@@ -291,11 +306,13 @@ export const navigate = async function () {
         ...route.data,
       }
 
+      // see if the component of the previous route can be reused for the
+      // current route
       if (
         previousRoute &&
-        route.component === previousRoute.component &&
         route.options.reuseComponent === true &&
-        route.options.keepAlive !== true
+        route.options.keepAlive !== true &&
+        route.component === previousRoute.component
       ) {
         reuse = true
         view = this[symbols.children][this[symbols.children].length - 1]
@@ -323,6 +340,7 @@ export const navigate = async function () {
 
         view = await route.component({ props }, holder, this)
 
+        // is the component a dynamic module?
         if (view[Symbol.toStringTag] === 'Module') {
           if (view.default && typeof view.default === 'function') {
             view = view.default({ props }, holder, this)
@@ -330,6 +348,7 @@ export const navigate = async function () {
             Log.error("Dynamic import doesn't have a default export or default is not a function")
           }
         }
+
         if (typeof view === 'function') {
           // had to inline this because the tscompiler does not like LHS reassignments
           // that also change the type of the variable in a variable union
@@ -358,6 +377,7 @@ export const navigate = async function () {
         }
       }
 
+      // store the new view as new child, only if we're not reusing the previous page component
       if (reuse === false) {
         this[symbols.children].push(view)
       }
@@ -369,7 +389,7 @@ export const navigate = async function () {
       this.activeView = children[children.length - 1]
 
       // set focus to the view that we're routing to (unless explicitly disabling passing focus)
-      if (route.options === undefined || route.options.passFocus !== false) {
+      if (route.options.passFocus !== false) {
         focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
       }
 
@@ -386,8 +406,9 @@ export const navigate = async function () {
 
       let shouldAnimate = false
 
-      // apply out out transition on previous view
-      if (previousRoute && reuse === false) {
+      // apply out out transition on previous view if available, unless
+      // we're reusing the prvious page component
+      if (previousRoute !== undefined && reuse === false) {
         // only animate when there is a previous route
         shouldAnimate = true
         const oldView = this[symbols.children].splice(1, 1).pop()
@@ -398,7 +419,7 @@ export const navigate = async function () {
 
       state.path = route.path
       state.params = route.params
-      state.hash = hash
+      state.hash = route.hash
       state.data = route.data
 
       // apply in transition
@@ -414,10 +435,10 @@ export const navigate = async function () {
         }
       }
     } else {
-      Log.error(`Route ${hash} not found`)
+      Log.error(`Route ${route.hash} not found`)
       const routerHooks = this.parent[symbols.routerHooks]
       if (routerHooks && typeof routerHooks.error === 'function') {
-        routerHooks.error.call(this.parent, `Route ${hash} not found`)
+        routerHooks.error.call(this.parent, `Route ${route.hash} not found`)
       }
     }
   }
@@ -467,6 +488,7 @@ const removeView = async (route, view, transition, navigatingBack) => {
   }
 
   previousFocus = null
+  // route = null
 }
 
 const setOrAnimate = (node, transition, shouldAnimate = true) => {
