@@ -488,7 +488,7 @@ const removeView = async (route, view, transition, navigatingBack) => {
   }
 
   previousFocus = null
-  // route = null
+  route = null
 }
 
 const setOrAnimate = (node, transition, shouldAnimate = true) => {
