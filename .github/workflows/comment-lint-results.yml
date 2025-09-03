@@ -1,0 +1,125 @@
+name: Comment ESLint Results
+
+on:
+  workflow_run:
+    workflows: ["Run ESLint"]
+    types:
+      - completed
+
+jobs:
+  comment-lint-results:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Download Lint Results
+        id: download
+        uses: actions/github-script@v6
+        with:
+          result-encoding: string
+          script: |
+
+            try {
+              core.info('Downloading lint-results artifact');
+              const runId = context.payload.workflow_run.id;
+
+              const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: runId
+              });
+
+              const art = artifacts.data.artifacts.find(a => a.name === "lint-results");
+              if (!art) {
+                core.setFailed('No lint-results artifact found');
+                return 'false';
+              }
+
+              core.info(`Found artifact id ${art.id}, downloading…`);
+              const dl = await github.rest.actions.downloadArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: art.id,
+                archive_format: 'zip'
+              });
+
+              require('fs').writeFileSync('lint-results.zip', Buffer.from(dl.data));
+              core.info('Downloaded and saved lint-results.zip');
+              return 'true';
+
+            } catch (err) {
+              core.setFailed(`Download failed: ${err.message}`);
+              return 'false';
+            }
+
+      - name: Extract Lint Results
+        if: steps.download.outputs.result == 'true'
+        id: extract
+        run: |
+          mkdir -p extracted
+          unzip -o lint-results.zip -d extracted
+
+          # Read PR information
+          if [ -f extracted/pr_number.txt ]; then
+            echo "PR_NUMBER=$(cat extracted/pr_number.txt)" >> $GITHUB_ENV
+          else
+            echo "PR_NUMBER=0" >> $GITHUB_ENV
+          fi
+
+          if [ -f extracted/errors.md ] || [ -f extracted/lint-results/errors.md ]; then
+            if [ -f extracted/errors.md ]; then
+              # Handle flat structure
+              echo "LINT_ERRORS<<EOF" >> $GITHUB_ENV
+              cat extracted/errors.md >> $GITHUB_ENV
+              echo "EOF" >> $GITHUB_ENV
+            else
+              # Handle nested structure
+              echo "LINT_ERRORS<<EOF" >> $GITHUB_ENV
+              cat extracted/lint-results/errors.md >> $GITHUB_ENV
+              echo "EOF" >> $GITHUB_ENV
+            fi
+            echo "HAS_ERRORS=true" >> $GITHUB_OUTPUT
+          else
+            echo "HAS_ERRORS=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post Lint Results as PR Comment
+        if: steps.extract.outputs.HAS_ERRORS == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            try {
+              // First check if PR number was passed from the lint workflow
+              let prNumber = parseInt(process.env.PR_NUMBER);
+
+              // Fallback to the workflow_run PR data if available
+              if (!prNumber || isNaN(prNumber) || prNumber === 0) {
+                const pulls = context.payload.workflow_run.pull_requests;
+                core.info(`Looking for PR information in workflow_run: Found ${pulls.length} PR(s)`);
+
+                if (pulls.length === 0) {
+                  core.warning('No pull request information found. Skipping comment.');
+                  return;
+                }
+
+                prNumber = pulls[0].number;
+              }
+
+              core.info(`Posting lint errors comment to PR #${prNumber}`);
+
+              const body = process.env.LINT_ERRORS;
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body
+              });
+
+              core.info('Lint errors comment posted successfully');
+            } catch (err) {
+              core.error('Failed to post lint comment:', err);
+              core.setFailed(err.message);
+            }

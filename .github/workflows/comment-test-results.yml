@@ -1,0 +1,109 @@
+name: Comment Test Results
+
+on:
+  workflow_run:
+    workflows: ["Run Blits Tests"]
+    types: [completed]
+
+jobs:
+  comment-test-results:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Download Test Results
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+            const art = artifacts.data.artifacts.find(a => a.name === "test-results");
+            if (!art) {
+              core.setFailed('No test-results artifact found');
+              return;
+            }
+            const dl = await github.rest.actions.downloadArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: art.id,
+              archive_format: 'zip'
+            });
+            require('fs').writeFileSync('test-results.zip', Buffer.from(dl.data));
+
+      - name: Extract Test Results
+        run: |
+
+          mkdir -p extracted
+          unzip -o test-results.zip -d extracted
+
+          # Set environment variables from the extracted files
+          echo "TIMESTAMP=$(cat extracted/timestamp.txt)" >> $GITHUB_ENV
+          echo "SUMMARY=$(cat extracted/summary.txt)" >> $GITHUB_ENV
+          echo "FAILED=$(cat extracted/failed.txt)" >> $GITHUB_ENV
+
+          # Read PR information
+          if [ -f extracted/pr_number.txt ]; then
+            echo "PR_NUMBER=$(cat extracted/pr_number.txt)" >> $GITHUB_ENV
+          else
+            echo "PR_NUMBER=0" >> $GITHUB_ENV
+          fi
+
+
+          # Copy error file if it exists
+          if [ -f extracted/error.txt ]; then
+            cp extracted/error.txt raw_error.txt
+          fi
+
+      - name: Post Test Results as PR Comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+
+            try {
+              // First check if PR number was passed from the test workflow
+              let prNumber = parseInt(process.env.PR_NUMBER);
+
+              // Fallback to the workflow_run PR data if available
+              if (!prNumber || isNaN(prNumber) || prNumber === 0) {
+                const pulls = context.payload.workflow_run.pull_requests;
+                console.log(`Looking for PR information in workflow_run: Found ${pulls.length} PR(s).`);
+
+                if (pulls.length === 0) {
+                  console.warn('No pull request information found. Skipping comment.');
+                  return;
+                }
+
+                prNumber = pulls[0].number;
+              }
+
+              console.log(`Posting comment to PR #${prNumber}`);
+
+              const status = process.env.FAILED === 'true' ? '❌ FAILED' : '✅ PASSED';
+              let commentBody = `#### Test Results: ${status}\n`
+                              + `**Run at:** ${process.env.TIMESTAMP}\n\n`
+                              + `**Summary:**\n${process.env.SUMMARY}`;
+
+              if (fs.existsSync('raw_error.txt')) {
+                commentBody += '\n\n**Error Output:**\n```\n'
+                             + fs.readFileSync('raw_error.txt', 'utf8')
+                             + '\n```';
+              }
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: commentBody
+              });
+
+              console.log(`Successfully posted comment to PR #${prNumber}`);
+
+            } catch (err) {
+              console.error('🛑 Failed to post test results comment:', err);
+              core.setFailed(`Comment step failed: ${err.message}`);
+            }

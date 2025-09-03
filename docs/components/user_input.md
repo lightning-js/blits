@@ -62,11 +62,11 @@ When a component handles a key press by having a corresponding function specifie
   input: {
     enter() {
       // Give focus to the parent
-      this.parent.focus();
+      this.$parent.focus();
     },
     back(e) {
       // Give focus to the parent and let the user input event bubble
-      this.parent.focus(e);
+      this.$parent.focus(e);
     },
   }
 }

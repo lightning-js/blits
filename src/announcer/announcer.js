@@ -15,12 +15,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { Log } from '../lib/log.js'
 import speechSynthesis from './speechSynthesis.js'
 
 let active = false
 let count = 0
 const queue = []
 let isProcessing = false
+let currentId = null
+let debounce = null
+
+const noopAnnouncement = {
+  then() {},
+  done() {},
+  cancel() {},
+  remove() {},
+  stop() {},
+}
 
 const enable = () => {
   active = true
@@ -35,13 +46,13 @@ const toggle = (v) => {
 }
 
 const speak = (message, politeness = 'off') => {
-  if (active === false) return
+  if (active === false) return noopAnnouncement
 
   return addToQueue(message, politeness)
 }
 
 const pause = (delay) => {
-  if (active === false) return
+  if (active === false) return noopAnnouncement
 
   return addToQueue(undefined, undefined, delay)
 }
@@ -57,11 +68,21 @@ const addToQueue = (message, politeness, delay = false) => {
     resolveFn = resolve
   })
 
-  // augment the promise with a cancel function
-  done.cancel = () => {
+  // augment the promise with a cancel / remove function
+  done.remove = done.cancel = () => {
     const index = queue.findIndex((item) => item.id === id)
     if (index !== -1) queue.splice(index, 1)
+    Log.debug(`Announcer - removed from queue: "${message}" (id: ${id})`)
     resolveFn('canceled')
+  }
+
+  // augment the promise with a stop function
+  done.stop = () => {
+    if (id === currentId) {
+      speechSynthesis.cancel()
+      isProcessing = false
+      resolveFn('interupted')
+    }
   }
 
   // add message of pause
@@ -72,6 +93,8 @@ const addToQueue = (message, politeness, delay = false) => {
   } else {
     queue.push({ delay, resolveFn, id })
   }
+
+  Log.debug(`Announcer - added to queue: "${message}" (id: ${id})`)
 
   setTimeout(() => {
     processQueue()
@@ -84,27 +107,43 @@ const processQueue = async () => {
   if (isProcessing === true || queue.length === 0) return
   isProcessing = true
 
-  const { message, resolveFn, delay } = queue.shift()
+  const { message, resolveFn, delay, id } = queue.shift()
 
-  if (delay !== false) {
+  currentId = id
+
+  if (delay) {
     setTimeout(() => {
       isProcessing = false
+      currentId = null
       resolveFn('finished')
       processQueue()
     }, delay)
-    return
+  } else {
+    if (debounce !== null) clearTimeout(debounce)
+    // add some easing when speaking the messages to reduce stuttering
+    debounce = setTimeout(() => {
+      Log.debug(`Announcer - speaking: "${message}" (id: ${id})`)
+
+      speechSynthesis
+        .speak({ message, id })
+        .then(() => {
+          Log.debug(`Announcer - finished speaking: "${message}" (id: ${id})`)
+
+          currentId = null
+          isProcessing = false
+          resolveFn('finished')
+          processQueue()
+        })
+        .catch((e) => {
+          currentId = null
+          isProcessing = false
+          Log.debug(`Announcer - error ("${e.error}") while speaking: "${message}" (id: ${id})`)
+          resolveFn(e.error)
+          processQueue()
+        })
+      debounce = null
+    }, 200)
   }
-  speechSynthesis
-    .speak({ message })
-    .then(() => {
-      isProcessing = false
-      resolveFn('finished')
-      processQueue()
-    })
-    .catch((e) => {
-      isProcessing = false
-      resolveFn(e.error)
-    })
 }
 
 const polite = (message) => speak(message, 'polite')
@@ -116,6 +155,7 @@ const stop = () => {
 }
 
 const clear = () => {
+  isProcessing = false
   queue.length = 0
 }
 

@@ -16,15 +16,20 @@
  */
 
 import { renderer } from './launch.js'
+import { parseToObject, isObjectString, isArrayString, isTransition } from '../../lib/utils.js'
 import colors from '../../lib/colors/colors.js'
 
 import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
+import shaders from '../../lib/shaders/shaders.js'
 
-// temporary counter to work around shader caching issues
-let counter = 0
-
+/**
+ * Creates a padding object from a value and direction.
+ * @param {number|object|string|undefined} padding - The padding value.
+ * @param {string} direction - The layout direction ('vertical' or 'horizontal').
+ * @returns {{start: number, end: number, oppositeStart: number, oppositeEnd: number}} The padding object.
+ */
 const createPaddingObject = (padding, direction) => {
   if (padding === undefined) {
     return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
@@ -67,39 +72,38 @@ const createPaddingObject = (padding, direction) => {
   return { start: 0, end: 0, oppositeStart: 0, oppositeEnd: 0 }
 }
 
+/**
+ * Layout function for arranging children in a layout container.
+ * @param {object} config - The layout configuration object.
+ * @this {import('../../component.js').BlitsElement}
+ */
 const layoutFn = function (config) {
   const position = config.direction === 'vertical' ? 'y' : 'x'
   const oppositePosition = config.direction === 'vertical' ? 'x' : 'y'
   const oppositeMount = config.direction === 'vertical' ? 'mountX' : 'mountY'
-  const dimension = config.direction === 'vertical' ? 'height' : 'width'
-  const oppositeDimension = config.direction === 'vertical' ? 'width' : 'height'
+  const dimension = config.direction === 'vertical' ? 'h' : 'w'
+  const oppositeDimension = config.direction === 'vertical' ? 'w' : 'h'
   const padding = createPaddingObject(config.padding, config.direction)
 
   let offset = padding.start
 
   const children = this.node.children
   const childrenLength = children.length
+  const elementChildren = this.children
   let otherDimension = 0
   const gap = config.gap || 0
   for (let i = 0; i < childrenLength; i++) {
-    if (this.children[i] !== undefined && this.children[i].props.raw.show === false) {
+    if (elementChildren[i] !== undefined && elementChildren[i].props.raw.show === false) {
       continue
     }
     const node = children[i]
     node[position] = offset
     node[oppositePosition] = padding.oppositeStart
     // todo: temporary text check, due to 1px width of empty text node
-    if (dimension === 'width') {
-      offset += node.width + (node.width !== ('text' in node ? 1 : 0) ? gap : 0)
+    if (dimension === 'w') {
+      offset += node.w + (node.w !== ('text' in node ? 1 : 0) ? gap : 0)
     } else {
-      offset +=
-        'text' in node
-          ? node.width > 1
-            ? node.height + gap
-            : 0
-          : node.height !== 0
-          ? node.height + gap
-          : 0
+      offset += 'text' in node ? (node.w > 1 ? node.h + gap : 0) : node.h !== 0 ? node.h + gap : 0
     }
     otherDimension = Math.max(
       otherDimension,
@@ -126,22 +130,22 @@ const layoutFn = function (config) {
 
   // emit an updated event
   if (config['@updated'] !== undefined) {
-    config['@updated']({ w: this.node.width, h: this.node.height }, this)
+    config['@updated']({ w: this.node.w, h: this.node.h }, this)
+  }
+
+  // trigger layout on parent if parent is a layout
+  if (this.config.parent && this.config.parent.props.__layout === true) {
+    this.config.parent.triggerLayout(this.config.parent.props)
   }
 }
 
-const isTransition = (value) => {
-  return value !== null && typeof value === 'object' && 'transition' in value === true
-}
-
-const isObjectString = (str) => {
-  return typeof str === 'string' && str.startsWith('{') && str.endsWith('}')
-}
-
-const parseToObject = (str) => {
-  return JSON.parse(str.replace(/'/g, '"').replace(/([\w-_]+)\s*:/g, '"$1":'))
-}
-
+/**
+ * Parses a percentage string or returns the value as-is.
+ * @param {string|number} v - The value to parse (may be a percentage string).
+ * @param {string} base - The base property name ('width' or 'height').
+ * @returns {number|string} The parsed value as a number or the original value.
+ * @this {{ element: { config: { parent?: { node?: Record<string, number> } } } }}
+ */
 const parsePercentage = function (v, base) {
   if (typeof v !== 'string') {
     return v
@@ -155,6 +159,11 @@ const parsePercentage = function (v, base) {
   return v
 }
 
+/**
+ * Unpacks a transition value from an object or returns the value as-is.
+ * @param {any} v - The value to unpack.
+ * @returns {any} The unpacked value.
+ */
 const unpackTransition = (v) => {
   if (typeof v !== 'object' || v === null) return v
   if (v.constructor === Object) {
@@ -175,8 +184,18 @@ const colorMap = {
   right: 'colorRight',
 }
 
+/**
+ * Default text settings for text nodes (initialized on first use).
+ * @type {object|null}
+ */
 let textDefaults = null
 
+/**
+ * @typedef {import('../../component.js').BlitsElement} BlitsElement
+ *
+ * This is always a BlitsElement
+ * @this {BlitsElement} this
+ */
 const propsTransformer = {
   set parent(v) {
     this.props['parent'] = v === 'root' ? renderer.root : v.node
@@ -185,22 +204,24 @@ const propsTransformer = {
     this.props['rotation'] = v * (Math.PI / 180)
   },
   set w(v) {
-    this.props['width'] = parsePercentage.call(this, v, 'width')
+    if (v < 0) v = 0
+    this.props['w'] = parsePercentage.call(this, v, 'w')
   },
   set width(v) {
-    this.props['width'] = parsePercentage.call(this, v, 'width')
+    this.w = v
   },
   set h(v) {
-    this.props['height'] = parsePercentage.call(this, v, 'height')
+    if (v < 0) v = 0
+    this.props['h'] = parsePercentage.call(this, v, 'h')
   },
   set height(v) {
-    this.props['height'] = parsePercentage.call(this, v, 'height')
+    this.h = v
   },
   set x(v) {
-    this.props['x'] = parsePercentage.call(this, v, 'width')
+    this.props['x'] = parsePercentage.call(this, v, 'w')
   },
   set y(v) {
-    this.props['y'] = parsePercentage.call(this, v, 'height')
+    this.props['y'] = parsePercentage.call(this, v, 'h')
   },
   set z(v) {
     this.props['zIndex'] = v
@@ -224,7 +245,7 @@ const propsTransformer = {
       this.props['color'] = this.props['src'] ? 0xffffffff : 0x00000000
     }
     // apply auto sizing when no width or height specified
-    if (!('w' in this.raw) && !('w' in this.raw) && !('h' in this.raw) && !('height' in this.raw)) {
+    if (!('w' in this.raw) && !('h' in this.raw)) {
       this.props['autosize'] = true
     }
   },
@@ -315,48 +336,68 @@ const propsTransformer = {
       this.props['alpha'] = v
     }
   },
-  set shader(v) {
-    if (v !== null) {
-      this.props['shader'] = renderer.createShader(v.type, v.props)
-    } else {
-      this.props['shader'] = renderer.createShader('DefaultShader')
+  set rounded(v) {
+    this.props['rounded'] = v
+    if (this.element.node !== undefined && this.elementShader === true) {
+      if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+        this.element.node.props['shader'].props = v
+      } else {
+        if (isArrayString(v) === true) {
+          v = JSON.parse(v)
+        }
+        this.element.node.props['shader'].props.radius = v
+      }
     }
   },
-  set effects(v) {
-    for (let i = 0; i < v.length; i++) {
-      if (v[i].props && v[i].props.color) {
-        v[i].props.color = colors.normalize(v[i].props.color)
+  set border(v) {
+    this.props['border'] = v
+    if (
+      this.element.node !== undefined &&
+      this.elementShader === true &&
+      (typeof v === 'object' || isObjectString(v) === true)
+    ) {
+      v = shaders.parseProps(v)
+      for (const key in v) {
+        this.element.node.props['shader'].props[`border-${key}`] = v[key]
       }
     }
-    const effectNames = {}
-    if (this.element.node === undefined) {
-      this.element.effectNames = []
-      this.props['shader'] = renderer.createShader('DynamicShader', {
-        effects: v.map((effect) => {
-          let name = effect.type
-          if (effectNames[name] !== undefined) {
-            name += ++effectNames[name]
-          } else {
-            effectNames[name] = 1
-          }
-          name += this.element.counter
-          this.element.effectNames.push(name)
-          // temporary add counter to work around shader caching issues
-          return renderer.createEffect(effect.type, effect.props, name)
-        }),
-      })
-    } else {
-      for (let i = 0; i < v.length; i++) {
-        const name = this.element.effectNames[i]
-        // temporary add counter to work around shader caching issues
-        const target = this.element.node.shader.props[name]
-        const props = Object.keys(v[i].props)
-        if (target == undefined) continue
-        for (let j = 0; j < props.length; j++) {
-          target[props[j]] = v[i].props[props[j]]
-        }
+  },
+  set shadow(v) {
+    this.props['shadow'] = v
+    if (
+      this.element.node !== undefined &&
+      this.elementShader === true &&
+      (typeof v === 'object' || isObjectString(v) === true)
+    ) {
+      v = shaders.parseProps(v)
+      for (const key in v) {
+        this.element.node.props['shader'].props[`shadow-${key}`] = v[key]
       }
     }
+  },
+  set shader(v) {
+    let type = v
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      type = v.type
+      v = shaders.parseProps(v)
+    }
+    const target = this.element.node !== undefined ? this.element.node : this.props
+    //if v remains a string we can change shader types
+    if (typeof v === 'string') {
+      target['shader'] = renderer.createShader(type)
+      return
+    }
+
+    //check again if v is an object since it could have been an object string
+    if (typeof v === 'object') {
+      if (target.shader !== undefined && type === target.shader.shaderKey) {
+        target['shader'].props = v
+        return
+      }
+      target['shader'] = renderer.createShader(type, v)
+      return
+    }
+    target['shader'] = renderer.createShader('DefaultShader')
   },
   set clipping(v) {
     this.props['clipping'] = v
@@ -370,21 +411,11 @@ const propsTransformer = {
   set size(v) {
     this.props['fontSize'] = v
   },
-  set wordwrap(v) {
-    Log.warn('The wordwrap attribute is deprecated, use maxwidth instead')
-    this.props['width'] = v
-    this.props['contain'] = 'width'
-  },
   set maxwidth(v) {
-    this.props['width'] = v
-    this.props['contain'] = 'width'
+    this.props['maxWidth'] = v
   },
   set maxheight(v) {
-    this.props['height'] = v
-    this.props['contain'] = 'both'
-  },
-  set contain(v) {
-    this.props['contain'] = v
+    this.props['maxHeight'] = v
   },
   set maxlines(v) {
     this.props['maxLines'] = v
@@ -443,8 +474,11 @@ const propsTransformer = {
 }
 
 const Element = {
-  populate(data) {
-    const props = data
+  /**
+   * Populates the element with data
+   * @param {import('../../component.js').BlitsElementProps} props
+   */
+  populate(props) {
     props['node'] = this.config.node
 
     if (props[symbols.isSlot] === true) {
@@ -454,12 +488,24 @@ const Element = {
     this.props.element = this
 
     this.props['parent'] = props['parent'] || this.config.parent
+    //@ts-ignore This might be a left over from the old code?
     delete props.parent
 
-    this.props.raw = data
+    this.props.raw = props
+    this.props.elementShader = false
 
     const propKeys = Object.keys(props)
     const length = propKeys.length
+
+    if (
+      props['shader'] === undefined &&
+      (props['rounded'] !== undefined ||
+        props['border'] !== undefined ||
+        props['shadow'] !== undefined)
+    ) {
+      this.props.elementShader = true
+      this.props.props['shader'] = shaders.createElementShader(props)
+    }
 
     for (let i = 0; i < length; i++) {
       const key = propKeys[i]
@@ -480,7 +526,7 @@ const Element = {
 
     if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
       this.node.on('loaded', (el, { type, dimensions }) => {
-        props['@loaded']({ w: dimensions.width, h: dimensions.height, type }, this)
+        props['@loaded']({ w: dimensions.w, h: dimensions.h, type }, this)
       })
     }
 
@@ -501,12 +547,24 @@ const Element = {
       })
     }
   },
+  /**
+   * Set an individual property on the node
+   *
+   * @this {import('../../component').BlitsElement} this
+   *
+   * @param {import('../..//component.js').BlitsElementProps} prop
+   * @param {any} value
+   * @returns {void}
+   */
   set(prop, value) {
     if (value === undefined) return
+    // @ts-ignore
     if (this.props.raw[prop] === value) return
+    // @ts-ignore
     this.props.raw[prop] = value
 
     this.props.props = {}
+    // @ts-ignore
     this.props[prop] = unpackTransition(value)
 
     const propsKeys = Object.keys(this.props.props)
@@ -604,7 +662,7 @@ const Element = {
         return
       }
       // fire transition end callback when animation ends (if specified)
-      if (transition.end && typeof transition.end === 'function') {
+      if (this.node !== undefined && transition.end && typeof transition.end === 'function') {
         transition.end.call(this.component, this, prop, this.node[prop])
       }
       // remove the prop from scheduled transitions
@@ -615,9 +673,9 @@ const Element = {
     f.start()
   },
   destroy() {
-    Log.debug('Deleting  Node', this.nodeId)
-    this.node.destroy()
+    if (this.node === null) return
 
+    Log.debug('Deleting Node', this.nodeId)
     // Clearing transition end callback functions
     const transitionProps = Object.keys(this.scheduledTransitions)
     for (let i = 0; i < transitionProps.length; i++) {
@@ -627,6 +685,31 @@ const Element = {
         if (transition.f !== undefined) transition.f.stop()
       }
     }
+
+    // not setting to null and deleting,
+    // because transition stopped might still be fired (maybe a renderer fix resolves that)
+    this.scheduledTransitions = {}
+
+    this.component = null
+    delete this.component
+
+    this.config = null
+    delete this.config
+
+    this.props.raw = {}
+    this.props.element = null
+    this.props.props = null
+    this.props = {}
+    delete this.props
+
+    this.triggerLayout = null
+    delete this.triggerLayout
+
+    this.forComponent = null
+    delete this.forComponent
+
+    this.node.destroy()
+    this.node = null
   },
   get nodeId() {
     return this.node && this.node.id
@@ -638,12 +721,30 @@ const Element = {
     return this.node && this.node.parent
   },
   get children() {
-    return this.component[symbols.getChildren]().filter((child) => {
-      return child.parent === (this[symbols.isSlot] ? this.node.children[0] : this.node)
-    })
+    const allChildren = this.component[symbols.getChildren]()
+    const directChildren = []
+    const l = allChildren.length
+    for (let i = 0; i < l; i++) {
+      const child = allChildren[i]
+      if (
+        child !== undefined &&
+        child.parent === (this[symbols.isSlot] ? this.node.children[0] : this.node)
+      ) {
+        directChildren.push(child)
+      }
+    }
+
+    return directChildren
   },
 }
 
+/**
+ * Returns a new Blits Element
+ *
+ * @param {Object} config - The configuration object for the element
+ * @param {import('../../component.js').BlitsComponent} component - The component to which the element belongs
+ * @returns {import('../../component.js').BlitsElement} - The new Blits Element
+ */
 export default (config, component) => {
   if (textDefaults === null) {
     textDefaults = {
@@ -656,7 +757,5 @@ export default (config, component) => {
     scheduledTransitions: {},
     config,
     component,
-    effectNames: [],
-    counter: counter++,
   })
 }

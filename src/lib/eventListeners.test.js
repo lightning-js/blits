@@ -170,7 +170,11 @@ test('deregisterListener - only deregisters specified component listener', (t) =
   eventListener.deregisterListener(componentA, event)
 
   const result = eventListener.executeListeners(event)
-  t.equal(result, true, 'Should return true when listeners are still registered after deregistering one')
+  t.equal(
+    result,
+    true,
+    'Should return true when listeners are still registered after deregistering one'
+  )
   t.equal(callCount1, 0, 'Should not call deregistered callback')
   t.equal(callCount2, 1, 'Should call remaining registered callback')
 
@@ -227,6 +231,20 @@ test('cache invalidation', (t) => {
   eventListener.executeListeners(event)
 
   t.deepEqual(callOrder, [1], 'Should invalidate cache when listeners are removed')
+
+  t.end()
+})
+
+test('deregisterListener when no listeners are registered', (t) => {
+  resetModule()
+
+  const component = 'testComponent'
+  const event1 = 'testEvent1'
+
+  eventListener.deregisterListener(component, event1)
+
+  const result1 = eventListener.executeListeners(event1)
+  t.equal(result1, true, 'Should still return true for event1 as another component is registered')
 
   t.end()
 })

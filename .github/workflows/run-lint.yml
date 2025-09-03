@@ -1,0 +1,128 @@
+name: Run ESLint
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - master
+
+jobs:
+  run-lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        # Needed to compare changes against base branch
+        fetch-depth: 0
+
+    - name: Save PR Information
+      run: |
+        echo '${{ github.event.pull_request.number }}' > ./pr_number.txt
+        echo '${{ github.event.pull_request.head.repo.full_name }}' > ./pr_repo.txt
+        echo '${{ github.event.pull_request.head.ref }}' > ./pr_branch.txt
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20.16.0
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Get list of changed JS files
+      id: changed-files
+      run: |
+        # Get the list of changed .js files compared to the base branch
+        git diff --name-only --diff-filter=ACMRT origin/${{ github.base_ref }} HEAD | grep '\.js$' > js-changed-files.txt || true
+
+        if [ -s js-changed-files.txt ]; then
+          echo "has_js_changes=true" >> $GITHUB_OUTPUT
+          cat js-changed-files.txt | tr '\n' ' ' > js-changed-files-spaces.txt
+          echo "files=$(cat js-changed-files-spaces.txt)" >> $GITHUB_OUTPUT
+        else
+          echo "has_js_changes=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Run ESLint on changed files
+      id: eslint
+      if: steps.changed-files.outputs.has_js_changes == 'true'
+      run: |
+        # Create directory for output
+        mkdir -p ./lint-results
+
+        # Run ESLint only on changed files with the project's config
+        # Filtering out warnings - only keep errors
+        npx eslint --config .eslintrc.cjs ${{ steps.changed-files.outputs.files }} -f json > ./lint-results/eslint-output.json || true
+
+        # Check if there are any errors in the ESLint output
+        if [ -s ./lint-results/eslint-output.json ]; then
+          error_count=$(node -e "
+            const results = require('./lint-results/eslint-output.json');
+            let errorCount = 0;
+            for (const file of results) {
+              errorCount += file.errorCount || 0;
+            }
+            console.log(errorCount);
+          ")
+
+          echo "errors_found=$error_count" >> $GITHUB_OUTPUT
+
+          if [ "$error_count" -gt 0 ]; then
+            # Create the formatted error report
+            echo '❌ **Linting errors found**' > ./lint-results/errors.md
+            echo '' >> ./lint-results/errors.md
+            echo 'These linting errors must be fixed before this PR can be merged:' >> ./lint-results/errors.md
+            echo '' >> ./lint-results/errors.md
+            echo '```' >> ./lint-results/errors.md
+
+            # Extract and format errors from the JSON
+            error_count=$(node -e "
+              const results = require('./lint-results/eslint-output.json');
+              let errorSummary = '';
+
+              for (const file of results) {
+                if (file.errorCount > 0) {
+                  const filePath = file.filePath.replace(process.env.GITHUB_WORKSPACE + '/', '');
+                  errorSummary += filePath + '\\n';
+
+                  for (const msg of file.messages) {
+                    if (msg.severity === 2) {
+                      errorSummary += '  Line ' + msg.line + ':' + msg.column + ': ' +
+                                     msg.message + ' (' + msg.ruleId + ')\\n';
+                    }
+                  }
+                  errorSummary += '\\n';
+                }
+              }
+
+              console.log(errorSummary.trim());
+            ")
+
+            echo "$error_count" >> ./lint-results/errors.md
+            echo '```' >> ./lint-results/errors.md
+            echo '' >> ./lint-results/errors.md
+            echo '_Run `npm run lint:fix` to automatically fix some of these issues._' >> ./lint-results/errors.md
+          fi
+        else
+          echo "errors_found=0" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Upload Lint Results
+      if: steps.changed-files.outputs.has_js_changes == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: lint-results
+        path: |
+          ./lint-results/
+          ./pr_number.txt
+          ./pr_repo.txt
+          ./pr_branch.txt
+
+    # Fail the workflow if linting errors found
+    - name: Check Lint Status
+      if: steps.changed-files.outputs.has_js_changes == 'true' && steps.eslint.outputs.errors_found != '0'
+      run: exit 1
