@@ -71,8 +71,8 @@ export default {
               // problem is that component of a forloop in a slot has component of root component
               if (child && child.component) {
                 return (
-                  (child.component && child.component.componentId === this.componentId) ||
-                  (child.forComponent && child.forComponent.componentId === this.componentId)
+                  (child.component && child.component.$componentId === this.$componentId) ||
+                  (child.forComponent && child.forComponent.$componentId === this.$componentId)
                 )
               }
             })) ||
