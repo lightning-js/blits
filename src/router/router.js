@@ -233,6 +233,7 @@ export const navigate = async function () {
         ...navigationData,
         ...queryParamsData,
       }
+
       // Adding the location hash to the route if it exists.
       if (hash !== null) {
         route.hash = hash
@@ -313,6 +314,13 @@ export const navigate = async function () {
         }
         Announcer.speak(route.announce.message, route.announce.politeness)
       }
+
+      // Update router state after announcements and final route resolution,
+      // right before initializing or restoring the view
+      state.path = route.path
+      state.params = route.params || {}
+      state.hash = route.hash
+      state.data = route.data || {}
 
       if (!view) {
         // create a holder element for the new view
@@ -395,11 +403,6 @@ export const navigate = async function () {
           removeView(previousRoute, oldView, route.transition.out, navigatingBack)
         }
       }
-
-      state.path = route.path
-      state.params = route.params
-      state.hash = hash
-      state.data = route.data
 
       // apply in transition
       if (route.transition.in) {
