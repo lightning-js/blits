@@ -296,7 +296,7 @@ export const navigate = async function () {
         const props = {
           ...this[symbols.props],
           ...route.params,
-          ...route.data,
+          ...JSON.parse(JSON.stringify(route.data)),
         }
 
         view = await route.component({ props }, holder, this)
