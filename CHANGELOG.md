@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.38.3
+
+_4 Sept 2025_
+
+- Fixed clearing of `idle` and `frameTick` hooks upon component destroy
+
+
 ## v1.38.2
 
 _1 Sept 2025_
