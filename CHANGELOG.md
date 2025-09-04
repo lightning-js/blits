@@ -5,7 +5,7 @@
 _4 Sept 2025_
 
 - Fixed clearing of `idle` and `frameTick` hooks upon component destroy
-
+- Fixed updating of router state to before init hook
 
 ## v1.38.2
 
