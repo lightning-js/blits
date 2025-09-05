@@ -178,6 +178,9 @@ const generateElementCode = function (
 
     if (key === 'key') return
 
+    // Skip inspector-data in production builds for performance optimization
+    if (key === 'inspector-data' && !isDev) return
+
     const value = templateObject[key]
 
     if (isReactiveKey(key)) {
