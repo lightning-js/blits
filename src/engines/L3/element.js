@@ -466,7 +466,7 @@ const propsTransformer = {
   },
   set 'inspector-data'(v) {
     // Skip processing if inspector is not enabled for performance optimization
-    if (!Settings.get('inspector', false)) {
+    if (Settings.get('inspector', false) === false) {
       return
     }
 
