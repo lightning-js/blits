@@ -320,6 +320,7 @@ export const navigate = async function () {
       state.path = route.path
       state.params = route.params || {}
       state.hash = route.hash
+      state.data = null
       state.data = route.data || {}
 
       if (!view) {
