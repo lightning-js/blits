@@ -174,12 +174,12 @@ export const matchHash = ({ hash, path, queryParams }, routes = []) => {
 
       if (match) {
         // map the route params to a params object
-        const params = dynamicRouteParts.reverse().reduce((acc, part, index) => {
+        override.params = dynamicRouteParts.reverse().reduce((acc, part, index) => {
           acc[part[1]] = match[index + 1]
           return acc
         }, {})
 
-        matchingRoute = makeRouteObject(route, { params })
+        matchingRoute = makeRouteObject(route, override)
       }
     } else if (normalizedPath.endsWith('*')) {
       const regex = new RegExp(normalizedPath.replace(/\/?\*/, '/?([^\\s]*)'), 'i')
@@ -188,7 +188,7 @@ export const matchHash = ({ hash, path, queryParams }, routes = []) => {
       if (match) {
         let params = {}
         if (match[1]) params.path = match[1]
-        matchingRoute = makeRouteObject(route, { params })
+        matchingRoute = makeRouteObject(route, override)
       }
     }
     i++
@@ -298,7 +298,6 @@ export const navigate = async function () {
       let holder
 
       let { view, focus } = cacheMap.get(route.hash) || {}
-
       // merge props with potential route params, navigation data and route data to be injected into the component instance
       const props = {
         ...this[symbols.props],
