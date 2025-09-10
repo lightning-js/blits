@@ -236,7 +236,7 @@ declare module '@lightningjs/blits' {
     keepAlive?: true
   }
   /**
-   * Navigation Options that can be used when navigating to a new route
+   * Navigation override options that can be used when navigating to a new route
    */
   type NavigationOverrides = {
     /**
