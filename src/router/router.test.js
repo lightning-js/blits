@@ -485,7 +485,7 @@ test('Get route object from Match hash when navigating using to() method', (asse
   )
   assert.equal(
     Object.keys(result.options).length,
-    4,
+    5,
     'The results object should contain the default options object'
   )
 
@@ -496,6 +496,7 @@ test('Get route object from Match hash when navigating using to() method', (asse
       ['keepAlive', false],
       ['passFocus', true],
       ['reuseComponent', false],
+      ['keepPreviousAlive', false],
     ],
     'The results object should contain the default options object'
   )

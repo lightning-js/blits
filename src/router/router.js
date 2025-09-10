@@ -207,6 +207,7 @@ const defaultOptions = {
   keepAlive: false,
   passFocus: true,
   reuseComponent: false,
+  keepPreviousAlive: false,
 }
 
 const makeRouteObject = (route, overrides) => {
@@ -221,7 +222,6 @@ const makeRouteObject = (route, overrides) => {
     data: { ...route.data, ...navigationData, ...overrides.queryParams },
     params: overrides.params || {},
   }
-
   return cleanRoute
 }
 
@@ -412,7 +412,13 @@ export const navigate = async function () {
         shouldAnimate = true
         const oldView = this[symbols.children].splice(1, 1).pop()
         if (oldView) {
-          removeView(previousRoute, oldView, route.transition.out, navigatingBack)
+          removeView(
+            previousRoute,
+            oldView,
+            route.transition.out,
+            navigatingBack,
+            route.options.keepPreviousAlive
+          )
         }
       }
 
@@ -455,7 +461,8 @@ export const navigate = async function () {
  * @param {BlitsComponent} view
  * @param {Object} transition
  */
-const removeView = async (route, view, transition, navigatingBack) => {
+const removeView = async (route, view, transition, navigatingBack, keepPreviousAlive) => {
+  const keepAlive = route.options.keepAlive === true || keepPreviousAlive === true
   // apply out transition
   if (transition) {
     if (Array.isArray(transition)) {
@@ -468,9 +475,8 @@ const removeView = async (route, view, transition, navigatingBack) => {
       await setOrAnimate(view[symbols.holder], transition)
     }
   }
-
-  // cache the page when it's as 'keepAlive' instead of destroying
-  if (navigatingBack === false && route.options && route.options.keepAlive === true) {
+  // cache the page when it's as 'keepAlive' or 'keepPreviousAlive' instead of destroying
+  if (navigatingBack === false && route.options && keepAlive === true) {
     cacheMap.set(route.hash, { view: view, focus: previousFocus })
   } else if (navigatingBack === true) {
     // remove the previous route from the cache when navigating back
@@ -478,11 +484,11 @@ const removeView = async (route, view, transition, navigatingBack) => {
     cacheMap.delete(route.hash)
   }
   /* Destroy the view in the following cases:
-   * 1. Navigating forward, and the previous route is not configured with "keep alive" set to true.
-   * 2. Navigating back, and the previous route is configured with "keep alive" set to true.
-   * 3. Navigating back, and the previous route is not configured with "keep alive" set to true.
+   * 1. Navigating forward, and the previous route is not configured with "keep alive" or "keep previous alive" set to true.
+   * 2. Navigating back, and the previous route is configured with "keep alive" or "keep previous alive" set to true.
+   * 3. Navigating back, and the previous route is not configured with "keep alive" or "keep previous alive" set to true.
    */
-  if (route.options && (route.options.keepAlive !== true || navigatingBack === true)) {
+  if (route.options && (keepAlive !== true || navigatingBack === true)) {
     view.destroy()
     view = null
   }
