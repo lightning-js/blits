@@ -238,7 +238,7 @@ declare module '@lightningjs/blits' {
   /**
    * Navigation Options that can be used when navigating to a new route
    */
-  type NavigationOverride = {
+  type NavigationOverrides = {
     /**
      * Where the previous page should be kept alive when navigating away. Can be useful
      * to a page when navigated back to is in the exact same state when navigated away from
@@ -247,7 +247,7 @@ declare module '@lightningjs/blits' {
   }
 
   export type RouteOptions = ConcurrentRouteOpts & MutualExclusiveRouteOpts;
-  export type RouteOverrideOptions = RouteOptions & NavigationOverride
+  export type RouteOverrideOptions = RouteOptions & NavigationOverrides
 
   export interface Router {
     /**
