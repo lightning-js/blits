@@ -71,13 +71,12 @@ export const state = reactive(
  * @property {BlitsComponent} focus - The focus of the route
  */
 
-/** @type {Map<String, CacheMapEntry>} */
-const cacheMap = new Map()
 const history = []
 
 let overrideOptions = {}
 let navigationData = {}
 let navigatingBack = false
+let navigatingBackTo = undefined
 let previousFocus
 
 /**
@@ -151,6 +150,7 @@ export const matchHash = ({ hash, path, queryParams }, routes = []) => {
   let i = 0
   while (!matchingRoute && i < routes.length) {
     const route = routes[i]
+    console.log(route)
     const normalizedPath = normalizePath(route.path)
     if (normalizePath(normalizedPath) === originalNormalizedPath) {
       matchingRoute = makeRouteObject(route, override)
@@ -186,8 +186,8 @@ export const matchHash = ({ hash, path, queryParams }, routes = []) => {
       const match = originalNormalizedPath.match(regex)
 
       if (match) {
-        let params = {}
-        if (match[1]) params.path = match[1]
+        override.params = {}
+        if (match[1]) override.params.path = match[1]
         matchingRoute = makeRouteObject(route, override)
       }
     }
@@ -297,7 +297,14 @@ export const navigate = async function () {
       /** @type {import('../engines/L3/element.js').BlitsElement} */
       let holder
 
-      let { view, focus } = cacheMap.get(route.hash) || {}
+      let view
+      let focus
+      // when navigating back let's see if we're navigating back to a route that was kept alive
+      if (navigatingBack === true && navigatingBackTo !== undefined) {
+        view = navigatingBackTo.view
+        focus = navigatingBackTo.focus
+        navigatingBackTo = null
+      }
       // merge props with potential route params, navigation data and route data to be injected into the component instance
       const props = {
         ...this[symbols.props],
@@ -470,13 +477,19 @@ const removeView = async (route, view, transition, navigatingBack) => {
   }
 
   // cache the page when it's as 'keepAlive' instead of destroying
-  if (navigatingBack === false && route.options && route.options.keepAlive === true) {
-    cacheMap.set(route.hash, { view: view, focus: previousFocus })
-  } else if (navigatingBack === true) {
-    // remove the previous route from the cache when navigating back
-    // cacheMap.delete will not throw an error if the route is not in the cache
-    cacheMap.delete(route.hash)
+  if (
+    navigatingBack === false &&
+    route.options &&
+    route.options.keepAlive === true &&
+    route.options.inHistory === true
+  ) {
+    const historyItem = history[history.length - 1]
+    if (historyItem !== undefined) {
+      historyItem.view = view
+      historyItem.focus = previousFocus
+    }
   }
+
   /* Destroy the view in the following cases:
    * 1. Navigating forward, and the previous route is not configured with "keep alive" set to true.
    * 2. Navigating back, and the previous route is configured with "keep alive" set to true.
@@ -524,7 +537,7 @@ export const back = function () {
   if (route && currentRoute !== route) {
     // set indicator that we are navigating back (to prevent adding page to history stack)
     navigatingBack = true
-
+    navigatingBackTo = route
     to(route.hash, route.data, route.options)
     return true
   }
@@ -556,7 +569,7 @@ export const back = function () {
     const route = matchHash(path, this.parent[symbols.routes])
 
     if (route && backtrack) {
-      to(route.path)
+      to(route.path, route.data, route.options)
       return true
     }
   }
