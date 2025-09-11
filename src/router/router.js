@@ -150,7 +150,7 @@ export const matchHash = ({ hash, path, queryParams }, routes = []) => {
   let i = 0
   while (!matchingRoute && i < routes.length) {
     const route = routes[i]
-    console.log(route)
+
     const normalizedPath = normalizePath(route.path)
     if (normalizePath(normalizedPath) === originalNormalizedPath) {
       matchingRoute = makeRouteObject(route, override)
