@@ -16,7 +16,10 @@
  */
 
 import test from 'tape'
-import { matchHash, getHash, to } from './router.js'
+import { matchHash, getHash, to, navigate, state } from './router.js'
+import { stage } from '../launch.js'
+import Component from '../component.js'
+import symbols from '../lib/symbols.js'
 
 const mockComponents = {
   Home: () => {},
@@ -543,5 +546,67 @@ test('Get Hash from URL when navigating using to() method', (assert) => {
     'The result object should contain a path key with hash without #'
   )
 
+  assert.end()
+})
+
+test('Router updates state.path, state.params, and state.data correctly', async (assert) => {
+  // Stub stage.element to avoid engine dependency
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set() {},
+    parent,
+  })
+
+  const Capturing = Component('Capturing', {
+    template: '<Element />',
+    code: {
+      render: () => ({
+        elms: [
+          {
+            [symbols.holder]: {},
+            node: {},
+          },
+        ],
+        cleanup: () => {},
+      }),
+      effects: [],
+      init() {
+        // just to prove component is constructed
+        this.$router && assert.ok(true, 'Component accessed $router')
+      },
+    },
+  })
+
+  const host = {
+    parent: {
+      [symbols.routes]: [
+        {
+          path: '/cap/:id',
+          component: Capturing,
+          options: { inHistory: true, passFocus: false },
+          data: { title: 'Test' },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  // Navigate
+  to('/cap/123?lang=en', { dynamic: true })
+  await navigate.call(host)
+
+  // Assertions directly against router.js `state`
+  assert.equal(state.path, 'cap/:id', 'state.path matches route definition')
+  assert.deepEqual(state.params, { id: '123' }, 'state.params extracted correctly')
+  assert.deepEqual(
+    state.data,
+    { title: 'Test', dynamic: true, lang: 'en' },
+    'state.data merged correctly (route + navigation + query)'
+  )
+
+  // Restore
+  stage.element = originalElement
   assert.end()
 })
