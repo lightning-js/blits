@@ -598,7 +598,7 @@ test('Router updates state.path, state.params, and state.data correctly', async 
   await navigate.call(host)
 
   // Assertions directly against router.js `state`
-  assert.equal(state.path, 'cap/:id', 'state.path matches route definition')
+  assert.equal(state.path, '/cap/:id', 'state.path matches route definition')
   assert.deepEqual(state.params, { id: '123' }, 'state.params extracted correctly')
   assert.deepEqual(
     state.data,
