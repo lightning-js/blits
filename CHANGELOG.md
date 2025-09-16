@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.39.0
+
+_16 Sept 2025_
+
+- Refactored router to be more performant and prevent runtime route changes to affect other route instances
+
 ## v1.38.3
 
 _4 Sept 2025_
