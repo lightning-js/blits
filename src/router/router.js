@@ -83,8 +83,8 @@ let previousFocus
  * Get the current hash
  * @returns {Hash}
  */
-export const getHash = () => {
-  const hash = document.location.hash || '/'
+export const getHash = (hash) => {
+  if (!hash) hash = '/'
   const hashParts = hash.replace(/^#/, '').split('?')
   return {
     path: hashParts[0],
@@ -244,7 +244,7 @@ export const navigate = async function () {
   let reuse = false
   if (this.parent[symbols.routes]) {
     let previousRoute = currentRoute //? Object.assign({}, currentRoute) : undefined
-    let route = matchHash(getHash(), this.parent[symbols.routes])
+    let route = matchHash(getHash(document.location.hash), this.parent[symbols.routes])
 
     currentRoute = route
 
@@ -568,7 +568,7 @@ export const back = function () {
     }
     // Construct new path to backtrack to
     path = path.replace(hashEnd, '')
-    const route = matchHash(path, this.parent[symbols.routes])
+    const route = matchHash(getHash(path), this.parent[symbols.routes])
 
     if (route && backtrack) {
       to(route.path, route.data, route.options)

@@ -380,9 +380,8 @@ test('Match routes case insensitive, but pass props with original casing', (asse
 
 test('Match paths with dynamic route parts along with query string params', (assert) => {
   const hash1 = '#/tv/simpsons/seasons/first?token=123&ln=en'
-  document.location.hash = hash1
 
-  const { hash, path, queryParams } = getHash()
+  const { hash, path, queryParams } = getHash(hash1)
 
   assert.equal(hash, hash1, 'Should return correct hash')
   assert.equal(path, '/tv/simpsons/seasons/first', 'Should return the correct route path')
@@ -406,9 +405,8 @@ test('Match paths with dynamic route parts along with query string params', (ass
 
 test('Get the hash from the URL', (assert) => {
   const hash = '#/movies/action/the-avengers'
-  document.location.hash = hash
 
-  const result = getHash()
+  const result = getHash(hash)
 
   assert.equal(
     result.hash,
@@ -427,9 +425,8 @@ test('Get the hash from the URL', (assert) => {
 
 test('Get the hash from the URL and handle query params', (assert) => {
   const hash = '#/movies/comedy/the-hangover?category=1&item=2'
-  document.location.hash = hash
 
-  const result = getHash()
+  const result = getHash(hash)
 
   assert.equal(
     result.hash,
@@ -530,9 +527,7 @@ test('Get route object from Match hash when navigating using to() method with op
 test('Get Hash from URL when navigating using to() method', (assert) => {
   const hash = '#/movies/action/avengers'
 
-  to(hash)
-
-  const result = getHash()
+  const result = getHash(hash)
 
   assert.equal(
     result.hash,
