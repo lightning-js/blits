@@ -17,7 +17,7 @@
 
 import test from 'tape'
 import announcer from './announcer.js'
-import { initLog } from 'src/lib/log.js'
+import { initLog } from '../lib/log.js'
 
 initLog()
 announcer.enable()
