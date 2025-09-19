@@ -223,6 +223,12 @@ const colorMap = {
 let textDefaults = null
 
 /**
+ * Inspector enabled flag (initialized on first use).
+ * @type {boolean|null}
+ */
+let inspectorEnabled = null
+
+/**
  * @typedef {import('../../component.js').BlitsElement} BlitsElement
  *
  * This is always a BlitsElement
@@ -465,6 +471,11 @@ const propsTransformer = {
     }
   },
   set 'inspector-data'(v) {
+    // Skip processing if inspector is not enabled for performance optimization
+    if (inspectorEnabled === false) {
+      return
+    }
+
     if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
       this.props['data'] = v
     }
@@ -739,6 +750,9 @@ export default (config, component) => {
       fontSize: 32,
       fontFamily: Settings.get('defaultFont', 'sans-serif'),
     }
+  }
+  if (inspectorEnabled === null) {
+    inspectorEnabled = Settings.get('inspector', false)
   }
   return Object.assign(Object.create(Element), {
     props: Object.assign(Object.create(propsTransformer), { props: {} }),
