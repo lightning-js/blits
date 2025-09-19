@@ -7,6 +7,7 @@
  * @property {symbol} cursorTagStart
  * @property {symbol} computedKeys
  * @property {symbol} destroy
+ * @property {symbol} rendererEventListeners
  * @property {symbol} getChildren
  * @property {symbol} holder
  * @property {symbol} id
@@ -62,6 +63,7 @@ export default {
   cursorTagStart: Symbol('cursorTagStart'),
   computedKeys: Symbol('computedKeys'),
   destroy: Symbol('destroy'),
+  rendererEventListeners: Symbol('rendererEventListeners'),
   getChildren: Symbol('getChildren'),
   holder: Symbol('holder'),
   id: Symbol('id'),

@@ -1,5 +1,47 @@
 # Changelog
 
+## v1.39.0
+
+_16 Sept 2025_
+
+- Refactored router to be more performant and prevent runtime route changes to affect other route instances
+
+## v1.38.3
+
+_4 Sept 2025_
+
+- Fixed clearing of `idle` and `frameTick` hooks upon component destroy
+- Fixed updating of router state to before init hook
+
+## v1.38.2
+
+_1 Sept 2025_
+
+- Fixed issue with `reuseComponent` storing the same page multiple times
+- Fixed last array patch method (sort) not triggering reactivity
+
+
+## v1.38.1
+
+_28 Aug 2025_
+
+- Added guard around emiting events and selecting elements after Component destroy
+- Fixed issue with `navigatingBack`
+
+## v1.38.0
+
+_26 Aug 2025_
+
+- Added `reuseComponent` to route options to enable navigating to the same page and reusing the same page component instance
+
+## v1.37.0
+
+_22 Aug 2025_
+
+- Added Route options check before checking passFocus flag
+- Added support for additional metadata in Route config (for associating arbitrary data to a route)
+- Upgraded dev dependencies to latest versions
+
 ## v1.36.0
 
 _11 Aug 2025_

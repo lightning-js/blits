@@ -264,19 +264,22 @@ const Component = (name = required('name'), config = required('config')) => {
     // create a reference to an array of children that are slots
     this[symbols.slots] = this[symbols.children].filter((child) => child[symbols.isSlot])
 
+    this[symbols.rendererEventListeners] = []
     // register hooks if component has hooks specified
     if (config.hooks) {
       // frame tick event
       if (config.hooks.frameTick) {
-        renderer.on('frameTick', (r, data) =>
-          emit('frameTick', this[symbols.identifier], this, [data])
-        )
+        const cb = (r, data) => emit('frameTick', this[symbols.identifier], this, [data])
+        this[symbols.rendererEventListeners].push({ event: 'frameTick', cb })
+        renderer.on('frameTick', cb)
       }
 
       if (config.hooks.idle) {
-        renderer.on('idle', () => {
+        const cb = () => {
           emit('idle', this[symbols.identifier], this)
-        })
+        }
+        this[symbols.rendererEventListeners].push({ event: 'idle', cb })
+        renderer.on('idle', cb)
       }
 
       // inBounds event emiting a lifecycle attach event
