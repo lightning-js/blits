@@ -15,7 +15,7 @@ const registerPlugin = (plugin, nameOrOptions = '', options = {}) => {
   }
 
   if (typeof plugin === 'function') {
-    if (name === undefined) {
+    if (name === undefined || name === '') {
       throw Error('Error registering plugin: name is required for plugin')
     }
     plugins[name] = { plugin, options }
