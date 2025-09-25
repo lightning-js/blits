@@ -16,15 +16,23 @@ export const copyLightningFixtures = (config) => {
     if (config.appFolder && fs.existsSync(targetDir)) {
       exit(red(bold('The target directory ' + targetDir + ' already exists')))
     }
-    if (config.projectType === 'ts') {
-      fs.cpSync(path.join(path.join(config.fixturesBase, 'ts'), 'default'), targetDir, {
-        recursive: true,
-      })
+    let sourcePath
+
+    if (config.projectType === 'js-blits') {
+      sourcePath = path.join(path.join(config.fixturesBase, 'js'), 'blits')
+    } else if (config.projectType === 'ts-blits') {
+      sourcePath = path.join(path.join(config.fixturesBase, 'ts'), 'blits')
+    } else if (config.projectType === 'ts') {
+      sourcePath = path.join(path.join(config.fixturesBase, 'ts'), 'default')
     } else {
-      fs.cpSync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir, {
-        recursive: true,
-      })
+      sourcePath = path.join(path.join(config.fixturesBase, 'js'), 'default')
     }
+
+    // Copy source files
+    fs.cpSync(sourcePath, targetDir, {
+      recursive: true,
+    })
+
     fs.cpSync(path.join(config.fixturesBase, 'common/public'), path.join(targetDir, 'public'), {
       recursive: true,
     })
