@@ -101,8 +101,18 @@ const questions = [
     choices: [
       {
         title: 'Javascript',
+        description: 'Javascript project with .blits file extension',
+        value: 'js-blits',
+      },
+      {
+        title: 'Javascript',
         description: 'JS based project (with JSDoc for type checking and autocompletion)',
         value: 'js',
+      },
+      {
+        title: 'TypeScript',
+        description: 'TS based project with .blits file extension',
+        value: 'ts-blits',
       },
       { title: 'TypeScript', description: 'TS based project', value: 'ts' },
     ],
