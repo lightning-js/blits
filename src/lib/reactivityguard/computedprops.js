@@ -15,6 +15,51 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// Utility function: Character-wise brace matcher that handles strings and comments
+const findMatchingBrace = (text, startPos) => {
+  let braceLevel = 1
+  let position = startPos + 1
+  let inString = false
+  let stringChar = ''
+
+  for (; position < text.length && braceLevel > 0; position++) {
+    const char = text[position]
+
+    // Handle string boundaries (ignore escaped quotes)
+    if (!inString && (char === '"' || char === "'" || char === '`')) {
+      inString = true
+      stringChar = char
+    } else if (inString && char === stringChar && text[position - 1] !== '\\') {
+      inString = false
+    }
+    // Skip comments when not in strings
+    else if (!inString && char === '/' && text[position + 1] === '/') {
+      // Skip line comment
+      position = text.indexOf('\n', position) || text.length - 1
+    } else if (!inString && char === '/' && text[position + 1] === '*') {
+      // Skip block comment
+      position = text.indexOf('*/', position + 2) || text.length - 1
+    }
+    // Count braces only outside strings and comments
+    else if (!inString) {
+      if (char === '{') braceLevel++
+      else if (char === '}') braceLevel--
+    }
+  }
+
+  return braceLevel === 0 ? position : -1
+}
+
+// Find computed object boundaries in component config
+const findComputedObjectEnd = (configObject, computedStart) => {
+  return findMatchingBrace(configObject, computedStart)
+}
+
+// Find individual computed function boundaries
+const findComputedFunctionEnd = (computedObj, openingBracePos) => {
+  return findMatchingBrace(computedObj, openingBracePos)
+}
+
 export default (code) => {
   // Find component declarations
   const componentRegex =
@@ -33,18 +78,10 @@ export default (code) => {
       // Find start position of the computed block
       const computedStart = computedKeywordMatch.index + computedKeywordMatch[0].length - 1 // Position of the opening brace
 
-      // Find the matching closing brace with balance tracking
-      let braceLevel = 1
-      let pos = computedStart + 1
+      // Find the matching closing brace for computed object in config
+      const computedEnd = findComputedObjectEnd(configObject, computedStart)
 
-      while (braceLevel > 0 && pos < configObject.length) {
-        if (configObject[pos] === '{') braceLevel++
-        else if (configObject[pos] === '}') braceLevel--
-        pos++
-      }
-
-      if (braceLevel === 0) {
-        const computedEnd = pos
+      if (computedEnd !== -1) {
         const computedObj = configObject.substring(computedStart, computedEnd)
 
         // Process each computed property
@@ -67,18 +104,10 @@ export default (code) => {
           const openingBracePos = computedObj.indexOf('{', funcNamePos)
           if (openingBracePos === -1) break
 
-          // Find closing brace with proper nesting
-          let braceLevel = 1
-          let closingBracePos = openingBracePos + 1
+          // Find closing brace for individual computed function
+          const closingBracePos = findComputedFunctionEnd(computedObj, openingBracePos)
 
-          while (braceLevel > 0 && closingBracePos < computedObj.length) {
-            if (computedObj[closingBracePos] === '{') braceLevel++
-            else if (computedObj[closingBracePos] === '}') braceLevel--
-            closingBracePos++
-          }
-
-          if (braceLevel !== 0) {
-            // Could not find matching brace
+          if (closingBracePos === -1) {
             break
           }
 
