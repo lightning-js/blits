@@ -20,9 +20,8 @@ import Component from './component.js'
 import { initLog } from './lib/log.js'
 import symbols from './lib/symbols.js'
 import util from 'node:util'
+import Settings from './settings.js'
 import { renderer, stage } from './launch.js'
-
-initLog()
 
 test('Type', (assert) => {
   const expected = 'function'
@@ -399,3 +398,134 @@ test('Component - Instance should have ready state after the next process tick',
     )
   })
 })
+
+test('Component - Configure input events', (assert) => {
+  const config = {
+    input: {
+      up() {},
+      down() {},
+    },
+  }
+  const Foo = Component('Foo', config)()
+
+  assert.ok(Foo[symbols.inputEvents], 'Foo instance should have input events defined')
+  assert.ok(Foo[symbols.inputEvents].up, 'Foo instance should have `up` input event defined')
+  assert.ok(Foo[symbols.inputEvents].down, 'Foo instance should have `down` input event defined')
+  assert.end()
+})
+
+test('Component - Warn non-function input events', (assert) => {
+  initLogTest(assert)
+  const capture = assert.capture(console, 'warn')
+
+  const config = {
+    input: {
+      up: 'foo',
+      down: 123,
+      left: () => {},
+    },
+  }
+  const Foo = Component('Foo', config)()
+  console.log(Foo[symbols.inputEvents])
+
+  assert.ok(Foo[symbols.inputEvents], 'Foo instance should have input events defined')
+  const logs = capture()
+  assert.equal(logs.length, 2, 'Should log two warning messages')
+  assert.equal(
+    logs[0].args.pop(),
+    'foo is not a function',
+    'Should log foo is not a function warning message'
+  )
+  assert.equal(
+    logs[1].args.pop(),
+    '123 is not a function',
+    'Should log 123 is not a function warning message'
+  )
+  assert.end()
+})
+
+test('Component - Configure methods', (assert) => {
+  const config = {
+    methods: {
+      foo() {},
+      bar() {},
+    },
+  }
+  const Foo = Component('Foo', config)()
+
+  assert.ok(Foo[symbols.methodKeys], 'Foo instance should have methods keys defined')
+  assert.equal(
+    Foo[symbols.methodKeys].length,
+    2,
+    'Foo instance should have two method keys defined'
+  )
+  assert.equal(Foo[symbols.methodKeys][0], 'foo', 'First method key should be `foo`')
+  assert.equal(Foo[symbols.methodKeys][1], 'bar', 'Second method key should be `bar`')
+  assert.equal(typeof Foo.foo, 'function', 'Foo instance should have `foo` method defined')
+  assert.equal(typeof Foo.bar, 'function', 'Foo instance should have `bar` method defined')
+  assert.end()
+})
+
+test('Component - Warn non-function methods', (assert) => {
+  initLogTest(assert)
+  const capture = assert.capture(console, 'warn')
+
+  const config = {
+    methods: {
+      foo: 'foo',
+      bar: 123,
+      baz: () => {},
+    },
+  }
+  const Foo = Component('Foo', config)()
+
+  assert.ok(Foo[symbols.methodKeys], 'Foo instance should have method keys defined')
+  const logs = capture()
+
+  assert.equal(logs.length, 2, 'Should log two warning messages')
+  assert.equal(
+    logs[0].args.pop(),
+    'foo is not a function',
+    'Should log foo is not a function warning message'
+  )
+  assert.equal(
+    logs[1].args.pop(),
+    'bar is not a function',
+    'Should log bar is not a function warning message'
+  )
+  assert.end()
+})
+
+test('Component - Warn when method name matches prop name', (assert) => {
+  initLogTest(assert)
+  const capture = assert.capture(console, 'error')
+
+  const config = {
+    props: ['foo'],
+    methods: {
+      foo() {},
+      baz() {},
+    },
+  }
+  const Foo = Component('Foo', config)()
+
+  assert.ok(Foo[symbols.methodKeys], 'Foo instance should have method keys defined')
+  const logs = capture()
+
+  assert.equal(logs.length, 1, 'Should log one error message')
+  assert.equal(
+    logs[0].args.pop(),
+    'foo already exists as a prop',
+    'Should log prop/method name clash error message'
+  )
+  assert.end()
+})
+
+function initLogTest(assert) {
+  assert.capture(Settings, 'get', (key) => {
+    if (key === 'debugLevel') {
+      return 1
+    }
+  })
+  initLog()
+}
