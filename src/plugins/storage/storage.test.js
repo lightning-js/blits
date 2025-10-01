@@ -88,3 +88,12 @@ test('Storage - clear', (assert) => {
   assert.equal(actual2, expected2, 'Clear should delete the second key-value pair')
   assert.end()
 })
+
+test('Storage - set with value that cannot be stringified', (assert) => {
+  const value = {}
+  value.self = value
+
+  const actual = storage.set('a', value)
+  assert.equal(actual, false, 'Set should return false for value that cannot be stringified')
+  assert.end()
+})
