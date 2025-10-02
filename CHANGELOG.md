@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.39.3
+
+_2 Oct 2025_
+
+- Bumped Lightning renderer to 2.18.2
+
+
 ## v1.39.2
 
 _2 Oct 2025_
