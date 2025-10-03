@@ -578,10 +578,11 @@ const Element = {
       for (let i = 0; i < propsKeys.length; i++) {
         // todo: fix code duplication
         if (isTransition(value) === true) {
-          return this.animate(propsKeys[i], this.props.props[propsKeys[i]], value.transition)
+          this.animate(propsKeys[i], this.props.props[propsKeys[i]], value.transition)
+        } else {
+          // set the prop to the value on the node
+          this.node[propsKeys[i]] = this.props.props[propsKeys[i]]
         }
-        // set the prop to the value on the node
-        this.node[propsKeys[i]] = this.props.props[propsKeys[i]]
       }
     }
 
