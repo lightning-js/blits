@@ -12,9 +12,11 @@ import Blits from '@lightningjs/blits'
 
 export default Blits.Component('Loader', {
   /**
-   * @type {['loaderColor']}
+   * @type {{'loaderColor'}}
    */
-  props: ['loaderColor'],
+  props: {
+    loaderColor: undefined
+  },
   state() {
     return {
       /**

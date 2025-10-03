@@ -9,9 +9,11 @@ export default Blits.Component('Loader', {
     </Element>
     `,
   /**
-   * @type {['loaderColor']}
+   * @type {{'loaderColor'}}
    */
-  props: ['loaderColor'],
+  props: {
+    loaderColor: undefined,
+  },
   state() {
     return {
       /**

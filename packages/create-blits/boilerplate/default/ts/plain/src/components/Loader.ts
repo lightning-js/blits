@@ -9,7 +9,7 @@ export default Blits.Component('Loader', {
       <Circle size="40" :color="$loaderColor || '#94a3b8'" x="120" :alpha.transition="{value: $alpha, delay: 400}" />
     </Element>
     `,
-  props: ['loaderColor'] as const,
+  props: { loaderColor: undefined } as const,
   state() {
     return {
       /**

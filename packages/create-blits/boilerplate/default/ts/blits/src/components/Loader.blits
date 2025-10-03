@@ -11,7 +11,7 @@
 import Blits from '@lightningjs/blits'
 
 export default Blits.Component('Loader', {
-  props: ['loaderColor'] as const,
+  props: { loaderColor: undefined } as const,
   state() {
     return {
       /**
