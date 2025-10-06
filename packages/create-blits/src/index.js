@@ -101,20 +101,28 @@ const questions = [
     choices: [
       {
         title: 'Javascript',
-        description: 'Javascript project with .blits file extension',
-        value: 'js-blits',
-      },
-      {
-        title: 'Javascript',
         description: 'JS based project (with JSDoc for type checking and autocompletion)',
         value: 'js',
       },
-      {
-        title: 'TypeScript',
-        description: 'TS based project with .blits file extension',
-        value: 'ts-blits',
-      },
       { title: 'TypeScript', description: 'TS based project', value: 'ts' },
+    ],
+    initial: 0,
+  },
+  {
+    type: 'select',
+    name: 'formatType',
+    message: 'What type of file format do you want to use?',
+    choices: [
+      {
+        title: 'blits',
+        description: '.blits file extension (recommended)',
+        value: 'blits',
+      },
+      {
+        title: 'plain js/ts',
+        description: '.js/.ts file extension',
+        value: 'plain',
+      },
     ],
     initial: 0,
   },

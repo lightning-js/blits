@@ -17,13 +17,8 @@ export const copyLightningFixtures = (config) => {
       exit(red(bold('The target directory ' + targetDir + ' already exists')))
     }
 
-    const projectMapping = {
-      js: { projectType: 'js', flavourType: 'blits' },
-      'ts-blits': { projectType: 'ts', flavourType: 'blits' },
-      ts: { projectType: 'ts', flavourType: 'plain' },
-    }
-
-    const { projectType = 'js', flavourType = 'blits' } = projectMapping[config.projectType] || {}
+    const projectType = config.projectType
+    const formatType = config.formatType
 
     const boilerplate = 'default'
     const boilerplateDir = path.join(config.fixturesBase, boilerplate)
@@ -39,7 +34,7 @@ export const copyLightningFixtures = (config) => {
     })
 
     // Copy project type source files
-    fs.cpSync(path.join(boilerplateDir, projectType, flavourType), targetDir, {
+    fs.cpSync(path.join(boilerplateDir, projectType, formatType), targetDir, {
       recursive: true,
     })
 
