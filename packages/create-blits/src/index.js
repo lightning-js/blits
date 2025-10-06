@@ -109,6 +109,24 @@ const questions = [
     initial: 0,
   },
   {
+    type: 'select',
+    name: 'formatType',
+    message: 'What type of file format do you want to use?',
+    choices: [
+      {
+        title: 'blits',
+        description: '.blits file extension (recommended)',
+        value: 'blits',
+      },
+      {
+        title: 'plain js/ts',
+        description: '.js/.ts file extension',
+        value: 'plain',
+      },
+    ],
+    initial: 0,
+  },
+  {
     type: 'toggle',
     name: 'esLint',
     message: 'Do you want to enable eslint?',

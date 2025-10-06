@@ -16,26 +16,41 @@ export const copyLightningFixtures = (config) => {
     if (config.appFolder && fs.existsSync(targetDir)) {
       exit(red(bold('The target directory ' + targetDir + ' already exists')))
     }
-    if (config.projectType === 'ts') {
-      fs.cpSync(path.join(path.join(config.fixturesBase, 'ts'), 'default'), targetDir, {
-        recursive: true,
-      })
-    } else {
-      fs.cpSync(path.join(path.join(config.fixturesBase, 'js'), 'default'), targetDir, {
-        recursive: true,
-      })
-    }
-    fs.cpSync(path.join(config.fixturesBase, 'common/public'), path.join(targetDir, 'public'), {
+
+    const projectType = config.projectType
+    const formatType = config.formatType
+
+    const boilerplate = 'default'
+    const boilerplateDir = path.join(config.fixturesBase, boilerplate)
+
+    // Copy boilerplate specific common files
+    fs.cpSync(path.join(boilerplateDir, 'common'), targetDir, {
       recursive: true,
     })
 
-    // Copy readme
+    // Copy project type common files
+    fs.cpSync(path.join(boilerplateDir, projectType, 'common'), targetDir, {
+      recursive: true,
+    })
+
+    // Copy project type source files
+    fs.cpSync(path.join(boilerplateDir, projectType, formatType), targetDir, {
+      recursive: true,
+    })
+
+    // Copy env.example from global common files
+    fs.copyFileSync(
+      path.join(config.fixturesBase, 'common/.env.example'),
+      path.join(targetDir, '.env.example')
+    )
+
+    // Copy readme from global common files
     fs.copyFileSync(
       path.join(config.fixturesBase, 'common/README.md'),
       path.join(targetDir, 'README.md')
     )
 
-    // Copy IDE stuff from fixture base
+    // Copy IDE stuff from global common files
     fs.cpSync(path.join(config.fixturesBase, 'common/ide'), path.join(targetDir), {
       recursive: true,
     })
@@ -53,19 +68,19 @@ export const addESlint = (config) => {
   // Make husky dir
   fs.mkdirSync(path.join(config.targetDir, '.husky'), { recursive: true })
 
-  // Copy husky hook
+  // Copy husky hook from global common files
   fs.copyFileSync(
     path.join(config.fixturesBase, 'common/eslint/husky/pre-commit'),
     path.join(config.targetDir, '.husky/pre-commit')
   )
 
-  // Copy editor config from common
+  // Copy editor config from global common files
   fs.copyFileSync(
     path.join(config.fixturesBase, 'common/eslint/.editorconfig'),
     path.join(config.targetDir, '.editorconfig')
   )
 
-  // Copy eslintrc.js from fixtured specfic directory
+  // Copy eslintrc.js from fixtured specific files
   fs.copyFileSync(
     path.join(config.fixturesBase, 'common/eslint/eslint.config.cjs'),
     path.join(config.targetDir, 'eslint.config.cjs')
@@ -202,7 +217,7 @@ export const gitInit = (cwd, fixturesBase) => {
 /**
  * Checks whether the give path is valid
  * @param path
- * @returns {boolean}
+ * @returns {boolean}`
  */
 export const isValidPath = (path) => {
   try {
