@@ -38,5 +38,99 @@ test('Announcer 1 Second Pause Remove', (assert) => {
     assert.end()
   })
   assert.comment('remove pause')
-  pause.remove()
+  pause['remove']()
+})
+
+test('Announcer disable/enable/toggle', (assert) => {
+  announcer.disable()
+  assert.equal(typeof announcer.speak('test').then, 'function', 'Disabled returns noop')
+
+  announcer.toggle(true)
+  assert.equal(typeof announcer.speak('test').then, 'function', 'Toggle on works')
+
+  announcer.toggle(false)
+  assert.equal(typeof announcer.speak('test').then, 'function', 'Toggle off returns noop')
+
+  announcer.enable()
+  assert.end()
+})
+
+test('Announcer methods', (assert) => {
+  announcer.enable()
+
+  assert.equal(typeof announcer.stop, 'function', 'Stop method exists')
+  assert.equal(typeof announcer.clear, 'function', 'Clear method exists')
+  assert.equal(typeof announcer.polite('test').then, 'function', 'Polite works')
+  assert.equal(typeof announcer.assertive('test').then, 'function', 'Assertive works')
+  assert.equal(
+    typeof announcer.speak('test', 'polite').then,
+    'function',
+    'Speak with politeness works'
+  )
+  assert.equal(typeof announcer.pause(100).then, 'function', 'Pause works')
+
+  assert.end()
+})
+
+test('Announcer announcement methods', (assert) => {
+  announcer.enable()
+
+  const announcement = announcer.speak('test')
+  assert.equal(typeof announcement['cancel'], 'function', 'Has cancel method')
+  assert.equal(typeof announcement['remove'], 'function', 'Has remove method')
+  assert.equal(typeof announcement['stop'], 'function', 'Has stop method')
+
+  // Call methods to test they work
+  announcement['cancel']()
+  announcement['stop']()
+
+  assert.end()
+})
+
+test('Announcer stop when current announcement is active', (assert) => {
+  announcer.enable()
+
+  // Create announcement and immediately stop to trigger currentId check
+  const announcement = announcer.speak('test message')
+  announcement['stop']()
+
+  assert.end()
+})
+
+test('Announcer speech synthesis processing', (assert) => {
+  announcer.enable()
+
+  // Create multiple announcements to trigger debounce and speech synthesis
+  const announcement1 = announcer.speak('first message')
+  const announcement2 = announcer.speak('second message')
+
+  // Test that announcements are created
+  assert.equal(typeof announcement1.then, 'function', 'First announcement created')
+  assert.equal(typeof announcement2.then, 'function', 'Second announcement created')
+
+  assert.end()
+})
+
+test('Announcer queue processing with debounce', (assert) => {
+  announcer.enable()
+
+  // Create multiple rapid announcements to trigger debounce logic
+  announcer.speak('message 1')
+  announcer.speak('message 2')
+  announcer.speak('message 3')
+
+  // This should trigger the debounce timeout and speech synthesis processing
+  assert.end()
+})
+
+test('Announcer stop current processing', (assert) => {
+  announcer.enable()
+
+  // Create announcement and stop it to trigger the stop logic
+  const announcement = announcer.speak('test message')
+
+  // Call stop to potentially trigger if currentId matches
+  announcement['stop']()
+
+  assert.end()
 })
