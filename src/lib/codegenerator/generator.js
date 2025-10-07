@@ -479,7 +479,7 @@ const generateForLoopCode = function (templateObject, parent) {
       const effects = []
       for(let __index = 0; __index < length; __index++) {
         if(__index < from${forStartCounter} || __index >= to${forStartCounter}) continue
-        const scope = Object.create(component)
+        let scope = Object.create(component)
         parent = ${parent}
         scope['${item}'] = rawCollection[__index]
   `)
@@ -564,6 +564,7 @@ const generateForLoopCode = function (templateObject, parent) {
     }
   })
   ctx.renderCode.push(`
+      scope = null
     }
     return effects
   }`)
