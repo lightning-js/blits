@@ -26,6 +26,7 @@ export default function (templateObject = { children: [] }, devMode = false) {
       'const forloops = []',
       'const props = []',
       'const created = []',
+      'const effects = {}',
       'const skips = []',
       'let componentType',
       'let rootComponent = component',
@@ -432,6 +433,7 @@ const generateForLoopCode = function (templateObject, parent) {
 
   ctx.renderCode.push(`
     created[${forStartCounter}] = []
+    effects[${forStartCounter}] = []
 
     let from${forStartCounter}
     let to${forStartCounter}
@@ -474,7 +476,16 @@ const generateForLoopCode = function (templateObject, parent) {
   ctx.renderCode.push(`
       created.length = 0
       const length = rawCollection.length
-      const effects = []
+
+      component !== null && component[Symbol.for('removeGlobalEffects')](effects[${forStartCounter}])
+
+      for(let i = 0; i < effects[${forStartCounter}].length; i++) {
+        const value = effects[${forStartCounter}][i]
+        const index = component[Symbol.for('effects')].indexOf(value)
+        if (index > -1) component[Symbol.for('effects')].splice(index, 1)
+      }
+
+      effects[${forStartCounter}].length = 0
       for(let __index = 0; __index < length; __index++) {
         if(__index < from${forStartCounter} || __index >= to${forStartCounter}) continue
         let scope = Object.create(component)
@@ -550,8 +561,8 @@ const generateForLoopCode = function (templateObject, parent) {
           ${effect}
         }
         effect(eff${index}, ${key})
-        effects.push(eff${index})
-        // component[Symbol.for('effects')].push(eff${index})
+        effects[${forStartCounter}].push(eff${index})
+        component[Symbol.for('effects')].push(eff${index})
       `)
     } else {
       // props shouldn't be wrapped in an effect, but simply passed on
@@ -561,7 +572,6 @@ const generateForLoopCode = function (templateObject, parent) {
     }
   })
   ctx.renderCode.push(`
-      scope = null
     }
     return effects
   }`)
