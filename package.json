@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "1.39.3",
+  "version": "1.39.4",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
@@ -55,7 +55,7 @@
   },
   "dependencies": {
     "@lightningjs/msdf-generator": "^1.1.1",
-    "@lightningjs/renderer": "^2.18.2"
+    "@lightningjs/renderer": "^2.18.3"
   },
   "repository": {
     "type": "git",
