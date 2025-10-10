@@ -479,10 +479,12 @@ const generateForLoopCode = function (templateObject, parent) {
 
       component !== null && component[Symbol.for('removeGlobalEffects')](effects[${forStartCounter}])
 
-      for(let i = 0; i < effects[${forStartCounter}].length; i++) {
-        const value = effects[${forStartCounter}][i]
-        const index = component[Symbol.for('effects')].indexOf(value)
-        if (index > -1) component[Symbol.for('effects')].splice(index, 1)
+      if (component !== null) {
+        for(let i = 0; i < effects[${forStartCounter}].length; i++) {
+          const value = effects[${forStartCounter}][i]
+          const index = component[Symbol.for('effects')].indexOf(value)
+          if (index > -1) component[Symbol.for('effects')].splice(index, 1)
+        }
       }
 
       effects[${forStartCounter}].length = 0
