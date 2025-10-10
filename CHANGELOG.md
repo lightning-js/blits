@@ -1,5 +1,12 @@
 # Changelog
 
+
+## v1.40.1
+
+_10 Oct 2025_
+
+- Downgraded renderer to 2.18.2
+
 ## v1.40.0
 
 _10 Oct 2025_
