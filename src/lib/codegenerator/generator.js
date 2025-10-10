@@ -41,7 +41,6 @@ export default function (templateObject = { children: [] }, devMode = false) {
       'rootComponent = null',
       'propData = null',
       'slotComponent = null',
-      'component = null',
       'parent = null',
     ],
     context: { props: [], components: this.components },
@@ -74,6 +73,7 @@ export default function (templateObject = { children: [] }, devMode = false) {
   ctx.renderCode.push(`
     return { elms, cleanup: () => {
       ${ctx.cleanupCode.join('\n')}
+      component = null
       cmps.length = 0
       elms.length = 0
       components.length = 0
@@ -479,12 +479,10 @@ const generateForLoopCode = function (templateObject, parent) {
 
       component !== null && component[Symbol.for('removeGlobalEffects')](effects[${forStartCounter}])
 
-      if (component !== null) {
-        for(let i = 0; i < effects[${forStartCounter}].length; i++) {
-          const value = effects[${forStartCounter}][i]
-          const index = component[Symbol.for('effects')].indexOf(value)
-          if (index > -1) component[Symbol.for('effects')].splice(index, 1)
-        }
+      for(let i = 0; i < effects[${forStartCounter}].length; i++) {
+        const value = effects[${forStartCounter}][i]
+        const index = component[Symbol.for('effects')].indexOf(value)
+        if (index > -1) component[Symbol.for('effects')].splice(index, 1)
       }
 
       effects[${forStartCounter}].length = 0
