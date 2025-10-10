@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.40.0
+
+_10 Oct 2025_
+
+- Improved memory management in the for loop by efficiently removing effects
+
 ## v1.39.4
 
 _9 Oct 2025_
