@@ -34,9 +34,8 @@ test('$setTimeout method', (assert) => {
   assert.ok(timeoutId !== undefined, 'Should return timeout ID')
   assert.equal(component[symbols.timeouts].length, 1, 'Should add timeout to array')
 
-  // Clear the timeout immediately to prevent it from executing
-  timeoutsIntervals.$clearTimeout.value.call(component, timeoutId)
-  assert.equal(component[symbols.timeouts].length, 0, 'Should clear timeout')
+  // Clear with native clearTimeout to prevent execution
+  clearTimeout(timeoutId)
 
   assert.end()
 })
@@ -55,21 +54,54 @@ test('$setTimeout method when eol is true', (assert) => {
 })
 
 test('$clearTimeout method', (assert) => {
-  const component = { [symbols.timeouts]: [123, 456] }
+  const component = { eol: false, [symbols.timeouts]: [] }
+  let called = false
 
-  timeoutsIntervals.$clearTimeout.value.call(component, 123)
-  assert.equal(component[symbols.timeouts].length, 1, 'Should remove timeout from array')
-  assert.equal(component[symbols.timeouts][0], 456, 'Should keep other timeouts')
+  const timeoutId = timeoutsIntervals.$setTimeout.value.call(
+    component,
+    () => {
+      called = true
+    },
+    50
+  )
+  timeoutsIntervals.$clearTimeout.value.call(component, timeoutId)
 
-  assert.end()
+  assert.equal(component[symbols.timeouts].length, 0, 'Removes timeout from array')
+
+  setTimeout(() => {
+    assert.false(called, 'Timeout does not execute after clear')
+    assert.end()
+  }, 100)
 })
 
 test('$clearTimeouts method', (assert) => {
-  const component = { [symbols.timeouts]: [123, 456, 789] }
-  timeoutsIntervals.$clearTimeouts.value.call(component)
-  assert.equal(component[symbols.timeouts].length, 0, 'Should clear all timeouts')
+  const component = { eol: false, [symbols.timeouts]: [] }
+  let called1 = false
+  let called2 = false
 
-  assert.end()
+  timeoutsIntervals.$setTimeout.value.call(
+    component,
+    () => {
+      called1 = true
+    },
+    50
+  )
+  timeoutsIntervals.$setTimeout.value.call(
+    component,
+    () => {
+      called2 = true
+    },
+    50
+  )
+  timeoutsIntervals.$clearTimeouts.value.call(component)
+
+  assert.equal(component[symbols.timeouts].length, 0, 'Clears all timeouts from array')
+
+  setTimeout(() => {
+    assert.false(called1, 'First timeout does not execute')
+    assert.false(called2, 'Second timeout does not execute')
+    assert.end()
+  }, 100)
 })
 
 test('$setInterval method', (assert) => {
@@ -82,9 +114,8 @@ test('$setInterval method', (assert) => {
   assert.ok(intervalId !== undefined, 'Should return interval ID')
   assert.equal(component[symbols.intervals].length, 1, 'Should add interval to array')
 
-  // Clear the interval immediately to prevent it from running
-  timeoutsIntervals.$clearInterval.value.call(component, intervalId)
-  assert.equal(component[symbols.intervals].length, 0, 'Should clear interval')
+  // Clear with native clearInterval to prevent execution
+  clearInterval(intervalId)
 
   assert.end()
 })
@@ -103,22 +134,54 @@ test('$setInterval method when eol is true', (assert) => {
 })
 
 test('$clearInterval method', (assert) => {
-  const component = { [symbols.intervals]: [123, 456] }
+  const component = { eol: false, [symbols.intervals]: [] }
+  let called = false
 
-  timeoutsIntervals.$clearInterval.value.call(component, 123)
-  assert.equal(component[symbols.intervals].length, 1, 'Should remove interval from array')
-  assert.equal(component[symbols.intervals][0], 456, 'Should keep other intervals')
+  const intervalId = timeoutsIntervals.$setInterval.value.call(
+    component,
+    () => {
+      called = true
+    },
+    50
+  )
+  timeoutsIntervals.$clearInterval.value.call(component, intervalId)
 
-  assert.end()
+  assert.equal(component[symbols.intervals].length, 0, 'Removes interval from array')
+
+  setTimeout(() => {
+    assert.false(called, 'Interval does not execute after clear')
+    assert.end()
+  }, 150)
 })
 
 test('$clearIntervals method', (assert) => {
-  const component = { [symbols.intervals]: [123, 456, 789] }
+  const component = { eol: false, [symbols.intervals]: [] }
+  let called1 = false
+  let called2 = false
 
+  timeoutsIntervals.$setInterval.value.call(
+    component,
+    () => {
+      called1 = true
+    },
+    50
+  )
+  timeoutsIntervals.$setInterval.value.call(
+    component,
+    () => {
+      called2 = true
+    },
+    50
+  )
   timeoutsIntervals.$clearIntervals.value.call(component)
-  assert.equal(component[symbols.intervals].length, 0, 'Should clear all intervals')
 
-  assert.end()
+  assert.equal(component[symbols.intervals].length, 0, 'Clears all intervals from array')
+
+  setTimeout(() => {
+    assert.false(called1, 'First interval does not execute')
+    assert.false(called2, 'Second interval does not execute')
+    assert.end()
+  }, 150)
 })
 
 test('Multiple timeouts management', (assert) => {
@@ -141,6 +204,10 @@ test('Multiple timeouts management', (assert) => {
   assert.equal(component[symbols.timeouts].length, 2, 'Should remove only the specified timeout')
   assert.equal(component[symbols.timeouts][0], timeoutId1, 'Should keep first timeout')
   assert.equal(component[symbols.timeouts][1], timeoutId3, 'Should keep third timeout')
+
+  // Clear remaining timeouts to prevent execution
+  clearTimeout(timeoutId1)
+  clearTimeout(timeoutId3)
 
   assert.end()
 })
@@ -165,6 +232,10 @@ test('Multiple intervals management', (assert) => {
   assert.equal(component[symbols.intervals].length, 2, 'Should remove only the specified interval')
   assert.equal(component[symbols.intervals][0], intervalId1, 'Should keep first interval')
   assert.equal(component[symbols.intervals][1], intervalId3, 'Should keep third interval')
+
+  // Clear remaining intervals to prevent execution
+  clearInterval(intervalId1)
+  clearInterval(intervalId3)
 
   assert.end()
 })
