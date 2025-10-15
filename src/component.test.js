@@ -426,7 +426,6 @@ test('Component - Warn non-function input events', (assert) => {
     },
   }
   const Foo = Component('Foo', config)()
-  console.log(Foo[symbols.inputEvents])
 
   assert.ok(Foo[symbols.inputEvents], 'Foo instance should have input events defined')
   const logs = capture()

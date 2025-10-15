@@ -234,47 +234,39 @@ test('Reactive - Effect with specific keys', (assert) => {
 test('Reactive - Effect with multiple specific keys', (assert) => {
   const data = reactive({ foo: 'foo', bar: 'bar', count: 0 })
 
-  const nonReactiveData = { count: 0 }
+  let counter = 0
 
   const basicEffect = () => {
     data.foo // track foo
     data.bar // track bar
     data.count // NOT tracked
-    nonReactiveData.count++
+    counter++
   }
   effect(basicEffect, ['foo', 'bar'])
-  assert.equal(
-    nonReactiveData.count,
-    1,
-    'Effect should run once initially and increment nonReactiveData count'
-  )
+  assert.equal(counter, 1, 'Effect should run once initially and increment counter')
 
   data.foo = 'bar' // should trigger effect
   assert.equal(
-    nonReactiveData.count,
+    counter,
     2,
-    'Effect should run again after modifying a tracked property and increment nonReactiveData count'
+    'Effect should run again after modifying a tracked property and increment counter'
   )
 
   data.bar = 'baz' // should trigger effect
   assert.equal(
-    nonReactiveData.count,
+    counter,
     3,
-    'Effect should run again after modifying a tracked property and increment nonReactiveData count'
+    'Effect should run again after modifying a tracked property and increment counter'
   )
 
   data.count = 1 // should NOT trigger effect since count is not tracked
-  assert.equal(
-    nonReactiveData.count,
-    3,
-    'Effect should NOT run again after modifying an untracked property'
-  )
+  assert.equal(counter, 3, 'Effect should NOT run again after modifying an untracked property')
 
   data.foo = 'baz' // should trigger effect
   assert.equal(
-    nonReactiveData.count,
+    counter,
     4,
-    'Effect should run again after modifying a tracked property and increment nonReactiveData count'
+    'Effect should run again after modifying a tracked property and increment counter'
   )
   assert.end()
 })
