@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.41.0
+
+_16 Oct 2025_
+
+- Improved overall test coverage to 86%
+- Filtered out inspector-data entirely in production
+- Improved vite plugin that handles computed props to be more robust
+- Fixed issue with global reactive object that are deeply nested
+- Bumped MSDF generator dependency to address security issues in dependencies
 
 ## v1.40.1
 
