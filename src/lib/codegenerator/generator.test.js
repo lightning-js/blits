@@ -86,6 +86,7 @@ test('Generate render and effect code for an empty template', (assert) => {
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
 
     let componentType
@@ -102,9 +103,9 @@ test('Generate render and effect code for an empty template', (assert) => {
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
 
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -146,6 +147,7 @@ test('Generate render and effect code for a template with a single simple elemen
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -166,8 +168,8 @@ test('Generate render and effect code for a template with a single simple elemen
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -214,6 +216,7 @@ test('Generate code for a template with a simple element and a simple nested ele
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -242,9 +245,9 @@ test('Generate code for a template with a simple element and a simple nested ele
           rootComponent = null
           propData = null
           slotComponent = null
-          component = null
           parent = null
 
+          component = null
           cmps.length = 0
           elms.length = 0
           components.length = 0
@@ -288,6 +291,7 @@ test('Generate code for a template with a single element with attributes', (asse
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -312,8 +316,8 @@ test('Generate code for a template with a single element with attributes', (asse
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -357,6 +361,7 @@ test('Generate code for a template with a single element with attributes with a 
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -381,8 +386,8 @@ test('Generate code for a template with a single element with attributes with a 
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -432,6 +437,7 @@ test('Generate code for a template with a single element with attributes with nu
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -465,8 +471,8 @@ test('Generate code for a template with a single element with attributes with nu
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -516,6 +522,7 @@ test('Generate code for a template with attributes and a nested element with att
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -553,8 +560,8 @@ test('Generate code for a template with attributes and a nested element with att
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -612,6 +619,7 @@ test('Generate code for a template with attributes and 2 nested elements with at
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -663,8 +671,8 @@ test('Generate code for a template with attributes and 2 nested elements with at
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -732,6 +740,7 @@ test('Generate code for a template with attributes and deep nested elements with
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -805,8 +814,8 @@ test('Generate code for a template with attributes and deep nested elements with
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -853,6 +862,7 @@ test('Generate code for a template with simple dynamic attributes', (assert) => 
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -882,8 +892,8 @@ test('Generate code for a template with simple dynamic attributes', (assert) => 
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -951,6 +961,7 @@ test('Generate code for a template with an attribute with a dash', (assert) => {
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -976,8 +987,8 @@ test('Generate code for a template with an attribute with a dash', (assert) => {
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -1023,6 +1034,7 @@ test('Generate code for a template with dynamic attributes with code to be evalu
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -1048,8 +1060,8 @@ test('Generate code for a template with dynamic attributes with code to be evalu
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -1128,6 +1140,7 @@ test('Generate code for a template with attribute (object)', (assert) => {
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -1153,8 +1166,8 @@ test('Generate code for a template with attribute (object)', (assert) => {
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -1199,6 +1212,7 @@ test('Generate code for a template with dynamic attribute (object)', (assert) =>
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -1224,8 +1238,8 @@ test('Generate code for a template with dynamic attribute (object)', (assert) =>
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -1271,6 +1285,7 @@ test('Generate code for a template with attribute (object) with mixed dynamic & 
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -1296,8 +1311,8 @@ test('Generate code for a template with attribute (object) with mixed dynamic & 
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -1343,6 +1358,7 @@ test('Generate code for a template with @-listeners', (assert) => {
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -1368,8 +1384,8 @@ test('Generate code for a template with @-listeners', (assert) => {
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -1425,6 +1441,7 @@ test('Generate code for a template with custom components', (assert) => {
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -1536,7 +1553,6 @@ test('Generate code for a template with custom components', (assert) => {
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
 
         cmps[1] = null
@@ -1549,6 +1565,7 @@ test('Generate code for a template with custom components', (assert) => {
         props[4] = null
         components[4] = null
 
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -1605,6 +1622,7 @@ test('Generate code for a template with an unregistered custom component', (asse
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -1706,7 +1724,6 @@ test('Generate code for a template with an unregistered custom component', (asse
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
 
         cmps[1] = null
@@ -1717,6 +1734,7 @@ test('Generate code for a template with an unregistered custom component', (asse
         props[4] = null
         components[4] = null
 
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -1776,6 +1794,7 @@ test('Generate code for a template with custom components with arguments', (asse
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -1883,7 +1902,6 @@ test('Generate code for a template with custom components with arguments', (asse
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
         cmps[1] = null
         props[2] = null
@@ -1891,6 +1909,7 @@ test('Generate code for a template with custom components with arguments', (asse
         cmps[3] = null
         props[4] = null
         components[4] = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -1952,6 +1971,7 @@ test('Generate code for a template with custom components with argument value as
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -2041,11 +2061,11 @@ test('Generate code for a template with custom components with argument value as
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
         cmps[1] = null
         props[2] = null
         components[2] = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -2106,6 +2126,7 @@ test('Generate code for a template with custom components with reactive props', 
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -2225,7 +2246,6 @@ test('Generate code for a template with custom components with reactive props', 
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
         cmps[1] = null
         props[2] = null
@@ -2233,6 +2253,7 @@ test('Generate code for a template with custom components with reactive props', 
         cmps[3] = null
         props[4] = null
         components[4] = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -2328,6 +2349,7 @@ test('Generate code for a template with a transition attributes', (assert) => {
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -2353,8 +2375,8 @@ test('Generate code for a template with a transition attributes', (assert) => {
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -2417,6 +2439,7 @@ test('Generate code for a template with slot content', (assert) => {
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -2504,11 +2527,11 @@ test('Generate code for a template with slot content', (assert) => {
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
         cmps[1] = null
         props[2] = null
         components[2] = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -2585,6 +2608,7 @@ test('Generate code for a template with slot content, using a named slot', (asse
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -2677,11 +2701,11 @@ test('Generate code for a template with slot content, using a named slot', (asse
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
         cmps[1] = null
         props[2] = null
         components[2] = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -2739,6 +2763,7 @@ test('Generate code for a template with a slot', (assert) => {
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -2783,8 +2808,8 @@ test('Generate code for a template with a slot', (assert) => {
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -2834,6 +2859,7 @@ test('Generate code for a template with inline Text', (assert) => {
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -2867,8 +2893,8 @@ test('Generate code for a template with inline Text', (assert) => {
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -2916,6 +2942,7 @@ test('Generate code for a template with inline dynamic Text', (assert) => {
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -2950,8 +2977,8 @@ test('Generate code for a template with inline dynamic Text', (assert) => {
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -2999,6 +3026,7 @@ test('Generate code for a template with inline dynamic Text embedded in static t
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -3033,8 +3061,8 @@ test('Generate code for a template with inline dynamic Text embedded in static t
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -3087,6 +3115,7 @@ test('Generate code for a template with a single element with attributes with pe
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -3124,8 +3153,8 @@ test('Generate code for a template with a single element with attributes with pe
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -3173,6 +3202,7 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -3190,6 +3220,7 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
 
     parent = elms[0]
     created[1] = []
+    effects[1] = []
     let from1
     let to1
     forloops[1] = (collection = [], elms, created) => {
@@ -3219,10 +3250,16 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
         }
         created.length = 0
         const length = rawCollection.length
-        const effects = []
+        component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
+        for(let i = 0; i < effects[1].length; i++) {
+          const value = effects[1][i]
+          const index = component[Symbol.for('effects')].indexOf(value)
+          if (index > -1) component[Symbol.for('effects')].splice(index, 1)
+        }
+        effects[1].length = 0
         for (let __index = 0; __index < length; __index++) {
             if (__index < from1 || __index >= to1) continue
-            const scope = Object.create(component)
+            let scope = Object.create(component)
             parent = elms[0]
             scope['item'] = rawCollection[__index]
             scope['undefined'] = __index
@@ -3260,13 +3297,15 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
             rootComponent = null
             propData = null
             slotComponent = null
-            component = null
             parent = null
 
             created[1].length = 0
-            forloops[1] = null
             eff1 = null
+            // call loop with empty array
+            forloops[1]([], elms, created[1])
+            forloops[1] = null
 
+            component = null
             cmps.length = 0
             elms.length = 0
             components.length = 0
@@ -3318,6 +3357,7 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -3335,6 +3375,7 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
 
     parent = elms[0]
     created[1] = []
+    effects[1] = []
     let from1
     let to1
     forloops[1] = (collection = [], elms, created) => {
@@ -3364,10 +3405,16 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
         }
         created.length = 0
         const length = rawCollection.length
-        const effects = []
+        component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
+        for(let i = 0; i < effects[1].length; i++) {
+          const value = effects[1][i]
+          const index = component[Symbol.for('effects')].indexOf(value)
+          if (index > -1) component[Symbol.for('effects')].splice(index, 1)
+        }
+        effects[1].length = 0
         for (let __index = 0; __index < length; __index++) {
             if (__index < from1 || __index >= to1) continue
-            const scope = Object.create(component)
+            let scope = Object.create(component)
             parent = elms[0]
             scope['item'] = rawCollection[__index]
             scope['undefined'] = __index
@@ -3405,13 +3452,15 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
 
         created[1].length = 0
-        forloops[1] = null
         eff1 = null
+        // call loop with empty array
+        forloops[1]([], elms, created[1])
+        forloops[1] = null
 
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -3424,6 +3473,8 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
   }`
 
   const actual = generator.call(scope, templateObject)
+
+  console.log(actual.render.toString())
 
   assert.equal(
     normalize(actual.render.toString()),
@@ -3461,6 +3512,7 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -3478,6 +3530,7 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
 
     parent = elms[0]
     created[1] = []
+    effects[1] = []
     let from1
     let to1
     forloops[1] = (collection = [], elms, created) => {
@@ -3507,10 +3560,16 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
         }
         created.length = 0
         const length = rawCollection.length
-        const effects = []
+        component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
+        for(let i = 0; i < effects[1].length; i++) {
+          const value = effects[1][i]
+          const index = component[Symbol.for('effects')].indexOf(value)
+          if (index > -1) component[Symbol.for('effects')].splice(index, 1)
+        }
+        effects[1].length = 0
         for (let __index = 0; __index < length; __index++) {
             if (__index < from1 || __index >= to1) continue
-            const scope = Object.create(component)
+            let scope = Object.create(component)
             parent = elms[0]
             scope['item'] = rawCollection[__index]
             scope['undefined'] = __index
@@ -3548,13 +3607,15 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
 
         created[1].length = 0
-        forloops[1] = null
         eff1 = null
+        // call loop with empty array
+        forloops[1]([], elms, created[1])
+        forloops[1] = null
 
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -3604,6 +3665,7 @@ test('Generate code for a template with a simple for-loop on an Element with a c
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -3621,6 +3683,7 @@ test('Generate code for a template with a simple for-loop on an Element with a c
 
     parent = elms[0]
     created[1] = []
+    effects[1] = []
     let from1
     let to1
     forloops[1] = (collection = [], elms, created) => {
@@ -3650,10 +3713,16 @@ test('Generate code for a template with a simple for-loop on an Element with a c
         }
         created.length = 0
         const length = rawCollection.length
-        const effects = []
+        component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
+        for(let i = 0; i < effects[1].length; i++) {
+          const value = effects[1][i]
+          const index = component[Symbol.for('effects')].indexOf(value)
+          if (index > -1) component[Symbol.for('effects')].splice(index, 1)
+        }
+        effects[1].length = 0
         for (let __index = 0; __index < length; __index++) {
             if (__index < from1 || __index >= to1) continue
-            const scope = Object.create(component)
+            let scope = Object.create(component)
             parent = elms[0]
             scope['item'] = rawCollection[__index]
             scope['customIndex'] = __index
@@ -3691,13 +3760,15 @@ test('Generate code for a template with a simple for-loop on an Element with a c
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
 
         created[1].length = 0
-        forloops[1] = null
         eff1 = null
+        // call loop with empty array
+        forloops[1]([], elms, created[1])
+        forloops[1] = null
 
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -3748,6 +3819,7 @@ test('Generate code for a template with a simple for-loop on an Element with a k
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -3765,6 +3837,7 @@ test('Generate code for a template with a simple for-loop on an Element with a k
 
     parent = elms[0]
     created[1] = []
+    effects[1] = []
     let from1
     let to1
     forloops[1] = (collection = [], elms, created) => {
@@ -3793,10 +3866,16 @@ test('Generate code for a template with a simple for-loop on an Element with a k
         }
         created.length = 0
         const length = rawCollection.length
-        const effects = []
+        component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
+        for(let i = 0; i < effects[1].length; i++) {
+          const value = effects[1][i]
+          const index = component[Symbol.for('effects')].indexOf(value)
+          if (index > -1) component[Symbol.for('effects')].splice(index, 1)
+        }
+        effects[1].length = 0
         for (let __index = 0; __index < length; __index++) {
             if (__index < from1 || __index >= to1) continue
-            const scope = Object.create(component)
+            let scope = Object.create(component)
             parent = elms[0]
             scope['item'] = rawCollection[__index]
             scope['undefined'] = __index
@@ -3834,13 +3913,15 @@ test('Generate code for a template with a simple for-loop on an Element with a k
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
 
         created[1].length = 0
-        forloops[1] = null
         eff1 = null
+        // call loop with empty array
+        forloops[1]([], elms, created[1])
+        forloops[1] = null
 
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -3891,6 +3972,7 @@ test('Generate code for a template with a simple for-loop on a Component with a 
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -3908,6 +3990,7 @@ test('Generate code for a template with a simple for-loop on a Component with a 
 
     parent = elms[0]
     created[1] = []
+    effects[1] = []
     let from1
     let to1
     forloops[1] = (collection = [], elms, created) => {
@@ -3941,10 +4024,16 @@ test('Generate code for a template with a simple for-loop on a Component with a 
         }
         created.length = 0
         const length = rawCollection.length
-        const effects = []
+        component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
+        for(let i = 0; i < effects[1].length; i++) {
+          const value = effects[1][i]
+          const index = component[Symbol.for('effects')].indexOf(value)
+          if (index > -1) component[Symbol.for('effects')].splice(index, 1)
+        }
+        effects[1].length = 0
         for (let __index = 0; __index < length; __index++) {
             if (__index < from1 || __index >= to1) continue
-            const scope = Object.create(component)
+            let scope = Object.create(component)
             parent = elms[0]
             scope['item'] = rawCollection[__index]
             scope['myIndex'] = __index
@@ -4014,11 +4103,9 @@ test('Generate code for a template with a simple for-loop on a Component with a 
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
 
         created[1].length = 0
-        forloops[1] = null
 
         cmps[1] = null
 
@@ -4027,6 +4114,11 @@ test('Generate code for a template with a simple for-loop on a Component with a 
 
         eff1 = null
 
+        // call loop with empty array
+        forloops[1]([], elms, created[1])
+        forloops[1] = null
+
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -4078,6 +4170,7 @@ test('Generate code for a template with a simple for-loop on an Element with an 
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -4095,6 +4188,7 @@ test('Generate code for a template with a simple for-loop on an Element with an 
 
     parent = elms[0]
     created[1] = []
+    effects[1] = []
     let from1
     let to1
     forloops[1] = (collection = [], elms, created) => {
@@ -4124,10 +4218,16 @@ test('Generate code for a template with a simple for-loop on an Element with an 
         }
         created.length = 0
         const length = rawCollection.length
-        const effects = []
+        component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
+        for(let i = 0; i < effects[1].length; i++) {
+          const value = effects[1][i]
+          const index = component[Symbol.for('effects')].indexOf(value)
+          if (index > -1) component[Symbol.for('effects')].splice(index, 1)
+        }
+        effects[1].length = 0
         for (let __index = 0; __index < length; __index++) {
             if (__index < from1 || __index >= to1) continue
-            const scope = Object.create(component)
+            let scope = Object.create(component)
             parent = elms[0]
             scope['item'] = rawCollection[__index]
             scope['undefined'] = __index
@@ -4167,14 +4267,17 @@ test('Generate code for a template with a simple for-loop on an Element with an 
             rootComponent = null
             propData = null
             slotComponent = null
-            component = null
             parent = null
 
             created[1].length = 0
-            forloops[1] = null
 
             eff1 = null
 
+            // call loop with empty array
+            forloops[1]([], elms, created[1])
+            forloops[1] = null
+
+            component = null
             cmps.length = 0
             elms.length = 0
             components.length = 0
@@ -4221,6 +4324,7 @@ test('Generate code for a template with double $$ (i.e. referencing a Blits plug
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -4246,8 +4350,8 @@ test('Generate code for a template with double $$ (i.e. referencing a Blits plug
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -4303,6 +4407,7 @@ test('Generate code for a template with verification of dynamic attributes', (as
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -4350,8 +4455,8 @@ test('Generate code for a template with verification of dynamic attributes', (as
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -4396,6 +4501,7 @@ test('Generate code for a template with verification of reactive attributes', (a
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -4444,8 +4550,8 @@ test('Generate code for a template with verification of reactive attributes', (a
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -4517,6 +4623,7 @@ test('Generate code for a template with attribute values verified against a nest
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -4569,8 +4676,8 @@ test('Generate code for a template with attribute values verified against a nest
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -4642,6 +4749,7 @@ test('Generate code for a template with verification of attributes with Math cal
     const forloops = []
     const props = []
     const created = []
+    const effects = {}
     const skips = []
     let componentType
     let rootComponent = component
@@ -4696,8 +4804,8 @@ test('Generate code for a template with verification of attributes with Math cal
         rootComponent = null
         propData = null
         slotComponent = null
-        component = null
         parent = null
+        component = null
         cmps.length = 0
         elms.length = 0
         components.length = 0

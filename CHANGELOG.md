@@ -1,8 +1,42 @@
 # Changelog
 
+
+## v1.40.1
+
+_10 Oct 2025_
+
+- Downgraded renderer to 2.18.2
+
+## v1.40.0
+
+_10 Oct 2025_
+
+- Improved memory management in the for loop by efficiently removing effects
+
+## v1.39.4
+
+_9 Oct 2025_
+
+- Bumped Lightning renderer to 2.18.3
+
+
+## v1.39.3
+
+_2 Oct 2025_
+
+- Bumped Lightning renderer to 2.18.2
+
+
+## v1.39.2
+
+_2 Oct 2025_
+
+- Bumped Lightning renderer to 2.18.0
+
+
 ## v1.39.1
 
-_20 Sept 2025_
+_26 Sept 2025_
 
 - Bumped Lightning renderer to 2.17.0
 

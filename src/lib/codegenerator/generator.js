@@ -26,6 +26,7 @@ export default function (templateObject = { children: [] }, devMode = false) {
       'const forloops = []',
       'const props = []',
       'const created = []',
+      'const effects = {}',
       'const skips = []',
       'let componentType',
       'let rootComponent = component',
@@ -40,7 +41,6 @@ export default function (templateObject = { children: [] }, devMode = false) {
       'rootComponent = null',
       'propData = null',
       'slotComponent = null',
-      'component = null',
       'parent = null',
     ],
     context: { props: [], components: this.components },
@@ -73,6 +73,7 @@ export default function (templateObject = { children: [] }, devMode = false) {
   ctx.renderCode.push(`
     return { elms, cleanup: () => {
       ${ctx.cleanupCode.join('\n')}
+      component = null
       cmps.length = 0
       elms.length = 0
       components.length = 0
@@ -388,6 +389,7 @@ const generateForLoopCode = function (templateObject, parent) {
   delete templateObject[':range']
 
   const key = templateObject['key']
+  const forStartCounter = counter
   const forKey = interpolate(key, 'scope.')
 
   const shallow = !!!(
@@ -432,10 +434,9 @@ const generateForLoopCode = function (templateObject, parent) {
     }
   }
 
-  const forStartCounter = counter
-
   ctx.renderCode.push(`
     created[${forStartCounter}] = []
+    effects[${forStartCounter}] = []
 
     let from${forStartCounter}
     let to${forStartCounter}
@@ -445,7 +446,7 @@ const generateForLoopCode = function (templateObject, parent) {
       const keys = new Set()
       let l = rawCollection.length
 
-      const range = ${interpolate(range)} || {}
+      const range = ${interpolate(range, 'component?.')} || {}
       from${forStartCounter} = range['from'] || 0
       to${forStartCounter} = 'to' in range ? range['to'] : rawCollection.length
 
@@ -455,7 +456,6 @@ const generateForLoopCode = function (templateObject, parent) {
 
   ctx.cleanupCode.push(`
     created[${forStartCounter}].length = 0
-    forloops[${forStartCounter}] = null
   `)
 
   // push reference of index variable
@@ -479,10 +479,19 @@ const generateForLoopCode = function (templateObject, parent) {
   ctx.renderCode.push(`
       created.length = 0
       const length = rawCollection.length
-      const effects = []
+
+      component !== null && component[Symbol.for('removeGlobalEffects')](effects[${forStartCounter}])
+
+      for(let i = 0; i < effects[${forStartCounter}].length; i++) {
+        const value = effects[${forStartCounter}][i]
+        const index = component[Symbol.for('effects')].indexOf(value)
+        if (index > -1) component[Symbol.for('effects')].splice(index, 1)
+      }
+
+      effects[${forStartCounter}].length = 0
       for(let __index = 0; __index < length; __index++) {
         if(__index < from${forStartCounter} || __index >= to${forStartCounter}) continue
-        const scope = Object.create(component)
+        let scope = Object.create(component)
         parent = ${parent}
         scope['${item}'] = rawCollection[__index]
   `)
@@ -542,8 +551,7 @@ const generateForLoopCode = function (templateObject, parent) {
 
   if (shallow === false) {
     ctx.renderCode.push(`
-      scope['${item}'] = null
-      scope['${item}'] = collection[__index]
+      scope = Object.assign(collection[__index], scope)
   `)
   }
 
@@ -556,7 +564,7 @@ const generateForLoopCode = function (templateObject, parent) {
           ${effect}
         }
         effect(eff${index}, ${key})
-        effects.push(eff${index})
+        effects[${forStartCounter}].push(eff${index})
         component[Symbol.for('effects')].push(eff${index})
       `)
     } else {
@@ -615,11 +623,14 @@ const generateForLoopCode = function (templateObject, parent) {
 
     component[Symbol.for('effects')].push(eff${forStartCounter})
 
-    effect(eff${forStartCounter}, ['${effectKey}', ${effectKeys.join(',')}] )
+    effect(eff${forStartCounter}, ['${effectKey}', ${effectKeys.join(',')}])
   `)
 
   ctx.cleanupCode.push(`
     eff${forStartCounter} = null
+    // call loop with empty array
+    forloops[${forStartCounter}]([], elms, created[${forStartCounter}])
+    forloops[${forStartCounter}] = null
   `)
 
   outerScopeEffects.forEach((effect, outerScopeEffectsIndex) => {
