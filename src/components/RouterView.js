@@ -30,6 +30,7 @@ export default () =>
     state() {
       return {
         activeView: null,
+        preventHashChangeNavigation: false,
       }
     },
     hooks: {
@@ -37,7 +38,13 @@ export default () =>
         if (this.parent[symbols.routerHooks] && this.parent[symbols.routerHooks].init) {
           await this.parent[symbols.routerHooks].init.apply(this.parent)
         }
-        hashchangeHandler = () => Router.navigate.apply(this)
+        hashchangeHandler = () => {
+          if (this[symbols.state].preventHashChangeNavigation) {
+            this[symbols.state].preventHashChangeNavigation = false
+            return
+          }
+          Router.navigate.apply(this)
+        }
         Router.navigate.apply(this)
         window.addEventListener('hashchange', hashchangeHandler)
       },
