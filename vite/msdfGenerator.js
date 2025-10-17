@@ -18,6 +18,7 @@
 import path from 'path'
 import * as fs from 'fs'
 import { createHash } from 'crypto'
+import { createRequire } from 'module'
 
 class TaskQueue {
   constructor() {
@@ -47,14 +48,22 @@ async function loadMsdfModules() {
   if (msdfLoaded) return true
 
   try {
-    const msdfGenerator = await import('@lightningjs/msdf-generator')
+    // Create a require function that resolves from the app's working directory
+    // This ensures the msdf-generator is resolved from the app's node_modules
+    const userRequire = createRequire(process.cwd() + '/')
+
+    const msdfGeneratorPath = userRequire.resolve('@lightningjs/msdf-generator')
+    const msdfGeneratorUrl = new URL(`file:///${msdfGeneratorPath.replace(/\\/g, '/')}`).href
+    const msdfGenerator = await import(msdfGeneratorUrl)
     genFont = msdfGenerator.genFont
     setGeneratePaths = msdfGenerator.setGeneratePaths
 
-    const adjustFontModule = await import('@lightningjs/msdf-generator/adjustFont')
+    const adjustFontPath = userRequire.resolve('@lightningjs/msdf-generator/adjustFont')
+    const adjustFontUrl = new URL(`file:///${adjustFontPath.replace(/\\/g, '/')}`).href
+    const adjustFontModule = await import(adjustFontUrl)
     adjustFont = adjustFontModule.adjustFont
     return true
-  } catch (err) {
+  } catch {
     return false
   }
 }
