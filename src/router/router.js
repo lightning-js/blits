@@ -250,20 +250,24 @@ export const navigate = async function () {
     currentRoute = route
 
     if (route) {
+      const currentPath = currentRoute.path
       let beforeEachResult
       if (this.parent[symbols.routerHooks]) {
         const hooks = this.parent[symbols.routerHooks]
         if (hooks.beforeEach) {
           beforeEachResult = await hooks.beforeEach.call(this.parent, route, previousRoute)
           if (isString(beforeEachResult)) {
+            currentRoute = previousRoute
             to(beforeEachResult)
             return
           }
+          // If the resolved result is an object, redirect if the path in the object was changed
+          if (isObject(beforeEachResult) === true && beforeEachResult.path !== currentPath) {
+            currentRoute = previousRoute
+            to(beforeEachResult.path, beforeEachResult.data, beforeEachResult.options)
+            return
+          }
         }
-      }
-      // If the resolved result is an object, assign it to the target route object
-      if (isObject(beforeEachResult) === true) {
-        route = beforeEachResult
       }
 
       let beforeHookOutput
@@ -274,10 +278,12 @@ export const navigate = async function () {
           to(beforeHookOutput)
           return
         }
-      }
-      // If the resolved result is an object, assign it to the target route object
-      if (isObject(beforeHookOutput) === true) {
-        route = beforeHookOutput
+        // If the resolved result is an object, redirect if the path in the object was changed
+        if (isObject(beforeHookOutput) === true && beforeHookOutput.path !== currentPath) {
+          currentRoute = previousRoute
+          to(beforeHookOutput.path, beforeHookOutput.data, beforeHookOutput.options)
+          return
+        }
       }
       // add the previous route (technically still the current route at this point)
       // into the history stack when inHistory is true and we're not navigating back
