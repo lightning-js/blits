@@ -605,3 +605,80 @@ test('Router updates state.path, state.params, and state.data correctly', async 
   stage.element = originalElement
   assert.end()
 })
+
+test('Before hook route object redirect', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({ populate() {}, set() {}, parent })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    parent: {
+      [symbols.routes]: [
+        {
+          path: '/original',
+          component: TestComponent,
+          hooks: {
+            before() {
+              return { path: '/redirected', component: TestComponent }
+            },
+          },
+        },
+        { path: '/redirected', component: TestComponent },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/original')
+  await navigate.call(host)
+  assert.equal(window.location.hash, '#/redirected', 'Should redirect to new path')
+  stage.element = originalElement
+  assert.end()
+})
+
+test('BeforeEach hook route object redirect', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({ populate() {}, set() {}, parent })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    parent: {
+      [symbols.routes]: [
+        { path: '/original', component: TestComponent },
+        { path: '/redirected', component: TestComponent },
+      ],
+      [symbols.routerHooks]: {
+        beforeEach() {
+          return { path: '/redirected', component: TestComponent }
+        },
+      },
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/original')
+  await navigate.call(host)
+  assert.equal(window.location.hash, '#/redirected', 'Should redirect via beforeEach hook')
+  stage.element = originalElement
+  assert.end()
+})
+
+test('Route meta data is accessible in route object', async (assert) => {
+  const route = { path: '/test', meta: { auth: true, role: 'admin' } }
+  assert.deepEqual(
+    route.meta,
+    { auth: true, role: 'admin' },
+    'Should have access to route meta data'
+  )
+  assert.end()
+})
