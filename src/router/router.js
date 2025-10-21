@@ -220,6 +220,7 @@ const makeRouteObject = (route, overrides) => {
     hooks: route.hooks || {},
     data: { ...route.data, ...navigationData, ...overrides.queryParams },
     params: overrides.params || {},
+    meta: route.meta || {},
   }
 
   return cleanRoute
