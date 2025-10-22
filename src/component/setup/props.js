@@ -20,7 +20,8 @@ import symbols from '../../lib/symbols.js'
 
 const normalizeProps = (props) => {
   Log.warn(
-    'Defining props as an Array has been deprecated and will stop working in future versions. Please use the new notation instead (an object with key values pairs).'
+    'Defining props as an Array has been deprecated and will stop working in future versions. Please use the new notation instead (an object with key values pairs).',
+    props
   )
   const out = {}
   const propLength = props.length
