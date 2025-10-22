@@ -272,10 +272,22 @@ export const navigate = async function () {
 
       let beforeHookOutput
       if (route.hooks.before) {
-        beforeHookOutput = await route.hooks.before.call(this.parent, route, previousRoute)
-        if (isString(beforeHookOutput)) {
+        try {
+          beforeHookOutput = await route.hooks.before.call(this.parent, route, previousRoute)
+          if (isString(beforeHookOutput)) {
+            currentRoute = previousRoute
+            to(beforeHookOutput)
+            return
+          }
+        } catch (error) {
+          console.error('Error or Rejected Promise', error)
+
+          this[symbols.state].preventHashChangeNavigation = true
           currentRoute = previousRoute
-          to(beforeHookOutput)
+          window.history.back()
+
+          navigatingBack = false
+          state.navigating = false
           return
         }
         // If the resolved result is an object, redirect if the path in the object was changed
