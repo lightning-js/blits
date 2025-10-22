@@ -299,7 +299,7 @@ declare module '@lightningjs/blits' {
     *
     * @returns Boolean
     */
-    $hasFocus: boolean,
+    readonly $hasFocus: boolean,
 
     /**
     * Listen to events emitted by other components
