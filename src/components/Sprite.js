@@ -22,9 +22,15 @@ import symbols from '../lib/symbols.js'
 export default () =>
   Component('Sprite', {
     template: `
-      <Element w="100%" h="100%" :texture="$texture" :color="$color" />
+      <Element w="100%" h="100%" :texture="$texture" :color="$color" :effects="$effects" />
     `,
-    props: ['image', 'map', 'frame', 'color'],
+    props: {
+      image: undefined,
+      map: undefined,
+      frame: undefined,
+      color: undefined,
+      effects: undefined,
+    },
     state() {
       return {
         spriteTexture: null,
@@ -32,6 +38,10 @@ export default () =>
     },
     computed: {
       texture() {
+        if (!this.map || this.frame === undefined) {
+          return null
+        }
+
         const options =
           'frames' in this.map
             ? Object.assign({}, this.map.defaults || {}, this.map.frames[this.frame])
@@ -50,9 +60,11 @@ export default () =>
     },
     hooks: {
       ready() {
-        this.spriteTexture = this[symbols.renderer]().createTexture('ImageTexture', {
-          src: this.image,
-        })
+        if (this.image) {
+          this.spriteTexture = this[symbols.renderer]().createTexture('ImageTexture', {
+            src: this.image,
+          })
+        }
       },
     },
   })
