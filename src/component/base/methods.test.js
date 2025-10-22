@@ -10,7 +10,6 @@ import lifecycle from '../../lib/lifecycle.js'
 test('Methods - Should contain all the defined methods', (assert) => {
   const component = Object.defineProperties({}, { ...methods })
 
-  assert.equal(typeof component.focus, 'function', 'should have focus method')
   assert.equal(typeof component.$focus, 'function', 'should have $focus method')
   assert.equal(typeof component.unfocus, 'function', 'should have unfocus method')
   assert.equal(typeof component.destroy, 'function', 'should have destroy method')
@@ -19,11 +18,8 @@ test('Methods - Should contain all the defined methods', (assert) => {
     'function',
     'should have removeGlobalEffects method'
   )
-  assert.equal(typeof component.trigger, 'function', 'should have trigger method')
   assert.equal(typeof component.$trigger, 'function', 'should have $trigger method')
-  assert.equal(typeof component.select, 'function', 'should have select method')
   assert.equal(typeof component.$select, 'function', 'should have $select method')
-  assert.equal(typeof component.shader, 'function', 'should have $shader method')
   assert.end()
 })
 

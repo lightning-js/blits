@@ -574,7 +574,7 @@ test('Router updates state.path, state.params, and state.data correctly', async 
   })
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [
         {
           path: '/cap/:id',

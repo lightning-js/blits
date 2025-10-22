@@ -364,7 +364,7 @@ test('Component - Instance should execute all side effects', (assert) => {
   assert.equals(calls.args[2], config, 'Effect should be invoked with config object')
   assert.ok(calls.args[3].Sprite, 'Effect should be invoked with global components object')
   assert.equals(calls.args[4], root, 'Effect should be invoked with root component')
-  assert.ok(typeof calls.args[5] === 'function', 'Effect should be invoked with effect function')
+  assert.ok(typeof calls.args[6] === 'function', 'Effect should be invoked with effect function')
   assert.end()
 })
 

@@ -1566,11 +1566,8 @@ test('Generate code for a template with custom components', (assert) => {
         cmps[3] = null
         props[4] = null
         components[4] = null
-<<<<<<< HEAD
-=======
 
         component = null
->>>>>>> master
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -1743,11 +1740,8 @@ test('Generate code for a template with an unregistered custom component', (asse
         cmps[3] = null
         props[4] = null
         components[4] = null
-<<<<<<< HEAD
-=======
 
         component = null
->>>>>>> master
         cmps.length = 0
         elms.length = 0
         components.length = 0
@@ -1917,30 +1911,6 @@ test('Generate code for a template with custom components with arguments', (asse
     }
 
     return {
-<<<<<<< HEAD
-        elms,
-        cleanup: () => {
-            rootComponent = null
-            propData = null
-            slotComponent = null
-            component = null
-            parent = null
-            cmps[1] = null
-            props[2] = null
-            components[2] = null
-            cmps[3] = null
-            props[4] = null
-            components[4] = null
-            cmps.length = 0
-            elms.length = 0
-            components.length = 0
-            elementConfigs.length = 0
-            forloops.length = 0
-            props.length = 0
-            skips.length = 0
-        },
-        skips
-=======
       elms,
       cleanup: () => {
         rootComponent = null
@@ -1962,7 +1932,6 @@ test('Generate code for a template with custom components with arguments', (asse
         props.length = 0
         skips.length = 0
       }
->>>>>>> master
     }
   }`
 
@@ -2098,27 +2067,6 @@ test('Generate code for a template with custom components with argument value as
     }
 
     return {
-<<<<<<< HEAD
-        elms,
-        cleanup: () => {
-            rootComponent = null
-            propData = null
-            slotComponent = null
-            component = null
-            parent = null
-            cmps[1] = null
-            props[2] = null
-            components[2] = null
-            cmps.length = 0
-            elms.length = 0
-            components.length = 0
-            elementConfigs.length = 0
-            forloops.length = 0
-            props.length = 0
-            skips.length = 0
-        },
-        skips
-=======
       elms,
       cleanup: () => {
         rootComponent = null
@@ -2137,7 +2085,6 @@ test('Generate code for a template with custom components with argument value as
         props.length = 0
         skips.length = 0
       }
->>>>>>> master
     }
   }`
 
@@ -2311,30 +2258,6 @@ test('Generate code for a template with custom components with reactive props', 
     }
 
     return {
-<<<<<<< HEAD
-        elms,
-        cleanup: () => {
-            rootComponent = null
-            propData = null
-            slotComponent = null
-            component = null
-            parent = null
-            cmps[1] = null
-            props[2] = null
-            components[2] = null
-            cmps[3] = null
-            props[4] = null
-            components[4] = null
-            cmps.length = 0
-            elms.length = 0
-            components.length = 0
-            elementConfigs.length = 0
-            forloops.length = 0
-            props.length = 0
-            skips.length = 0
-        },
-        skips
-=======
       elms,
       cleanup: () => {
         rootComponent = null
@@ -2356,7 +2279,6 @@ test('Generate code for a template with custom components with reactive props', 
         props.length = 0
         skips.length = 0
       }
->>>>>>> master
     }
   }`
 
@@ -3181,22 +3103,6 @@ test('Generate code for a template with inline dynamic Text embedded in static t
       slotChildCounter -= 1
     }
 
-<<<<<<< HEAD
-    return { elms, cleanup: () => {
-      rootComponent = null
-      propData = null
-      slotComponent = null
-      component = null
-      parent = null
-      cmps.length = 0
-      elms.length = 0
-      components.length = 0
-      elementConfigs.length = 0
-      forloops.length = 0
-      props.length = 0
-      skips.length = 0
-      }, skips
-=======
     return {
       elms,
       cleanup: () => {
@@ -3213,7 +3119,6 @@ test('Generate code for a template with inline dynamic Text embedded in static t
         props.length = 0
         skips.length = 0
       }
->>>>>>> master
     }
   }
   `
@@ -4271,19 +4176,6 @@ test('Generate code for a template with a simple for-loop on a Component with a 
         if (elms[1][scope.key] === undefined) {
           elms[1][scope.key] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
         }
-<<<<<<< HEAD
-
-        skips[1] = []
-
-        if (typeof cmps[1] !== 'undefined' && cmps[1][Symbol.for('config')].props !== undefined) {
-          let props = cmps[1][Symbol.for('config')].props
-          if (Array.isArray(props) === false) props = Object.keys(cmps[1][Symbol.for('config')].props)
-          for (let k = 0; k < props.length; k++) {
-            const key = props[k]
-            delete elementConfigs[1][key]
-            skips[1].push(key)
-          }
-=======
         created.length = 0
         const length = rawCollection.length
         component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
@@ -4347,7 +4239,6 @@ test('Generate code for a template with a simple for-loop on a Component with a 
                     parent = elms[2][scope.key][Symbol.for('children')][0]
                 }
             }
->>>>>>> master
         }
 
         if (elms[1][scope.key].nodeId === undefined) {
@@ -4407,24 +4298,16 @@ test('Generate code for a template with a simple for-loop on a Component with a 
         slotComponent = null
         parent = null
         created[1].length = 0
-<<<<<<< HEAD
-        forloops[1] = null
-=======
-
->>>>>>> master
         cmps[1] = null
         props[2] = null
         components[2] = null
         eff1 = null
-<<<<<<< HEAD
-=======
 
         // call loop with empty array
         forloops[1]([], elms, created[1])
         forloops[1] = null
 
         component = null
->>>>>>> master
         cmps.length = 0
         elms.length = 0
         components.length = 0
