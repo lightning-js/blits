@@ -293,6 +293,9 @@ declare module '@lightningjs/blits' {
     }
   }
 
+  type SettingsKey = keyof RendererSettings;
+  type SettingsValue<K extends SettingsKey> = RendererSettings[K];
+
   export type ComponentBase = {
     /**
     * Indicates whether the component currently has focus
@@ -391,6 +394,11 @@ declare module '@lightningjs/blits' {
        */
       h: number
     }) => void
+
+    /**
+     * Update the renderer settings
+     */
+    $settings: <K extends SettingsKey>(key: K, value: SettingsValue<K>) => void
   }
 
   /**
@@ -771,13 +779,7 @@ declare module '@lightningjs/blits' {
   type ReactivityModes = 'Proxy' | 'defineProperty'
   type RenderModes = 'webgl' | 'canvas'
 
-    /**
-   * Settings
-   *
-   * Launcher function that sets up the Lightning renderer and instantiates
-   * the Blits App
-   */
-  export interface Settings {
+  export interface RendererSettings {
     /**
      * Width of the Application
      */
@@ -786,6 +788,155 @@ declare module '@lightningjs/blits' {
      * Height of the Application
      */
     h?: number,
+        /**
+     * Configures the gpu memory settings used by the renderer
+     */
+    gpuMemory?: {
+      /**
+       * Maximum GPU memory threshold (in `mb`) after which
+       * the renderer will immediately start cleaning up textures to free
+       * up graphical memory
+       *
+       * When setting to `0`, texture memory management is disabled
+       *
+       * @default `200`
+       */
+      max?: number,
+      /**
+       * Target threshold of GPU memory usage, defined as a fraction of
+       * the max threshold. The renderer will attempt to keep memory
+       * usage below this target by cleaning up non-renderable textures
+       *
+       * @default `0.8`
+       */
+      target?: number,
+      /**
+       * Interval at which regular texture cleanups occur (in `ms`)
+       *
+       * @default `5000`
+       */
+      cleanupInterval?: number,
+      /**
+       * Baseline GPU memory usage of the App (in `mb`), without rendering any
+       * textures. This value will be used as a basis when calculating
+       * the total memory usage towards the max and target memory
+       * usage
+       *
+       * @default `25`
+       */
+      baseline?: number,
+      /**
+       * Whether or not the max threshold should be considered
+       * as a strict number that can not be exceeded in any way
+       *
+       * When set to `true`, new textures won't be created when the
+       * max threshold has been reached, until agressive texture cleanup
+       * has brought the memory back down
+       *
+       * @default false
+       */
+      strict?: boolean,
+    },
+    /**
+     * Add an extra margin to the viewport for earlier pre-loading of elements and components
+     *
+     * By default the Lightning renderer, only renders elements that are inside the defined viewport.
+     * Everything outside of these bounds is removed from the render tree.
+     *
+     * With the viewportMargin you have the option to _virtually_ increase the viewport area,
+     * to expedite the pre-loading of elements and / or delay the unloading of elements depending
+     * on their position in the (virtual) viewport
+     *
+     * The margin can be specified in 4 directions by defining an array [top, right, bottom, left],
+     * or as a single number which is then applied to all 4 directions equally.
+     *
+     * Defaults to `0`
+     */
+    viewportMargin?: number | [number, number, number, number],
+    /**
+    * Custom pixel ratio of the device used to convert dimensions
+    * and positions in the App code to the actual device logical coordinates
+    *
+    * Takes presedence over the `screenResolution` setting
+    *
+    * Defaults to 1 if not specified
+    */
+    pixelRatio?: number,
+    /**
+    * Controls the quality of the rendered App.
+    *
+    * Setting a lower quality leads to less detail on screen, but can positively affect overall
+    * performance and smoothness of the App (i.e. a higher FPS).
+    *
+    * The render quality can be one of the following presets:
+    *
+    * - `low` => 66% quality
+    * - `medium` => 85% quality
+    * - `high` => 100% quality
+    * - `retina` => 200% quality
+    *
+    * It's also possible to provide a custom value as a (decimal) number:
+    *
+    * - `0.2` => 20% quality
+    * - `1.5` => 150% quality
+    *
+    * Defaults to 1 (high quality) when not specified
+    */
+    renderQuality?: RenderQualities,
+    /**
+     * Background color of the canvas (also known as the clearColor)
+     *
+     * Can be a color name (red, blue, silver), a hexadecimal color (`#000000`, `#ccc`),
+     * or a color number in rgba order (`0xff0033ff`)
+     *
+     * Defauls to transparent (`0x00000000`)
+     *
+     */
+    canvasColor?: string,
+    /**
+     * Enable inspector
+     *
+     * Enables the inspector tool for debugging and inspecting the application, the node tree
+     * will be replicated in the DOM and can be inspected using the browser's developer tools
+     *
+     * Defaults to `false`
+     */
+    inspector?: boolean,
+    /**
+     * Interval in milliseconds to receive FPS updates
+     *
+     * @remarks
+     * If set to `0`, FPS updates will be disabled.
+     *
+     * @defaultValue `1000` (disabled)
+     */
+    fpsInterval?: number,
+    /**
+     * The maximum amount of time the renderer is allowed to process textures in a
+     * single frame. If the processing time exceeds this limit, the renderer will
+     * skip processing the remaining textures and continue rendering the frame.
+     *
+     * Defaults to `10`
+     */
+    textureProcessingTimeLimit?: number,
+    /**
+     * Maximum FPS at which the App will be rendered
+     *
+     * Lowering the maximum FPS value can improve the overall experience on lower end devices.
+     * Targetting a lower FPS may gives the CPU more time to construct each frame leading to a smoother rendering.
+     *
+     * Defaults to `0` which means no maximum
+     */
+    maxFPS?: number
+  }
+
+    /**
+   * Settings
+   *
+   * Launcher function that sets up the Lightning renderer and instantiates
+   * the Blits App
+   */
+  export interface Settings extends RendererSettings{
     /**
      * Whether to enable multithreaded
      */
@@ -848,45 +999,7 @@ declare module '@lightningjs/blits' {
     * - 2160
     */
     screenResolution?: ScreenResolutions,
-    /**
-    * Controls the quality of the rendered App.
-    *
-    * Setting a lower quality leads to less detail on screen, but can positively affect overall
-    * performance and smoothness of the App (i.e. a higher FPS).
-    *
-    * The render quality can be one of the following presets:
-    *
-    * - `low` => 66% quality
-    * - `medium` => 85% quality
-    * - `high` => 100% quality
-    * - `retina` => 200% quality
-    *
-    * It's also possible to provide a custom value as a (decimal) number:
-    *
-    * - `0.2` => 20% quality
-    * - `1.5` => 150% quality
-    *
-    * Defaults to 1 (high quality) when not specified
-    */
-    renderQuality?: RenderQualities,
-    /**
-    * Custom pixel ratio of the device used to convert dimensions
-    * and positions in the App code to the actual device logical coordinates
-    *
-    * Takes presedence over the `screenResolution` setting
-    *
-    * Defaults to 1 if not specified
-    */
-    pixelRatio?: number
-    /**
-     * Interval in milliseconds to receive FPS updates
-     *
-     * @remarks
-     * If set to `0`, FPS updates will be disabled.
-     *
-     * @defaultValue `1000` (disabled)
-     */
-    fpsInterval?: number
+
     /**
     * Maximum number of web workers to spin up simultaneously for offloading functionality such
     * as image loading to separate threads (when supported by the browser)
@@ -896,90 +1009,6 @@ declare module '@lightningjs/blits' {
     */
     webWorkersLimit?: number
     /**
-     * Background color of the canvas (also known as the clearColor)
-     *
-     * Can be a color name (red, blue, silver), a hexadecimal color (`#000000`, `#ccc`),
-     * or a color number in rgba order (`0xff0033ff`)
-     *
-     * Defauls to transparent (`0x00000000`)
-     *
-     */
-    canvasColor?: string,
-    /**
-     * Enable inspector
-     *
-     * Enables the inspector tool for debugging and inspecting the application, the node tree
-     * will be replicated in the DOM and can be inspected using the browser's developer tools
-     *
-     * Defaults to `false`
-     */
-    inspector?: boolean,
-    /**
-     * Add an extra margin to the viewport for earlier pre-loading of elements and components
-     *
-     * By default the Lightning renderer, only renders elements that are inside the defined viewport.
-     * Everything outside of these bounds is removed from the render tree.
-     *
-     * With the viewportMargin you have the option to _virtually_ increase the viewport area,
-     * to expedite the pre-loading of elements and / or delay the unloading of elements depending
-     * on their position in the (virtual) viewport
-     *
-     * The margin can be specified in 4 directions by defining an array [top, right, bottom, left],
-     * or as a single number which is then applied to all 4 directions equally.
-     *
-     * Defaults to `0`
-     */
-    viewportMargin?: number | [number, number, number, number],
-    /**
-     * Configures the gpu memory settings used by the renderer
-     */
-    gpuMemory?: {
-      /**
-       * Maximum GPU memory threshold (in `mb`) after which
-       * the renderer will immediately start cleaning up textures to free
-       * up graphical memory
-       *
-       * When setting to `0`, texture memory management is disabled
-       *
-       * @default `200`
-       */
-      max?: number,
-      /**
-       * Target threshold of GPU memory usage, defined as a fraction of
-       * the max threshold. The renderer will attempt to keep memory
-       * usage below this target by cleaning up non-renderable textures
-       *
-       * @default `0.8`
-       */
-      target?: number,
-      /**
-       * Interval at which regular texture cleanups occur (in `ms`)
-       *
-       * @default `5000`
-       */
-      cleanupInterval?: number,
-      /**
-       * Baseline GPU memory usage of the App (in `mb`), without rendering any
-       * textures. This value will be used as a basis when calculating
-       * the total memory usage towards the max and target memory
-       * usage
-       *
-       * @default `25`
-       */
-      baseline?: number,
-      /**
-       * Whether or not the max threshold should be considered
-       * as a strict number that can not be exceeded in any way
-       *
-       * When set to `true`, new textures won't be created when the
-       * max threshold has been reached, until agressive texture cleanup
-       * has brought the memory back down
-       *
-       * @default false
-       */
-      strict?: boolean,
-    },
-    /**
      * Defines which mode the renderer should operate in: `webgl` or `canvas`
      *
      * SDF fonts are not supported in _canvas_ renderMode. Instead, _web_ fonts should
@@ -988,7 +1017,6 @@ declare module '@lightningjs/blits' {
      * Defaults to `webgl`
      */
     renderMode?: RenderModes,
-
     /**
      * The time, in milliseconds, after which Blits considers a key press a _hold_ key press
      *
@@ -1020,14 +1048,6 @@ declare module '@lightningjs/blits' {
      */
     canvas?: HTMLCanvasElement,
     /**
-     * The maximum amount of time the renderer is allowed to process textures in a
-     * single frame. If the processing time exceeds this limit, the renderer will
-     * skip processing the remaining textures and continue rendering the frame.
-     *
-     * Defaults to `10`
-     */
-    textureProcessingTimeLimit?: number,
-    /**
      * Advanced renderer settings to override Blits launch settings, or configure
      * settings that are not officially exposed in Blits yet
      *
@@ -1049,15 +1069,6 @@ declare module '@lightningjs/blits' {
      * @default false
      */
     announcer?: boolean
-    /**
-     * Maximum FPS at which the App will be rendered
-     *
-     * Lowering the maximum FPS value can improve the overall experience on lower end devices.
-     * Targetting a lower FPS may gives the CPU more time to construct each frame leading to a smoother rendering.
-     *
-     * Defaults to `0` which means no maximum
-     */
-    maxFPS?: number
   }
 
   interface State {
