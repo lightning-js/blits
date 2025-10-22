@@ -1,5 +1,55 @@
 # Changelog
 
+## v1.41.0
+
+_16 Oct 2025_
+
+- Improved overall test coverage to 86%
+- Filtered out inspector-data entirely in production
+- Improved vite plugin that handles computed props to be more robust
+- Fixed issue with global reactive object that are deeply nested
+- Bumped MSDF generator dependency to address security issues in dependencies
+
+## v1.40.1
+
+_10 Oct 2025_
+
+- Downgraded renderer to 2.18.2
+
+## v1.40.0
+
+_10 Oct 2025_
+
+- Improved memory management in the for loop by efficiently removing effects
+
+## v1.39.4
+
+_9 Oct 2025_
+
+- Bumped Lightning renderer to 2.18.3
+
+
+## v1.39.3
+
+_2 Oct 2025_
+
+- Bumped Lightning renderer to 2.18.2
+
+
+## v1.39.2
+
+_2 Oct 2025_
+
+- Bumped Lightning renderer to 2.18.0
+
+
+## v1.39.1
+
+_26 Sept 2025_
+
+- Bumped Lightning renderer to 2.17.0
+
+
 ## v1.39.0
 
 _16 Sept 2025_

@@ -16,7 +16,7 @@
  */
 
 import test from 'tape'
-import { trigger, track } from './effect.js'
+import { trigger, track, effect } from './effect.js'
 
 test('Trigger - type', (assert) => {
   const expected = 'function'
@@ -31,5 +31,15 @@ test('Track type', (assert) => {
   const actual = typeof track
 
   assert.equal(actual, expected, 'Track should be a function')
+  assert.end()
+})
+
+test('Effect - Basic Effect', (assert) => {
+  const data = { foo: 'foo', count: 0 }
+  const basicEffect = () => {
+    data.count++
+  }
+  effect(basicEffect)
+  assert.equal(data.count, 1, 'Effect should run once initially and increment count')
   assert.end()
 })

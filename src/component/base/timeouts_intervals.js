@@ -78,7 +78,7 @@ export default {
       const index = this[symbols.intervals].indexOf(intervalId)
       if (index > -1) {
         this[symbols.intervals].splice(index, 1)
-        clearTimeout(intervalId)
+        clearInterval(intervalId)
       }
     },
     writable: false,

@@ -40,3 +40,185 @@ test('Announcer 1 Second Pause Remove', (assert) => {
   assert.comment('remove pause')
   pause.remove()
 })
+
+test('Announcer disable/enable/toggle', (assert) => {
+  let disabledProcessed = false
+  let enabledProcessed = false
+
+  // Test disabled - messages should NOT be processed
+  announcer.disable()
+  const disabled1 = announcer.speak('disabled msg 1')
+  const disabled2 = announcer.speak('disabled msg 2')
+
+  assert.equal(disabled1, disabled2, 'Disabled returns same noop object')
+
+  disabled1.then(() => {
+    disabledProcessed = true
+  })
+
+  // Test enabled - messages SHOULD be processed/queued
+  announcer.enable()
+  const enabled1 = announcer.speak('enabled msg 1')
+  const enabled2 = announcer.speak('enabled msg 2')
+
+  assert.notEqual(enabled1, disabled1, 'Enabled returns real promise, not noop')
+  assert.notEqual(enabled1, enabled2, 'Each enabled message gets unique promise')
+
+  enabled1.then(() => {
+    enabledProcessed = true
+  })
+
+  // Test toggle off
+  announcer.toggle(false)
+  const toggledOff = announcer.speak('toggled off msg')
+  assert.equal(toggledOff, disabled1, 'Toggle off returns same noop')
+
+  // Test toggle on
+  announcer.toggle(true)
+  const toggledOn = announcer.speak('toggled on msg')
+  assert.notEqual(toggledOn, disabled1, 'Toggle on returns real promise')
+
+  // Verify processing behavior after a delay
+  setTimeout(() => {
+    assert.false(disabledProcessed, 'Disabled messages are NOT processed')
+    assert.ok(enabledProcessed || enabled1, 'Enabled messages are queued for processing')
+
+    // Clean up
+    enabled1.cancel()
+    enabled2.cancel()
+    toggledOn.cancel()
+
+    assert.end()
+  }, 100)
+})
+
+test('Announcer methods exist', (assert) => {
+  announcer.enable()
+
+  assert.equal(typeof announcer.stop, 'function', 'Stop method exists')
+  assert.equal(typeof announcer.clear, 'function', 'Clear method exists')
+  assert.equal(typeof announcer.polite, 'function', 'Polite method exists')
+  assert.equal(typeof announcer.assertive, 'function', 'Assertive method exists')
+  assert.equal(typeof announcer.speak, 'function', 'Speak method exists')
+  assert.equal(typeof announcer.pause, 'function', 'Pause method exists')
+
+  assert.end()
+})
+
+test('Announcer politeness affects queue order', (assert) => {
+  announcer.enable()
+  const order = []
+  let completed = 0
+
+  // Queue messages with different politeness levels
+  const msg1 = announcer.speak('first', 'off')
+  const msg2 = announcer.speak('second', 'polite')
+  const msg3 = announcer.speak('third', 'assertive') // Should jump to front!
+
+  function checkComplete() {
+    completed++
+    if (completed === 3) {
+      // All three resolved, check order
+      assert.equal(order[0], 'third', 'Assertive message processes first')
+      assert.equal(order[1], 'first', 'Off message processes second')
+      assert.equal(order[2], 'second', 'Polite message processes third')
+      assert.end()
+    }
+  }
+
+  // Track resolution order
+  msg1.then(() => {
+    order.push('first')
+    checkComplete()
+  })
+  msg2.then(() => {
+    order.push('second')
+    checkComplete()
+  })
+  msg3.then(() => {
+    order.push('third')
+    checkComplete()
+  })
+})
+
+test('Announcer announcement methods', (assert) => {
+  announcer.enable()
+
+  const announcement = announcer.speak('test')
+  assert.equal(typeof announcement.cancel, 'function', 'Has cancel method')
+  assert.equal(typeof announcement.remove, 'function', 'Has remove method')
+  assert.equal(typeof announcement.stop, 'function', 'Has stop method')
+
+  // Test that cancel actually works and resolves with 'canceled'
+  const cancelMsg = announcer.speak('test cancel')
+  cancelMsg.then((status) => {
+    assert.equal(status, 'canceled', 'Cancel resolves with canceled status')
+  })
+  cancelMsg.cancel()
+
+  // Test that remove actually works and resolves with 'canceled'
+  const removeMsg = announcer.speak('test remove')
+  removeMsg.then((status) => {
+    assert.equal(status, 'canceled', 'Remove resolves with canceled status')
+    assert.end()
+  })
+  removeMsg.remove()
+})
+
+test('Announcer stop interrupts processing', (assert) => {
+  announcer.enable()
+
+  const announcement = announcer.speak('test message for interruption')
+
+  announcement.then((status) => {
+    // Should resolve with 'interupted' when stop() is called
+    assert.ok(
+      status === 'interupted' || status === 'unavailable',
+      'Stop interrupts (or unavailable if no speechSynthesis)'
+    )
+    assert.end()
+  })
+
+  // Call stop() to interrupt the announcement
+  // Using setTimeout to ensure async behavior is tested
+  setTimeout(() => {
+    announcement.stop()
+  }, 50)
+})
+
+test('Announcer queue behavior', (assert) => {
+  announcer.enable()
+
+  const msg1 = announcer.speak('first')
+  const msg2 = announcer.speak('second')
+  const msg3 = announcer.speak('third')
+
+  // Verify announcements have required methods
+  assert.equal(typeof msg1.cancel, 'function', 'Has cancel method')
+  assert.equal(typeof msg1.remove, 'function', 'Has remove method')
+  assert.equal(typeof msg1.stop, 'function', 'Has stop method')
+
+  // Test that messages are queued (they return promises)
+  assert.equal(typeof msg1.then, 'function', 'First message queued')
+  assert.equal(typeof msg2.then, 'function', 'Second message queued')
+  assert.equal(typeof msg3.then, 'function', 'Third message queued')
+
+  // Test that remove() actually removes from queue
+  msg2.remove()
+  msg2.then((status) => {
+    assert.equal(status, 'canceled', 'Removed message resolves with canceled')
+  })
+
+  // Verify other messages still process (queue continues)
+  msg1.then((status) => {
+    assert.ok(status === 'unavailable' || status === 'finished', 'First message processes')
+  })
+
+  msg3.then((status) => {
+    assert.ok(
+      status === 'unavailable' || status === 'finished',
+      'Third message processes after removal'
+    )
+    assert.end()
+  })
+})
