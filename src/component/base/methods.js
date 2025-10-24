@@ -204,6 +204,12 @@ export default {
      * @this {import('../../component').BlitsComponent}
      */
     value: function (key, value) {
+      //TODO: Additional eligible blits related settings update goes here
+      if (key === 'debugLevel') {
+        this.$log.level = value
+        return
+      }
+      // Renderer related settings update
       renderer.setOptions({ [rendererSettingsKeyMappings[key]]: value })
     },
     writable: false,

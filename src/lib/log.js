@@ -38,13 +38,13 @@ const time = () => {
  * @returns {Object} Logger object with info, warn, debug, and error methods.
  */
 const logger = (context) => {
-  const level = Settings.get('debugLevel')
   const log = {}
+  log.level = Settings.get('debugLevel')
 
   Object.defineProperty(log, 'info', {
     get() {
       return (
-        ((level >= 1 || (Array.isArray(level) && level.indexOf('info') > -1)) &&
+        ((log.level >= 1 || (Array.isArray(log.level) && log.level.indexOf('info') > -1)) &&
           console.info.bind(
             window.console,
             `%c ⚡️ ${context} %c ${time()}`,
@@ -59,7 +59,7 @@ const logger = (context) => {
   Object.defineProperty(log, 'warn', {
     get() {
       return (
-        ((level >= 1 || (Array.isArray(level) && level.indexOf('warn') > -1)) &&
+        ((log.level >= 1 || (Array.isArray(log.level) && log.level.indexOf('warn') > -1)) &&
           console.warn.bind(
             window.console,
             `%c ⚡️ ${context} %c ${time()}`,
@@ -74,7 +74,7 @@ const logger = (context) => {
   Object.defineProperty(log, 'error', {
     get() {
       return (
-        ((level >= 1 || (Array.isArray(level) && level.indexOf('error') > -1)) &&
+        ((log.level >= 1 || (Array.isArray(log.level) && log.level.indexOf('error') > -1)) &&
           console.error.bind(
             window.console,
             `%c ⚡️ ${context} %c ${time()}`,
@@ -89,7 +89,7 @@ const logger = (context) => {
   Object.defineProperty(log, 'debug', {
     get() {
       return (
-        ((level >= 2 || (Array.isArray(level) && level.indexOf('debug') > -1)) &&
+        ((log.level >= 2 || (Array.isArray(log.level) && log.level.indexOf('debug') > -1)) &&
           console.debug.bind(
             window.console,
             `%c ⚡️ ${context} %c (${new Date().toLocaleTimeString([], {
