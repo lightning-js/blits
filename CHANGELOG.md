@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.41.1
+
+_Current Release_
+
+- Added effects prop support to Sprite component
+- Added support for redirecting in before hooks returning a route object (with updated path)
+- Fixed meta options on routes functionality
+- Enhanced router hook test coverage
+
 ## v1.41.0
 
 _16 Oct 2025_
