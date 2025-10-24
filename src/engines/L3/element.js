@@ -357,7 +357,8 @@ const propsTransformer = {
         this.props['scaleY'] = v.y
       }
     } else {
-      this.props['scale'] = v
+      this.props['scaleX'] = v
+      this.props['scaleY'] = v
     }
   },
   set show(v) {
