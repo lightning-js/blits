@@ -78,6 +78,7 @@ let navigationData = {}
 let navigatingBack = false
 let navigatingBackTo = undefined
 let previousFocus
+let preventHashChangeNavigation = false // Skips internal router navigation when set to true only for the next "navigate" execution, needed for window.history management
 
 /**
  * Get the current hash
@@ -243,7 +244,7 @@ export const navigate = async function () {
   Announcer.clear()
   state.navigating = true
   let reuse = false
-  if (this.parent[symbols.routes]) {
+  if (!preventHashChangeNavigation && this.parent[symbols.routes]) {
     let previousRoute = currentRoute //? Object.assign({}, currentRoute) : undefined
     let route = matchHash(getHash(document.location.hash), this.parent[symbols.routes])
 
@@ -265,7 +266,7 @@ export const navigate = async function () {
           } catch (error) {
             console.error('Error or Rejected Promise in "BeforeEach" Hooks', error)
 
-            this[symbols.state].preventHashChangeNavigation = true
+            preventHashChangeNavigation = true
             currentRoute = previousRoute
             window.history.back()
 
@@ -294,7 +295,7 @@ export const navigate = async function () {
         } catch (error) {
           console.error('Error or Rejected Promise in "Before" Hook', error)
 
-          this[symbols.state].preventHashChangeNavigation = true
+          preventHashChangeNavigation = true
           currentRoute = previousRoute
           window.history.back()
 
@@ -486,6 +487,7 @@ export const navigate = async function () {
   // reset navigating indicators
   navigatingBack = false
   state.navigating = false
+  preventHashChangeNavigation = false
 }
 
 /**
