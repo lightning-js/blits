@@ -255,10 +255,22 @@ export const navigate = async function () {
       if (this.parent[symbols.routerHooks]) {
         const hooks = this.parent[symbols.routerHooks]
         if (hooks.beforeEach) {
-          beforeEachResult = await hooks.beforeEach.call(this.parent, route, previousRoute)
-          if (isString(beforeEachResult)) {
+          try {
+            beforeEachResult = await hooks.beforeEach.call(this.parent, route, previousRoute)
+            if (isString(beforeEachResult)) {
+              currentRoute = previousRoute
+              to(beforeEachResult)
+              return
+            }
+          } catch (error) {
+            console.error('Error or Rejected Promise in "BeforeEach" Hooks', error)
+
+            this[symbols.state].preventHashChangeNavigation = true
             currentRoute = previousRoute
-            to(beforeEachResult)
+            window.history.back()
+
+            navigatingBack = false
+            state.navigating = false
             return
           }
           // If the resolved result is an object, redirect if the path in the object was changed
@@ -280,7 +292,7 @@ export const navigate = async function () {
             return
           }
         } catch (error) {
-          console.error('Error or Rejected Promise', error)
+          console.error('Error or Rejected Promise in "Before" Hook', error)
 
           this[symbols.state].preventHashChangeNavigation = true
           currentRoute = previousRoute
