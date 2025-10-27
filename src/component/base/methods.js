@@ -206,7 +206,11 @@ export default {
     value: function (key, value) {
       //TODO: Additional eligible blits related settings update goes here
       if (key === 'debugLevel') {
+        // set app log level
         this.$log.level = value
+
+        // set blits log level
+        Log.level = value
         return
       }
       // Renderer related settings update
