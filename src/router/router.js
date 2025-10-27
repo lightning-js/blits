@@ -253,9 +253,21 @@ export const navigate = async function () {
       if (this.parent[symbols.routerHooks]) {
         const hooks = this.parent[symbols.routerHooks]
         if (hooks.beforeEach) {
-          beforeEachResult = await hooks.beforeEach.call(this.parent, route, previousRoute)
-          if (isString(beforeEachResult)) {
-            to(beforeEachResult)
+          try {
+            beforeEachResult = await hooks.beforeEach.call(this.parent, route, previousRoute)
+            if (isString(beforeEachResult)) {
+              to(beforeEachResult)
+              return
+            }
+          } catch (error) {
+            console.error('Error or Rejected Promise in "BeforeEach" Hooks', error)
+
+            this[symbols.state].preventHashChangeNavigation = true
+            currentRoute = previousRoute
+            window.history.back()
+
+            navigatingBack = false
+            state.navigating = false
             return
           }
         }
@@ -275,7 +287,7 @@ export const navigate = async function () {
             return
           }
         } catch (error) {
-          console.error('Error or Rejected Promise', error)
+          console.error('Error or Rejected Promise in "Before" Hook', error)
 
           this[symbols.state].preventHashChangeNavigation = true
           currentRoute = previousRoute
