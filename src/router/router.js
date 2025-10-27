@@ -220,6 +220,7 @@ const makeRouteObject = (route, overrides) => {
     hooks: route.hooks || {},
     data: { ...route.data, ...navigationData, ...overrides.queryParams },
     params: overrides.params || {},
+    meta: route.meta || {},
   }
 
   return cleanRoute
@@ -249,6 +250,7 @@ export const navigate = async function () {
     currentRoute = route
 
     if (route) {
+      const currentPath = currentRoute.path
       let beforeEachResult
       if (this.parent[symbols.routerHooks]) {
         const hooks = this.parent[symbols.routerHooks]
@@ -270,11 +272,13 @@ export const navigate = async function () {
             state.navigating = false
             return
           }
+          // If the resolved result is an object, redirect if the path in the object was changed
+          if (isObject(beforeEachResult) === true && beforeEachResult.path !== currentPath) {
+            currentRoute = previousRoute
+            to(beforeEachResult.path, beforeEachResult.data, beforeEachResult.options)
+            return
+          }
         }
-      }
-      // If the resolved result is an object, assign it to the target route object
-      if (isObject(beforeEachResult) === true) {
-        route = beforeEachResult
       }
 
       let beforeHookOutput
@@ -297,10 +301,12 @@ export const navigate = async function () {
           state.navigating = false
           return
         }
-      }
-      // If the resolved result is an object, assign it to the target route object
-      if (isObject(beforeHookOutput) === true) {
-        route = beforeHookOutput
+        // If the resolved result is an object, redirect if the path in the object was changed
+        if (isObject(beforeHookOutput) === true && beforeHookOutput.path !== currentPath) {
+          currentRoute = previousRoute
+          to(beforeHookOutput.path, beforeHookOutput.data, beforeHookOutput.options)
+          return
+        }
       }
       // add the previous route (technically still the current route at this point)
       // into the history stack when inHistory is true and we're not navigating back
