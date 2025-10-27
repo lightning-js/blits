@@ -37,7 +37,7 @@ export default () =>
         if (this.parent[symbols.routerHooks] && this.parent[symbols.routerHooks].init) {
           await this.parent[symbols.routerHooks].init.apply(this.parent)
         }
-        hashchangeHandler = () => { Router.navigate.apply(this) }
+        hashchangeHandler = () => Router.navigate.apply(this)
         Router.navigate.apply(this)
         window.addEventListener('hashchange', hashchangeHandler)
       },
@@ -59,3 +59,4 @@ export default () =>
       },
     },
   })
+  
