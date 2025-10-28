@@ -25,20 +25,51 @@ export default () =>
       <Element w="100%" h="100%" :texture="$texture" :color="$color" :effects="$effects" />
     `,
     props: ['image', 'map', 'frame', 'color', 'effects'],
+
     state() {
       return {
         spriteTexture: null,
+        currentSrc: null,
       }
     },
+
     computed: {
       texture() {
-        const options =
-          'frames' in this.map
-            ? Object.assign({}, this.map.defaults || {}, this.map.frames[this.frame])
-            : this.map[this.frame]
+        // If no image - nothing to render
+        const source = this.image || this.src
+        if (!source) return null
 
-        if (this.spriteTexture !== null && options) {
-          return this[symbols.renderer]().createTexture('SubTexture', {
+        // ensure renderer is available
+        const renderer = this[symbols.renderer]()
+        if (!renderer || !renderer.createTexture) {
+          return null
+        }
+
+        //  Recreate only when image src changes
+        if (!this.spriteTexture || this.currentSrc !== source) {
+          this.spriteTexture = renderer.createTexture('ImageTexture', {
+            src: source,
+          })
+          this.currentSrc = source
+        }
+
+        //  Resolve frame data from sprite map
+        let options = null
+        if (this.map && this.frame) {
+          options =
+            'frames' in this.map
+              ? Object.assign({}, this.map.defaults || {}, this.map.frames[this.frame])
+              : this.map[this.frame]
+        }
+
+        //  If no map but frame is object (manual subtexture)
+        if (!options && typeof this.frame === 'object') {
+          options = this.frame
+        }
+
+        // Create SubTexture only if frame data exists
+        if (options) {
+          return renderer.createTexture('SubTexture', {
             texture: this.spriteTexture,
             x: options.x,
             y: options.y,
@@ -46,13 +77,9 @@ export default () =>
             height: options.h,
           })
         }
-      },
-    },
-    hooks: {
-      ready() {
-        this.spriteTexture = this[symbols.renderer]().createTexture('ImageTexture', {
-          src: this.image,
-        })
+
+        // Default fallback (single image)
+        return this.spriteTexture
       },
     },
   })
