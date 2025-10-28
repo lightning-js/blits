@@ -36,8 +36,7 @@ export default () =>
     computed: {
       texture() {
         // If no image - nothing to render
-        const source = this.image || this.src
-        if (!source) return null
+        if (!this.image) return null
 
         // ensure renderer is available
         const renderer = this[symbols.renderer]()
@@ -46,11 +45,11 @@ export default () =>
         }
 
         //  Recreate only when image src changes
-        if (!this.spriteTexture || this.currentSrc !== source) {
+        if (!this.spriteTexture || this.currentSrc !== this.image) {
           this.spriteTexture = renderer.createTexture('ImageTexture', {
-            src: source,
+            src: this.image,
           })
-          this.currentSrc = source
+          this.currentSrc = this.image
         }
 
         //  Resolve frame data from sprite map
