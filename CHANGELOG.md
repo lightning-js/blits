@@ -5,6 +5,7 @@
 _28 Oct 2025_
 
 - Updated to version 2.19.1 of the renderer
+- Fixed scale animation snapping issue when using object notation with transitions (again)
 
 ## v1.42.0
 
