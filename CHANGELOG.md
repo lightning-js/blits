@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.42.1
+
+_28 Oct 2025_
+
+- Updated to version 2.19.1 of the renderer
+
 ## v1.42.0
 
 _24 Oct 2025_
