@@ -36,38 +36,46 @@ export default () =>
     computed: {
       texture() {
         // If no image - nothing to render
-        if (!this.image) return null
-
-        // ensure renderer is available
-        const renderer = this[symbols.renderer]()
-        if (!renderer || !renderer.createTexture) {
+        if (this.image === undefined || this.image === null) {
           return null
         }
 
-        //  Recreate only when image src changes
-        if (!this.spriteTexture || this.currentSrc !== this.image) {
+        // Get renderer
+        const renderer = this[symbols.renderer]()
+
+        // Recreate texture only when image src changes
+        if (
+          this.spriteTexture === undefined ||
+          this.spriteTexture === null ||
+          this.currentSrc !== this.image
+        ) {
           this.spriteTexture = renderer.createTexture('ImageTexture', {
             src: this.image,
           })
           this.currentSrc = this.image
         }
 
-        //  Resolve frame data from sprite map
+        // Resolve frame data from sprite map
         let options = null
-        if (this.map && this.frame) {
+        if (
+          this.map !== undefined &&
+          this.map !== null &&
+          this.frame !== undefined &&
+          this.frame !== null
+        ) {
           options =
             'frames' in this.map
               ? Object.assign({}, this.map.defaults || {}, this.map.frames[this.frame])
               : this.map[this.frame]
         }
 
-        //  If no map but frame is object (manual subtexture)
-        if (!options && typeof this.frame === 'object') {
+        // If no map but frame is object (manual subtexture)
+        if ((options === null || options === undefined) && typeof this.frame === 'object') {
           options = this.frame
         }
 
         // Create SubTexture only if frame data exists
-        if (options) {
+        if (options !== null && options !== undefined) {
           return renderer.createTexture('SubTexture', {
             texture: this.spriteTexture,
             x: options.x,
