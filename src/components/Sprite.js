@@ -42,6 +42,9 @@ export default () =>
 
         // Get renderer
         const renderer = this[symbols.renderer]()
+        if (renderer === null || renderer === undefined || renderer.createTexture === undefined) {
+          return null
+        }
 
         // Recreate texture only when image src changes
         if (
