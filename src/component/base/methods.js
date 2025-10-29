@@ -94,7 +94,7 @@ export default {
       this[symbols.lifecycle] = {}
       this[symbols.effects].length = 0
       this[symbols.parent] = null
-      this.rootParent = null
+      this[symbols.rootParent] = null
       this[symbols.wrapper] = null
       this[symbols.originalState] = null
       this[symbols.slots].length = 0
