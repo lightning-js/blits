@@ -113,7 +113,7 @@ test('Setting prop value directly', (assert) => {
   assert.equal(componentInstance[symbols.props].property, 'bar', 'Should be possible to mutate the property')
   let logs = capture()
   assert.equal(logs.length, 2)
-  assert.equal(logs[0].args.pop(), `Defining props as an Array has been deprecated and will stop working in future versions. Please use the new notation instead (an object with key values pairs).`, 'Should log warning message for old array way of props defintion')
+  assert.equal(logs[0].args[logs[0].args.length - 2], `Defining props as an Array has been deprecated and will stop working in future versions. Please use the new notation instead (an object with key values pairs).`, 'Should log warning message for old array way of props defintion')
   assert.equal(logs[1].args.pop(), `Warning! Avoid mutating props directly (prop "${props[0]}" in component "${componentInstance.componentId}")`, 'Should log warning message')
 
   assert.end()
@@ -123,7 +123,7 @@ test('Setting prop value directly', (assert) => {
 test('Setting props as a single object', (assert) => {
   const component = new Function()
 
-  const componentInstance = Object.create(component) 
+  const componentInstance = Object.create(component)
 
   const props = {
     size: 100,
@@ -145,7 +145,7 @@ test('Setting props as a single object', (assert) => {
 test('Setting props as a single object without defaults', (assert) => {
   const component = new Function()
 
-  const componentInstance = Object.create(component) 
+  const componentInstance = Object.create(component)
 
   const props = {
     size: undefined,
@@ -165,7 +165,7 @@ test('Setting props as a single object without defaults', (assert) => {
   propKeysArr.forEach((prop) => {
     assert.equal(component[prop], undefined, `${prop} property value should be undefined on component`)
   })
-  
+
   assert.end()
 })
 
