@@ -312,11 +312,14 @@ const generateComponentCode = function (
 
   Object.keys(templateObject).forEach((key) => {
     if (isReactiveKey(key)) {
-      this.effectsCode.push(`
-        ${elm}[Symbol.for('props')]['${key.substring(1)}'] = ${interpolate(
-          templateObject[key],
-          options.component
-        )}`)
+      // Skip reactivity for :effects on components to prevent infinite recursion
+      if (key !== ':effects') {
+        this.effectsCode.push(`
+          ${elm}[Symbol.for('props')]['${key.substring(1)}'] = ${interpolate(
+            templateObject[key],
+            options.component
+          )}`)
+      }
       renderCode.push(`
         propData = ${interpolate(templateObject[key], options.component)}
         if (Array.isArray(propData) === true) {
@@ -754,6 +757,10 @@ const cast = (val = '', key = false, component = 'component.') => {
         .replace(/__DOUBLE_BACKSLASH__/g, '\\\\')
       castedValue = `'${parseInlineContent(escapedVal, component)}'`
     }
+  }
+  // for effects without colon
+  else if (key === 'effects' && val.trim().startsWith('[') && val.trim().endsWith(']')) {
+    castedValue = val.trim()
   }
   // numeric
   else if (key !== 'color' && /[^0-9%\s.eE]/.test(val) === false && !isNaN(parseFloat(val))) {
