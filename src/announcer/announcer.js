@@ -25,6 +25,9 @@ let isProcessing = false
 let currentId = null
 let debounce = null
 
+// Global default utterance options
+let globalDefaultOptions = {}
+
 const noopAnnouncement = {
   then() {},
   done() {},
@@ -45,10 +48,10 @@ const toggle = (v) => {
   active = v ? true : false
 }
 
-const speak = (message, politeness = 'off') => {
+const speak = (message, politeness = 'off', options = {}) => {
   if (active === false) return noopAnnouncement
 
-  return addToQueue(message, politeness)
+  return addToQueue(message, politeness, false, options)
 }
 
 const pause = (delay) => {
@@ -57,7 +60,7 @@ const pause = (delay) => {
   return addToQueue(undefined, undefined, delay)
 }
 
-const addToQueue = (message, politeness, delay = false) => {
+const addToQueue = (message, politeness, delay = false, options = {}) => {
   // keep track of the id so message can be canceled
   const id = count++
 
@@ -88,8 +91,8 @@ const addToQueue = (message, politeness, delay = false) => {
   // add message of pause
   if (delay === false) {
     politeness === 'assertive'
-      ? queue.unshift({ message, resolveFn, id })
-      : queue.push({ message, resolveFn, id })
+      ? queue.unshift({ message, resolveFn, id, options })
+      : queue.push({ message, resolveFn, id, options })
   } else {
     queue.push({ delay, resolveFn, id })
   }
@@ -107,7 +110,7 @@ const processQueue = async () => {
   if (isProcessing === true || queue.length === 0) return
   isProcessing = true
 
-  const { message, resolveFn, delay, id } = queue.shift()
+  const { message, resolveFn, delay, id, options = {} } = queue.shift()
 
   currentId = id
 
@@ -124,8 +127,22 @@ const processQueue = async () => {
     debounce = setTimeout(() => {
       Log.debug(`Announcer - speaking: "${message}" (id: ${id})`)
 
+      // Merge global defaults with per-call options
+      const mergedOptions = { ...globalDefaultOptions, ...options }
+
+      // Extract utterance options from merged options object
+      const utteranceOptions = {
+        message,
+        id,
+        lang: mergedOptions.lang,
+        pitch: mergedOptions.pitch,
+        rate: mergedOptions.rate,
+        voice: mergedOptions.voice,
+        volume: mergedOptions.volume,
+      }
+
       speechSynthesis
-        .speak({ message, id })
+        .speak(utteranceOptions)
         .then(() => {
           Log.debug(`Announcer - finished speaking: "${message}" (id: ${id})`)
 
@@ -146,9 +163,9 @@ const processQueue = async () => {
   }
 }
 
-const polite = (message) => speak(message, 'polite')
+const polite = (message, options = {}) => speak(message, 'polite', options)
 
-const assertive = (message) => speak(message, 'assertive')
+const assertive = (message, options = {}) => speak(message, 'assertive', options)
 
 const stop = () => {
   speechSynthesis.cancel()
@@ -157,6 +174,10 @@ const stop = () => {
 const clear = () => {
   isProcessing = false
   queue.length = 0
+}
+
+const configure = (options = {}) => {
+  globalDefaultOptions = { ...globalDefaultOptions, ...options }
 }
 
 export default {
@@ -169,4 +190,5 @@ export default {
   toggle,
   clear,
   pause,
+  configure,
 }
