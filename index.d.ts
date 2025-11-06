@@ -23,7 +23,40 @@ import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader, type Re
 declare module '@lightningjs/blits' {
 
 
-  export interface AnnouncerUtterance extends Promise<T> {
+  export interface AnnouncerUtteranceOptions {
+    /**
+     * Language code (BCP 47 format, e.g., 'en-US', 'fr-FR')
+     *
+     * @default 'en-US'
+     */
+    lang?: string,
+    /**
+     * Voice pitch (0 to 2, where 1 is normal)
+     *
+     * @default 1
+     */
+    pitch?: number,
+    /**
+     * Speech rate (0.1 to 10, where 1 is normal)
+     *
+     * @default 1
+     */
+    rate?: number,
+    /**
+     * Voice to use (obtained from `speechSynthesis.getVoices()`)
+     *
+     * @default null
+     */
+    voice?: SpeechSynthesisVoice | null,
+    /**
+     * Volume level (0 to 1, where 1 is full volume)
+     *
+     * @default 1
+     */
+    volume?: number,
+  }
+
+  export interface AnnouncerUtterance<T = any> extends Promise<T> {
     /**
      * Removes a specific message from the announcement queue,
      * to make sure it isn't spoke out.
@@ -46,8 +79,34 @@ declare module '@lightningjs/blits' {
      * When a message is added with politeness set to `assertive` the message
      * will be added to the beginning of the queue
      *
+     * @param message - The message to be spoken
+     * @param politeness - Politeness level ('off', 'polite', or 'assertive')
+     * @param options - Optional utterance options (rate, pitch, lang, voice, volume)
      */
-    speak(message: string | number, politeness?: 'off' | 'polite' | 'assertive'): AnnouncerUtterance;
+    speak(message: string | number, politeness?: 'off' | 'polite' | 'assertive', options?: AnnouncerUtteranceOptions): AnnouncerUtterance;
+    /**
+     * Instruct the Announcer to speak a message with 'polite' politeness level.
+     * Will add the message to the end of announcement queue.
+     *
+     * @param message - The message to be spoken
+     * @param options - Optional utterance options (rate, pitch, lang, voice, volume)
+     */
+    polite(message: string | number, options?: AnnouncerUtteranceOptions): AnnouncerUtterance;
+    /**
+     * Instruct the Announcer to speak a message with 'assertive' politeness level.
+     * Will add the message to the beginning of announcement queue.
+     *
+     * @param message - The message to be spoken
+     * @param options - Optional utterance options (rate, pitch, lang, voice, volume)
+     */
+    assertive(message: string | number, options?: AnnouncerUtteranceOptions): AnnouncerUtterance;
+    /**
+     * Configure global default utterance options that will be applied to all
+     * subsequent announcements unless overridden by per-call options.
+     *
+     * @param options - Default utterance options (rate, pitch, lang, voice, volume)
+     */
+    configure(options?: AnnouncerUtteranceOptions): void;
     /**
      * Instruct the Announcer to add a pause of a certain duration (in ms). Will add this pause
      * to the end of announcement queue
@@ -1078,7 +1137,24 @@ declare module '@lightningjs/blits' {
      *
      * @default false
      */
-    announcer?: boolean
+    announcer?: boolean,
+    /**
+     * Global default utterance options for the announcer.
+     *
+     * These options will be applied to all announcements unless overridden
+     * by per-call options passed to `speak()`, `polite()`, or `assertive()`.
+     *
+     * @example
+     * ```js
+     * announcerOptions: {
+     *   rate: 1.0,
+     *   pitch: 1.0,
+     *   lang: 'en-US',
+     *   volume: 1.0
+     * }
+     * ```
+     */
+    announcerOptions?: AnnouncerUtteranceOptions,
     /**
      * Maximum FPS at which the App will be rendered
      *
