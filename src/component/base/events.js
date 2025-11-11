@@ -66,4 +66,17 @@ export default {
     enumerable: true,
     configurable: false,
   },
+  /**
+   * Removes all listeners for this component from all events.
+   *
+   * @returns {void}
+   */
+  $clearListeners: {
+    value: function () {
+      eventListeners.removeListeners(this)
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
 }
