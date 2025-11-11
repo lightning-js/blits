@@ -7,7 +7,6 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = resolve(__filename, '../..')
 
 // Get "fix" flag from command line arguments
-console.log(process.argv)
 const isFix = process.argv[2] === 'fix'
 
 console.log('Starting the linting process...')
