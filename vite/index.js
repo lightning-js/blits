@@ -28,9 +28,9 @@ export { default as reactivityGuard } from './reactivityGuard.js'
 export { default as injectDevConfig } from './inject-dev-config.js'
 
 export default [
+  injectDevConfig(),
   blitsFileConverter(),
   reactivityGuard(),
   preCompiler(),
   msdfGenerator(),
-  injectDevConfig(),
 ]
