@@ -258,12 +258,27 @@ declare module '@lightningjs/blits' {
     $listen: {
       (event: string, callback: (args: any) => void, priority?: number): void;
     }
+
+    /**
+     * Remove an event listener previously registered with $listen
+     */
+    $unlisten: {
+      (event: string): void;
+    }
+
     /**
      * Emit events that other components can listen to
      * @param name - name of the event to be emitted
      * @param data - optional data to be passed along
      */
     $emit(name: string, data?: any): void;
+
+    /**
+     * Remove all listeners for this component from all events
+     */
+    $clearListeners: {
+      (): void;
+    }
 
     /**
     * Set a timeout that is automatically cleaned upon component destroy
