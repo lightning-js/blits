@@ -127,22 +127,13 @@ const processQueue = async () => {
     debounce = setTimeout(() => {
       Log.debug(`Announcer - speaking: "${message}" (id: ${id})`)
 
-      // Merge global defaults with per-call options
-      const mergedOptions = { ...globalDefaultOptions, ...options }
-
-      // Extract utterance options from merged options object
-      const utteranceOptions = {
-        message,
-        id,
-        lang: mergedOptions.lang,
-        pitch: mergedOptions.pitch,
-        rate: mergedOptions.rate,
-        voice: mergedOptions.voice,
-        volume: mergedOptions.volume,
-      }
-
       speechSynthesis
-        .speak(utteranceOptions)
+        .speak({
+          message,
+          id,
+          ...globalDefaultOptions,
+          ...options,
+        })
         .then(() => {
           Log.debug(`Announcer - finished speaking: "${message}" (id: ${id})`)
 
