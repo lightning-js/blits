@@ -4,9 +4,9 @@ export default function injectDevFlag() {
     config(config, { mode }) {
       return {
         define: {
+          __DEV__: mode !== 'production',
           // merge any existing define block
           ...config.define,
-          __DEV__: mode !== 'production',
         },
       }
     },
