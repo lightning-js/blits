@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.43.0
+
+_12 Nov 2025_
+
+- Exposed different renderer events as hooks (`idle`, `fpsUpdate` and `frameTick`)
+- Added `$clearListeners` utility helper
+- Added `$clearListeners` and `$unlisten` to type definitions
+- Fixed issue with __DEV__ flag being set in vite config
+- Fixed `lint` and `lint:fix` scripts to work cross platform (added Windows support)
+- Added support for utterance options (`rate`, `pitch`, `lang`, `voice` and `volume`) to Announcer plugin
+- Added reactivity to `src`-attribute of the Sprite
+- Updates deprecated `assert` keyword for new `with` keyword
+
+
 ## v1.42.1
 
 _28 Oct 2025_
