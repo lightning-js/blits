@@ -244,7 +244,7 @@ export const navigate = async function () {
   Announcer.clear()
   state.navigating = true
   let reuse = false
-  if (!preventHashChangeNavigation && this.parent[symbols.routes]) {
+  if (preventHashChangeNavigation !== false && this.parent[symbols.routes]) {
     let previousRoute = currentRoute //? Object.assign({}, currentRoute) : undefined
     let route = matchHash(getHash(document.location.hash), this.parent[symbols.routes])
 
