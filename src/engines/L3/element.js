@@ -473,12 +473,15 @@ const propsTransformer = {
   },
   set 'inspector-data'(v) {
     // Skip processing if inspector is not enabled for performance optimization
-    if (inspectorEnabled === false) {
+    if (Settings.get('inspector', false) === false) {
       return
     }
 
     if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
-      this.props['data'] = v
+      // Only store if object has properties
+      if (v && Object.keys(v).length > 0) {
+        this['data'] = v
+      }
     }
   },
 }
@@ -524,6 +527,26 @@ const Element = {
       ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
       : renderer.createNode(this.props.props)
 
+    // Set inspector-data on the node if it exists (for Lightning renderer inspector)
+    if (Settings.get('inspector', false) === true) {
+      const inspectorData = this.props['data']
+      const hasInspectorData =
+        inspectorData && typeof inspectorData === 'object' && Object.keys(inspectorData).length > 0
+
+      if (props.__textnode === true) {
+        const textContent = this.node.text || this.props.props['text']
+        if (textContent !== undefined) {
+          this.node.data = hasInspectorData
+            ? { ...inspectorData, content: textContent }
+            : { content: textContent }
+        } else if (hasInspectorData) {
+          this.node.data = inspectorData
+        }
+      } else if (hasInspectorData) {
+        this.node.data = inspectorData
+      }
+    }
+
     if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
       this.node.on('loaded', (el, { type, dimensions }) => {
         props['@loaded']({ w: dimensions.width, h: dimensions.height, type }, this)
@@ -552,7 +575,7 @@ const Element = {
    *
    * @this {import('../../component').BlitsElement} this
    *
-   * @param {import('../..//component.js').BlitsElementProps} prop
+   * @param {string} prop
    * @param {any} value
    * @returns {void}
    */
@@ -584,6 +607,25 @@ const Element = {
           // set the prop to the value on the node
           this.node[propsKeys[i]] = this.props.props[propsKeys[i]]
         }
+      }
+    }
+
+    // Update inspector-data on the node when content changes (for Lightning renderer inspector)
+    if (prop === 'content' && Settings.get('inspector', false) === true && this.node) {
+      // Preserve all existing node.data properties (like testid) and update content
+      const inspectorData = this.props['data']
+      const hasInspectorData =
+        inspectorData && typeof inspectorData === 'object' && Object.keys(inspectorData).length > 0
+
+      if (this.node.data) {
+        // Preserve all existing properties (testid, etc.) and update content
+        this.node.data = { ...this.node.data, content: '' + value }
+      } else if (hasInspectorData) {
+        // Include inspector-data properties (testid, etc.) with updated content
+        this.node.data = { ...inspectorData, content: '' + value }
+      } else {
+        // No inspector-data, just set content
+        this.node.data = { content: '' + value }
       }
     }
 
