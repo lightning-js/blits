@@ -194,6 +194,18 @@ declare module '@lightningjs/blits' {
     * This event can fire multiple times during the component's lifecycle
     */
     exit?: () => void;
+    /**
+    * Fires when the renderer is done rendering and enters an idle state
+    *
+    * Note: This event can fire multiple times
+    */
+    idle?: () => void;
+    /**
+    * Fires at a predefined interval and reports the current FPS value
+    *
+    * Note: This event fire multiple times
+    */
+    fpsUpdate?: () => void;
   }
 
   export interface Input {
