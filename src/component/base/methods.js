@@ -246,6 +246,14 @@ export default {
     enumerable: true,
     configurable: false,
   },
+  $setClearColor: {
+    value: function (color) {
+      renderer.setClearColor(color)
+    },
+    writable: false,
+    enumerable: false,
+    configurable: false,
+  },
 }
 
 /**
