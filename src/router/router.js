@@ -280,6 +280,16 @@ export const navigate = async function () {
             to(beforeEachResult.path, beforeEachResult.data, beforeEachResult.options)
             return
           }
+          // If the resolved result is false, cancel navigation
+          if (beforeEachResult === false) {
+            preventHashChangeNavigation = true
+            currentRoute = previousRoute
+            window.history.back()
+
+            navigatingBack = false
+            state.navigating = false
+            return
+          }
         }
       }
 
@@ -307,6 +317,16 @@ export const navigate = async function () {
         if (isObject(beforeHookOutput) === true && beforeHookOutput.path !== currentPath) {
           currentRoute = previousRoute
           to(beforeHookOutput.path, beforeHookOutput.data, beforeHookOutput.options)
+          return
+        }
+        // If the resolved result is false, cancel navigation
+        if (beforeHookOutput === false) {
+          preventHashChangeNavigation = true
+          currentRoute = previousRoute
+          window.history.back()
+
+          navigatingBack = false
+          state.navigating = false
           return
         }
       }
