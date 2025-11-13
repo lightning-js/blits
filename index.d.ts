@@ -169,7 +169,7 @@ declare module '@lightningjs/blits' {
     *
     * Note: This hook will fire continuously, multiple times per second!
     */
-    frameTick?: () => void;
+    frameTick?: (data: {time: number, delta: number}) => void;
     /**
     * Fires when the component enters the viewport _margin_ and is attached to the render tree
     *
@@ -205,7 +205,7 @@ declare module '@lightningjs/blits' {
     *
     * Note: This event fire multiple times
     */
-    fpsUpdate?: () => void;
+    fpsUpdate?: (fps: number) => void;
   }
 
   export interface Input {
