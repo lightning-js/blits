@@ -267,13 +267,15 @@ export const navigate = async function () {
           } catch (error) {
             Log.error('Error or Rejected Promise in "BeforeEach" Hook', error)
 
-            preventHashChangeNavigation = true
-            currentRoute = previousRoute
-            window.history.back()
+            if (history.length > 0) {
+              preventHashChangeNavigation = true
+              currentRoute = previousRoute
+              window.history.back()
 
-            navigatingBack = false
-            state.navigating = false
-            return
+              navigatingBack = false
+              state.navigating = false
+              return
+            }
           }
           // If the resolved result is an object, redirect if the path in the object was changed
           if (isObject(beforeEachResult) === true && beforeEachResult.path !== currentPath) {
@@ -282,7 +284,7 @@ export const navigate = async function () {
             return
           }
           // If the resolved result is false, cancel navigation
-          if (beforeEachResult === false) {
+          if (beforeEachResult === false && history.length > 0) {
             preventHashChangeNavigation = true
             currentRoute = previousRoute
             window.history.back()
@@ -306,13 +308,15 @@ export const navigate = async function () {
         } catch (error) {
           Log.error('Error or Rejected Promise in "Before" Hook', error)
 
-          preventHashChangeNavigation = true
-          currentRoute = previousRoute
-          window.history.back()
+          if (history.length > 0) {
+            preventHashChangeNavigation = true
+            currentRoute = previousRoute
+            window.history.back()
 
-          navigatingBack = false
-          state.navigating = false
-          return
+            navigatingBack = false
+            state.navigating = false
+            return
+          }
         }
         // If the resolved result is an object, redirect if the path in the object was changed
         if (isObject(beforeHookOutput) === true && beforeHookOutput.path !== currentPath) {
@@ -321,7 +325,7 @@ export const navigate = async function () {
           return
         }
         // If the resolved result is false, cancel navigation
-        if (beforeHookOutput === false) {
+        if (beforeHookOutput === false && history.length > 0) {
           preventHashChangeNavigation = true
           currentRoute = previousRoute
           window.history.back()
