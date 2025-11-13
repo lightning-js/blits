@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.43.2
+
+_13 Nov 2025_
+
+- Fixed issue with endless loop in router when first page in history would fail an async before / beforeEach hook (introduced in v1.43.0)
+
 ## v1.43.1
 
 _13 Nov 2025_
