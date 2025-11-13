@@ -266,6 +266,7 @@ export const navigate = async function () {
             }
           } catch (error) {
             Log.error('Error or Rejected Promise in "BeforeEach" Hook', error)
+
             if (history.length > 0) {
               preventHashChangeNavigation = true
               currentRoute = previousRoute
@@ -306,6 +307,7 @@ export const navigate = async function () {
           }
         } catch (error) {
           Log.error('Error or Rejected Promise in "Before" Hook', error)
+
           if (history.length > 0) {
             preventHashChangeNavigation = true
             currentRoute = previousRoute
