@@ -171,7 +171,7 @@ declare module '@lightningjs/blits' {
     */
     frameTick?: (data: {time: number, delta: number}) => void;
     /**
-    * Fires when the component entes the viewport _margin_ and is attached to the render tree
+    * Fires when the component enters the viewport _margin_ and is attached to the render tree
     *
     * This event can fire multiple times during the component's lifecycle
     */
