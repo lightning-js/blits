@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.43.1
+
+_12 Nov 2025_
+
+- Added arguments of fpsUpdate and frameTick hooks to type definitions
+
 ## v1.43.0
 
 _12 Nov 2025_
