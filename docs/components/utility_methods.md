@@ -105,9 +105,17 @@ When the `$focus` method is called on a Component that is already is a focused s
 
 ### $bubbleInput
 
-The `$bubbleInput()`-method provides an alternative way to bubble up keyboard events to parent components **without changing focus**. This is useful when you want a parent component to handle a key press while keeping focus on the current component.
+The `$bubbleInput()`-method bubbles keyboard events to parent components **without changing focus**.
 
-Unlike `$focus()`, which changes focus and then bubbles the event, `$bubbleInput()` directly invokes the parent's input handler without any focus changes.
+**Comparison with `$focus()` methods:**
+- `this.parent.$focus()` - Changes focus to parent **ONLY** (no event parameter = no bubbling)
+- `this.parent.$focus(e)` - Changes focus to parent **AND** bubbles the event (with event parameter)
+- `this.$bubbleInput(key, e)` - Bubbles the event **ONLY** (no focus change)
+
+Both `this.parent.$focus(e)` and `this.$bubbleInput(key, e)` bubble events to the parent. The only difference is whether focus changes.
+
+**When to use `$bubbleInput`:**
+Use this when you need the parent to handle the key but want to keep focus on the current component.
 
 The `$bubbleInput()`-method accepts two parameters: the first argument is the `key` (string), which is the key name (e.g., 'enter', 'back', 'up', 'down', 'left', 'right'), and the second argument is the `event` (KeyboardEvent), which is the keyboard event to bubble up.
 
@@ -136,7 +144,7 @@ export default Blits.Component('MyComponent', {
 })
 ```
 
-> **Note**: If you want to both change focus AND bubble the event, use `this.parent.$focus(e)` instead. Use `$bubbleInput()` when you want to keep focus on the current component.
+> **Note**: Both methods bubble events. Use `$bubbleInput()` when you need to keep focus on the current component while still allowing the parent to handle the key.
 
 ### $trigger
 
