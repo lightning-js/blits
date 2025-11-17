@@ -432,6 +432,13 @@ declare module '@lightningjs/blits' {
     */
     $focus: (event?: KeyboardEvent) => void
     /**
+     * Bubble up a keyboard event to a parent component without changing focus
+     * @param key - The key name (e.g., 'enter', 'back', 'up')
+     * @param event - The keyboard event to bubble up
+     * @returns Returns true if a parent component handled the event, false otherwise
+     */
+    $bubbleInput: (key: string, event: KeyboardEvent) => boolean
+    /**
      * @deprecated
      * Deprecated:  use `this.$focus()` instead
      */

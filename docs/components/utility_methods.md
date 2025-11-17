@@ -103,6 +103,41 @@ When the `$focus` method is called on a Component that is already is a focused s
 
 > Tip: a _refocus_ can be distinguished from a _fresh focus_, by checking the value of the  built-in `hasFocus` state variable. In the event of a refocus the `hasFocus` is already set to `true` when invoking the `focus`-hook. When it's a fresh focus the value is `false`.
 
+### $bubbleInput
+
+The `$bubbleInput()`-method provides an alternative way to bubble up keyboard events to parent components **without changing focus**. This is useful when you want a parent component to handle a key press while keeping focus on the current component.
+
+Unlike `$focus()`, which changes focus and then bubbles the event, `$bubbleInput()` directly invokes the parent's input handler without any focus changes.
+
+The `$bubbleInput()`-method accepts two parameters: the first argument is the `key` (string), which is the key name (e.g., 'enter', 'back', 'up', 'down', 'left', 'right'), and the second argument is the `event` (KeyboardEvent), which is the keyboard event to bubble up.
+
+The method returns `true` if a parent component handled the event, or `false` if no parent component has a handler for that key.
+
+```js
+export default Blits.Component('MyComponent', {
+  input: {
+    enter(e) {
+      // Handle the enter key locally
+      this.doSomething()
+      
+      // Also bubble it up to parent without changing focus
+      this.$bubbleInput('enter', e)
+    },
+    back(e) {
+      // Let parent handle back key, but keep focus here
+      if (this.$bubbleInput('back', e)) {
+        // Parent handled it
+        return
+      }
+      // No parent handler, handle it ourselves
+      this.handleBack()
+    },
+  }
+})
+```
+
+> **Note**: If you want to both change focus AND bubble the event, use `this.parent.$focus(e)` instead. Use `$bubbleInput()` when you want to keep focus on the current component.
+
 ### $trigger
 
 Blits has reactivity built-in, which means that re-renders in the template, as well as watchers and computed properties, are automatically fired whenever a state value changes. But sometimes you may want trigger the side effects of a state values change, without actually changing the value. This often is useful when a Component first receives focus and you want to ensure that the default state values are applied.

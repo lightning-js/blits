@@ -55,18 +55,25 @@ To allow a focused component to respond to any key and act as a _catch-all_, you
 
 If the currently focused component does not handle a key press, Blits will traverse up the component hierarchy, checking for any _parent_ component that does have a function defined for that key press in the `input`-key. This input event handling chain continues until it reaches the root Application component.
 
-When a component handles a key press by having a corresponding function specified, said component receives focus, and the event handling chain stops by default. However, if you want the input event to propagate up the hierarchy further, you can move the focus to the parent element and pass the `InputEvent` object on in that function call.
+When a component handles a key press by having a corresponding function specified, said component receives focus, and the event handling chain stops by default. However, if you want the input event to propagate up the hierarchy further, you have two options:
+
+1. **Move focus to parent and bubble the event**: Use `this.parent.$focus(e)` to both change focus to the parent and bubble the event.
+2. **Bubble event without changing focus**: Use `this.$bubbleInput(key, e)` to invoke the parent's input handler without changing focus.
 
 ```javascript
 {
   input: {
     enter() {
-      // Give focus to the parent
-      this.parent.focus();
+      // Give focus to the parent (without bubbling the event)
+      this.parent.$focus();
     },
     back(e) {
       // Give focus to the parent and let the user input event bubble
-      this.parent.focus(e);
+      this.parent.$focus(e);
+    },
+    escape(e) {
+      // Bubble event to parent but keep focus on current component
+      this.$bubbleInput('escape', e);
     },
   }
 }

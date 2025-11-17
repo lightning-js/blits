@@ -17,6 +17,7 @@
 
 import symbols from '../../lib/symbols.js'
 import Focus from '../../focus.js'
+import { keyUpCallbacks, getComponentWithInputEvent } from '../../focus.js'
 import eventListeners from '../../lib/eventListeners.js'
 import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
@@ -46,6 +47,39 @@ export default {
         this.lifecycle.state = 'refocus'
       }
       Focus.set(this, e)
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
+  $bubbleInput: {
+    /**
+     * Bubble up a keyboard event to a parent component without changing focus
+     * @this {import('../../component').BlitsComponent}
+     * @param {string} key - The key name (e.g., 'enter', 'back', 'up')
+     * @param {KeyboardEvent} event - The keyboard event to bubble up
+     * @returns {boolean} - Returns true if a parent component handled the event, false otherwise
+     */
+    value: function (key, event) {
+      if (!this.parent) return false
+
+      const componentWithInputEvent = getComponentWithInputEvent(this.parent, key)
+      if (componentWithInputEvent === null) return false
+
+      const inputEvents = componentWithInputEvent[symbols.inputEvents]
+
+      let cb
+      if (inputEvents[key]) {
+        cb = inputEvents[key].call(componentWithInputEvent, event)
+      } else if (inputEvents.any) {
+        cb = inputEvents.any.call(componentWithInputEvent, event)
+      }
+
+      if (cb !== undefined && event && event.code) {
+        keyUpCallbacks.set(event.code, cb)
+      }
+
+      return true
     },
     writable: false,
     enumerable: true,
