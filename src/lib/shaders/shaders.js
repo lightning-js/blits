@@ -19,39 +19,86 @@ import { renderer } from '../../engines/L3/launch.js'
 import { parseToObject, isObjectString, isArrayString } from '../utils.js'
 import colors from '../colors/colors.js'
 
+const parseBorder = (border, props = {}, prefixed = false) => {
+  const prefix = prefixed === true ? 'border' : ''
+  if (isNaN(border) === false) {
+    props[prefix + 'width'] = border
+    return
+  }
+  if (Array.isArray(border) === true) {
+    props[prefix + 'width'] = border
+    return
+  }
+  if (isArrayString(border) === true) {
+    props[prefix + 'width'] = JSON.parse(border)
+    return
+  }
+  if (typeof border === 'object' || isObjectString(border) === true) {
+    border = typeof border === 'string' ? parseToObject(border) : border
+    for (const key in border) {
+      props[prefix + '-' + key] = border[key]
+    }
+    return
+  }
+}
+
+const parseShadow = (shadow, props = {}, prefixed = false) => {
+  const prefix = prefixed === true ? 'shadow' : ''
+  if (Array.isArray(shadow) === true) {
+    props[prefix + 'projection'] = shadow
+    return
+  }
+  if (isArrayString(shadow) === true) {
+    props[prefix + 'projection'] = JSON.parse(shadow)
+    return
+  }
+  if (typeof shadow === 'object' || isObjectString(shadow) === true) {
+    shadow = typeof shadow === 'string' ? parseToObject(shadow) : shadow
+    for (const key in shadow) {
+      props[prefix + '-' + key] = shadow[key]
+    }
+    return
+  }
+}
+
+const parseRounded = (rounded, props = {}) => {
+  if (isNaN(rounded) === false) {
+    props.radius = rounded
+    return
+  }
+  if (Array.isArray(rounded) === true) {
+    props.radius = rounded
+    return
+  }
+  if (isArrayString(rounded) === true) {
+    props.radius = JSON.parse(rounded)
+    return
+  }
+  if (typeof rounded === 'object' || isObjectString(rounded) === true) {
+    rounded = typeof rounded === 'string' ? parseToObject(rounded) : rounded
+    for (const key in rounded) {
+      props[key] = rounded[key]
+    }
+    return
+  }
+}
+
 export default {
   createElementProps(v) {
     let { border, shadow, rounded } = v
     const props = {}
     const hasRounded = rounded !== undefined
 
-    if (border !== undefined && (typeof border === 'object' || isObjectString(border) === true)) {
-      border = this.parseProps(border)
-      const borderPrefix = hasRounded === true ? 'border-' : ''
-      for (const key in border) {
-        props[borderPrefix + key] = border[key]
-      }
+    if (border !== undefined) {
+      parseBorder(border, props, hasRounded)
     }
-    if (shadow !== undefined && (typeof shadow === 'object' || isObjectString(shadow) === true)) {
-      shadow = this.parseProps(shadow)
-      const shadowPrefix = hasRounded === true ? 'shadow-' : ''
-      for (const key in border) {
-        props[shadowPrefix + key] = border[key]
-      }
+
+    if (shadow !== undefined) {
+      parseShadow(shadow, props, hasRounded)
     }
 
     if (hasRounded === true && (typeof rounded === 'object' || isObjectString(rounded) === true)) {
-      if (typeof rounded === 'string') {
-        rounded = this.parseProps(rounded)
-      }
-      for (const key in rounded) {
-        props[key] = rounded[key]
-      }
-    } else if (hasRounded === true) {
-      if (isArrayString(rounded) === true) {
-        rounded = JSON.parse(rounded)
-      }
-      props['radius'] = rounded
+      parseRounded(rounded, props)
     }
     return props
   },
