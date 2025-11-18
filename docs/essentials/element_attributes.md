@@ -210,14 +210,14 @@ For better a better development experience Blits had the following shader attrib
 
 ```xml
 <Element w="200" h="200" x="20" y="100" rounded="20" />
-<Element w="200" h="200" x="800" y="400" border="{width: 10, color: 'green'}" />
+<Element w="200" h="200" x="800" y="400" border="{w: 10, color: 'green'}" />
 <Element w="200" h="200" x="800" y="700" shadow="{blur: 10, spread: 10}" />
 ```
 
 You can also use built-in shader attributes in combination with eachother f.e;
 
 ```xml
-<Element w="200" h="200" x="20" y="100" rounded="20" border="{width: 20, color:'blue'}"/>
+<Element w="200" h="200" x="20" y="100" rounded="20" border="{w: 20, color:'blue'}"/>
 ```
 
 ### Using shader attribute
