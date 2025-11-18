@@ -20,30 +20,30 @@ import { parseToObject, isObjectString, isArrayString } from '../utils.js'
 import colors from '../colors/colors.js'
 
 const parseBorder = (border, props = {}, prefixed = false) => {
-  const prefix = prefixed === true ? 'border' : ''
+  const prefix = prefixed === true ? 'border-' : ''
   if (isNaN(border) === false) {
-    props[prefix + 'width'] = border
+    props[prefix + 'w'] = border
     return
   }
   if (Array.isArray(border) === true) {
-    props[prefix + 'width'] = border
+    props[prefix + 'w'] = border
     return
   }
   if (isArrayString(border) === true) {
-    props[prefix + 'width'] = JSON.parse(border)
+    props[prefix + 'w'] = JSON.parse(border)
     return
   }
   if (typeof border === 'object' || isObjectString(border) === true) {
     border = typeof border === 'string' ? parseToObject(border) : border
     for (const key in border) {
-      props[prefix + '-' + key] = border[key]
+      props[prefix + key] = border[key]
     }
     return
   }
 }
 
 const parseShadow = (shadow, props = {}, prefixed = false) => {
-  const prefix = prefixed === true ? 'shadow' : ''
+  const prefix = prefixed === true ? 'shadow-' : ''
   if (Array.isArray(shadow) === true) {
     props[prefix + 'projection'] = shadow
     return
@@ -55,7 +55,7 @@ const parseShadow = (shadow, props = {}, prefixed = false) => {
   if (typeof shadow === 'object' || isObjectString(shadow) === true) {
     shadow = typeof shadow === 'string' ? parseToObject(shadow) : shadow
     for (const key in shadow) {
-      props[prefix + '-' + key] = shadow[key]
+      props[prefix + key] = shadow[key]
     }
     return
   }
@@ -88,16 +88,18 @@ export default {
     let { border, shadow, rounded } = v
     const props = {}
     const hasRounded = rounded !== undefined
+    const hasBorder = border !== undefined
+    const hasShadow = shadow !== undefined
 
     if (border !== undefined) {
-      parseBorder(border, props, hasRounded)
+      parseBorder(border, props, hasRounded || hasShadow)
     }
 
     if (shadow !== undefined) {
-      parseShadow(shadow, props, hasRounded)
+      parseShadow(shadow, props, hasRounded || hasBorder)
     }
 
-    if (hasRounded === true && (typeof rounded === 'object' || isObjectString(rounded) === true)) {
+    if (hasRounded === true) {
       parseRounded(rounded, props)
     }
     return props
