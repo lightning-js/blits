@@ -25,7 +25,7 @@ Border still uses the name `border` and has its own attribute:
 ```xml
 <Element :effects="[{type: 'border', props: {width: 20, color: '#60a5fa'}}]" />
 <!-- To -->
-<Element border="{width: 20, color: '#60a5fa'}" />
+<Element border="{w: 20, color: '#60a5fa'}" />
 ```
 
 ### Combining Radius & Border
@@ -34,7 +34,7 @@ You can combine built-in attributes:
 ```xml
 <Element :effects="[{type: 'radius', props: {radius: 10}}, {type: 'border', props: {width: 20, color: '#60a5fa'}}]" />
 <!-- To -->
-<Element rounded="10" border="{width: 20, color: '#60a5fa'}" />
+<Element rounded="10" border="{w: 20, color: '#60a5fa'}" />
 ```
 
 ### linearGradient
