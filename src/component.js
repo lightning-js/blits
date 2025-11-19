@@ -263,20 +263,36 @@ const Component = (name = required('name'), config = required('config')) => {
     // create a reference to an array of children that are slots
     this[symbols.slots] = this[symbols.children].filter((child) => child[symbols.isSlot])
 
+    this[symbols.rendererEventListeners] = []
     // register hooks if component has hooks specified
     if (config.hooks) {
-      // frame tick event
-      if (config.hooks.frameTick) {
-        renderer.on('frameTick', (r, data) =>
-          emit('frameTick', this[symbols.identifier], this, [data])
-        )
-      }
+      // push to next tick to ensure
+      setTimeout(() => {
+        // frame tick event
+        if (config.hooks.frameTick) {
+          const cb = (r, data) => emit('frameTick', this[symbols.identifier], this, [data])
+          this[symbols.rendererEventListeners].push({ event: 'frameTick', cb })
+          renderer.on('frameTick', cb)
+        }
 
-      if (config.hooks.idle) {
-        renderer.on('idle', () => {
-          emit('idle', this[symbols.identifier], this)
-        })
-      }
+        // idle event
+        if (config.hooks.idle) {
+          const cb = () => {
+            emit('idle', this[symbols.identifier], this)
+          }
+          this[symbols.rendererEventListeners].push({ event: 'idle', cb })
+          renderer.on('idle', cb)
+        }
+
+        // fpsUpdate event
+        if (config.hooks.fpsUpdate) {
+          const cb = (r, data) => {
+            emit('fpsUpdate', this[symbols.identifier], this, [data.fps])
+          }
+          this[symbols.rendererEventListeners].push({ event: 'fpsUpdate', cb })
+          renderer.on('fpsUpdate', cb)
+        }
+      })
 
       // inBounds event emiting a lifecycle attach event
       if (config.hooks.attach) {

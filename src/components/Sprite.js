@@ -22,23 +22,64 @@ import symbols from '../lib/symbols.js'
 export default () =>
   Component('Sprite', {
     template: `
-      <Element w="100%" h="100%" :texture="$texture" :color="$color" />
+      <Element w="100%" h="100%" :texture="$texture" :color="$color" effects="$effects" />
     `,
-    props: ['image', 'map', 'frame', 'color'],
+    props: ['image', 'map', 'frame', 'color', 'effects'],
+
     state() {
       return {
         spriteTexture: null,
+        currentSrc: null,
       }
     },
+
     computed: {
       texture() {
-        const options =
-          'frames' in this.map
-            ? Object.assign({}, this.map.defaults || {}, this.map.frames[this.frame])
-            : this.map[this.frame]
+        // If no image - nothing to render
+        if (this.image === undefined || this.image === null) {
+          return null
+        }
 
-        if (this.spriteTexture !== null && options) {
-          return this[symbols.renderer]().createTexture('SubTexture', {
+        // Get renderer
+        const renderer = this[symbols.renderer]()
+        if (renderer === null || renderer === undefined || renderer.createTexture === undefined) {
+          return null
+        }
+
+        // Recreate texture only when image src changes
+        if (
+          this.spriteTexture === undefined ||
+          this.spriteTexture === null ||
+          this.currentSrc !== this.image
+        ) {
+          this.spriteTexture = renderer.createTexture('ImageTexture', {
+            src: this.image,
+          })
+          this.currentSrc = this.image
+        }
+
+        // Resolve frame data from sprite map
+        let options = null
+        if (
+          this.map !== undefined &&
+          this.map !== null &&
+          this.frame !== undefined &&
+          this.frame !== null
+        ) {
+          options =
+            'frames' in this.map
+              ? Object.assign({}, this.map.defaults || {}, this.map.frames[this.frame])
+              : this.map[this.frame]
+        }
+
+        // If no map but frame is object (manual subtexture)
+        if ((options === null || options === undefined) && typeof this.frame === 'object') {
+          options = this.frame
+        }
+
+        // Create SubTexture only if frame data exists
+        if (options !== null && options !== undefined) {
+          return renderer.createTexture('SubTexture', {
             texture: this.spriteTexture,
             x: options.x,
             y: options.y,
@@ -46,13 +87,9 @@ export default () =>
             height: options.h,
           })
         }
-      },
-    },
-    hooks: {
-      ready() {
-        this.spriteTexture = this[symbols.renderer]().createTexture('ImageTexture', {
-          src: this.image,
-        })
+
+        // Default fallback (single image)
+        return this.spriteTexture
       },
     },
   })

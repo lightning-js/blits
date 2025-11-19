@@ -21,6 +21,7 @@ import eventListeners from '../../lib/eventListeners.js'
 import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
 import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
+import { renderer } from '../../launch.js'
 
 export default {
   focus: {
@@ -83,6 +84,17 @@ export default {
       this.$clearTimeouts()
       this.$clearIntervals()
       eventListeners.removeListeners(this)
+
+      const rendererEventListenersLength = this[symbols.rendererEventListeners].length
+      if (rendererEventListenersLength > 0) {
+        for (let i = 0; i < rendererEventListenersLength; i++) {
+          const eventListener = this[symbols.rendererEventListeners][i]
+          renderer.off(eventListener.event, eventListener.cb)
+        }
+      }
+
+      this[symbols.rendererEventListeners] = null
+
       deleteChildren(this[symbols.children])
       this[symbols.children].length = 0
       removeGlobalEffects(this[symbols.effects])
@@ -100,7 +112,6 @@ export default {
       this[symbols.slots].length = 0
 
       delete this[symbols.computed]
-      delete this[symbols.effects]
       delete this.parent
       delete this.rootParent
       delete this[symbols.wrapper]
@@ -118,6 +129,8 @@ export default {
 
       this[symbols.cleanup]()
       delete this[symbols.cleanup]
+
+      delete this[symbols.effects]
 
       Log.debug(`Destroyed component ${this.componentId}`)
     },
@@ -153,6 +166,9 @@ export default {
      * @this {import('../../component').BlitsComponent}
      */
     value: function (ref) {
+      // early exit when component is marked as end of life
+      if (this.eol === true) return
+
       let selected = null
       this[symbols.children].forEach((child) => {
         if (Array.isArray(child)) {

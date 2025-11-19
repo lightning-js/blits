@@ -16,7 +16,10 @@
  */
 
 import test from 'tape'
-import { matchHash, getHash, to } from './router.js'
+import { matchHash, getHash, to, navigate, state } from './router.js'
+import { stage } from '../launch.js'
+import Component from '../component.js'
+import symbols from '../lib/symbols.js'
 
 const mockComponents = {
   Home: () => {},
@@ -84,27 +87,27 @@ test('Type of matchHash', (assert) => {
 
 test('Match paths with static routes that have an exact match', (assert) => {
   assert.equal(
-    matchHash('', routes).component,
+    matchHash({ path: '' }, routes).component,
     routes[0].component,
     'Should return the correct route object'
   )
   assert.equal(
-    matchHash('/', routes).component,
+    matchHash({ path: '/' }, routes).component,
     routes[0].component,
     'Should return the correct route object'
   )
   assert.equal(
-    matchHash('/page1', routes).component,
+    matchHash({ path: '/page1' }, routes).component,
     routes[1].component,
     'Should return the correct route object'
   )
   assert.equal(
-    matchHash('/page1/subpage1', routes).component,
+    matchHash({ path: '/page1/subpage1' }, routes).component,
     routes[2].component,
     'Should return the correct route object'
   )
   assert.equal(
-    matchHash('/movies/special', routes).component,
+    matchHash({ path: '/movies/special' }, routes).component,
     routes[4].component,
     'Should return the correct route object'
   )
@@ -113,37 +116,37 @@ test('Match paths with static routes that have an exact match', (assert) => {
 
 test('Match paths with dynamic route parts', (assert) => {
   assert.equal(
-    matchHash('/tv/simpsons/seasons/first', routes).component,
+    matchHash({ path: '/tv/simpsons/seasons/first' }, routes).component,
     routes[3].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('/tv/simpsons/season/first', routes).component,
+    matchHash({ path: '/tv/simpsons/season/first' }, routes).component,
     routes[9].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('/examples/test/seasons/5', routes).component,
+    matchHash({ path: '/examples/test/seasons/5' }, routes).component,
     routes[6].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('/movies/avengers-endgame', routes).component,
+    matchHash({ path: '/movies/avengers-endgame' }, routes).component,
     routes[5].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('/movies/special-1', routes).component,
+    matchHash({ path: '/movies/special-1' }, routes).component,
     routes[5].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('/dutchmovies/123', routes).component,
+    matchHash({ path: '/dutchmovies/123' }, routes).component,
     routes[8].component,
     'Should return the correct route object'
   )
@@ -153,37 +156,37 @@ test('Match paths with dynamic route parts', (assert) => {
 
 test('Match paths with a wildcard asterix', (assert) => {
   assert.equal(
-    matchHash('/examples/example1', routes).component,
+    matchHash({ path: '/examples/example1' }, routes).component,
     routes[6].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('/examples/example1/subexample/and-another-page', routes).component,
+    matchHash({ path: '/examples/example1/subexample/and-another-page' }, routes).component,
     routes[6].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('/404', routes).component,
+    matchHash({ path: '/404' }, routes).component,
     routes[9].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('/page1/non-existing-path', routes).component,
+    matchHash({ path: '/page1/non-existing-path' }, routes).component,
     routes[9].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('/page1/subpage1/i-dont-exist', routes).component,
+    matchHash({ path: '/page1/subpage1/i-dont-exist' }, routes).component,
     routes[9].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('/completely/unexpected/route', routes).component,
+    matchHash({ path: '/completely/unexpected/route' }, routes).component,
     routes[9].component,
     'Should return the correct route object'
   )
@@ -192,7 +195,7 @@ test('Match paths with a wildcard asterix', (assert) => {
 })
 
 test('Add params to route for dynamic route matches', (assert) => {
-  const match1 = matchHash('/tv/simpsons/seasons/first', routes)
+  const match1 = matchHash({ path: '/tv/simpsons/seasons/first' }, routes)
 
   assert.deepEqual(
     match1.params,
@@ -203,7 +206,7 @@ test('Add params to route for dynamic route matches', (assert) => {
     'Should return the correct params object'
   )
 
-  const match2 = matchHash('/movies/avengers-endgame', routes)
+  const match2 = matchHash({ path: '/movies/avengers-endgame' }, routes)
   assert.deepEqual(
     match2.params,
     {
@@ -212,7 +215,7 @@ test('Add params to route for dynamic route matches', (assert) => {
     'Should return the correct route object'
   )
 
-  const match3 = matchHash('/dutchmovies/1', routes)
+  const match3 = matchHash({ path: '/dutchmovies/1' }, routes)
   assert.deepEqual(
     match3.params,
     {
@@ -225,20 +228,20 @@ test('Add params to route for dynamic route matches', (assert) => {
 })
 
 test('Add remaining path as param for wild card routes', (assert) => {
-  const match1 = matchHash('/examples/example1', routes)
+  const match1 = matchHash({ path: '/examples/example1' }, routes)
   assert.deepEqual(match1.params, { path: 'example1' }, 'Should return the correct route object')
 
-  const match2 = matchHash('/examples/example1/subexample/and-another-page', routes)
+  const match2 = matchHash({ path: '/examples/example1/subexample/and-another-page' }, routes)
   assert.deepEqual(
     match2.params,
     { path: 'example1/subexample/and-another-page' },
     'Should return the correct params object'
   )
 
-  const match3 = matchHash('/404', routes)
+  const match3 = matchHash({ path: '/404' }, routes)
   assert.deepEqual(match3.params, { path: '404' }, 'Should return the correct params object')
 
-  const match4 = matchHash('/page1/subpage1/i-dont-exist', routes)
+  const match4 = matchHash({ path: '/page1/subpage1/i-dont-exist' }, routes)
   assert.deepEqual(
     match4.params,
     { path: 'page1/subpage1/i-dont-exist' },
@@ -250,29 +253,29 @@ test('Add remaining path as param for wild card routes', (assert) => {
 
 test('Work with trailing slashes', (assert) => {
   assert.equal(
-    matchHash('/page1/', routes).component,
+    matchHash({ path: '/page1/' }, routes).component,
     routes[1].component,
     'Should return the correct route object'
   )
   assert.equal(
-    matchHash('/page1//////', routes).component,
+    matchHash({ path: '/page1//////' }, routes).component,
     routes[1].component,
     'Should return the correct route object'
   )
   assert.equal(
-    matchHash('/page1/subpage1/', routes).component,
+    matchHash({ path: '/page1/subpage1/' }, routes).component,
     routes[2].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('/route/with/trailing/slash', routes).component,
+    matchHash({ path: '/route/with/trailing/slash' }, routes).component,
     routes[7].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('/tv/simpsons/seasons/first', routes).component,
+    matchHash({ path: '/tv/simpsons/seasons/first' }, routes).component,
     routes[3].component,
     'Should return the correct route object'
   )
@@ -282,30 +285,30 @@ test('Work with trailing slashes', (assert) => {
 
 test('Work with and without leading slashes', (assert) => {
   assert.equal(
-    matchHash('page1/', routes).component,
+    matchHash({ path: 'page1/' }, routes).component,
     routes[1].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('////page1', routes).component,
+    matchHash({ path: '////page1' }, routes).component,
     routes[1].component,
     'Should return the correct route object'
   )
   assert.equal(
-    matchHash('page1/subpage1/', routes).component,
+    matchHash({ path: 'page1/subpage1/' }, routes).component,
     routes[2].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('route/with/trailing/slash', routes).component,
+    matchHash({ path: 'route/with/trailing/slash' }, routes).component,
     routes[7].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('//tv/simpsons/seasons/first//', routes).component,
+    matchHash({ path: '//tv/simpsons/seasons/first//' }, routes).component,
     routes[3].component,
     'Should return the correct route object'
   )
@@ -315,28 +318,28 @@ test('Work with and without leading slashes', (assert) => {
 
 test('Match routes case insensitive', (assert) => {
   assert.equal(
-    matchHash('/', routes).component,
+    matchHash({ path: '/' }, routes).component,
     routes[0].component,
     'Should return the correct route object'
   )
   assert.equal(
-    matchHash('/Page1', routes).component,
+    matchHash({ path: '/Page1' }, routes).component,
     routes[1].component,
     'Should return the correct route object'
   )
   assert.equal(
-    matchHash('/pagE1/SUBpage1', routes).component,
+    matchHash({ path: '/pagE1/SUBpage1' }, routes).component,
     routes[2].component,
     'Should return the correct route object'
   )
   assert.equal(
-    matchHash('/Tv/SimpsonS/Seasons/First', routes).component,
+    matchHash({ path: '/Tv/SimpsonS/Seasons/First' }, routes).component,
     routes[3].component,
     'Should return the correct route object'
   )
 
   assert.equal(
-    matchHash('/Movies/Avengers-Endgame', routes).component,
+    matchHash({ path: '/Movies/Avengers-Endgame' }, routes).component,
     routes[5].component,
     'Should return the correct route object'
   )
@@ -344,7 +347,7 @@ test('Match routes case insensitive', (assert) => {
 })
 
 test('Match routes case insensitive, but pass props with original casing', (assert) => {
-  const match1 = matchHash('/Tv/SimpsonS/Seasons/First', routes)
+  const match1 = matchHash({ path: '/Tv/SimpsonS/Seasons/First' }, routes)
   assert.deepEqual(
     match1.params,
     {
@@ -354,7 +357,7 @@ test('Match routes case insensitive, but pass props with original casing', (asse
     'Should return the correct params object'
   )
 
-  const match2 = matchHash('/Movies/Avengers-Endgame', routes)
+  const match2 = matchHash({ path: '/Movies/Avengers-Endgame' }, routes)
   assert.deepEqual(
     match2.params,
     {
@@ -363,7 +366,7 @@ test('Match routes case insensitive, but pass props with original casing', (asse
     'Should return the correct params object'
   )
 
-  const match3 = matchHash('/DutchMovies/ID_123', routes)
+  const match3 = matchHash({ path: '/DutchMovies/ID_123' }, routes)
   assert.deepEqual(
     match3.params,
     {
@@ -377,14 +380,13 @@ test('Match routes case insensitive, but pass props with original casing', (asse
 
 test('Match paths with dynamic route parts along with query string params', (assert) => {
   const hash1 = '#/tv/simpsons/seasons/first?token=123&ln=en'
-  document.location.hash = hash1
 
-  const { hash, path, queryParams } = getHash()
+  const { hash, path, queryParams } = getHash(hash1)
 
   assert.equal(hash, hash1, 'Should return correct hash')
   assert.equal(path, '/tv/simpsons/seasons/first', 'Should return the correct route path')
   assert.equal(
-    matchHash(path, routes).component,
+    matchHash({ path: path }, routes).component,
     routes[3].component,
     'Should return the correct route object'
   )
@@ -403,9 +405,8 @@ test('Match paths with dynamic route parts along with query string params', (ass
 
 test('Get the hash from the URL', (assert) => {
   const hash = '#/movies/action/the-avengers'
-  document.location.hash = hash
 
-  const result = getHash()
+  const result = getHash(hash)
 
   assert.equal(
     result.hash,
@@ -424,9 +425,8 @@ test('Get the hash from the URL', (assert) => {
 
 test('Get the hash from the URL and handle query params', (assert) => {
   const hash = '#/movies/comedy/the-hangover?category=1&item=2'
-  document.location.hash = hash
 
-  const result = getHash()
+  const result = getHash(hash)
 
   assert.equal(
     result.hash,
@@ -466,11 +466,11 @@ test('Get route object from Match hash when navigating using to() method', (asse
 
   to(hash)
 
-  const result = matchHash(hash, routes)
+  const result = matchHash({ path: hash }, routes)
 
   assert.equal(
     result.path,
-    'page1/subpage1',
+    '/page1/subpage1',
     'The result object should contain a path key with path hash'
   )
   assert.equal(
@@ -485,8 +485,19 @@ test('Get route object from Match hash when navigating using to() method', (asse
   )
   assert.equal(
     Object.keys(result.options).length,
-    0,
-    'The results object should contain a options key with zero props'
+    4,
+    'The results object should contain the default options object'
+  )
+
+  assert.deepEqual(
+    Object.entries(result.options),
+    [
+      ['inHistory', true],
+      ['keepAlive', false],
+      ['passFocus', true],
+      ['reuseComponent', false],
+    ],
+    'The results object should contain the default options object'
   )
   assert.end()
 })
@@ -496,11 +507,11 @@ test('Get route object from Match hash when navigating using to() method with op
 
   to(hash, undefined, { keepAlive: true })
 
-  const result = matchHash(hash, routes)
+  const result = matchHash({ path: hash }, routes)
 
   assert.equal(
     result.path,
-    'page1/subpage1',
+    '/page1/subpage1',
     'The result object should contain a path key with path hash'
   )
 
@@ -516,9 +527,7 @@ test('Get route object from Match hash when navigating using to() method with op
 test('Get Hash from URL when navigating using to() method', (assert) => {
   const hash = '#/movies/action/avengers'
 
-  to(hash)
-
-  const result = getHash()
+  const result = getHash(hash)
 
   assert.equal(
     result.hash,
@@ -532,5 +541,144 @@ test('Get Hash from URL when navigating using to() method', (assert) => {
     'The result object should contain a path key with hash without #'
   )
 
+  assert.end()
+})
+
+test('Router updates state.path, state.params, and state.data correctly', async (assert) => {
+  // Stub stage.element to avoid engine dependency
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set() {},
+    parent,
+  })
+
+  const Capturing = Component('Capturing', {
+    template: '<Element />',
+    code: {
+      render: () => ({
+        elms: [
+          {
+            [symbols.holder]: {},
+            node: {},
+          },
+        ],
+        cleanup: () => {},
+      }),
+      effects: [],
+      init() {
+        // just to prove component is constructed
+        this.$router && assert.ok(true, 'Component accessed $router')
+      },
+    },
+  })
+
+  const host = {
+    parent: {
+      [symbols.routes]: [
+        {
+          path: '/cap/:id',
+          component: Capturing,
+          options: { inHistory: true, passFocus: false },
+          data: { title: 'Test' },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  // Navigate
+  to('/cap/123?lang=en', { dynamic: true })
+  await navigate.call(host)
+
+  // Assertions directly against router.js `state`
+  assert.equal(state.path, '/cap/:id', 'state.path matches route definition')
+  assert.deepEqual(state.params, { id: '123' }, 'state.params extracted correctly')
+  assert.deepEqual(
+    state.data,
+    { title: 'Test', dynamic: true, lang: 'en' },
+    'state.data merged correctly (route + navigation + query)'
+  )
+
+  // Restore
+  stage.element = originalElement
+  assert.end()
+})
+
+test('Before hook route object redirect', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({ populate() {}, set() {}, parent })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    parent: {
+      [symbols.routes]: [
+        {
+          path: '/original',
+          component: TestComponent,
+          hooks: {
+            before() {
+              return { path: '/redirected', component: TestComponent }
+            },
+          },
+        },
+        { path: '/redirected', component: TestComponent },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/original')
+  await navigate.call(host)
+  assert.equal(window.location.hash, '#/redirected', 'Should redirect to new path')
+  stage.element = originalElement
+  assert.end()
+})
+
+test('BeforeEach hook route object redirect', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({ populate() {}, set() {}, parent })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    parent: {
+      [symbols.routes]: [
+        { path: '/original', component: TestComponent },
+        { path: '/redirected', component: TestComponent },
+      ],
+      [symbols.routerHooks]: {
+        beforeEach() {
+          return { path: '/redirected', component: TestComponent }
+        },
+      },
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/original')
+  await navigate.call(host)
+  assert.equal(window.location.hash, '#/redirected', 'Should redirect via beforeEach hook')
+  stage.element = originalElement
+  assert.end()
+})
+
+test('Route meta data is accessible in route object', async (assert) => {
+  const route = { path: '/test', meta: { auth: true, role: 'admin' } }
+  assert.deepEqual(
+    route.meta,
+    { auth: true, role: 'admin' },
+    'Should have access to route meta data'
+  )
   assert.end()
 })

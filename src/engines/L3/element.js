@@ -107,8 +107,8 @@ const layoutFn = function (config) {
             ? node.height + gap
             : 0
           : node.height !== 0
-          ? node.height + gap
-          : 0
+            ? node.height + gap
+            : 0
     }
     otherDimension = Math.max(
       otherDimension,
@@ -221,6 +221,12 @@ const colorMap = {
  * @type {object|null}
  */
 let textDefaults = null
+
+/**
+ * Inspector enabled flag (initialized on first use).
+ * @type {boolean|null}
+ */
+let inspectorEnabled = null
 
 /**
  * @typedef {import('../../component.js').BlitsElement} BlitsElement
@@ -351,7 +357,8 @@ const propsTransformer = {
         this.props['scaleY'] = v.y
       }
     } else {
-      this.props['scale'] = v
+      this.props['scaleX'] = v
+      this.props['scaleY'] = v
     }
   },
   set show(v) {
@@ -465,6 +472,11 @@ const propsTransformer = {
     }
   },
   set 'inspector-data'(v) {
+    // Skip processing if inspector is not enabled for performance optimization
+    if (inspectorEnabled === false) {
+      return
+    }
+
     if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
       this.props['data'] = v
     }
@@ -567,10 +579,11 @@ const Element = {
       for (let i = 0; i < propsKeys.length; i++) {
         // todo: fix code duplication
         if (isTransition(value) === true) {
-          return this.animate(propsKeys[i], this.props.props[propsKeys[i]], value.transition)
+          this.animate(propsKeys[i], this.props.props[propsKeys[i]], value.transition)
+        } else {
+          // set the prop to the value on the node
+          this.node[propsKeys[i]] = this.props.props[propsKeys[i]]
         }
-        // set the prop to the value on the node
-        this.node[propsKeys[i]] = this.props.props[propsKeys[i]]
       }
     }
 
@@ -739,6 +752,9 @@ export default (config, component) => {
       fontSize: 32,
       fontFamily: Settings.get('defaultFont', 'sans-serif'),
     }
+  }
+  if (inspectorEnabled === null) {
+    inspectorEnabled = Settings.get('inspector', false)
   }
   return Object.assign(Object.create(Element), {
     props: Object.assign(Object.create(propsTransformer), { props: {} }),

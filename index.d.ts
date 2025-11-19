@@ -23,7 +23,40 @@ import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader, type Re
 declare module '@lightningjs/blits' {
 
 
-  export interface AnnouncerUtterance extends Promise<T> {
+  export interface AnnouncerUtteranceOptions {
+    /**
+     * Language code (BCP 47 format, e.g., 'en-US', 'fr-FR')
+     *
+     * @default 'en-US'
+     */
+    lang?: string,
+    /**
+     * Voice pitch (0 to 2, where 1 is normal)
+     *
+     * @default 1
+     */
+    pitch?: number,
+    /**
+     * Speech rate (0.1 to 10, where 1 is normal)
+     *
+     * @default 1
+     */
+    rate?: number,
+    /**
+     * Voice to use (obtained from `speechSynthesis.getVoices()`)
+     *
+     * @default null
+     */
+    voice?: SpeechSynthesisVoice | null,
+    /**
+     * Volume level (0 to 1, where 1 is full volume)
+     *
+     * @default 1
+     */
+    volume?: number,
+  }
+
+  export interface AnnouncerUtterance<T = any> extends Promise<T> {
     /**
      * Removes a specific message from the announcement queue,
      * to make sure it isn't spoke out.
@@ -46,8 +79,34 @@ declare module '@lightningjs/blits' {
      * When a message is added with politeness set to `assertive` the message
      * will be added to the beginning of the queue
      *
+     * @param message - The message to be spoken
+     * @param politeness - Politeness level ('off', 'polite', or 'assertive')
+     * @param options - Optional utterance options (rate, pitch, lang, voice, volume)
      */
-    speak(message: string | number, politeness?: 'off' | 'polite' | 'assertive'): AnnouncerUtterance;
+    speak(message: string | number, politeness?: 'off' | 'polite' | 'assertive', options?: AnnouncerUtteranceOptions): AnnouncerUtterance;
+    /**
+     * Instruct the Announcer to speak a message with 'polite' politeness level.
+     * Will add the message to the end of announcement queue.
+     *
+     * @param message - The message to be spoken
+     * @param options - Optional utterance options (rate, pitch, lang, voice, volume)
+     */
+    polite(message: string | number, options?: AnnouncerUtteranceOptions): AnnouncerUtterance;
+    /**
+     * Instruct the Announcer to speak a message with 'assertive' politeness level.
+     * Will add the message to the beginning of announcement queue.
+     *
+     * @param message - The message to be spoken
+     * @param options - Optional utterance options (rate, pitch, lang, voice, volume)
+     */
+    assertive(message: string | number, options?: AnnouncerUtteranceOptions): AnnouncerUtterance;
+    /**
+     * Configure global default utterance options that will be applied to all
+     * subsequent announcements unless overridden by per-call options.
+     *
+     * @param options - Default utterance options (rate, pitch, lang, voice, volume)
+     */
+    configure(options?: AnnouncerUtteranceOptions): void;
     /**
      * Instruct the Announcer to add a pause of a certain duration (in ms). Will add this pause
      * to the end of announcement queue
@@ -110,7 +169,7 @@ declare module '@lightningjs/blits' {
     *
     * Note: This hook will fire continuously, multiple times per second!
     */
-    frameTick?: () => void;
+    frameTick?: (data: {time: number, delta: number}) => void;
     /**
     * Fires when the component enters the viewport _margin_ and is attached to the render tree
     *
@@ -135,6 +194,18 @@ declare module '@lightningjs/blits' {
     * This event can fire multiple times during the component's lifecycle
     */
     exit?: () => void;
+    /**
+    * Fires when the renderer is done rendering and enters an idle state
+    *
+    * Note: This event can fire multiple times
+    */
+    idle?: () => void;
+    /**
+    * Fires at a predefined interval and reports the current FPS value
+    *
+    * Note: This event fire multiple times
+    */
+    fpsUpdate?: (fps: number) => void;
   }
 
   export interface Input {
@@ -185,15 +256,31 @@ declare module '@lightningjs/blits' {
     [key: string]: any
   }
 
-  // todo: specify valid route options
-  export interface RouteOptions {
+  /**
+   * Router Options that can be used at the same time.
+   */
+  interface ConcurrentRouteOpts {
     /**
      * Whether the page navigation should be added to the history stack
      * used when navigating back using `this.$router.back()`
      *
      * @default true
      */
-    inHistory?: Boolean
+    inHistory?: boolean,
+    passFocus?: boolean,
+  }
+
+  /**
+   * Route Options that can't be true at the same time
+   */
+  type MutualExclusiveRouteOpts = {
+    /**
+     * Whether the router should reuse the current page component instance (when matching with the Component
+     * specified for the route that we're routing to).
+     *
+     * @default true
+     */
+    reuseComponent?: true,
     /**
      * Whether the page should be kept alive when navigating away. Can be useful
      * for a homepage where the state should be fully retained when navigating back
@@ -201,17 +288,25 @@ declare module '@lightningjs/blits' {
      *
      * @default false
      */
-    keepAlive?: Boolean
+    keepAlive?: false
+  } | {
     /**
-     * Whether the focus should be delegated to the page that's being navigated to.
-     * Can be useful when navigating to a new page from a widget / menu overlaying the
-     * RouterView, where the widget should maintain the focus (instead of the new page, which
-     * is the default behaviour)
+     * Whether the router should reuse the current page component instance (when matching with the Component
+     * specified for the route that we're routing to).
      *
      * @default true
      */
-    passFocus?: Boolean
+    reuseComponent?: false,
+    /**
+     * Whether the page should be kept alive when navigating away. Can be useful
+     * for a homepage where the state should be fully retained when navigating back
+     * from a details page
+     *
+     * @default false
+     */
+    keepAlive?: true
   }
+  export type RouteOptions = ConcurrentRouteOpts & MutualExclusiveRouteOpts;
 
   export interface Router {
     /**
@@ -281,6 +376,14 @@ declare module '@lightningjs/blits' {
     $listen: {
       (event: string, callback: (args: any) => void, priority?: number): void;
     }
+
+    /**
+     * Remove an event listener previously registered with $listen
+     */
+    $unlisten: {
+      (event: string): void;
+    }
+
     /**
      * Emit events that other components can listen to
      * @param name - name of the event to be emitted
@@ -291,6 +394,13 @@ declare module '@lightningjs/blits' {
      * and cleaned from any potential reactivity before emitting
      */
     $emit(name: string, data?: any, byReference?: boolean): void;
+
+    /**
+     * Remove all listeners for this component from all events
+     */
+    $clearListeners: {
+      (): void;
+    }
 
     /**
     * Set a timeout that is automatically cleaned upon component destroy
@@ -679,6 +789,17 @@ declare module '@lightningjs/blits' {
     data?: {
       [key: string]: any
     }
+
+    /**
+     * Metadata attached to the route, can be used to add any arbitrary
+     * data to a route such as `auth: true/false`, a route ID or route description
+     * Note that this data is not reactive and not passed as props to components.
+     * The metadata is available in the router `before` or `beforeEach` hooks
+     *
+     */
+    meta?: {
+      [key: string]: any
+    }
   }
 
   type ComponentFactory = () => void
@@ -1043,7 +1164,24 @@ declare module '@lightningjs/blits' {
      *
      * @default false
      */
-    announcer?: boolean
+    announcer?: boolean,
+    /**
+     * Global default utterance options for the announcer.
+     *
+     * These options will be applied to all announcements unless overridden
+     * by per-call options passed to `speak()`, `polite()`, or `assertive()`.
+     *
+     * @example
+     * ```js
+     * announcerOptions: {
+     *   rate: 1.0,
+     *   pitch: 1.0,
+     *   lang: 'en-US',
+     *   volume: 1.0
+     * }
+     * ```
+     */
+    announcerOptions?: AnnouncerUtteranceOptions,
     /**
      * Maximum FPS at which the App will be rendered
      *

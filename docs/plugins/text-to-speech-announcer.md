@@ -67,6 +67,63 @@ this.$announcer.speak('Very important message that should get priority', 'assert
 
 This will place the message at the beginning of the queue, making in the first message to be announced after the current message (if any) has finished.
 
+### Utterance options
+
+Optionally you can pass an `options` object as the third parameter of the `speak()`-method to customize how each message is spoken. You can control the speech rate, pitch, language, voice, and volume for individual announcements.
+
+```js
+this.$announcer.speak('Hello world', 'off', {
+  rate: 1.2,
+  pitch: 1.1,
+  lang: 'en-US',
+  volume: 0.8
+})
+```
+
+These options can also be passed to the `polite()` and `assertive()` convenience methods as their second parameter.
+
+```js
+this.$announcer.polite('Message with polite politeness', { rate: 0.9, pitch: 0.95 })
+this.$announcer.assertive('Urgent message', { rate: 1.5, volume: 1.0 })
+```
+
+### Global configuration
+
+You can configure global default utterance options that will be applied to all announcements using the `configure()` method. These defaults will be used for all subsequent `speak()`, `polite()`, and `assertive()` calls unless overridden by per-call options.
+
+```js
+this.$announcer.configure({
+  rate: 1.1,
+  pitch: 1.0,
+  lang: 'en-US',
+  volume: 0.9
+})
+
+this.$announcer.speak('This will use the configured defaults')
+this.$announcer.speak('This will use rate 1.5 instead', 'off', { rate: 1.5 })
+```
+
+The `configure()` method merges new options with existing ones, so you can update specific settings without losing others.
+
+```js
+this.$announcer.configure({ rate: 1.1, pitch: 1.0 })
+this.$announcer.configure({ rate: 1.2 }) // pitch remains 1.0
+```
+
+You can also configure global defaults at application startup by providing an `announcerOptions` setting in your Blits configuration.
+
+```js
+Blits.Application({
+  // ... other settings
+  announcerOptions: {
+    rate: 1.1,
+    pitch: 1.0,
+    lang: 'en-US',
+    volume: 0.9
+  }
+})
+```
+
 #### Clearing and interupting
 
 Since each message added into the queue may take a bit of time to actually be announced, it's possible that the user has navigated elsewhere in the mean time, making the queued up messages not relevant.
@@ -79,7 +136,7 @@ In some cases you may not want to clear the entire queue, but instead cancel out
 
 Imagine an App with a row of tiles, it's possible that before the title of the role is being spoken out, the user already navigates through the tiles within the row. Traditionally you'd use the focus event to speak out info about each tile (i.e. adding tot the queue). You don't want all previously focused tiles to still be announced, but would still want the category of the row to be announced, making clearing the queue not required.
 
-The `speak()`-method return a Promise that also contains a `cancel()` function. When called, it will cancel that specific message and remove it from the queue before it can be spoken out.
+The `speak()`-method return a Promise that also contains a `remove()` function. When called, it will remove it from the queue before it can be spoken out.
 
 Additionally if you want to _interrupt_ a specific messages as it's being spoken out as well and go straight to the next message in the queue (i.e. the newly focused item, for example). You can use the `stop()` message that is returned on the Promise returned by the `speak()`-method.
 
@@ -100,8 +157,8 @@ Blits.Component('MyTile', {
     unfocus() {
       // when unfocused interrupt the message if it's already being spoken out
       this.message.stop()
-      // and cancel the message to remove it from the queue
-      this.message.cancel()
+      // and remove the message from the queue
+      this.message.remove()
     }
   }
 })
@@ -117,4 +174,4 @@ Alternatively the announcer can be enabled or disabled run time by using one of 
 
 - `this.$announcer.enable()` - activates the announcer
 - `this.$announcer.disable()` - deactivates the announcer
-- `this.$announcer.disable(true/false)` - turns the announcer or on off
+- `this.$announcer.disable(true/false)` - turns the announcer on or off

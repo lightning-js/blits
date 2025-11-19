@@ -1,5 +1,152 @@
 # Changelog
 
+## v1.43.2
+
+_13 Nov 2025_
+
+- Fixed issue with endless loop in router when first page in history would fail an async before / beforeEach hook (introduced in v1.43.0)
+
+## v1.43.1
+
+_13 Nov 2025_
+
+- Added arguments of fpsUpdate and frameTick hooks to type definitions
+
+## v1.43.0
+
+_12 Nov 2025_
+
+- Exposed different renderer events as hooks (`idle`, `fpsUpdate` and `frameTick`)
+- Added `$clearListeners` utility helper
+- Added `$clearListeners` and `$unlisten` to type definitions
+- Fixed issue with __DEV__ flag being set in vite config
+- Fixed `lint` and `lint:fix` scripts to work cross platform (added Windows support)
+- Added support for utterance options (`rate`, `pitch`, `lang`, `voice` and `volume`) to Announcer plugin
+- Added reactivity to `src`-attribute of the Sprite
+- Updates deprecated `assert` keyword for new `with` keyword
+
+
+## v1.42.1
+
+_28 Oct 2025_
+
+- Updated to version 2.19.1 of the renderer
+- Fixed scale animation snapping issue when using object notation with transitions (again)
+
+## v1.42.0
+
+_24 Oct 2025_
+
+
+- Added effects prop support to Sprite component
+- Added support for redirecting in before hooks returning a route object (with updated path)
+- Fixed meta options on routes functionality
+- Enhanced router hook test coverage
+- Fixed scale animation snapping issue when using object notation with transitions
+
+## v1.41.0
+
+_16 Oct 2025_
+
+- Improved overall test coverage to 86%
+- Filtered out inspector-data entirely in production
+- Improved vite plugin that handles computed props to be more robust
+- Fixed issue with global reactive object that are deeply nested
+- Bumped MSDF generator dependency to address security issues in dependencies
+
+## v1.40.1
+
+_10 Oct 2025_
+
+- Downgraded renderer to 2.18.2
+
+## v1.40.0
+
+_10 Oct 2025_
+
+- Improved memory management in the for loop by efficiently removing effects
+
+## v1.39.4
+
+_9 Oct 2025_
+
+- Bumped Lightning renderer to 2.18.3
+
+
+## v1.39.3
+
+_2 Oct 2025_
+
+- Bumped Lightning renderer to 2.18.2
+
+
+## v1.39.2
+
+_2 Oct 2025_
+
+- Bumped Lightning renderer to 2.18.0
+
+
+## v1.39.1
+
+_26 Sept 2025_
+
+- Bumped Lightning renderer to 2.17.0
+
+
+## v1.39.0
+
+_16 Sept 2025_
+
+- Refactored router to be more performant and prevent runtime route changes to affect other route instances
+
+## v1.38.3
+
+_4 Sept 2025_
+
+- Fixed clearing of `idle` and `frameTick` hooks upon component destroy
+- Fixed updating of router state to before init hook
+
+## v1.38.2
+
+_1 Sept 2025_
+
+- Fixed issue with `reuseComponent` storing the same page multiple times
+- Fixed last array patch method (sort) not triggering reactivity
+
+
+## v1.38.1
+
+_28 Aug 2025_
+
+- Added guard around emiting events and selecting elements after Component destroy
+- Fixed issue with `navigatingBack`
+
+## v1.38.0
+
+_26 Aug 2025_
+
+- Added `reuseComponent` to route options to enable navigating to the same page and reusing the same page component instance
+
+## v1.37.0
+
+_22 Aug 2025_
+
+- Added Route options check before checking passFocus flag
+- Added support for additional metadata in Route config (for associating arbitrary data to a route)
+- Upgraded dev dependencies to latest versions
+
+## v1.36.0
+
+_11 Aug 2025_
+
+- Added `passFocus` option to route options to prevent focus being passed to page navigated to
+- Added missing type definitions for Route options
+- Fixed sidebar in docs
+- Added debug log messages to Announcer
+- Added `remove()` function as (preferred) alias for announcer `message.cancel()`
+- Fixed issue with removing a messages causing an interrupt of current message being read out
+
 ## v1.35.5
 
 _06 Aug 2025_

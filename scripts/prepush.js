@@ -43,9 +43,13 @@ try {
     })
   } else {
     // Only check files in the commits that are being pushed right now
-    filesToLint = execSync(`git diff --name-only ${remoteSha}..${localSha} | grep '\\.js$'`, {
-      encoding: 'utf8',
-    })
+    // Added --diff-filter=AM to exclude deleted files from linting.
+    filesToLint = execSync(
+      `git diff --diff-filter=AM --name-only ${remoteSha}..${localSha} | grep '\\.js$'`,
+      {
+        encoding: 'utf8',
+      }
+    )
   }
 } catch (error) {
   // grep will exit with code 1 if it doesn't find anything
@@ -60,7 +64,6 @@ if (!filesToLint.trim()) {
 
 const fileList = filesToLint.trim().split('\n')
 console.log(`Running ESLint on ${fileList.length} changed JavaScript files:\n`)
-console.log(filesToLint)
 
 try {
   // Run ESLint on the changed files

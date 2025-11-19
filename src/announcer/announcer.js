@@ -15,6 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { Log } from '../lib/log.js'
 import speechSynthesis from './speechSynthesis.js'
 
 let active = false
@@ -24,10 +25,14 @@ let isProcessing = false
 let currentId = null
 let debounce = null
 
+// Global default utterance options
+let globalDefaultOptions = {}
+
 const noopAnnouncement = {
   then() {},
   done() {},
   cancel() {},
+  remove() {},
   stop() {},
 }
 
@@ -43,10 +48,10 @@ const toggle = (v) => {
   active = v ? true : false
 }
 
-const speak = (message, politeness = 'off') => {
+const speak = (message, politeness = 'off', options = {}) => {
   if (active === false) return noopAnnouncement
 
-  return addToQueue(message, politeness)
+  return addToQueue(message, politeness, false, options)
 }
 
 const pause = (delay) => {
@@ -55,7 +60,7 @@ const pause = (delay) => {
   return addToQueue(undefined, undefined, delay)
 }
 
-const addToQueue = (message, politeness, delay = false) => {
+const addToQueue = (message, politeness, delay = false, options = {}) => {
   // keep track of the id so message can be canceled
   const id = count++
 
@@ -66,11 +71,11 @@ const addToQueue = (message, politeness, delay = false) => {
     resolveFn = resolve
   })
 
-  // augment the promise with a cancel function
-  done.cancel = () => {
+  // augment the promise with a cancel / remove function
+  done.remove = done.cancel = () => {
     const index = queue.findIndex((item) => item.id === id)
     if (index !== -1) queue.splice(index, 1)
-    isProcessing = false
+    Log.debug(`Announcer - removed from queue: "${message}" (id: ${id})`)
     resolveFn('canceled')
   }
 
@@ -86,11 +91,13 @@ const addToQueue = (message, politeness, delay = false) => {
   // add message of pause
   if (delay === false) {
     politeness === 'assertive'
-      ? queue.unshift({ message, resolveFn, id })
-      : queue.push({ message, resolveFn, id })
+      ? queue.unshift({ message, resolveFn, id, options })
+      : queue.push({ message, resolveFn, id, options })
   } else {
     queue.push({ delay, resolveFn, id })
   }
+
+  Log.debug(`Announcer - added to queue: "${message}" (id: ${id})`)
 
   setTimeout(() => {
     processQueue()
@@ -103,7 +110,7 @@ const processQueue = async () => {
   if (isProcessing === true || queue.length === 0) return
   isProcessing = true
 
-  const { message, resolveFn, delay, id } = queue.shift()
+  const { message, resolveFn, delay, id, options = {} } = queue.shift()
 
   currentId = id
 
@@ -118,17 +125,27 @@ const processQueue = async () => {
     if (debounce !== null) clearTimeout(debounce)
     // add some easing when speaking the messages to reduce stuttering
     debounce = setTimeout(() => {
+      Log.debug(`Announcer - speaking: "${message}" (id: ${id})`)
+
       speechSynthesis
-        .speak({ message })
+        .speak({
+          message,
+          id,
+          ...globalDefaultOptions,
+          ...options,
+        })
         .then(() => {
-          isProcessing = false
+          Log.debug(`Announcer - finished speaking: "${message}" (id: ${id})`)
+
           currentId = null
+          isProcessing = false
           resolveFn('finished')
           processQueue()
         })
         .catch((e) => {
-          isProcessing = false
           currentId = null
+          isProcessing = false
+          Log.debug(`Announcer - error ("${e.error}") while speaking: "${message}" (id: ${id})`)
           resolveFn(e.error)
           processQueue()
         })
@@ -137,9 +154,9 @@ const processQueue = async () => {
   }
 }
 
-const polite = (message) => speak(message, 'polite')
+const polite = (message, options = {}) => speak(message, 'polite', options)
 
-const assertive = (message) => speak(message, 'assertive')
+const assertive = (message, options = {}) => speak(message, 'assertive', options)
 
 const stop = () => {
   speechSynthesis.cancel()
@@ -148,6 +165,10 @@ const stop = () => {
 const clear = () => {
   isProcessing = false
   queue.length = 0
+}
+
+const configure = (options = {}) => {
+  globalDefaultOptions = { ...globalDefaultOptions, ...options }
 }
 
 export default {
@@ -160,4 +181,5 @@ export default {
   toggle,
   clear,
   pause,
+  configure,
 }

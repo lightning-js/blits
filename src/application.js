@@ -58,6 +58,11 @@ const Application = (config) => {
   config.hooks[symbols.init] = function () {
     // set the initial activation state of the announcer based on launch setting
     this.$announcer.toggle(Settings.get('announcer', false))
+    // configure global default utterance options if provided in settings
+    const announcerOptions = Settings.get('announcerOptions', null)
+    if (announcerOptions && typeof announcerOptions === 'object') {
+      this.$announcer.configure(announcerOptions)
+    }
     const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
 
     /** @type {number} Input throttle time in milliseconds (0 = disabled) */
@@ -96,9 +101,12 @@ const Application = (config) => {
 
       Focus.input(key, e)
       clearTimeout(holdTimeout)
-      holdTimeout = setTimeout(() => {
-        Focus.hold = true
-      }, Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS))
+      holdTimeout = setTimeout(
+        () => {
+          Focus.hold = true
+        },
+        Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS)
+      )
     }
 
     keyUpHandler = (e) => {

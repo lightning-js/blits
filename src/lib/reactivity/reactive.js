@@ -46,7 +46,7 @@ const reactiveProxy = (original, _parent = null, _key, global) => {
 
   const handler = {
     get(target, key, receiver) {
-      // return the original object instead of the proxied
+      // indicate that this is a proxy object
       if (key === symbols.isProxy) {
         return true
       }
@@ -62,7 +62,7 @@ const reactiveProxy = (original, _parent = null, _key, global) => {
             track(target, key, global)
           }
           // create a new reactive proxy
-          return reactiveProxy(getRaw(target[key]), target, key)
+          return reactiveProxy(getRaw(target[key]), target, key, global)
         }
         // augment array path methods (that change the length of the array)
         if (arrayPatchMethods.indexOf(key) !== -1) {
@@ -90,7 +90,7 @@ const reactiveProxy = (original, _parent = null, _key, global) => {
           track(target, key, global)
         }
         // create a new reactive proxy
-        return reactiveProxy(getRaw(target[key]), target, key)
+        return reactiveProxy(getRaw(target[key]), target, key, global)
       }
 
       // handling all other types
@@ -155,7 +155,7 @@ const reactiveDefineProperty = (target, global) => {
       if (Object.getPrototypeOf(target[key]) === Object.prototype) {
         return reactiveDefineProperty(target[key])
       } else if (Array.isArray(target[key]) === true) {
-        for (let i = 0; i < arrayPatchMethods.length - 1; i++) {
+        for (let i = 0; i < arrayPatchMethods.length; i++) {
           target[key][arrayPatchMethods[i]] = function (v) {
             Array.prototype[arrayPatchMethods[i]].call(this, v)
             trigger(target, key)
