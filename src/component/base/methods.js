@@ -23,6 +23,26 @@ import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
 import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
 import { renderer } from '../../launch.js'
+import Settings from '../../settings.js'
+
+const defaultKeyMap = {
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+  Enter: 'enter',
+  ' ': 'space',
+  Backspace: 'back',
+  Escape: 'escape',
+  37: 'left',
+  39: 'right',
+  38: 'up',
+  40: 'down',
+  13: 'enter',
+  32: 'space',
+  8: 'back',
+  27: 'escape',
+}
 
 export default {
   focus: {
@@ -52,21 +72,24 @@ export default {
     enumerable: true,
     configurable: false,
   },
-  $bubbleInput: {
+  $input: {
     /**
-     * Bubble up a keyboard event to a parent component without changing focus
+     * Handle a keyboard event on this component without changing focus
      * @this {import('../../component').BlitsComponent}
-     * @param {string} key - The key name (e.g., 'enter', 'back', 'up')
-     * @param {KeyboardEvent} event - The keyboard event to bubble up
-     * @returns {boolean} - Returns true if a parent component handled the event, false otherwise
+     * @param {KeyboardEvent} event - The keyboard event to handle
+     * @returns {boolean} - Returns true if this component or a parent component handled the event, false otherwise
      */
-    value: function (key, event) {
-      if (!this.parent) return false
+    value: function (event) {
+      if (event === null || event === undefined || event instanceof KeyboardEvent === false)
+        return false
 
-      const componentWithInputEvent = getComponentWithInputEvent(this.parent, key)
+      const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
+      const key = keyMap[event.key] || keyMap[event.keyCode] || event.key || event.keyCode
+
+      const componentWithInputEvent = getComponentWithInputEvent(this, key)
       if (componentWithInputEvent === null) return false
 
-      const inputEvents = componentWithInputEvent[symbols.inputEvents]
+      const inputEvents = componentWithInputEvent[symbols.inputEvents] || {}
 
       let cb
       if (inputEvents[key]) {
@@ -75,7 +98,7 @@ export default {
         cb = inputEvents.any.call(componentWithInputEvent, event)
       }
 
-      if (cb !== undefined && event && event.code) {
+      if (cb !== undefined && event.code) {
         keyUpCallbacks.set(event.code, cb)
       }
 

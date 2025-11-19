@@ -59,9 +59,9 @@ When a component handles a key press by having a corresponding function specifie
 
 1. **Change focus only (no bubbling)**: Use `this.parent.$focus()` without the event parameter. This only changes focus to the parent and does not bubble the event.
 2. **Change focus and bubble the event**: Use `this.parent.$focus(e)` with the event parameter. This changes focus to the parent AND bubbles the event to the parent's input handler.
-3. **Bubble event without changing focus**: Use `this.$bubbleInput(key, e)`. This bubbles the event to the parent's input handler WITHOUT changing focus.
+3. **Handle input without changing focus**: Use `this.parent.$input(e)`. This handles the input event on the parent WITHOUT changing focus.
 
-**Note**: Both `this.parent.$focus(e)` and `this.$bubbleInput(key, e)` bubble events to the parent. The only difference is whether focus changes.
+**Note**: Both `this.parent.$focus(e)` and `this.parent.$input(e)` process events on the parent. The difference is that `$focus()` changes focus, while `$input()` only handles the input event.
 
 ```javascript
 {
@@ -75,8 +75,8 @@ When a component handles a key press by having a corresponding function specifie
       this.parent.$focus(e);
     },
     escape(e) {
-      // Bubble event to parent but keep focus on current component
-      this.$bubbleInput('escape', e);
+      // Handle input on parent but keep focus on current component
+      this.parent.$input(e);
     },
   }
 }
