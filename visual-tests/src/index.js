@@ -136,13 +136,12 @@ async function dockerCiMode() {
   const __dirname = path.dirname(fileURLToPath(import.meta.url))
   const rootDir = path.resolve(__dirname, '..', '..')
 
+  const cmdToRun = `./visual-tests-runner.sh ${commandLineStr}`
+
   const childProc = $({ stdio: 'inherit' })`${runtime} run --network host \
     -v ${rootDir}:/work/ \
-    -v /work/node_modules \
-    -v /work/examples/node_modules \
-    -v /work/visual-tests/node_modules \
     -w /work/ -it visual-tests:latest \
-    /bin/bash -c ${`npm install && cd examples && npm install && cd .. && cd visual-tests && npm install && cd .. && RUNTIME_ENV=ci npm run test:visual -- -- ${commandLineStr}`}
+    /bin/bash -c ${cmdToRun}
   `
   await childProc
   return childProc.exitCode ?? 1
@@ -181,7 +180,7 @@ async function compareCaptureMode() {
   try {
     const waitPortRes = await $({
       stdio: stdioOption,
-      timeout: 10000,
+      timeout: 60000,
     })`wait-port ${argv.port}`
 
     if (waitPortRes.exitCode !== 0) {
@@ -240,7 +239,10 @@ async function runTest(browserType = 'chromium') {
   }
 
   // Launch browser and create page
-  const browser = await browsers[browserType].launch()
+  const browser = await browsers[browserType].launch({
+    headless: true,
+    args: ['--no-sandbox'],
+  })
 
   const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
 
