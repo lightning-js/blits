@@ -526,8 +526,6 @@ const Element = {
       this.props.props['color'] = 0
     }
 
-    console.log('props', this.props.props)
-
     this.node = props.__textnode
       ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
       : renderer.createNode(this.props.props)
