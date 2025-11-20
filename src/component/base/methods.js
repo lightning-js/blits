@@ -23,7 +23,7 @@ import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
 import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
 import { renderer } from '../../launch.js'
-import { getKeyMap } from '../../application.js'
+import { keyMap } from '../../application.js'
 
 export default {
   focus: {
@@ -55,25 +55,18 @@ export default {
   },
   $input: {
     /**
-     * Handle a keyboard event on a component without changing focus
+     * Handle a keyboard event on this component without changing focus
      * @this {import('../../component').BlitsComponent}
      * @param {KeyboardEvent} event - The keyboard event to handle
-     * @param {import('../../component').BlitsComponent} [component] - Optional component to handle input on. Defaults to this component.
-     * @returns {boolean} - Returns true if the component or a parent component handled the event, false otherwise
+     * @returns {boolean} - Returns true if this component or a parent component handled the event, false otherwise
      */
-    value: function (event, component) {
+    value: function (event) {
       if (event === null || event === undefined || event instanceof KeyboardEvent === false)
         return false
 
-      // Use provided component or default to this component
-      const targetComponent = component !== undefined ? component : this
-      // Reject if component parameter was explicitly null (would crash in getComponentWithInputEvent)
-      if (targetComponent === null) return false
-
-      const keyMap = getKeyMap()
       const key = keyMap[event.key] || keyMap[event.keyCode] || event.key || event.keyCode
 
-      const componentWithInputEvent = getComponentWithInputEvent(targetComponent, key)
+      const componentWithInputEvent = getComponentWithInputEvent(this, key)
       if (componentWithInputEvent === null) return false
 
       const inputEvents = componentWithInputEvent[symbols.inputEvents] || {}

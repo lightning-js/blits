@@ -24,22 +24,10 @@ import { DEFAULT_HOLD_TIMEOUT_MS, DEFAULT_KEYMAP } from './constants.js'
 
 /**
  * Merged keyMap (default + custom settings).
- * Computed once and cached for performance.
- * @type {Object<string, string>|null}
+ * Initialized once during application init.
+ * @type {Object<string, string>}
  */
-let keyMap = null
-
-/**
- * Get the merged keyMap (default + custom settings).
- * Computed once and cached for performance.
- * @returns {Object<string, string>} The merged keyMap
- */
-export const getKeyMap = () => {
-  if (keyMap === null) {
-    keyMap = { ...DEFAULT_KEYMAP, ...Settings.get('keymap', {}) }
-  }
-  return keyMap
-}
+export let keyMap = { ...DEFAULT_KEYMAP }
 
 const Application = (config) => {
   config.hooks = config.hooks || {}
@@ -63,7 +51,8 @@ const Application = (config) => {
     if (announcerOptions && typeof announcerOptions === 'object') {
       this.$announcer.configure(announcerOptions)
     }
-    const keyMap = getKeyMap()
+    // Initialize merged keyMap once during application init
+    keyMap = { ...DEFAULT_KEYMAP, ...Settings.get('keymap', {}) }
 
     /** @type {number} Input throttle time in milliseconds (0 = disabled) */
     const throttleMs = Settings.get('inputThrottle', 0)
