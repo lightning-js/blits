@@ -612,19 +612,27 @@ const generateForLoopCode = function (templateObject, parent) {
     effectKey = effectKey.match(/[^.]+$/)[0]
   }
 
-  // get the reference to range from and to
-  const effectKeysRegex = /\$([^,} ]+)/g
-  const effectKeys = [...range.matchAll(effectKeysRegex)].map((match) => `'${match[1]}'`)
+  const collectionExpr = result[2].trim()
+  const propName = collectionExpr.replace(/^\$/, '').split('.')[0]
 
   ctx.renderCode.push(`
     let eff${forStartCounter} = () => {
+      // Access underlying prop/state if this is a direct property to ensure tracking
+      if (component[Symbol.for('propKeys')] && component[Symbol.for('propKeys')].indexOf('${propName}') !== -1) {
+        void component[Symbol.for('props')]['${propName}']
+      } else if (component[Symbol.for('stateKeys')] && component[Symbol.for('stateKeys')].indexOf('${propName}') !== -1) {
+        void component[Symbol.for('state')]['${propName}']
+      }
+
       const collection = ${cast(result[2], ':for')}
       forloops[${forStartCounter}](collection, elms, created[${forStartCounter}])
     }
 
     component[Symbol.for('effects')].push(eff${forStartCounter})
 
-    effect(eff${forStartCounter}, ['${effectKey}', ${effectKeys.join(',')}])
+    // Use null as currentKey to track all property accesses during effect execution.
+    // This ensures computed property dependencies are tracked when accessing underlying reactive properties.
+    effect(eff${forStartCounter}, null)
   `)
 
   ctx.cleanupCode.push(`
