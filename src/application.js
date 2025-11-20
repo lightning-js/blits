@@ -27,7 +27,7 @@ import { DEFAULT_HOLD_TIMEOUT_MS, DEFAULT_KEYMAP } from './constants.js'
  * Initialized once during application init.
  * @type {Object<string, string>}
  */
-export let keyMap = { ...DEFAULT_KEYMAP }
+export let keyMap = {}
 
 const Application = (config) => {
   config.hooks = config.hooks || {}
