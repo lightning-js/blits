@@ -117,7 +117,9 @@ Both `this.parent.$focus(e)` and `this.parent.$input(e)` process events on the p
 **When to use `$input`:**
 Use this when you need another component (like a parent) to handle the key but want to keep focus on the current component.
 
-The `$input()`-method accepts one parameter: the `event` (KeyboardEvent), which is the keyboard event to handle. The key name is automatically extracted from the event using the configured keymap.
+The `$input()`-method accepts two parameters:
+- `event` (KeyboardEvent) - The keyboard event to handle. The key name is automatically extracted from the event using the configured keymap.
+- `component` (optional) - The component to handle input on. Defaults to the component it's called on. This allows you to handle input on any component, such as a parent or a component selected via `$select()`.
 
 The method returns `true` if the component or any parent component handled the event, or `false` if no handler was found.
 
@@ -129,22 +131,29 @@ export default Blits.Component('MyComponent', {
       this.doSomething()
       
       // Also let parent handle it without changing focus
-      this.parent.$input(e)
+      this.$input(e, this.parent)
     },
     back(e) {
       // Let parent handle back key, but keep focus here
-      if (this.parent.$input(e)) {
+      if (this.$input(e, this.parent)) {
         // Parent handled it
         return
       }
       // No parent handler, handle it ourselves
       this.handleBack()
     },
+    space(e) {
+      // Handle input on a component selected by ref
+      const menu = this.$select('mainMenu')
+      if (menu) {
+        this.$input(e, menu)
+      }
+    },
   }
 })
 ```
 
-> **Note**: The `$input()` method works on the component it's called on (like `$focus()`), so call it on the target component (e.g., `this.parent.$input(e)`) to handle input on that component without changing focus.
+> **Note**: The `$input()` method can be called on any component. When called without the second parameter, it handles input on the component it's called on. When called with a component parameter (e.g., `this.$input(e, this.parent)` or `this.$input(e, this.$select('ref'))`), it handles input on that specified component without changing focus.
 
 ### $trigger
 

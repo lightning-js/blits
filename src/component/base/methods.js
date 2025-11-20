@@ -23,26 +23,7 @@ import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
 import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
 import { renderer } from '../../launch.js'
-import Settings from '../../settings.js'
-
-const defaultKeyMap = {
-  ArrowLeft: 'left',
-  ArrowRight: 'right',
-  ArrowUp: 'up',
-  ArrowDown: 'down',
-  Enter: 'enter',
-  ' ': 'space',
-  Backspace: 'back',
-  Escape: 'escape',
-  37: 'left',
-  39: 'right',
-  38: 'up',
-  40: 'down',
-  13: 'enter',
-  32: 'space',
-  8: 'back',
-  27: 'escape',
-}
+import { getKeyMap } from '../../application.js'
 
 export default {
   focus: {
@@ -74,19 +55,25 @@ export default {
   },
   $input: {
     /**
-     * Handle a keyboard event on this component without changing focus
+     * Handle a keyboard event on a component without changing focus
      * @this {import('../../component').BlitsComponent}
      * @param {KeyboardEvent} event - The keyboard event to handle
-     * @returns {boolean} - Returns true if this component or a parent component handled the event, false otherwise
+     * @param {import('../../component').BlitsComponent} [component] - Optional component to handle input on. Defaults to this component.
+     * @returns {boolean} - Returns true if the component or a parent component handled the event, false otherwise
      */
-    value: function (event) {
+    value: function (event, component) {
       if (event === null || event === undefined || event instanceof KeyboardEvent === false)
         return false
 
-      const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
+      // Use provided component or default to this component
+      const targetComponent = component !== undefined ? component : this
+      // Reject if component parameter was explicitly null (would crash in getComponentWithInputEvent)
+      if (targetComponent === null) return false
+
+      const keyMap = getKeyMap()
       const key = keyMap[event.key] || keyMap[event.keyCode] || event.key || event.keyCode
 
-      const componentWithInputEvent = getComponentWithInputEvent(this, key)
+      const componentWithInputEvent = getComponentWithInputEvent(targetComponent, key)
       if (componentWithInputEvent === null) return false
 
       const inputEvents = componentWithInputEvent[symbols.inputEvents] || {}

@@ -432,11 +432,12 @@ declare module '@lightningjs/blits' {
     */
     $focus: (event?: KeyboardEvent) => void
     /**
-     * Handle a keyboard event on this component without changing focus
+     * Handle a keyboard event on a component without changing focus
      * @param event - The keyboard event to handle
-     * @returns Returns true if this component or a parent component handled the event, false otherwise
+     * @param component - Optional component to handle input on. Defaults to this component.
+     * @returns Returns true if the component or a parent component handled the event, false otherwise
      */
-    $input: (event: KeyboardEvent) => boolean
+    $input: (event: KeyboardEvent, component?: ComponentBase) => boolean
     /**
      * @deprecated
      * Deprecated:  use `this.$focus()` instead
