@@ -618,7 +618,8 @@ const generateForLoopCode = function (templateObject, parent) {
 
   ctx.renderCode.push(`
     let eff${forStartCounter} = () => {
-      forloops[${forStartCounter}](${cast(result[2], ':for')}, elms, created[${forStartCounter}])
+      const collection = ${cast(result[2], ':for')}
+      forloops[${forStartCounter}](collection, elms, created[${forStartCounter}])
     }
 
     component[Symbol.for('effects')].push(eff${forStartCounter})
