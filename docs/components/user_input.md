@@ -55,18 +55,28 @@ To allow a focused component to respond to any key and act as a _catch-all_, you
 
 If the currently focused component does not handle a key press, Blits will traverse up the component hierarchy, checking for any _parent_ component that does have a function defined for that key press in the `input`-key. This input event handling chain continues until it reaches the root Application component.
 
-When a component handles a key press by having a corresponding function specified, said component receives focus, and the event handling chain stops by default. However, if you want the input event to propagate up the hierarchy further, you can move the focus to the parent element and pass the `InputEvent` object on in that function call.
+When a component handles a key press by having a corresponding function specified, said component receives focus, and the event handling chain stops by default. However, if you want the input event to propagate up the hierarchy further, you have three options:
+
+1. **Change focus only (no bubbling)**: Use `this.parent.$focus()` without the event parameter. This only changes focus to the parent and does not bubble the event.
+2. **Change focus and bubble the event**: Use `this.parent.$focus(e)` with the event parameter. This changes focus to the parent AND bubbles the event to the parent's input handler.
+3. **Handle input without changing focus**: Use `this.parent.$input(e)`. This handles the input event on the parent WITHOUT changing focus. You can also use `this.$select('ref').$input(e)` to handle input on any component selected by ref.
+
+**Note**: Both `this.parent.$focus(e)` and `this.parent.$input(e)` process events on the parent. The difference is that `$focus()` changes focus, while `$input()` only handles the input event.
 
 ```javascript
 {
   input: {
     enter() {
-      // Give focus to the parent
-      this.parent.focus();
+      // Give focus to the parent (without bubbling the event)
+      this.parent.$focus();
     },
     back(e) {
       // Give focus to the parent and let the user input event bubble
-      this.parent.focus(e);
+      this.parent.$focus(e);
+    },
+    escape(e) {
+      // Handle input on parent but keep focus on current component
+      this.parent.$input(e);
     },
   }
 }

@@ -103,6 +103,56 @@ When the `$focus` method is called on a Component that is already is a focused s
 
 > Tip: a _refocus_ can be distinguished from a _fresh focus_, by checking the value of the  built-in `hasFocus` state variable. In the event of a refocus the `hasFocus` is already set to `true` when invoking the `focus`-hook. When it's a fresh focus the value is `false`.
 
+### $input
+
+The `$input()`-method handles keyboard events on a component **without changing focus**. It works similarly to `$focus()`, but for input handling instead of focus management.
+
+**Comparison with `$focus()` methods:**
+- `this.parent.$focus()` - Changes focus to parent **ONLY** (no event parameter = no bubbling)
+- `this.parent.$focus(e)` - Changes focus to parent **AND** bubbles the event (with event parameter)
+- `this.parent.$input(e)` - Handles the input event on parent **ONLY** (no focus change)
+
+Both `this.parent.$focus(e)` and `this.parent.$input(e)` process events on the parent. The difference is that `$focus()` changes focus, while `$input()` only handles the input event.
+
+**When to use `$input`:**
+Use this when you need another component (like a parent) to handle the key but want to keep focus on the current component.
+
+The `$input()`-method accepts one parameter: the `event` (KeyboardEvent), which is the keyboard event to handle. The key name is automatically extracted from the event using the configured keymap.
+
+The method returns `true` if the component or any parent component handled the event, or `false` if no handler was found.
+
+```js
+export default Blits.Component('MyComponent', {
+  input: {
+    enter(e) {
+      // Handle the enter key locally
+      this.doSomething()
+      
+      // Also let parent handle it without changing focus
+      this.parent.$input(e)
+    },
+    back(e) {
+      // Let parent handle back key, but keep focus here
+      if (this.parent.$input(e)) {
+        // Parent handled it
+        return
+      }
+      // No parent handler, handle it ourselves
+      this.handleBack()
+    },
+    space(e) {
+      // Handle input on a component selected by ref
+      const menu = this.$select('mainMenu')
+      if (menu) {
+        menu.$input(e)
+      }
+    },
+  }
+})
+```
+
+> **Note**: The `$input()` method works on the component it's called on (like `$focus()`), so call it on the target component (e.g., `this.parent.$input(e)` or `this.$select('ref').$input(e)`) to handle input on that component without changing focus.
+
 ### $trigger
 
 Blits has reactivity built-in, which means that re-renders in the template, as well as watchers and computed properties, are automatically fired whenever a state value changes. But sometimes you may want trigger the side effects of a state values change, without actually changing the value. This often is useful when a Component first receives focus and you want to ensure that the default state values are applied.
