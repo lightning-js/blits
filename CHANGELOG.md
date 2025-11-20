@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.44.0
+
+_20 Nov 2025_
+
+- Added `$input` method to facilitate key handling _without_ also passing focus
+- Added support for passing `type` of image in the `src`-attribute (`regular`, `svg`, `compressed` for cases the file type can't be derived from the file name)
+- Bumped Lightning renderer to v2.20.0 with improved support for compressed textures
+
+
 ## v1.43.2
 
 _13 Nov 2025_

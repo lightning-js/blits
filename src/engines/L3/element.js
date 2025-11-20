@@ -168,7 +168,7 @@ const isObjectString = (str) => {
  * @returns {object} The parsed object.
  */
 const parseToObject = (str) => {
-  return JSON.parse(str.replace(/'/g, '"').replace(/([\w-_]+)\s*:/g, '"$1":'))
+  return JSON.parse(str.replace(/'/g, '"').replace(/([{,]\s*)([\w-_]+)(\s*:)/g, '$1"$2"$3'))
 }
 
 /**
@@ -276,7 +276,13 @@ const propsTransformer = {
     }
   },
   set src(v) {
-    this.props['src'] = v
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      this.props['src'] = v.src
+      this.props['imageType'] = v.type
+    } else {
+      this.props['src'] = v
+    }
+
     if (this.raw['color'] === undefined) {
       this.props['color'] = this.props['src'] ? 0xffffffff : 0x00000000
     }
