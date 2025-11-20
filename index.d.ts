@@ -25,7 +25,40 @@ import { WebGlShaderType } from '@lightningjs/renderer/webgl';
 declare module '@lightningjs/blits' {
 
 
-  export interface AnnouncerUtterance extends Promise<T> {
+  export interface AnnouncerUtteranceOptions {
+    /**
+     * Language code (BCP 47 format, e.g., 'en-US', 'fr-FR')
+     *
+     * @default 'en-US'
+     */
+    lang?: string,
+    /**
+     * Voice pitch (0 to 2, where 1 is normal)
+     *
+     * @default 1
+     */
+    pitch?: number,
+    /**
+     * Speech rate (0.1 to 10, where 1 is normal)
+     *
+     * @default 1
+     */
+    rate?: number,
+    /**
+     * Voice to use (obtained from `speechSynthesis.getVoices()`)
+     *
+     * @default null
+     */
+    voice?: SpeechSynthesisVoice | null,
+    /**
+     * Volume level (0 to 1, where 1 is full volume)
+     *
+     * @default 1
+     */
+    volume?: number,
+  }
+
+  export interface AnnouncerUtterance<T = any> extends Promise<T> {
     /**
      * Removes a specific message from the announcement queue,
      * to make sure it isn't spoke out.
@@ -48,8 +81,34 @@ declare module '@lightningjs/blits' {
      * When a message is added with politeness set to `assertive` the message
      * will be added to the beginning of the queue
      *
+     * @param message - The message to be spoken
+     * @param politeness - Politeness level ('off', 'polite', or 'assertive')
+     * @param options - Optional utterance options (rate, pitch, lang, voice, volume)
      */
-    speak(message: string | number, politeness?: 'off' | 'polite' | 'assertive'): AnnouncerUtterance;
+    speak(message: string | number, politeness?: 'off' | 'polite' | 'assertive', options?: AnnouncerUtteranceOptions): AnnouncerUtterance;
+    /**
+     * Instruct the Announcer to speak a message with 'polite' politeness level.
+     * Will add the message to the end of announcement queue.
+     *
+     * @param message - The message to be spoken
+     * @param options - Optional utterance options (rate, pitch, lang, voice, volume)
+     */
+    polite(message: string | number, options?: AnnouncerUtteranceOptions): AnnouncerUtterance;
+    /**
+     * Instruct the Announcer to speak a message with 'assertive' politeness level.
+     * Will add the message to the beginning of announcement queue.
+     *
+     * @param message - The message to be spoken
+     * @param options - Optional utterance options (rate, pitch, lang, voice, volume)
+     */
+    assertive(message: string | number, options?: AnnouncerUtteranceOptions): AnnouncerUtterance;
+    /**
+     * Configure global default utterance options that will be applied to all
+     * subsequent announcements unless overridden by per-call options.
+     *
+     * @param options - Default utterance options (rate, pitch, lang, voice, volume)
+     */
+    configure(options?: AnnouncerUtteranceOptions): void;
     /**
      * Instruct the Announcer to add a pause of a certain duration (in ms). Will add this pause
      * to the end of announcement queue
@@ -112,7 +171,7 @@ declare module '@lightningjs/blits' {
     *
     * Note: This hook will fire continuously, multiple times per second!
     */
-    frameTick?: () => void;
+    frameTick?: (data: {time: number, delta: number}) => void;
     /**
     * Fires when the component enters the viewport _margin_ and is attached to the render tree
     *
@@ -137,6 +196,18 @@ declare module '@lightningjs/blits' {
     * This event can fire multiple times during the component's lifecycle
     */
     exit?: () => void;
+    /**
+    * Fires when the renderer is done rendering and enters an idle state
+    *
+    * Note: This event can fire multiple times
+    */
+    idle?: () => void;
+    /**
+    * Fires at a predefined interval and reports the current FPS value
+    *
+    * Note: This event fire multiple times
+    */
+    fpsUpdate?: (fps: number) => void;
   }
 
   export interface Input {
@@ -307,6 +378,14 @@ declare module '@lightningjs/blits' {
     $listen: {
       (event: string, callback: (args: any) => void, priority?: number): void;
     }
+
+    /**
+     * Remove an event listener previously registered with $listen
+     */
+    $unlisten: {
+      (event: string): void;
+    }
+
     /**
      * Emit events that other components can listen to
      * @param name - name of the event to be emitted
@@ -317,6 +396,13 @@ declare module '@lightningjs/blits' {
      * and cleaned from any potential reactivity before emitting
      */
     $emit(name: string, data?: any, byReference?: boolean): void;
+
+    /**
+     * Remove all listeners for this component from all events
+     */
+    $clearListeners: {
+      (): void;
+    }
 
     /**
     * Set a timeout that is automatically cleaned upon component destroy
@@ -347,6 +433,17 @@ declare module '@lightningjs/blits' {
     * Set focus to the Component, optionally pass a KeyboardEvent for instant event bubbling
     */
     $focus: (event?: KeyboardEvent) => void
+    /**
+     * Handle a keyboard event on this component without changing focus
+     * @param event - The keyboard event to handle
+     * @returns Returns true if this component or a parent component handled the event, false otherwise
+     */
+    $input: (event: KeyboardEvent) => boolean
+    /**
+     * @deprecated
+     * Deprecated:  use `this.$focus()` instead
+     */
+    focus: (event?: KeyboardEvent) => void
 
     /**
     * Select a child Element or Component by ref
@@ -1048,7 +1145,24 @@ declare module '@lightningjs/blits' {
      *
      * @default false
      */
-    announcer?: boolean
+    announcer?: boolean,
+    /**
+     * Global default utterance options for the announcer.
+     *
+     * These options will be applied to all announcements unless overridden
+     * by per-call options passed to `speak()`, `polite()`, or `assertive()`.
+     *
+     * @example
+     * ```js
+     * announcerOptions: {
+     *   rate: 1.0,
+     *   pitch: 1.0,
+     *   lang: 'en-US',
+     *   volume: 1.0
+     * }
+     * ```
+     */
+    announcerOptions?: AnnouncerUtteranceOptions,
     /**
      * Maximum FPS at which the App will be rendered
      *

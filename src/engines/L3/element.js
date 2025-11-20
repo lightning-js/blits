@@ -246,7 +246,13 @@ const propsTransformer = {
     }
   },
   set src(v) {
-    this.props['src'] = v
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      this.props['src'] = v.src
+      this.props['imageType'] = v.type
+    } else {
+      this.props['src'] = v
+    }
+
     if (this.raw['color'] === undefined) {
       this.props['color'] = this.props['src'] ? 0xffffffff : 0x00000000
     }
@@ -327,7 +333,8 @@ const propsTransformer = {
         this.props['scaleY'] = v.y
       }
     } else {
-      this.props['scale'] = v
+      this.props['scaleX'] = v
+      this.props['scaleY'] = v
     }
   },
   set show(v) {

@@ -40,3 +40,30 @@ export default Blits.Component('MyComponent', {
   },
 })
 ```
+
+## Renderer events
+
+In addition to the lifecycle events of Blits components, it is also possible hook into several _renderer_ events via the `hooks` key of the Component configuration object.
+
+- **idle**: Fires when the renderer has finished rendering and enters an _idle_ state. This is a good moment to run logic (for example, sending telemetry data) without interfering with or blocking rendering. **Note**: In a typical app, this event will fire _multiple_ times. If it never fires, it may indicate that something is continuously animating (i.e., the renderer is constantly updating and never idle).
+
+- **frameTick**: Fires on _every_ frame tick and receives an object with the frame's _time_ and _delta_. This event is useful when you need precise control over logic tied to specific frame ticks. **Note**: It fires _every_ frame (up to 60 times per second), so expect many invocations of the frameTick callback and use with care.
+
+- **fpsUpdate**: Fires at a predefined interval ([fpsInterval](../essentials/settings.md), which defaults to `1000ms`) and reports the current FPS value.
+
+```js
+export default Blits.Component('MyComponent', {
+  // ...
+  hooks: {
+    idle() {
+      // Logic to execute on idle event
+    },
+    frameTick(data) {
+      console.log(data.time, data.delta)
+    },
+    fpsUpdate(fps) {
+      console.log('Current FPS', fps)
+    },
+  },
+})
+```
