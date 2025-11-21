@@ -17,11 +17,13 @@
 
 import symbols from '../../lib/symbols.js'
 import Focus from '../../focus.js'
+import { keyUpCallbacks, getComponentWithInputEvent } from '../../focus.js'
 import eventListeners from '../../lib/eventListeners.js'
 import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
 import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
 import { renderer } from '../../launch.js'
+import { keyMap } from '../../application.js'
 
 export default {
   $focus: {
@@ -34,6 +36,41 @@ export default {
         this[symbols.lifecycle].state = 'refocus'
       }
       Focus.set(this, e)
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
+  $input: {
+    /**
+     * Handle a keyboard event on this component without changing focus
+     * @this {import('../../component').BlitsComponent}
+     * @param {KeyboardEvent} event - The keyboard event to handle
+     * @returns {boolean} - Returns true if this component or a parent component handled the event, false otherwise
+     */
+    value: function (event) {
+      if (event === null || event === undefined || event instanceof KeyboardEvent === false)
+        return false
+
+      const key = keyMap[event.key] || keyMap[event.keyCode] || event.key || event.keyCode
+
+      const componentWithInputEvent = getComponentWithInputEvent(this, key)
+      if (componentWithInputEvent === null) return false
+
+      const inputEvents = componentWithInputEvent[symbols.inputEvents] || {}
+
+      let cb
+      if (inputEvents[key]) {
+        cb = inputEvents[key].call(componentWithInputEvent, event)
+      } else if (inputEvents.any) {
+        cb = inputEvents.any.call(componentWithInputEvent, event)
+      }
+
+      if (cb !== undefined && event.code) {
+        keyUpCallbacks.set(event.code, cb)
+      }
+
+      return true
     },
     writable: false,
     enumerable: true,

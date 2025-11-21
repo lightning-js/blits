@@ -1,5 +1,58 @@
 # Changelog
 
+## v1.44.0
+
+_20 Nov 2025_
+
+- Added `$input` method to facilitate key handling _without_ also passing focus
+- Added support for passing `type` of image in the `src`-attribute (`regular`, `svg`, `compressed` for cases the file type can't be derived from the file name)
+- Bumped Lightning renderer to v2.20.0 with improved support for compressed textures
+
+
+## v1.43.2
+
+_13 Nov 2025_
+
+- Fixed issue with endless loop in router when first page in history would fail an async before / beforeEach hook (introduced in v1.43.0)
+
+## v1.43.1
+
+_13 Nov 2025_
+
+- Added arguments of fpsUpdate and frameTick hooks to type definitions
+
+## v1.43.0
+
+_12 Nov 2025_
+
+- Exposed different renderer events as hooks (`idle`, `fpsUpdate` and `frameTick`)
+- Added `$clearListeners` utility helper
+- Added `$clearListeners` and `$unlisten` to type definitions
+- Fixed issue with __DEV__ flag being set in vite config
+- Fixed `lint` and `lint:fix` scripts to work cross platform (added Windows support)
+- Added support for utterance options (`rate`, `pitch`, `lang`, `voice` and `volume`) to Announcer plugin
+- Added reactivity to `src`-attribute of the Sprite
+- Updates deprecated `assert` keyword for new `with` keyword
+
+
+## v1.42.1
+
+_28 Oct 2025_
+
+- Updated to version 2.19.1 of the renderer
+- Fixed scale animation snapping issue when using object notation with transitions (again)
+
+## v1.42.0
+
+_24 Oct 2025_
+
+
+- Added effects prop support to Sprite component
+- Added support for redirecting in before hooks returning a route object (with updated path)
+- Fixed meta options on routes functionality
+- Enhanced router hook test coverage
+- Fixed scale animation snapping issue when using object notation with transitions
+
 ## v1.41.0
 
 _16 Oct 2025_
