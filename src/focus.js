@@ -118,7 +118,7 @@ const getAncestors = (components) => {
  * @param {String} key
  * @returns component
  */
-const getComponentWithInputEvent = (component, key) => {
+export const getComponentWithInputEvent = (component, key) => {
   if (
     component[symbols.inputEvents] &&
     (typeof component[symbols.inputEvents][key] === 'function' ||

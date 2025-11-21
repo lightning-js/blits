@@ -67,6 +67,63 @@ this.$announcer.speak('Very important message that should get priority', 'assert
 
 This will place the message at the beginning of the queue, making in the first message to be announced after the current message (if any) has finished.
 
+### Utterance options
+
+Optionally you can pass an `options` object as the third parameter of the `speak()`-method to customize how each message is spoken. You can control the speech rate, pitch, language, voice, and volume for individual announcements.
+
+```js
+this.$announcer.speak('Hello world', 'off', {
+  rate: 1.2,
+  pitch: 1.1,
+  lang: 'en-US',
+  volume: 0.8
+})
+```
+
+These options can also be passed to the `polite()` and `assertive()` convenience methods as their second parameter.
+
+```js
+this.$announcer.polite('Message with polite politeness', { rate: 0.9, pitch: 0.95 })
+this.$announcer.assertive('Urgent message', { rate: 1.5, volume: 1.0 })
+```
+
+### Global configuration
+
+You can configure global default utterance options that will be applied to all announcements using the `configure()` method. These defaults will be used for all subsequent `speak()`, `polite()`, and `assertive()` calls unless overridden by per-call options.
+
+```js
+this.$announcer.configure({
+  rate: 1.1,
+  pitch: 1.0,
+  lang: 'en-US',
+  volume: 0.9
+})
+
+this.$announcer.speak('This will use the configured defaults')
+this.$announcer.speak('This will use rate 1.5 instead', 'off', { rate: 1.5 })
+```
+
+The `configure()` method merges new options with existing ones, so you can update specific settings without losing others.
+
+```js
+this.$announcer.configure({ rate: 1.1, pitch: 1.0 })
+this.$announcer.configure({ rate: 1.2 }) // pitch remains 1.0
+```
+
+You can also configure global defaults at application startup by providing an `announcerOptions` setting in your Blits configuration.
+
+```js
+Blits.Application({
+  // ... other settings
+  announcerOptions: {
+    rate: 1.1,
+    pitch: 1.0,
+    lang: 'en-US',
+    volume: 0.9
+  }
+})
+```
+
 #### Clearing and interupting
 
 Since each message added into the queue may take a bit of time to actually be announced, it's possible that the user has navigated elsewhere in the mean time, making the queued up messages not relevant.
