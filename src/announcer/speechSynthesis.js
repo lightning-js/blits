@@ -33,13 +33,24 @@ const clear = () => {
   }
 }
 
+let resumeFromKeepAlive = false
+
 const resumeInfinity = (target) => {
-  if (!target || infinityTimer) {
+  // If the utterance is gone, just stop the keep-alive loop.
+  if (!target) {
     return clear()
+  }
+
+  // We only ever want ONE keep-alive timer running per utterance.
+  // If there's an existing timer, cancel it and start a fresh one below.
+  if (infinityTimer) {
+    clearTimeout(infinityTimer)
+    infinityTimer = null
   }
 
   syn.pause()
   setTimeout(() => {
+    resumeFromKeepAlive = true
     syn.resume()
   }, 0)
 
@@ -78,6 +89,13 @@ const speak = (options) => {
     }
 
     utterance.onresume = () => {
+      // Ignore resume events that we *know* came from our own keep-alive (the pause()/resume() in resumeInfinity).
+      if (resumeFromKeepAlive) {
+        resumeFromKeepAlive = false
+        return
+      }
+
+      // For any other real resume event (e.g. user or platform resuming a previously paused utterance).
       resumeInfinity(utterance)
     }
   }
