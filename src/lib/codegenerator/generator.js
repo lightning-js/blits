@@ -622,8 +622,13 @@ const generateForLoopCode = function (templateObject, parent) {
     }
 
     component[Symbol.for('effects')].push(eff${forStartCounter})
+    const trackingKeys = ['${effectKey}', ${effectKeys.join(',')}]
 
-    effect(eff${forStartCounter}, ['${effectKey}', ${effectKeys.join(',')}])
+    if (component[Symbol.for('computedKeys')] && component[Symbol.for('computedKeys')].indexOf('${effectKey}') !== -1) {
+      trackingKeys.push(...component[Symbol.for('computedThisRefVars')]['${effectKey}'])
+    }
+
+    effect(eff${forStartCounter}, trackingKeys)
   `)
 
   ctx.cleanupCode.push(`

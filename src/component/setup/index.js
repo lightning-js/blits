@@ -48,6 +48,11 @@ export default function (component, config) {
   // // setup computed
   if (config.computed) setupComputed(component, config.computed)
 
+  // // setup computedThisRefVars
+  if (config.computedThisRefVars) {
+    component[symbols.computedThisRefVars] = config.computedThisRefVars
+  }
+
   // // setup watchers
   if (config.watch) setupWatch(component, config.watch)
 
