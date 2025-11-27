@@ -35,6 +35,7 @@ export default function (templateObject = { children: [] }, devMode = false) {
       'let inSlot = false',
       'let slotChildCounter = 0',
       'let cmps = []',
+      'let trackingKeys = []',
     ],
     effectsCode: [],
     cleanupCode: [
@@ -622,7 +623,7 @@ const generateForLoopCode = function (templateObject, parent) {
     }
 
     component[Symbol.for('effects')].push(eff${forStartCounter})
-    const trackingKeys = ['${effectKey}', ${effectKeys.join(',')}]
+    trackingKeys = ['${effectKey}', ${effectKeys.join(',')}]
 
     if (component[Symbol.for('computedKeys')] && component[Symbol.for('computedKeys')].indexOf('${effectKey}') !== -1) {
       trackingKeys.push(...component[Symbol.for('computedThisRefVars')]['${effectKey}'])
