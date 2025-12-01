@@ -17,8 +17,8 @@
     "test:ci": "c8 npm run test:run",
     "test:run": "node -r global-jsdom/register ./node_modules/.bin/tape '{,!(node_modules|packages)/**/}*.test.js' | tap-diff",
     "test:run:failures": "node -r global-jsdom/register ./node_modules/.bin/tape '{,!(node_modules|packages)/**/}*.test.js' |  tap-filter test-fail | tap-diff",
-    "lint": "eslint '**/*.js'",
-    "lint:fix": "eslint '**/*.js' --fix",
+    "lint": "node scripts/lint.js",
+    "lint:fix": "node scripts/lint.js fix",
     "prepublishOnly": "node scripts/prepublishOnly.js",
     "postpublish": "node scripts/postpublish.js",
     "prepare": "husky",
@@ -56,7 +56,7 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "^3.0.0-beta15"
+    "@lightningjs/renderer": "3.0.0-beta16"
   },
   "repository": {
     "type": "git",

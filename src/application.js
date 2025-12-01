@@ -20,28 +20,16 @@ import { default as Focus, keyUpCallbacks } from './focus.js'
 import Settings from './settings.js'
 
 import symbols from './lib/symbols.js'
-import { DEFAULT_HOLD_TIMEOUT_MS } from './constants.js'
+import { DEFAULT_HOLD_TIMEOUT_MS, DEFAULT_KEYMAP } from './constants.js'
+
+/**
+ * Merged keyMap (default + custom settings).
+ * Initialized once during application init.
+ * @type {Object<string, string>}
+ */
+export let keyMap = {}
 
 const Application = (config) => {
-  const defaultKeyMap = {
-    ArrowLeft: 'left',
-    ArrowRight: 'right',
-    ArrowUp: 'up',
-    ArrowDown: 'down',
-    Enter: 'enter',
-    ' ': 'space',
-    Backspace: 'back',
-    Escape: 'escape',
-    37: 'left',
-    39: 'right',
-    38: 'up',
-    40: 'down',
-    13: 'enter',
-    32: 'space',
-    8: 'back',
-    27: 'escape',
-  }
-
   config.hooks = config.hooks || {}
 
   let keyDownHandler
@@ -58,7 +46,13 @@ const Application = (config) => {
   config.hooks[symbols.init] = function () {
     // set the initial activation state of the announcer based on launch setting
     this.$announcer.toggle(Settings.get('announcer', false))
-    const keyMap = { ...defaultKeyMap, ...Settings.get('keymap', {}) }
+    // configure global default utterance options if provided in settings
+    const announcerOptions = Settings.get('announcerOptions', null)
+    if (announcerOptions && typeof announcerOptions === 'object') {
+      this.$announcer.configure(announcerOptions)
+    }
+    // Initialize merged keyMap once during application init
+    keyMap = { ...DEFAULT_KEYMAP, ...Settings.get('keymap', {}) }
 
     /** @type {number} Input throttle time in milliseconds (0 = disabled) */
     const throttleMs = Settings.get('inputThrottle', 0)
