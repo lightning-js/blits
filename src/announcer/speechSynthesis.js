@@ -27,7 +27,7 @@ let initialized = false
 let infinityTimer = null
 
 const clear = () => {
-  if (infinityTimer) {
+  if (infinityTimer !== null) {
     clearTimeout(infinityTimer)
     infinityTimer = null
   }
@@ -43,7 +43,7 @@ const resumeInfinity = (target) => {
 
   // We only ever want ONE keep-alive timer running per utterance.
   // If there's an existing timer, cancel it and start a fresh one below.
-  if (infinityTimer) {
+  if (infinityTimer !== null) {
     clearTimeout(infinityTimer)
     infinityTimer = null
   }
