@@ -459,6 +459,26 @@ export const navigate = async function () {
       const children = this[symbols.children]
       this.activeView = children[children.length - 1]
 
+      if (this.parent[symbols.routerHooks]) {
+        const hooks = this.parent[symbols.routerHooks]
+        if (hooks.afterEach) {
+          try {
+            // Get the previous view before it's removed
+            const previousView =
+              !reuse && children.length > 1 ? children[children.length - 2] : null
+
+            await hooks.afterEach.call(this.parent, {
+              to: route,
+              toComponent: view,
+              from: previousRoute,
+              fromComponent: previousView,
+            })
+          } catch (error) {
+            Log.error('Error in "AfterEach" Hook', error)
+          }
+        }
+      }
+
       // set focus to the view that we're routing to (unless explicitly disabling passing focus)
       if (route.options.passFocus !== false) {
         focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
