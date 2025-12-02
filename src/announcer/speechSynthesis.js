@@ -90,7 +90,7 @@ const speak = (options) => {
 
     utterance.onresume = () => {
       // Ignore resume events that we *know* came from our own keep-alive (the pause()/resume() in resumeInfinity).
-      if (resumeFromKeepAlive) {
+      if (resumeFromKeepAlive === true) {
         resumeFromKeepAlive = false
         return
       }
