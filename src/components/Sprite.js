@@ -87,8 +87,8 @@ export default () =>
             texture: this.spriteTexture,
             x: options.x,
             y: options.y,
-            width: options.w,
-            height: options.h,
+            w: options.w,
+            h: options.h,
           })
         }
 
