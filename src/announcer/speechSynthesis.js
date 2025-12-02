@@ -37,7 +37,7 @@ let resumeFromKeepAlive = false
 
 const resumeInfinity = (target) => {
   // If the utterance is gone, just stop the keep-alive loop.
-  if (!target) {
+  if (!(target instanceof SpeechSynthesisUtterance)) {
     return clear()
   }
 
