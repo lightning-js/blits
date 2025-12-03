@@ -178,13 +178,20 @@ const stop = () => {
   // Clear debounce timer if speech hasn't started yet
   clearDebounceTimer()
 
+  // Always cancel speech synthesis to ensure clean state
+  speechSynthesis.cancel()
+
   if (currentId !== null && currentResolveFn) {
-    speechSynthesis.cancel()
     const resolveFn = currentResolveFn
     currentId = null
     currentResolveFn = null
     isProcessing = false
     resolveFn('interrupted')
+  } else {
+    // Reset state even if no current utterance
+    currentId = null
+    currentResolveFn = null
+    isProcessing = false
   }
 }
 
@@ -193,6 +200,9 @@ const clear = () => {
 
   // Clear debounce timer
   clearDebounceTimer()
+
+  // Cancel any active speech synthesis
+  speechSynthesis.cancel()
 
   // Resolve all pending items in queue
   while (queue.length > 0) {
@@ -203,6 +213,9 @@ const clear = () => {
     }
   }
 
+  // Reset state
+  currentId = null
+  currentResolveFn = null
   isProcessing = false
 }
 
