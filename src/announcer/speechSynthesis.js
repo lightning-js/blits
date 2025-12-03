@@ -21,41 +21,60 @@ const syn = window.speechSynthesis
 
 const isAndroid = /android/i.test((window.navigator || {}).userAgent || '')
 
-const utterances = new Map() // Strong references with unique keys
+const utterances = new Map() // id -> { utterance, timer, ignoreResume }
 
 let initialized = false
-let infinityTimer = null
 
-const clear = () => {
-  if (infinityTimer !== null) {
-    clearTimeout(infinityTimer)
-    infinityTimer = null
+const clear = (id) => {
+  const state = utterances.get(id)
+  if (state?.timer !== null) {
+    clearTimeout(state.timer)
+    state.timer = null
   }
 }
 
-let resumeFromKeepAlive = false
+const resumeInfinity = (id) => {
+  const state = utterances.get(id)
 
-const resumeInfinity = (target) => {
-  // If the utterance is gone, just stop the keep-alive loop.
-  if (!(target instanceof SpeechSynthesisUtterance)) {
-    return clear()
+  // utterance status: utterance was removed (cancelled or finished)
+  if (!state) {
+    return
   }
 
-  // We only ever want ONE keep-alive timer running per utterance.
-  // If there's an existing timer, cancel it and start a fresh one below.
-  if (infinityTimer !== null) {
-    clearTimeout(infinityTimer)
-    infinityTimer = null
+  const { utterance } = state
+
+  // utterance check: utterance instance is invalid
+  if (!(utterance instanceof SpeechSynthesisUtterance)) {
+    clear(id)
+    utterances.delete(id)
+    return
+  }
+
+  // Clear existing timer for this specific utterance
+  if (state.timer !== null) {
+    clearTimeout(state.timer)
+    state.timer = null
+  }
+
+  // syn status: syn might be undefined or cancelled
+  if (!syn) {
+    clear(id)
+    utterances.delete(id)
+    return
   }
 
   syn.pause()
   setTimeout(() => {
-    resumeFromKeepAlive = true
-    syn.resume()
+    // utterance status: utterance might have been removed during setTimeout
+    const currentState = utterances.get(id)
+    if (currentState) {
+      currentState.ignoreResume = true
+      syn.resume()
+    }
   }, 0)
 
-  infinityTimer = setTimeout(() => {
-    resumeInfinity(target)
+  state.timer = setTimeout(() => {
+    resumeInfinity(id)
   }, 5000)
 }
 
@@ -68,52 +87,94 @@ const defaultUtteranceProps = {
 }
 
 const initialize = () => {
+  // syn api check: syn might not have getVoices method
+  if (!syn || typeof syn.getVoices !== 'function') {
+    initialized = true
+    return
+  }
+
   const voices = syn.getVoices()
   defaultUtteranceProps.voice = voices[0] || null
   initialized = true
 }
 
 const speak = (options) => {
-  const utterance = new SpeechSynthesisUtterance(options.message)
+  // options check: missing required options
+  if (!options || !options.message) {
+    return Promise.reject({ error: 'Missing message' })
+  }
+
+  // options check: missing or invalid id
   const id = options.id
+  if (id === undefined || id === null) {
+    return Promise.reject({ error: 'Missing id' })
+  }
+
+  // utterance status: utterance with same id already exists
+  if (utterances.has(id)) {
+    clear(id)
+    utterances.delete(id)
+  }
+
+  const utterance = new SpeechSynthesisUtterance(options.message)
   utterance.lang = options.lang || defaultUtteranceProps.lang
   utterance.pitch = options.pitch || defaultUtteranceProps.pitch
   utterance.rate = options.rate || defaultUtteranceProps.rate
   utterance.voice = options.voice || defaultUtteranceProps.voice
   utterance.volume = options.volume || defaultUtteranceProps.volume
-  utterances.set(id, utterance) // Strong reference
+
+  utterances.set(id, { utterance, timer: null, ignoreResume: false })
 
   if (isAndroid === false) {
     utterance.onstart = () => {
-      resumeInfinity(utterance)
+      // utterances status: check if utterance still exists
+      if (utterances.has(id)) {
+        resumeInfinity(id)
+      }
     }
 
     utterance.onresume = () => {
-      // Ignore resume events that we *know* came from our own keep-alive (the pause()/resume() in resumeInfinity).
-      if (resumeFromKeepAlive === true) {
-        resumeFromKeepAlive = false
+      const state = utterances.get(id)
+      // utterance status: utterance might have been removed
+      if (!state) return
+
+      if (state.ignoreResume === true) {
+        state.ignoreResume = false
         return
       }
 
-      // For any other real resume event (e.g. user or platform resuming a previously paused utterance).
-      resumeInfinity(utterance)
+      resumeInfinity(id)
+    }
+
+    // pause events: handle pause events
+    utterance.onpause = () => {
+      // Stop keep-alive when manually paused
+      clear(id)
     }
   }
 
   return new Promise((resolve, reject) => {
     utterance.onend = () => {
-      clear()
-      utterances.delete(id) // Cleanup
+      clear(id)
+      utterances.delete(id)
       resolve()
     }
 
     utterance.onerror = (e) => {
-      clear()
-      utterances.delete(id) // Cleanup
-      reject(e)
+      clear(id)
+      utterances.delete(id)
+      // handle error: provide more context in error
+      reject(e || { error: 'Speech synthesis error' })
     }
 
-    syn.speak(utterance)
+    // handle error: syn.speak might throw
+    try {
+      syn.speak(utterance)
+    } catch (error) {
+      clear(id)
+      utterances.delete(id)
+      reject(error)
+    }
   })
 }
 
@@ -131,12 +192,20 @@ export default {
   },
   cancel() {
     if (syn !== undefined) {
-      syn.cancel()
-      clear()
+      // timers: clear all timers before cancelling
+      for (const id of utterances.keys()) {
+        clear(id)
+      }
+
+      // handle errors: syn.cancel might throw
+      try {
+        syn.cancel()
+      } catch (error) {
+        Log.error('Error cancelling speech synthesis:', error)
+      }
+
+      // utterances status: ensure all utterances are cleaned up
+      utterances.clear()
     }
   },
-  // @todo
-  // getVoices() {
-  //   return syn.getVoices()
-  // },
 }
