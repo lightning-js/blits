@@ -61,15 +61,18 @@ export default () =>
         // Resolve frame data from sprite map
         let options = null
         if (
-          this.map !== undefined &&
           this.map !== null &&
-          this.frame !== undefined &&
-          this.frame !== null
+          this.map !== undefined &&
+          this.frame !== null &&
+          this.frame !== undefined
         ) {
-          options =
-            'frames' in this.map
-              ? Object.assign({}, this.map.defaults || {}, this.map.frames[this.frame])
-              : this.map[this.frame]
+          if ('frames' in this.map && this.map.frames !== null && this.map.frames !== undefined) {
+            if (this.frame in this.map.frames) {
+              options = Object.assign({}, this.map.defaults || {}, this.map.frames[this.frame])
+            }
+          } else if (this.frame in this.map) {
+            options = this.map[this.frame]
+          }
         }
 
         // If no map but frame is object (manual subtexture)

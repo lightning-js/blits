@@ -155,14 +155,14 @@ test('Sprite - Texture returns spriteTexture when no frame', (assert) => {
     assert.ok(sprite.texture !== null, 'texture should not be null when no frame is set')
     assert.equal(subTexCalls, 0, 'should not create SubTexture when no frame')
 
-    // Case 2: Invalid frame in map.frames → DOES create SubTexture because options resolves to {}
+    // Case 2: Invalid frame in map.frames → should NOT create SubTexture
     sprite[symbols.props].map = { frames: { f1: { x: 10, y: 20, w: 50, h: 60 } } }
     sprite[symbols.props].frame = 'nonexistent'
     sprite.texture // trigger computation
     assert.equal(
       subTexCalls,
-      1,
-      'should create SubTexture for nonexistent frame in map.frames structure'
+      0,
+      'should NOT create SubTexture for nonexistent frame in map.frames structure'
     )
 
     // Case 3: Invalid frame in direct map → should NOT create additional SubTexture
@@ -170,7 +170,11 @@ test('Sprite - Texture returns spriteTexture when no frame', (assert) => {
     sprite[symbols.props].frame = 'nonexistent'
     const finalTexture = sprite.texture
     assert.ok(finalTexture !== null, 'texture should not be null')
-    assert.ok(subTexCalls >= 1, 'SubTexture count should reflect actual implementation behavior')
+    assert.equal(
+      subTexCalls,
+      0,
+      'should NOT create additional SubTexture for nonexistent frame in direct map'
+    )
   } finally {
     renderer.createTexture = original
   }
