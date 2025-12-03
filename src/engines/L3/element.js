@@ -383,7 +383,7 @@ const propsTransformer = {
     const target = this.element.node !== undefined ? this.element.node : this.props
 
     if (v === null) {
-      target['shader'] = renderer.createShader('DefaultShader')
+      target['shader'] = null
       return
     }
 
