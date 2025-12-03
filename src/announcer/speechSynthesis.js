@@ -208,4 +208,8 @@ export default {
       utterances.clear()
     }
   },
+  // @todo
+  // getVoices() {
+  //   return syn.getVoices()
+  // },
 }
