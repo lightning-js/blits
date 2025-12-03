@@ -73,9 +73,15 @@ const resumeInfinity = (id) => {
     }
   }, 0)
 
-  state.timer = setTimeout(() => {
-    resumeInfinity(id)
-  }, 5000)
+  // Check if utterance still exists before scheduling next cycle
+  if (utterances.has(id)) {
+    state.timer = setTimeout(() => {
+      // Double-check utterance still exists before resuming
+      if (utterances.has(id)) {
+        resumeInfinity(id)
+      }
+    }, 5000)
+  }
 }
 
 const defaultUtteranceProps = {
