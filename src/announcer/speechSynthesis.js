@@ -51,7 +51,7 @@ const resumeInfinity = (id) => {
   }
 
   // Clear existing timer for this specific utterance
-  if (state.timer !== null) {
+  if (state?.timer !== null) {
     clearTimeout(state.timer)
     state.timer = null
   }
