@@ -106,6 +106,8 @@ const addToQueue = (message, politeness, delay = false, options = {}) => {
   return done
 }
 
+let currentResolveFn = null
+
 const processQueue = async () => {
   if (isProcessing === true || queue.length === 0) return
   isProcessing = true
@@ -113,11 +115,13 @@ const processQueue = async () => {
   const { message, resolveFn, delay, id, options = {} } = queue.shift()
 
   currentId = id
+  currentResolveFn = resolveFn
 
   if (delay) {
     setTimeout(() => {
       isProcessing = false
       currentId = null
+      currentResolveFn = null
       resolveFn('finished')
       processQueue()
     }, delay)
@@ -138,12 +142,14 @@ const processQueue = async () => {
           Log.debug(`Announcer - finished speaking: "${message}" (id: ${id})`)
 
           currentId = null
+          currentResolveFn = null
           isProcessing = false
           resolveFn('finished')
           processQueue()
         })
         .catch((e) => {
           currentId = null
+          currentResolveFn = null
           isProcessing = false
           Log.debug(`Announcer - error ("${e.error}") while speaking: "${message}" (id: ${id})`)
           resolveFn(e.error)
@@ -158,13 +164,46 @@ const polite = (message, options = {}) => speak(message, 'polite', options)
 
 const assertive = (message, options = {}) => speak(message, 'assertive', options)
 
+// Clear debounce timer
+const clearDebounceTimer = () => {
+  if (debounce !== null) {
+    clearTimeout(debounce)
+    debounce = null
+  }
+}
+
 const stop = () => {
-  speechSynthesis.cancel()
+  Log.debug('Announcer - stop() called')
+
+  // Clear debounce timer if speech hasn't started yet
+  clearDebounceTimer()
+
+  if (currentId !== null && currentResolveFn) {
+    speechSynthesis.cancel()
+    const resolveFn = currentResolveFn
+    currentId = null
+    currentResolveFn = null
+    isProcessing = false
+    resolveFn('interrupted')
+  }
 }
 
 const clear = () => {
+  Log.debug('Announcer - clear() called')
+
+  // Clear debounce timer
+  clearDebounceTimer()
+
+  // Resolve all pending items in queue
+  while (queue.length > 0) {
+    const item = queue.shift()
+    if (item.resolveFn) {
+      Log.debug(`Announcer - clearing queued item: "${item.message}" (id: ${item.id})`)
+      item.resolveFn('cleared')
+    }
+  }
+
   isProcessing = false
-  queue.length = 0
 }
 
 const configure = (options = {}) => {
