@@ -161,10 +161,10 @@ const speak = (options) => {
     }
 
     utterance.onerror = (e) => {
+      Log.warn('SpeechSynthesisUtterance error:', e)
       clear(id)
       utterances.delete(id)
-      // handle error: provide more context in error
-      reject(e || { error: 'Speech synthesis error' })
+      resolve()
     }
 
     // handle error: syn.speak might throw
