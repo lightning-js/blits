@@ -367,11 +367,11 @@ declare module '@lightningjs/blits' {
   // module augmentation in your app, without changing core types.
   // Note: `ComponentBase` extends this interface, so augmented fields appear in all
   // hooks, methods, input, computed, and watch.
-  export interface ComponentCustomProperties {
+  export interface CustomComponentProperties {
     // Empty by design: extend in your app via TypeScript module augmentation.
   }
 
-  export interface ComponentBase extends ComponentCustomProperties {
+  export interface ComponentBase extends CustomComponentProperties {
     /**
     * Indicates whether the component currently has focus
     *
