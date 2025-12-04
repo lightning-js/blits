@@ -335,6 +335,15 @@ export const navigate = async function () {
           return
         }
       }
+
+      if (route.hooks.after) {
+        try {
+          await route.hooks.after.call(this.parent, route, previousRoute)
+        } catch (error) {
+          Log.error('Error or Rejected Promise in "After" Hook', error)
+        }
+      }
+
       // add the previous route (technically still the current route at this point)
       // into the history stack when inHistory is true and we're not navigating back
       if (

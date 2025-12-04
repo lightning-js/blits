@@ -750,6 +750,7 @@ declare module '@lightningjs/blits' {
 
   export interface RouteHooks {
     before?: (to: Route, from: Route) => string | Route | Promise<string | Route>;
+    after?: (to: Route, from: Route) => string | Route | Promise<string | Route>;
   }
 
   export type Route = {
