@@ -54,6 +54,12 @@ declare module '@lightningjs/blits' {
      * @default 1
      */
     volume?: number,
+    /**
+     * Whether to cancel previous announcements when adding this one
+     *
+     * @default false
+     */
+    cancelPrevious?: boolean
   }
 
   export interface AnnouncerUtterance<T = any> extends Promise<T> {

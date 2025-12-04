@@ -51,6 +51,11 @@ const toggle = (v) => {
 const speak = (message, politeness = 'off', options = {}) => {
   if (active === false) return noopAnnouncement
 
+  // if cancelPrevious option is set, clear the queue and stop current speech
+  if (options.cancelPrevious === true) {
+    clear()
+  }
+
   return addToQueue(message, politeness, false, options)
 }
 
