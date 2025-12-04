@@ -186,17 +186,17 @@ const stop = () => {
   // Always cancel speech synthesis to ensure clean state
   speechSynthesis.cancel()
 
-  if (currentId !== null && currentResolveFn) {
-    const resolveFn = currentResolveFn
-    currentId = null
-    currentResolveFn = null
-    isProcessing = false
-    resolveFn('interrupted')
-  } else {
-    // Reset state even if no current utterance
-    currentId = null
-    currentResolveFn = null
-    isProcessing = false
+  // Store resolve function before resetting state
+  const prevResolveFn = currentResolveFn
+
+  // Reset state
+  currentId = null
+  currentResolveFn = null
+  isProcessing = false
+
+  // Resolve promise if there was an active utterance
+  if (prevResolveFn) {
+    prevResolveFn('interrupted')
   }
 }
 
