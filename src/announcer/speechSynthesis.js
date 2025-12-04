@@ -154,12 +154,6 @@ const speak = (options) => {
 
       resumeInfinity(id)
     }
-
-    // pause events: handle pause events
-    // utterance.onpause = () => {
-    //   // Stop keep-alive when manually paused
-    //   clear(id)
-    // }
   }
 
   return new Promise((resolve, reject) => {
