@@ -380,10 +380,21 @@ const propsTransformer = {
     }
   },
   set shader(v) {
-    if (v !== null) {
-      this.props['shader'] = renderer.createShader(v.type, v.props)
-    } else {
-      this.props['shader'] = renderer.createShader('DefaultShader')
+    const target = this.element.node !== undefined ? this.element.node : this.props
+
+    if (v === null) {
+      target['shader'] = null
+      return
+    }
+
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      if (target.shader !== undefined && target.shader.type === v.type) {
+        for (const prop in v.props) {
+          target.shader.props[prop] = v.props[prop]
+        }
+        return
+      }
+      target['shader'] = renderer.createShader(v.type, v.props)
     }
   },
   set effects(v) {
