@@ -27,6 +27,9 @@ let initialized = false
 
 const clear = (id) => {
   const state = utterances.get(id)
+  if (!state) {
+    return
+  }
   if (state?.timer !== null) {
     clearTimeout(state.timer)
     state.timer = null
@@ -153,10 +156,10 @@ const speak = (options) => {
     }
 
     // pause events: handle pause events
-    utterance.onpause = () => {
-      // Stop keep-alive when manually paused
-      clear(id)
-    }
+    // utterance.onpause = () => {
+    //   // Stop keep-alive when manually paused
+    //   clear(id)
+    // }
   }
 
   return new Promise((resolve, reject) => {
