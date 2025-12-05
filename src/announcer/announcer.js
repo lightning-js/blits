@@ -161,7 +161,7 @@ const processQueue = async () => {
           processQueue()
         })
       debounce = null
-    }, 200)
+    }, 300)
   }
 }
 
