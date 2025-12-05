@@ -136,10 +136,14 @@ async function dockerCiMode() {
   const __dirname = path.dirname(fileURLToPath(import.meta.url))
   const rootDir = path.resolve(__dirname, '..', '..')
 
-  const cmdToRun = `./visual-tests-runner.sh ${commandLineStr}`
+  // const cmdToRun = `sed -i 's/\r$//' ./visual-tests-runner.sh &&  ./visual-tests-runner.sh ${commandLineStr}`
+  const cmdToRun = 'npm install && RUNTIME_ENV=ci npm run test:visual -- ' + commandLineStr
 
   const childProc = $({ stdio: 'inherit' })`${runtime} run --network host \
     -v ${rootDir}:/work/ \
+    -v /work/node_modules \
+    -v /work/examples/node_modules \
+    -v /work/visual-tests/node_modules \
     -w /work/ -it visual-tests:latest \
     /bin/bash -c ${cmdToRun}
   `

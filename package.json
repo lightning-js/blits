@@ -24,7 +24,7 @@
     "pack-preview": "npm pack --dry-run",
     "release": "npm publish --access public",
     "build:docker": "cd visual-tests && npm run build:docker",
-    "test:visual": "cd visual-tests && npm run test:visual"
+    "test:visual": "cd visual-tests && npm install && npm run test:visual"
   },
   "types": "./index.d.ts",
   "lint-staged": {

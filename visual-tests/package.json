@@ -6,9 +6,9 @@
   "scripts": {
     "start": "npm test:visual",
     "test:visual": "node ./src/index.js",
-    "build:examples": "cd ../examples && npm run build",
+    "build:examples": "cd ../examples && npm install && npm run build",
     "build:docker": "node ./src/build-docker.js ",
-    "serve-examples": "cd ../examples && npm run preview",
+    "serve-examples": "cd ../examples  && npm install && npm run preview",
     "node-version": "node --version"
   },
   "keywords": [],
