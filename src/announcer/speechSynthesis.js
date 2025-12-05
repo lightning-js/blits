@@ -19,8 +19,6 @@ import { Log } from '../lib/log.js'
 
 const syn = window.speechSynthesis
 
-const isAndroid = /android/i.test((window.navigator || {}).userAgent || '')
-
 const utterances = new Map() // id -> { utterance, timer, ignoreResume }
 
 let initialized = false
@@ -36,7 +34,7 @@ const clear = (id) => {
   }
 }
 
-const resumeInfinity = (id) => {
+const startKeepAlive = (id) => {
   const state = utterances.get(id)
 
   // utterance status: utterance was removed (cancelled or finished)
@@ -81,7 +79,7 @@ const resumeInfinity = (id) => {
     state.timer = setTimeout(() => {
       // Double-check utterance still exists before resuming
       if (utterances.has(id)) {
-        resumeInfinity(id)
+        startKeepAlive(id)
       }
     }, 5000)
   }
@@ -189,11 +187,11 @@ const speak = async (options) => {
       resolve()
     }
 
-    if (isAndroid === false) {
+    if (options.enableUtteranceKeepAlive === true) {
       utterance.onstart = () => {
         // utterances status: check if utterance still exists
         if (utterances.has(id)) {
-          resumeInfinity(id)
+          startKeepAlive(id)
         }
       }
 
@@ -207,7 +205,7 @@ const speak = async (options) => {
           return
         }
 
-        resumeInfinity(id)
+        startKeepAlive(id)
       }
     }
     // handle error: syn.speak might throw

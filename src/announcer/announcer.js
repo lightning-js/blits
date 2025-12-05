@@ -25,8 +25,13 @@ let isProcessing = false
 let currentId = null
 let debounce = null
 
+const isAndroid = /android/i.test((window.navigator || {}).userAgent || '')
+const defaultUtteranceKeepAlive = !isAndroid
+
 // Global default utterance options
-let globalDefaultOptions = {}
+let globalDefaultOptions = {
+  enableUtteranceKeepAlive: defaultUtteranceKeepAlive,
+}
 
 const noopAnnouncement = {
   then() {},
@@ -206,6 +211,8 @@ const clear = () => {
   // Clear debounce timer
   clearDebounceTimer()
 
+  const prevResolveFn = currentResolveFn
+
   // Cancel any active speech synthesis
   speechSynthesis.cancel()
 
@@ -222,6 +229,10 @@ const clear = () => {
   currentId = null
   currentResolveFn = null
   isProcessing = false
+
+  if (prevResolveFn) {
+    prevResolveFn('cleared')
+  }
 }
 
 const configure = (options = {}) => {
