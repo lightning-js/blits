@@ -107,7 +107,45 @@ const initialize = () => {
   initialized = true
 }
 
-const speak = (options) => {
+const waitForSynthReady = (timeoutMs = 2000, checkIntervalMs = 100) => {
+  return new Promise((resolve) => {
+    if (!syn) {
+      Log.warn('SpeechSynthesis - syn unavailable')
+      resolve()
+      return
+    }
+
+    if (!syn.speaking && !syn.pending) {
+      Log.warn('SpeechSynthesis - ready immediately')
+      resolve()
+      return
+    }
+
+    Log.warn('SpeechSynthesis - waiting for ready state...')
+
+    const startTime = Date.now()
+
+    const intervalId = window.setInterval(() => {
+      const elapsed = Date.now() - startTime
+      const isReady = !syn.speaking && !syn.pending
+
+      if (isReady) {
+        Log.warn(`SpeechSynthesis - ready after ${elapsed}ms`)
+        window.clearInterval(intervalId)
+        resolve()
+      } else if (elapsed >= timeoutMs) {
+        Log.warn(`SpeechSynthesis - timeout after ${elapsed}ms, forcing ready`, {
+          speaking: syn.speaking,
+          pending: syn.pending,
+        })
+        window.clearInterval(intervalId)
+        resolve()
+      }
+    }, checkIntervalMs)
+  })
+}
+
+const speak = async (options) => {
   // options check: missing required options
   if (!options || !options.message) {
     return Promise.reject({ error: 'Missing message' })
@@ -125,6 +163,9 @@ const speak = (options) => {
     utterances.delete(id)
   }
 
+  // Wait for engine to be ready
+  await waitForSynthReady()
+
   const utterance = new SpeechSynthesisUtterance(options.message)
   utterance.lang = options.lang || defaultUtteranceProps.lang
   utterance.pitch = options.pitch || defaultUtteranceProps.pitch
@@ -133,28 +174,6 @@ const speak = (options) => {
   utterance.volume = options.volume || defaultUtteranceProps.volume
 
   utterances.set(id, { utterance, timer: null, ignoreResume: false })
-
-  if (isAndroid === false) {
-    utterance.onstart = () => {
-      // utterances status: check if utterance still exists
-      if (utterances.has(id)) {
-        resumeInfinity(id)
-      }
-    }
-
-    utterance.onresume = () => {
-      const state = utterances.get(id)
-      // utterance status: utterance might have been removed
-      if (!state) return
-
-      if (state.ignoreResume === true) {
-        state.ignoreResume = false
-        return
-      }
-
-      resumeInfinity(id)
-    }
-  }
 
   return new Promise((resolve, reject) => {
     utterance.onend = () => {
@@ -170,6 +189,27 @@ const speak = (options) => {
       resolve()
     }
 
+    if (isAndroid === false) {
+      utterance.onstart = () => {
+        // utterances status: check if utterance still exists
+        if (utterances.has(id)) {
+          resumeInfinity(id)
+        }
+      }
+
+      utterance.onresume = () => {
+        const state = utterances.get(id)
+        // utterance status: utterance might have been removed
+        if (!state) return
+
+        if (state.ignoreResume === true) {
+          state.ignoreResume = false
+          return
+        }
+
+        resumeInfinity(id)
+      }
+    }
     // handle error: syn.speak might throw
     try {
       syn.speak(utterance)
