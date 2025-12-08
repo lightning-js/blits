@@ -1,6 +1,7 @@
 import Blits from '@lightningjs/blits'
 
 import StaticItems from './pages/StaticItems'
+import Shaders from './pages/Shaders'
 
 export default Blits.Application({
   template: `
@@ -10,22 +11,26 @@ export default Blits.Application({
   `,
   state() {
     return {
-      counter: 1,
-      totalTests: 1,
+      counter: 0,
+      testPaths: ['/', '/shaders'],
     }
   },
   hooks: {
     init() {
+      this.totalTests = this.testPaths.length
       this.$listen('move-to-next', () => {
+        this.counter++
         if (this.counter >= this.totalTests) {
           window.doneTests()
         } else {
           // navigate to next route
-          this.$router.to('/random')
+          this.$router.to(this.testPaths[this.counter])
         }
-        this.counter++
       })
     },
   },
-  routes: [{ path: '/', component: StaticItems }],
+  routes: [
+    { path: '/', component: StaticItems },
+    { path: '/shaders', component: Shaders },
+  ],
 })
