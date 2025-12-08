@@ -148,8 +148,9 @@ const processQueue = async () => {
           ...globalDefaultOptions,
           ...options,
         })
-        .then(() => {
+        .then((result) => {
           Log.debug(`Announcer - finished speaking: "${message}" (id: ${id})`)
+          Log.debug('Announcer - finished result: ', result)
 
           currentId = null
           currentResolveFn = null
