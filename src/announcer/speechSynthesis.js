@@ -32,6 +32,7 @@ const clear = (id) => {
     clearTimeout(state.timer)
     state.timer = null
   }
+  utterances.delete(id)
 }
 
 const startKeepAlive = (id) => {
@@ -47,7 +48,6 @@ const startKeepAlive = (id) => {
   // utterance check: utterance instance is invalid
   if (!(utterance instanceof SpeechSynthesisUtterance)) {
     clear(id)
-    utterances.delete(id)
     return
   }
 
@@ -60,7 +60,6 @@ const startKeepAlive = (id) => {
   // syn status: syn might be undefined or cancelled
   if (!syn) {
     clear(id)
-    utterances.delete(id)
     return
   }
 
@@ -158,7 +157,6 @@ const speak = async (options) => {
   // utterance status: utterance with same id already exists
   if (utterances.has(id)) {
     clear(id)
-    utterances.delete(id)
   }
 
   // Wait for engine to be ready
@@ -176,14 +174,12 @@ const speak = async (options) => {
   return new Promise((resolve, reject) => {
     utterance.onend = () => {
       clear(id)
-      utterances.delete(id)
       resolve()
     }
 
     utterance.onerror = (e) => {
       Log.warn('SpeechSynthesisUtterance error:', e)
       clear(id)
-      utterances.delete(id)
       resolve()
     }
 
@@ -213,7 +209,6 @@ const speak = async (options) => {
       syn.speak(utterance)
     } catch (error) {
       clear(id)
-      utterances.delete(id)
       reject(error)
     }
   })
