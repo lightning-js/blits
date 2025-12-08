@@ -172,9 +172,9 @@ const speak = async (options) => {
   utterances.set(id, { utterance, timer: null, ignoreResume: false })
 
   return new Promise((resolve, reject) => {
-    utterance.onend = () => {
+    utterance.onend = (result) => {
       clear(id)
-      resolve()
+      resolve(result)
     }
 
     utterance.onerror = (e) => {
