@@ -211,8 +211,6 @@ const clear = () => {
   // Clear debounce timer
   clearDebounceTimer()
 
-  const prevResolveFn = currentResolveFn
-
   // Cancel any active speech synthesis
   speechSynthesis.cancel()
 
@@ -229,10 +227,6 @@ const clear = () => {
   currentId = null
   currentResolveFn = null
   isProcessing = false
-
-  if (prevResolveFn) {
-    prevResolveFn('cleared')
-  }
 }
 
 const configure = (options = {}) => {
