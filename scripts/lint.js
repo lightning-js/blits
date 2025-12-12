@@ -12,9 +12,12 @@ const isFix = process.argv[2] === 'fix'
 console.log('Starting the linting process...')
 console.log(`Fix mode is ${isFix ? 'enabled' : 'disabled'}`)
 
-const lintFiles = await fg(['**/*.js', '!node_modules/**'], {
-  cwd: __dirname,
-})
+const lintFiles = await fg(
+  ['**/*.js', '!node_modules/**', '!examples/node_modules/**', '!visual-tests/node_modules/**'],
+  {
+    cwd: __dirname,
+  }
+)
 
 console.log(`Found ${lintFiles.length} JavaScript file(s) to lint.`)
 

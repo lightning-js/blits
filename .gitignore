@@ -2,3 +2,11 @@ node_modules
 .DS_store
 .DS_Store
 coverage
+examples/node_modules
+examples/dist
+visual-tests/failed-results
+visual-tests/certified-snapshots/*-local
+.tmp
+.env
+*.tgz
+.vscode/launch.json

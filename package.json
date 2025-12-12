@@ -22,7 +22,9 @@
     "postpublish": "node scripts/postpublish.js",
     "prepare": "husky",
     "pack-preview": "npm pack --dry-run",
-    "release": "npm publish --access public"
+    "release": "npm publish --access public",
+    "build:docker": "cd visual-tests && npm run build:docker",
+    "test:visual": "cd visual-tests && npm install && npm run test:visual"
   },
   "types": "./index.d.ts",
   "lint-staged": {
@@ -48,6 +50,7 @@
     "husky": "^9.1.7",
     "jsdom": "24.0.0",
     "lint-staged": "^15.5.0",
+    "playwright": "^1.56.1",
     "prettier": "^3.6.2",
     "sinon": "^21.0.0",
     "tap-diff": "^0.1.1",
