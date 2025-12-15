@@ -66,10 +66,12 @@ export default () =>
           this.frame !== null &&
           this.frame !== undefined
         ) {
-          if ('frames' in this.map && this.map.frames !== null && this.map.frames !== undefined) {
-            if (this.frame in this.map.frames) {
-              options = Object.assign({}, this.map.defaults || {}, this.map.frames[this.frame])
-            }
+          if (
+            this.map.frames !== null &&
+            this.map.frames !== undefined &&
+            this.frame in this.map.frames
+          ) {
+            options = Object.assign({}, this.map.defaults || {}, this.map.frames[this.frame])
           } else if (this.frame in this.map) {
             options = this.map[this.frame]
           }
