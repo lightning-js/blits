@@ -50,10 +50,10 @@ export default () =>
         }
       },
     },
+    props: [{ key: 'navigateHistory', default: true }],
     input: {
       back(e) {
-        const navigating = Router.back.call(this)
-        if (navigating === false) {
+        if (!this.navigateHistory || !Router.back.call(this)) {
           this.parent.$focus(e)
         }
       },
