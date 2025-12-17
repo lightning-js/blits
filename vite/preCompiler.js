@@ -37,7 +37,16 @@ export default function () {
         fileExtension === '.blits' ||
         fileExtension === '.mjs'
       ) {
-        return compiler(source, filePath, config.mode)
+        const result = compiler(source, filePath, config.mode)
+
+        if (typeof result === 'object') {
+          return {
+            code: result.code,
+            map: result.map,
+          }
+        }
+        // Return the original source instead of null so Vite continues processing
+        return source
       }
 
       // vite expects null if there is no modification
