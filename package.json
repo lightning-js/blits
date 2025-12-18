@@ -10,7 +10,8 @@
     "./precompiler": "./src/lib/precompiler/precompiler.js",
     "./plugins": "./src/plugins/index.js",
     "./symbols": "./src/lib/symbols.js",
-    "./blitsFileConverter": "./src/lib/blitsfileconverter/blitsfileconverter.js"
+    "./blitsFileConverter": "./src/lib/blitsfileconverter/blitsfileconverter.js",
+    "./components": "./src/components/FPScounter.js"
   },
   "scripts": {
     "test": "c8 node scripts/runTests.js",
