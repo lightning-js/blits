@@ -460,45 +460,6 @@ export const navigate = async function () {
       const children = this[symbols.children]
       this.activeView = children[children.length - 1]
 
-      if (this.parent[symbols.routerHooks]) {
-        const hooks = this.parent[symbols.routerHooks]
-        if (hooks.afterEach) {
-          try {
-            // Get the previous view before it's removed
-            const previousView =
-              !reuse && previousRoute && children.length > 1 ? children[children.length - 2] : null
-
-            await hooks.afterEach.call(
-              this.parent,
-              route, // to
-              view, // toComponent
-              previousRoute, // from
-              previousView // fromComponent
-            )
-          } catch (error) {
-            Log.error('Error in "AfterEach" Hook', error)
-          }
-        }
-      }
-
-      if (route.hooks.after) {
-        try {
-          // Get the previous view before it's removed
-          const previousView =
-            !reuse && previousRoute && children.length > 1 ? children[children.length - 2] : null
-
-          await route.hooks.after.call(
-            this.parent,
-            route, // to
-            view, // toComponent
-            previousRoute, // from
-            previousView // fromComponent
-          )
-        } catch (error) {
-          Log.error('Error or Rejected Promise in "After" Hook', error)
-        }
-      }
-
       // set focus to the view that we're routing to (unless explicitly disabling passing focus)
       if (route.options.passFocus !== false) {
         focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
@@ -538,6 +499,45 @@ export const navigate = async function () {
           }
         } else {
           await setOrAnimate(holder, route.transition.in, shouldAnimate)
+        }
+      }
+
+      if (this.parent[symbols.routerHooks]) {
+        const hooks = this.parent[symbols.routerHooks]
+        if (hooks.afterEach) {
+          try {
+            // Get the previous view before it's removed
+            const previousView =
+              !reuse && previousRoute && children.length > 1 ? children[children.length - 2] : null
+
+            await hooks.afterEach.call(
+              this.parent,
+              route, // to
+              view, // toComponent
+              previousRoute, // from
+              previousView // fromComponent
+            )
+          } catch (error) {
+            Log.error('Error in "AfterEach" Hook', error)
+          }
+        }
+      }
+
+      if (route.hooks.after) {
+        try {
+          // Get the previous view before it's removed
+          const previousView =
+            !reuse && previousRoute && children.length > 1 ? children[children.length - 2] : null
+
+          await route.hooks.after.call(
+            this.parent,
+            route, // to
+            view, // toComponent
+            previousRoute, // from
+            previousView // fromComponent
+          )
+        } catch (error) {
+          Log.error('Error or Rejected Promise in "After" Hook', error)
         }
       }
     } else {
