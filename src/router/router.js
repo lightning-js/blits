@@ -466,14 +466,15 @@ export const navigate = async function () {
           try {
             // Get the previous view before it's removed
             const previousView =
-              !reuse && children.length > 1 ? children[children.length - 2] : null
+              !reuse && previousRoute && children.length > 1 ? children[children.length - 2] : null
 
-            await hooks.afterEach.call(this.parent, {
-              to: route,
-              toComponent: view,
-              from: previousRoute,
-              fromComponent: previousView,
-            })
+            await hooks.afterEach.call(
+              this.parent,
+              route, // to
+              view, // toComponent
+              previousRoute, // from
+              previousView // fromComponent
+            )
           } catch (error) {
             Log.error('Error in "AfterEach" Hook', error)
           }
@@ -483,13 +484,16 @@ export const navigate = async function () {
       if (route.hooks.after) {
         try {
           // Get the previous view before it's removed
-          const previousView = !reuse && children.length > 1 ? children[children.length - 2] : null
-          await route.hooks.after.call(this.parent, {
-            to: route,
-            toComponent: view,
-            from: previousRoute,
-            fromComponent: previousView,
-          })
+          const previousView =
+            !reuse && previousRoute && children.length > 1 ? children[children.length - 2] : null
+
+          await route.hooks.after.call(
+            this.parent,
+            route, // to
+            view, // toComponent
+            previousRoute, // from
+            previousView // fromComponent
+          )
         } catch (error) {
           Log.error('Error or Rejected Promise in "After" Hook', error)
         }
