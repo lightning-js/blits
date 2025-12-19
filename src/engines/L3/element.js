@@ -419,9 +419,25 @@ const propsTransformer = {
   },
   set maxwidth(v) {
     this.props['maxWidth'] = v
+    if (this.manualTextContain === true) {
+      return
+    }
+    if (this.props['contain'] === 'height') {
+      this.props['contain'] = 'both'
+      return
+    }
+    this.props['contain'] = 'width'
   },
   set maxheight(v) {
     this.props['maxHeight'] = v
+    if (this.manualTextContain === true) {
+      return
+    }
+    if (this.props['contain'] === 'width') {
+      this.props['contain'] = 'both'
+      return
+    }
+    this.props['contain'] = 'height'
   },
   set maxlines(v) {
     this.props['maxLines'] = v
@@ -437,6 +453,7 @@ const propsTransformer = {
   },
   set contain(v) {
     this.props['contain'] = v
+    this.manualTextContain = true
   },
   set align(v) {
     this.props['textAlign'] = v
