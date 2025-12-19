@@ -435,6 +435,9 @@ const propsTransformer = {
   set lineheight(v) {
     this.props['lineHeight'] = v
   },
+  set contain(v) {
+    this.props['contain'] = v
+  },
   set align(v) {
     this.props['textAlign'] = v
   },
