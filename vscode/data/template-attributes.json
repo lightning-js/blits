@@ -498,6 +498,7 @@
     "values": [
       "none",
       "width",
+      "height",
       "both"
     ],
     "defaultValue": "none",
