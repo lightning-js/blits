@@ -487,7 +487,7 @@ export const navigate = async function () {
         shouldAnimate = true
         oldView = this[symbols.children].splice(1, 1).pop()
         if (oldView) {
-          removeView(previousRoute, oldView, route.transition.out, navigatingBack)
+          await removeView(previousRoute, oldView, route.transition.out, navigatingBack)
         }
       }
 
