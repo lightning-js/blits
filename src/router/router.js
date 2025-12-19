@@ -477,13 +477,15 @@ export const navigate = async function () {
       }
 
       let shouldAnimate = false
+      // Declare oldView in broader scope so it can be used in hooks below
+      let oldView = null
 
       // apply out out transition on previous view if available, unless
       // we're reusing the prvious page component
       if (previousRoute !== undefined && reuse === false) {
         // only animate when there is a previous route
         shouldAnimate = true
-        const oldView = this[symbols.children].splice(1, 1).pop()
+        oldView = this[symbols.children].splice(1, 1).pop()
         if (oldView) {
           removeView(previousRoute, oldView, route.transition.out, navigatingBack)
         }
@@ -506,16 +508,12 @@ export const navigate = async function () {
         const hooks = this.parent[symbols.routerHooks]
         if (hooks.afterEach) {
           try {
-            // Get the previous view before it's removed
-            const previousView =
-              !reuse && previousRoute && children.length > 1 ? children[children.length - 2] : null
-
             await hooks.afterEach.call(
               this.parent,
               route, // to
               view, // toComponent
               previousRoute, // from
-              previousView // fromComponent
+              oldView // fromComponent
             )
           } catch (error) {
             Log.error('Error in "AfterEach" Hook', error)
@@ -525,16 +523,12 @@ export const navigate = async function () {
 
       if (route.hooks.after) {
         try {
-          // Get the previous view before it's removed
-          const previousView =
-            !reuse && previousRoute && children.length > 1 ? children[children.length - 2] : null
-
           await route.hooks.after.call(
             this.parent,
             route, // to
             view, // toComponent
             previousRoute, // from
-            previousView // fromComponent
+            oldView // fromComponent
           )
         } catch (error) {
           Log.error('Error or Rejected Promise in "After" Hook', error)
