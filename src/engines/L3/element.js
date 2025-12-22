@@ -511,6 +511,8 @@ const propsTransformer = {
   },
 }
 
+export const elementAttributes = Object.keys(propsTransformer)
+
 const Element = {
   /**
    * Populates the element with data

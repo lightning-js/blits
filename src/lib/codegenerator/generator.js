@@ -18,10 +18,13 @@
 let counter
 let isDev
 
+import { elementAttributes } from '../../engines/L3/element.js'
+
 export default function (templateObject = { children: [] }, devMode = false) {
   const ctx = {
     renderCode: [
       'const elms = []',
+      `const validAttributes = ${JSON.stringify(elementAttributes)}`,
       'const elementConfigs = []',
       'const forloops = []',
       'const props = []',
@@ -263,6 +266,7 @@ const generateElementCode = function (
       if(Array.isArray(props) === false) props = Object.keys(cmps[${counter}][Symbol.for('config')].props)
       for(let k = 0; k < props.length; k++) {
         const key = props[k]
+        if(validAttributes.indexOf(key) !== -1) continue
         delete elementConfigs[${counter}][key]
         skips[${counter}].push(key)
       }
