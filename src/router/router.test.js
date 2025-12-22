@@ -616,7 +616,7 @@ test('Before hook route object redirect', async (assert) => {
   })
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [
         {
           path: '/original',
@@ -651,7 +651,7 @@ test('BeforeEach hook route object redirect', async (assert) => {
   })
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [
         { path: '/original', component: TestComponent },
         { path: '/redirected', component: TestComponent },

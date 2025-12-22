@@ -440,12 +440,6 @@ declare module '@lightningjs/blits' {
      */
     $input: (event: KeyboardEvent) => boolean
     /**
-     * @deprecated
-     * Deprecated:  use `this.$focus()` instead
-     */
-    focus: (event?: KeyboardEvent) => void
-
-    /**
     * Select a child Element or Component by ref
     *
     * Elements and Components in the template can have an optional ref argument.

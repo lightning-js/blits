@@ -137,7 +137,6 @@ export default {
       this[symbols.slots].length = 0
 
       delete this[symbols.computedKeys]
-      delete this[symbols.effects]
       delete this[symbols.parent]
       delete this[symbols.rootParent]
       delete this[symbols.wrapper]
@@ -154,6 +153,8 @@ export default {
 
       this[symbols.cleanup]()
       delete this[symbols.cleanup]
+
+      delete this[symbols.effects]
 
       Log.debug(`Destroyed component ${this.$componentId}`)
       delete this.$componentId
