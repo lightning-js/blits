@@ -25,12 +25,9 @@ let isProcessing = false
 let currentId = null
 let debounce = null
 
-const isAndroid = /android/i.test((window.navigator || {}).userAgent || '')
-const defaultUtteranceKeepAlive = !isAndroid
-
 // Global default utterance options
 let globalDefaultOptions = {
-  enableUtteranceKeepAlive: defaultUtteranceKeepAlive,
+  enableUtteranceKeepAlive: /android/i.test((window.navigator || {}).userAgent || ''),
 }
 
 const noopAnnouncement = {
