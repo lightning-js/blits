@@ -365,20 +365,11 @@ declare module '@lightningjs/blits' {
   // Extension point for app- and plugin-specific fields on the component `this`.
   // Add your own properties (e.g., `$telemetry`, `componentName`) via TypeScript
   // module augmentation in your app, without changing core types.
-  // Public extension point for app/plugin augmentation via module augmentation.
   // Note: `ComponentBase` extends this interface, so augmented fields appear in all
   // hooks, methods, input, computed, and watch.
-  export interface ComponentCustomProperties {
+  export interface CustomComponentProperties {
     // Empty by design: extend in your app via TypeScript module augmentation.
   }
-
-  /**
-   * @deprecated Use `ComponentCustomProperties`.
-   *
-   * Kept for backwards compatibility so existing module augmentations of
-   * `CustomComponentProperties` continue to flow into component `this`.
-   */
-  export interface CustomComponentProperties extends ComponentCustomProperties {}
 
   export interface LanguagePlugin {
     translate(key: string, ...replacements: any[]): string
