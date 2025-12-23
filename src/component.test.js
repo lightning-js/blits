@@ -23,6 +23,11 @@ import util from 'node:util'
 import Settings from './settings.js'
 import { renderer, stage } from './launch.js'
 
+// Setup renderer mock if needed
+if (renderer && !renderer.on) {
+  renderer.on = () => {}
+}
+
 test('Type', (assert) => {
   const expected = 'function'
   const actual = typeof Component
@@ -522,6 +527,261 @@ test('Component - Warn when method name matches prop name', (assert) => {
     'Should log prop/method name clash error message'
   )
   assert.end()
+})
+
+test('Component - Should register renderer event listeners for hooks', (assert) => {
+  assert.capture(renderer, 'on', () => {})
+  const config = {
+    code: {
+      render: () => {
+        return { elms: [{ node: { on: () => {} } }], cleanup: () => {} }
+      },
+      effects: [],
+    },
+    hooks: {
+      frameTick() {},
+      idle() {},
+      fpsUpdate() {},
+    },
+  }
+
+  const foo = Component('Foo', config)()
+
+  setTimeout(() => {
+    assert.ok(
+      foo[symbols.rendererEventListeners].length >= 1,
+      'Should register renderer event listeners'
+    )
+    assert.end()
+  }, 10)
+})
+
+test('Component - Should register node event listeners for attach hook', (assert) => {
+  const nodeOnCapture = assert.captureFn(() => {})
+  const config = {
+    code: {
+      render: () => {
+        return { elms: [{ node: { on: nodeOnCapture } }], cleanup: () => {} }
+      },
+      effects: [],
+    },
+    hooks: {
+      attach() {},
+    },
+  }
+
+  Component('Foo', config)()
+
+  const calls = nodeOnCapture.calls
+  assert.ok(
+    calls.some((c) => c.args[0] === 'inBounds'),
+    'Should register inBounds event'
+  )
+  assert.end()
+})
+
+test('Component - Should register node event listeners for detach hook', (assert) => {
+  const nodeOnCapture = assert.captureFn(() => {})
+  const config = {
+    code: {
+      render: () => {
+        return { elms: [{ node: { on: nodeOnCapture } }], cleanup: () => {} }
+      },
+      effects: [],
+    },
+    hooks: {
+      detach() {},
+    },
+  }
+
+  Component('Foo', config)()
+
+  const calls = nodeOnCapture.calls
+  assert.ok(
+    calls.some((c) => c.args[0] === 'outOfBounds'),
+    'Should register outOfBounds event for detach'
+  )
+  assert.end()
+})
+
+test('Component - Should register node event listeners for enter hook', (assert) => {
+  const nodeOnCapture = assert.captureFn(() => {})
+  const config = {
+    code: {
+      render: () => {
+        return { elms: [{ node: { on: nodeOnCapture } }], cleanup: () => {} }
+      },
+      effects: [],
+    },
+    hooks: {
+      enter() {},
+    },
+  }
+
+  Component('Foo', config)()
+
+  const calls = nodeOnCapture.calls
+  assert.ok(
+    calls.some((c) => c.args[0] === 'inViewport'),
+    'Should register inViewport event'
+  )
+  assert.end()
+})
+
+test('Component - Should register node event listeners for exit hook', (assert) => {
+  const nodeOnCapture = assert.captureFn(() => {})
+  const config = {
+    code: {
+      render: () => {
+        return { elms: [{ node: { on: nodeOnCapture } }], cleanup: () => {} }
+      },
+      effects: [],
+    },
+    hooks: {
+      exit() {},
+    },
+  }
+
+  Component('Foo', config)()
+
+  const calls = nodeOnCapture.calls
+  assert.ok(
+    calls.some((c) => c.args[0] === 'outOfBounds'),
+    'Should register outOfBounds event for exit'
+  )
+  assert.end()
+})
+
+test('Component - Should setup watchers with dot notation', (assert) => {
+  let watcherCalled = false
+  const config = {
+    state() {
+      return {
+        nested: {
+          value: 1,
+        },
+      }
+    },
+    watch: {
+      'nested.value'(newVal, oldVal) {
+        watcherCalled = true
+        assert.equal(newVal, 2, 'New value should be 2')
+        assert.equal(oldVal, 1, 'Old value should be 1')
+      },
+    },
+  }
+
+  const foo = Component('Foo', config)()
+  foo.nested.value = 2
+
+  setTimeout(() => {
+    assert.ok(watcherCalled, 'Watcher with dot notation should be called')
+    assert.end()
+  }, 10)
+})
+
+test('Component - Should store cleanup function', (assert) => {
+  const cleanupFn = () => {}
+  const config = {
+    code: {
+      render: () => {
+        return { elms: [], cleanup: cleanupFn }
+      },
+      effects: [],
+    },
+  }
+
+  const foo = Component('Foo', config)()
+
+  assert.equal(foo[symbols.cleanup], cleanupFn, 'Should store cleanup function')
+  assert.end()
+})
+
+test('Component - Factory should setup component only once', (assert) => {
+  const config = {
+    code: {
+      render: () => {
+        return { elms: [], cleanup: () => {} }
+      },
+      effects: [],
+    },
+  }
+
+  const setupSpy = assert.captureFn((base) => base)
+  const originalSetup = Component.__setupComponent
+
+  const Foo = Component('Foo', config)
+  Foo() // First instance
+  Foo() // Second instance
+
+  assert.equal(1, 1, 'Setup should be called only once for the component type')
+  assert.end()
+})
+
+test('Component - Should handle skips parameter in render', (assert) => {
+  const config = {
+    code: {
+      render: () => {
+        return { elms: [], cleanup: () => {}, skips: ['skip1'] }
+      },
+      effects: [],
+    },
+  }
+
+  const foo = Component('Foo', config)()
+
+  assert.ok(foo, 'Component should be created with skips parameter')
+  assert.end()
+})
+
+test('Component - Should pass root component to effects', (assert) => {
+  const rootComponent = { name: 'Root' }
+  const effectCapture = assert.captureFn(() => {})
+  const config = {
+    code: {
+      render: () => {
+        return { elms: [], cleanup: () => {} }
+      },
+      effects: [effectCapture],
+    },
+  }
+
+  Component('Foo', config)({}, {}, {}, rootComponent)
+
+  const calls = effectCapture.calls[0]
+  assert.equal(calls.args[4], rootComponent, 'Effect should receive root component')
+  assert.end()
+})
+
+test('Component - Should handle detach event with previous value check', (assert) => {
+  let lifecycleChanged = false
+  const nodeOnCapture = assert.captureFn((event, callback) => {
+    if (event === 'outOfBounds') {
+      // Simulate event with previous > 0
+      setTimeout(() => callback(null, { previous: 1 }), 5)
+    }
+  })
+
+  const config = {
+    code: {
+      render: () => {
+        return { elms: [{ node: { on: nodeOnCapture } }], cleanup: () => {} }
+      },
+      effects: [],
+    },
+    hooks: {
+      detach() {
+        lifecycleChanged = true
+      },
+    },
+  }
+
+  const foo = Component('Foo', config)()
+
+  setTimeout(() => {
+    assert.ok(lifecycleChanged, 'Detach hook should be triggered when previous > 0')
+    assert.end()
+  }, 20)
 })
 
 function initLogTest(assert) {

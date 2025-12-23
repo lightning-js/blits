@@ -22,6 +22,7 @@ import { EventEmitter } from 'node:events'
 import { initLog } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import sinon from 'sinon'
+import * as shaders from './shaderLoader.js'
 
 initLog()
 
@@ -1065,3 +1066,168 @@ function createLayoutElement(direction, gap, layoutUpdateSpy) {
 
   return layoutEl
 }
+
+// Test for lines 522-524: isSlot symbol handling
+test('Element - Set isSlot symbol', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  const props = {}
+  props[symbols.isSlot] = true
+  el.populate({ parent: { node: new EventEmitter() }, ...props })
+  assert.equal(el[symbols.isSlot], true, 'isSlot should be set')
+  assert.end()
+})
+
+// Tests for lines 544-546: ElementShader creation
+test('Element - ElementShader with shadow', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({ parent: { node: new EventEmitter() }, shadow: { blur: 10 } })
+  assert.equal(el.props.elementShader, true, 'elementShader should be true')
+  assert.end()
+})
+
+test('Element - ElementShader with rounded', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({ parent: { node: new EventEmitter() }, rounded: 10 })
+  assert.equal(el.props.elementShader, true, 'elementShader should be true')
+  assert.end()
+})
+
+test('Element - ElementShader with border', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({ parent: { node: new EventEmitter() }, border: { width: 2 } })
+  assert.equal(el.props.elementShader, true, 'elementShader should be true')
+  assert.end()
+})
+
+// Test for line 620: Multiple properties without transitions
+test('Element - Set mount with object (multiple props)', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+  el.set('mount', { x: 0.5, y: 0.75 })
+  assert.equal(el.node['mountX'], 0.5, 'mountX should be set')
+  assert.equal(el.node['mountY'], 0.75, 'mountY should be set')
+  assert.end()
+})
+
+// Test for lines 683-686: Transition with layout parent
+test('Element - Transition with layout parent', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const layoutSpy = sinon.spy()
+  const layoutEl = createLayoutElement('horizontal', 10, layoutSpy)
+  const childEl = element({ parent: layoutEl }, {})
+  childEl.populate({ parent: layoutEl })
+  layoutEl.node.children.push(childEl.node)
+  childEl.set('w', { transition: { value: 100, duration: 50 } })
+  setTimeout(() => {
+    assert.ok(layoutSpy.callCount > 3, 'Layout should be triggered on ticks')
+    assert.end()
+  }, 80)
+})
+
+// Tests for lines 691-692, 697-702: Progress callback and transition end
+test('Element - Transition progress callback', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+  const progressSpy = sinon.spy()
+  el.set('w', { transition: { value: 100, duration: 50, progress: progressSpy } })
+  setTimeout(() => {
+    assert.ok(progressSpy.callCount > 5, 'Progress should be called multiple times')
+    assert.end()
+  }, 80)
+})
+
+test('Element - Transition end when node undefined', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+  const endSpy = sinon.spy()
+  el.set('w', { transition: { value: 100, duration: 50, end: endSpy } })
+  setTimeout(() => {
+    el.node = undefined
+  }, 20)
+  setTimeout(() => {
+    assert.notOk(endSpy.called, 'End should not be called')
+    assert.end()
+  }, 80)
+})
+
+test('Element - Transition canceled', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+  const endSpy = sinon.spy()
+  el.set('w', { transition: { value: 100, duration: 100, end: endSpy } })
+  setTimeout(() => {
+    el.set('w', { transition: { value: 200, duration: 30 } })
+  }, 20)
+  setTimeout(() => {
+    assert.notOk(endSpy.called, 'Canceled end should not be called')
+    assert.end()
+  }, 150)
+})
+
+// Additional tests for text properties to increase coverage
+test('Element - Set font property', (assert) => {
+  assert.capture(renderer, 'createTextNode', () => new EventEmitter())
+  const el = createElement({ props: { __textnode: true } })
+  el.set('font', 'Arial')
+  assert.equal(el.props.props['fontFamily'], 'Arial', 'font should set fontFamily')
+  assert.end()
+})
+
+test('Element - Set size property', (assert) => {
+  assert.capture(renderer, 'createTextNode', () => new EventEmitter())
+  const el = createElement({ props: { __textnode: true } })
+  el.set('size', 24)
+  assert.equal(el.props.props['fontSize'], 24, 'size should set fontSize')
+  assert.end()
+})
+
+test('Element - Set maxwidth property', (assert) => {
+  assert.capture(renderer, 'createTextNode', () => new EventEmitter())
+  const el = createElement({ props: { __textnode: true } })
+  el.set('maxwidth', 500)
+  assert.equal(el.props.props['wordWrapWidth'], 500, 'maxwidth should set wordWrapWidth')
+  assert.equal(el.props.props['contain'], 'width', 'maxwidth should set contain')
+  assert.end()
+})
+
+test('Element - ElementShader assignment (line 544)', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const shaderCapture = assert.capture(shaders, 'createElementShader', () => ({ type: 'shader' }))
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({ parent: { node: new EventEmitter() }, shadow: { blur: 5 } })
+  assert.ok(shaderCapture()[0], 'createElementShader should be called')
+  assert.equal(el.props.elementShader, true, 'elementShader should be set to true')
+  assert.equal(el.props.props['shader'].type, 'shader', 'shader should be assigned')
+  assert.end()
+})
+
+test('Element - Multiple properties loop with transition (line 620)', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+  el.set('mount', { x: { transition: { value: 0.5, duration: 50 } }, y: 0.75 })
+  setTimeout(() => {
+    assert.equal(el.node['mountX'], 0.5, 'mountX should be transitioned')
+    assert.equal(el.node['mountY'], 0.75, 'mountY should be set')
+    assert.end()
+  }, 80)
+})
+
+test('Element - Set maxheight property', (assert) => {
+  assert.capture(renderer, 'createTextNode', () => new EventEmitter())
+  const el = createElement({ props: { __textnode: true } })
+  el.set('maxheight', 300)
+  assert.equal(el.props.props['contain'], 'both', 'maxheight should set contain to both')
+  assert.end()
+})
+
+test('Element - Set wordwrap property', (assert) => {
+  assert.capture(renderer, 'createTextNode', () => new EventEmitter())
+  const el = createElement({ props: { __textnode: true } })
+  el.set('wordwrap', 400)
+  assert.equal(el.props.props['wordWrapWidth'], 400, 'wordwrap should set wordWrapWidth')
+  assert.end()
+})
