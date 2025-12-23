@@ -180,8 +180,6 @@ const clearDebounceTimer = () => {
 }
 
 const stop = () => {
-  Log.debug('Announcer - stop() called')
-
   // Clear debounce timer if speech hasn't started yet
   clearDebounceTimer()
 
@@ -189,7 +187,7 @@ const stop = () => {
   speechSynthesis.cancel()
 
   // Store resolve function before resetting state
-  const prevResolveFn = currentResolveFn
+  const resolveFn = currentResolveFn
 
   // Reset state
   currentId = null
@@ -197,14 +195,12 @@ const stop = () => {
   isProcessing = false
 
   // Resolve promise if there was an active utterance
-  if (prevResolveFn) {
-    prevResolveFn('interrupted')
+  if (resolveFn !== null) {
+    resolveFn('interrupted')
   }
 }
 
 const clear = () => {
-  Log.debug('Announcer - clear() called')
-
   // Clear debounce timer
   clearDebounceTimer()
 
