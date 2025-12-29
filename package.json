@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "1.45.0",
+  "version": "1.45.1",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
@@ -67,7 +67,6 @@
     "husky": "^9.1.7",
     "jsdom": "24.0.0",
     "lint-staged": "^15.5.0",
-    "magic-string": "^0.30.21",
     "prettier": "^3.6.2",
     "sinon": "^21.0.0",
     "tap-diff": "^0.1.1",
@@ -75,7 +74,8 @@
   },
   "dependencies": {
     "@lightningjs/msdf-generator": "^1.2.0",
-    "@lightningjs/renderer": "^2.20.0"
+    "@lightningjs/renderer": "^2.20.0",
+    "magic-string": "^0.30.21"
   },
   "repository": {
     "type": "git",

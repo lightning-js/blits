@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.45.1
+
+_29 dec 2025_
+
+- fixed issue `magic-string` package being a dev dependency
+
 ## v1.45.0
 
 _29 dec 2025_
