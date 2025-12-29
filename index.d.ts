@@ -1324,32 +1324,3 @@ declare module '@lightningjs/blits' {
 
   export default Blits;
 }
-
-declare module '@lightningjs/blits/plugins' {
-  import type {
-    AppStatePlugin,
-    LanguagePlugin,
-    StoragePlugin,
-    ThemePlugin,
-  } from '@lightningjs/blits'
-
-  export const language: {
-    name: 'language'
-    plugin: (options?: Record<string, unknown>) => LanguagePlugin
-  }
-
-  export const theme: {
-    name: 'theme'
-    plugin: (config?: Record<string, unknown>) => ThemePlugin
-  }
-
-  export const appState: {
-    name: 'appState'
-    plugin: <TState extends Record<string, unknown>>(state?: TState) => AppStatePlugin<TState>
-  }
-
-  export const storage: {
-    name: 'storage'
-    plugin: () => StoragePlugin
-  }
-}
