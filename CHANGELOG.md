@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.45.0
+
+_29 dec 2025_
+
+- Added support for defining types for custom plugins on the Blits component definitions
+- Added importable type definitions for built-in plugins
+- Added support for JS sourcemaps
+- Added reactivity for shader props (individual shaders, not effects via dynamic shader)
+- Fixed issue with usage of Blits plugins not working in for loops
+- Improved test coverage
+
 ## v1.44.0
 
 _20 Nov 2025_

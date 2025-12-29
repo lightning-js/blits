@@ -409,7 +409,7 @@ const generateForLoopCode = function (templateObject, parent) {
     .replace(')', '')
     .split(/\s*,\s*/)
 
-  const scopeRegex = new RegExp(`(scope\\.(?!${item}\\.|${index}|key)(\\w+))`, 'gi')
+  const scopeRegex = new RegExp(`(scope\\.(?!${item}\\.|${index}|key)([\\w$]+))`, 'gi')
 
   // local context
   const ctx = {

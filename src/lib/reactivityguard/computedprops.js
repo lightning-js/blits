@@ -213,7 +213,12 @@ export default (code) => {
       modifiedCode = modifiedCode.replace(mod.original, mod.replacement)
     }
 
-    return { code: modifiedCode }
+    // Returning code without a source map
+    // Vite will automatically chain this with the next plugin's source map (preCompiler)
+    return {
+      code: modifiedCode,
+      map: { mappings: '' },
+    }
   }
 
   return null
