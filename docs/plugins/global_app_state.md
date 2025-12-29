@@ -50,7 +50,7 @@ The newly created Global App state works exactly the same as an internal Compone
 
 ## TypeScript Support
 
-Enable autocomplete and type inference for the App State plugin by adding a `blits.d.ts` file:
+Enable autocomplete and type inference for the App State plugin by adding a `blits.d.ts` file in the root folder of your app project:
 
 ```typescript
 import type { AppStatePlugin } from '@lightningjs/blits/plugins/appstate'

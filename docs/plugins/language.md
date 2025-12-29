@@ -43,7 +43,7 @@ After registration of the Language plugin, it will be available in each Blits Co
 
 ## TypeScript Support
 
-Enable autocomplete and type inference for the Language plugin by adding a `blits.d.ts` file:
+Enable autocomplete and type inference for the Language plugin by adding a `blits.d.ts` file in the root folder of your app project:
 
 ```typescript
 import type { LanguagePlugin } from '@lightningjs/blits/plugins/language'

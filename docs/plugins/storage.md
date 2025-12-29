@@ -37,7 +37,7 @@ this.$storage.get(key, value)
 
 ## TypeScript Support
 
-Enable autocomplete and type inference for the Storage plugin by adding a `blits.d.ts` file:
+Enable autocomplete and type inference for the Storage plugin by adding a `blits.d.ts` file in the root folder of your app project:
 
 ```typescript
 import type { StoragePlugin } from '@lightningjs/blits/plugins/storage'
