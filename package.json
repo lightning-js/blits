@@ -8,7 +8,10 @@
     "./vite": "./vite/index.js",
     "./transitions": "./src/router/transitions/index.js",
     "./precompiler": "./src/lib/precompiler/precompiler.js",
-    "./plugins": "./src/plugins/index.js",
+    "./plugins": {
+      "types": "./src/plugins/index.d.ts",
+      "default": "./src/plugins/index.js"
+    },
     "./plugins/language": {
       "types": "./src/plugins/language.d.ts",
       "default": "./src/plugins/language.js"
