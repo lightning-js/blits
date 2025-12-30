@@ -56,7 +56,7 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "3.0.0-beta16"
+    "@lightningjs/renderer": "^3.0.0-beta17"
   },
   "repository": {
     "type": "git",
