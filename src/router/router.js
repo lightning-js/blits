@@ -30,6 +30,9 @@ import Settings from '../settings.js'
  * @typedef {import('../component.js').BlitsComponent} BlitsComponent - The element of the route
  * @typedef {import('../engines/L3/element.js').BlitsElement} BlitsElement - The element of the route
  *
+ * @typedef {BlitsComponent|BlitsComponentFactory} RouteView
+ * @typedef {RouteView & { default?: BlitsComponentFactory }} RouteViewWithOptionalDefault
+ *
  * @typedef {Object} Route
  * @property {string} path - The path of the route
  * @property {string} hash - The hash of the route
@@ -57,6 +60,7 @@ export const state = reactive(
     data: null,
     params: null,
     hash: '',
+    navigateHistory: true,
   },
   Settings.get('reactivityMode'),
   true
@@ -354,6 +358,7 @@ export const navigate = async function () {
       /** @type {import('../engines/L3/element.js').BlitsElement} */
       let holder
 
+      /** @type {RouteViewWithOptionalDefault|undefined|null} */
       let view
       let focus
       // when navigating back let's see if we're navigating back to a route that was kept alive
@@ -637,8 +642,18 @@ export const back = function () {
   return false
 }
 
+/**
+ * Enable or disable RouterView history navigation on Back input.
+ * When disabled, RouterView will not call Router.back().
+ * @param {boolean} enabled
+ */
+export const setNavigateHistory = (enabled = true) => {
+  state.navigateHistory = enabled !== false
+}
+
 export default {
   navigate,
   to,
   back,
+  setNavigateHistory,
 }
