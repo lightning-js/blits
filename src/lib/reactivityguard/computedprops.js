@@ -67,15 +67,21 @@ export default (code) => {
   const modifications = []
   const commentText = ' /* auto-generated reactivity guard */ '
 
+  const computedThisRefVars = []
   let match
   while ((match = componentRegex.exec(code)) !== null) {
+    const componentMatchStart = match.index
     const configObject = match[2]
 
     // Find computed section with proper brace balancing
     const computedKeywordMatch = /computed\s*:\s*{/.exec(configObject)
 
     if (computedKeywordMatch) {
+      // Find where config object starts inside the component match
+      const configObjectStartInComp = match[0].indexOf(match[2])
+
       // Find start position of the computed block
+      const computedBlockStart = computedKeywordMatch.index
       const computedStart = computedKeywordMatch.index + computedKeywordMatch[0].length - 1 // Position of the opening brace
 
       // Find the matching closing brace for computed object in config
@@ -141,6 +147,12 @@ export default (code) => {
         let modifiedComputedObj = originalComputedObj
         let hasChanges = false
 
+        // Object to hold this ref variables for current iteration component computed block
+        const computedPosObj = {
+          computedStart: componentMatchStart + configObjectStartInComp + computedBlockStart, // adjust to include 'computed: '
+          thisRefVars: {},
+        }
+
         for (const prop of computedProps) {
           const thisRefs = extractThisReferences(prop.body)
 
@@ -152,6 +164,10 @@ export default (code) => {
             ) {
               continue
             }
+
+            // Collect this ref variables
+            const thisRefVariablesList = Array.from(thisRefs).map((ref) => ref.replace('this.', ''))
+            computedPosObj.thisRefVars[prop.name] = thisRefVariablesList
 
             // reactivity code
             const refCode = Array.from(thisRefs)
@@ -189,6 +205,9 @@ export default (code) => {
         }
 
         if (hasChanges) {
+          // Store this ref variables for current iteration component computed block
+          computedThisRefVars.push(computedPosObj)
+
           // Store the modification of the entire computed object
           modifications.push({
             original: originalComputedObj,
@@ -202,6 +221,19 @@ export default (code) => {
   // Apply all modifications at once, from last to first to preserve positions
   if (modifications.length > 0) {
     let modifiedCode = code
+
+    // Insert computedThisRefVars objects in each component code
+    for (let i = computedThisRefVars.length - 1; i >= 0; i--) {
+      const obj = computedThisRefVars[i]
+      modifiedCode =
+        modifiedCode.slice(0, obj.computedStart) +
+        '\n' +
+        'computedThisRefVars :' +
+        JSON.stringify(obj.thisRefVars, null, 2) +
+        ',\n' +
+        modifiedCode.slice(obj.computedStart)
+    }
+
     // Sort modifications from last to first to avoid position changes
     modifications.sort((a, b) => {
       const posA = modifiedCode.indexOf(a.original)
