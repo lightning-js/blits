@@ -84,4 +84,9 @@ function formatFileWithESLint(filePath) {
   })
 }
 
-precompileComponents()
+// Only run if this file is executed directly (not imported)
+if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}`) {
+  precompileComponents()
+}
+
+export { precompileComponents, processDirectory, processFile, formatFileWithESLint }
