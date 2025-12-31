@@ -25,6 +25,20 @@ import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
 import { renderer } from '../../launch.js'
 import { keyMap } from '../../application.js'
 
+const rendererSettingsKeyMappings = {
+  w: 'appWidth',
+  h: 'appHeight',
+  gpuMemory: 'textureMemory',
+  viewportMargin: 'boundMargin',
+  pixelRatio: 'deviceLogicalPixelRatio',
+  renderQuality: 'devicePhysicalPixelRatio',
+  canvasColor: 'clearColor',
+  inspector: 'inspector',
+  fpsInterval: 'fpsUpdateInterval',
+  textureProcessingTimeLimit: 'textureProcessingTimeLimit',
+  maxFPS: 'targetFps',
+}
+
 export default {
   $focus: {
     /**
@@ -218,6 +232,27 @@ export default {
       }
       // trigger with force set to true
       trigger(target, key, true)
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
+  $settings: {
+    /**
+     * @this {import('../../component').BlitsComponent}
+     */
+    value: function (key, value) {
+      //TODO: Additional eligible blits related settings update goes here
+      if (key === 'debugLevel') {
+        // set app log level
+        this.$log.level = value
+
+        // set blits log level
+        Log.level = value
+        return
+      }
+      // Renderer related settings update
+      renderer.setOptions({ [rendererSettingsKeyMappings[key]]: value })
     },
     writable: false,
     enumerable: true,

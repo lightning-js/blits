@@ -364,6 +364,25 @@ declare module '@lightningjs/blits' {
     }
   }
 
+  type SettingsKey =
+  // Renderer specific settings keys
+  | "w"
+  | "h"
+  | "gpuMemory"
+  | "viewportMargin"
+  | "pixelRatio"
+  | "renderQuality"
+  | "canvasColor"
+  | "inspector"
+  | "fpsInterval"
+  | "textureProcessingTimeLimit"
+  | "maxFPS"
+  // Blits specific settings keys
+   | "debugLevel";
+
+
+  type SettingsValue<K extends SettingsKey> = Settings[K];
+
   export type ComponentBase = {
     /**
     * Indicates whether the component currently has focus
@@ -482,6 +501,11 @@ declare module '@lightningjs/blits' {
        */
       h: number
     }) => void
+
+    /**
+     * Update the renderer settings
+     */
+    $settings: <K extends SettingsKey>(key: K, value: SettingsValue<K>) => void
   }
 
   /**
@@ -890,6 +914,10 @@ declare module '@lightningjs/blits' {
      */
     fonts?: Font[],
     /**
+     * Effects to be used by DynamicShader
+     */
+    effects?: ShaderEffect[],
+    /**
      * Shaders to be used in the application
      */
     shaders?: Shader[],
@@ -1021,6 +1049,18 @@ declare module '@lightningjs/blits' {
      * Defaults to `0`
      */
     viewportMargin?: number | [number, number, number, number],
+    /**
+     * Threshold in `Megabytes` after which all the textures that are currently not visible
+     * within the configured viewport margin will be be freed and cleaned up
+     *
+     * When passed `0` the threshold is disabled and textures will not be actively freed
+     * and cleaned up
+     *
+     * Defaults to `200` (mb)
+     * @deprecated
+     * Deprecated:  use `gpuMemory` launch setting instead
+     */
+    gpuMemoryLimit?: number,
     /**
      * Configures the gpu memory settings used by the renderer
      */
