@@ -87,7 +87,7 @@ const defaultUtteranceProps = {
 const initialize = () => {
   // syn api check: syn might not have getVoices method
   if (!syn || typeof syn.getVoices !== 'function') {
-    initialized = true
+    initialized = false
     return
   }
 
