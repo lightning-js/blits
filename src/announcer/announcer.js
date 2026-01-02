@@ -55,7 +55,7 @@ const speak = (message, politeness = 'off', options = {}) => {
 
   // if cancelPrevious option is set, clear the queue and stop current speech
   if (options.cancelPrevious === true) {
-    clear()
+    clear(true)
   }
 
   return addToQueue(message, politeness, false, options)
@@ -200,12 +200,14 @@ const stop = () => {
   }
 }
 
-const clear = () => {
+const clear = (cancelPrevious = false) => {
   // Clear debounce timer
   clearDebounceTimer()
 
   // Cancel any active speech synthesis
-  speechSynthesis.cancel()
+  if (cancelPrevious === true) {
+    speechSynthesis.cancel()
+  }
 
   // Resolve all pending items in queue
   while (queue.length > 0) {
