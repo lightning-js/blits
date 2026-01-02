@@ -119,7 +119,7 @@ const waitForSynthReady = (timeoutMs = 2000, checkIntervalMs = 100) => {
       const isReady = !syn.speaking && !syn.pending
 
       if (isReady) {
-        Log.warn(`SpeechSynthesis - ready after ${elapsed}ms`)
+        Log.debug(`SpeechSynthesis - ready after ${elapsed}ms`)
         window.clearInterval(intervalId)
         resolve()
       } else if (elapsed >= timeoutMs) {
