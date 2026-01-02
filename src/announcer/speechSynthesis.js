@@ -28,7 +28,7 @@ const clear = (id) => {
   if (!state) {
     return
   }
-  if (state?.timer !== null) {
+  if (state && state.timer !== null) {
     clearTimeout(state.timer)
     state.timer = null
   }
@@ -52,7 +52,7 @@ const startKeepAlive = (id) => {
   }
 
   // Clear existing timer for this specific utterance
-  if (state?.timer !== null) {
+  if (state && state.timer !== null) {
     clearTimeout(state.timer)
     state.timer = null
   }
