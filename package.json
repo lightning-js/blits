@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "2.0.0-beta1-rc",
+  "version": "2.0.0-beta.1",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
@@ -56,7 +56,7 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "3.0.0-beta16"
+    "@lightningjs/renderer": "3.0.0-beta18"
   },
   "repository": {
     "type": "git",
