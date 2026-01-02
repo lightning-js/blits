@@ -41,6 +41,20 @@ The Language plugin accepts an optional configuration object with 2 keys:
 
 After registration of the Language plugin, it will be available in each Blits Component as `this.$language`.
 
+## TypeScript Support
+
+Enable autocomplete and type inference for the Language plugin by adding a `blits.d.ts` file in the root folder of your app project:
+
+```typescript
+import type { LanguagePlugin } from '@lightningjs/blits/plugins/language'
+
+declare module '@lightningjs/blits' {
+  interface CustomComponentProperties {
+    $language?: LanguagePlugin
+  }
+}
+```
+
 ## Translations file
 
 The most common way of defining a set of translations, is to use a dedicated JSON file, modeled after

@@ -55,7 +55,10 @@ function processFile(filePath) {
   fs.copyFileSync(filePath, backupFilePath)
 
   const source = fs.readFileSync(filePath, 'utf-8')
-  const newSource = compiler(source, filePath)
+  const result = compiler(source, filePath)
+
+  // Handle both string and object return types
+  const newSource = typeof result === 'object' && result.code ? result.code : result
   fs.writeFileSync(filePath, newSource)
 
   // only format the file if it was changed
