@@ -43,14 +43,6 @@ const startKeepAlive = (id) => {
     return
   }
 
-  const { utterance } = state
-
-  // utterance check: utterance instance is invalid
-  if (!(utterance instanceof SpeechSynthesisUtterance)) {
-    clear(id)
-    return
-  }
-
   // Clear existing timer for this specific utterance
   if (state && state.timer !== null) {
     clearTimeout(state.timer)
