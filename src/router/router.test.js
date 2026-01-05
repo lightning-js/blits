@@ -16,7 +16,7 @@
  */
 
 import test from 'tape'
-import { matchHash, getHash, to, navigate, state } from './router.js'
+import { matchHash, getHash, to, navigate, state, back } from './router.js'
 import { stage } from '../launch.js'
 import Component from '../component.js'
 import symbols from '../lib/symbols.js'
@@ -680,5 +680,296 @@ test('Route meta data is accessible in route object', async (assert) => {
     { auth: true, role: 'admin' },
     'Should have access to route meta data'
   )
+  assert.end()
+})
+
+test('keepAlive: view is cached and can be restored', async (assert) => {
+  const originalElement = stage.element
+  let initCallCount = 0
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && typeof value === 'object' && value.transition && value.transition.end) {
+        setTimeout(() => value.transition.end(), 0)
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent1 = Component('TestComponent1', {
+    template: '<Element />',
+    code: {
+      render: () => ({
+        elms: [
+          {
+            [symbols.holder]: { destroy: () => {} },
+            node: {},
+          },
+        ],
+        cleanup: () => {},
+      }),
+      effects: [],
+      init() {
+        initCallCount++
+      },
+    },
+  })
+
+  const TestComponent2 = Component('TestComponent2', {
+    template: '<Element />',
+    code: {
+      render: () => ({
+        elms: [
+          {
+            [symbols.holder]: { destroy: () => {} },
+            node: {},
+          },
+        ],
+        cleanup: () => {},
+      }),
+      effects: [],
+    },
+  })
+
+  const host = {
+    parent: {
+      [symbols.routes]: [
+        {
+          path: '/page1',
+          component: TestComponent1,
+          options: { keepAlive: true, inHistory: true, passFocus: false },
+        },
+        {
+          path: '/page2',
+          component: TestComponent2,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/page1')
+  await navigate.call(host)
+  const page1View = host[symbols.children][host[symbols.children].length - 1]
+  const initialInitCount = initCallCount
+
+  to('/page2')
+  await navigate.call(host)
+
+  back.call(host)
+  await navigate.call(host)
+
+  const restoredView = host[symbols.children][host[symbols.children].length - 1]
+  assert.equal(restoredView, page1View, 'Should restore the same cached view instance')
+  assert.equal(
+    initCallCount,
+    initialInitCount,
+    'Component init should not be called again when restored from cache'
+  )
+
+  stage.element = originalElement
+  assert.end()
+})
+
+test('reuseComponent: same component instance is reused when navigating to same route', async (assert) => {
+  const originalElement = stage.element
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && typeof value === 'object' && value.transition && value.transition.end) {
+        setTimeout(() => value.transition.end(), 0)
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: {
+      render: () => ({
+        elms: [
+          {
+            [symbols.holder]: { destroy: () => {} },
+            node: {},
+          },
+        ],
+        cleanup: () => {},
+      }),
+      effects: [],
+    },
+  })
+
+  const TestComponent2 = Component('TestComponent2', {
+    template: '<Element />',
+    code: {
+      render: () => ({
+        elms: [
+          {
+            [symbols.holder]: { destroy: () => {} },
+            node: {},
+          },
+        ],
+        cleanup: () => {},
+      }),
+      effects: [],
+    },
+  })
+
+  const host = {
+    parent: {
+      [symbols.routes]: [
+        {
+          path: '/page1',
+          component: TestComponent,
+          options: { reuseComponent: true, keepAlive: false, inHistory: true, passFocus: false },
+        },
+        {
+          path: '/page2',
+          component: TestComponent2,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/page1')
+  await navigate.call(host)
+  const firstView = host[symbols.children][host[symbols.children].length - 1]
+
+  to('/page2')
+  await navigate.call(host)
+
+  to('/page1')
+  await navigate.call(host)
+  const secondView = host[symbols.children][host[symbols.children].length - 1]
+
+  assert.equal(
+    firstView,
+    secondView,
+    'Should reuse the same component instance when reuseComponent is true'
+  )
+
+  stage.element = originalElement
+  assert.end()
+})
+
+test('Edge case: async hook failure with empty history should not cause endless loop', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set() {},
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: {
+      render: () => ({
+        elms: [
+          {
+            [symbols.holder]: { destroy: () => {} },
+            node: {},
+          },
+        ],
+        cleanup: () => {},
+      }),
+      effects: [],
+    },
+  })
+
+  const host = {
+    parent: {
+      [symbols.routes]: [
+        {
+          path: '/page1',
+          component: TestComponent,
+          hooks: {
+            async before() {
+              throw new Error('Hook failed')
+            },
+          },
+        },
+      ],
+      [symbols.routerHooks]: {
+        async beforeEach() {
+          throw new Error('BeforeEach hook failed')
+        },
+      },
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/page1')
+
+  try {
+    await navigate.call(host)
+  } catch {
+    // Expected to fail
+  }
+
+  // Wait a bit to ensure no endless loop
+  await new Promise((resolve) => setTimeout(resolve, 50))
+
+  // Verify navigation state is properly reset
+  assert.equal(state.navigating, false, 'Navigation state should be reset after hook failure')
+  assert.ok(true, 'Should not cause endless loop when hook fails with empty history')
+
+  stage.element = originalElement
+  assert.end()
+})
+
+test('Router hooks: beforeEach and before returning false cancel navigation', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({ populate() {}, set() {}, parent })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    parent: {
+      [symbols.routes]: [
+        { path: '/page1', component: TestComponent },
+        {
+          path: '/page2',
+          component: TestComponent,
+          hooks: {
+            before() {
+              return false
+            },
+          },
+        },
+      ],
+      [symbols.routerHooks]: {
+        beforeEach(to) {
+          if (to.path === '/page2') {
+            return false
+          }
+        },
+      },
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/page1')
+  await navigate.call(host)
+
+  to('/page2')
+  await navigate.call(host)
+  assert.equal(state.path, '/page1', 'Navigation should be cancelled when hooks return false')
+
+  stage.element = originalElement
   assert.end()
 })
