@@ -16,12 +16,17 @@
  */
 
 import symbols from '../../lib/symbols.js'
+import { state as routerState } from '../../router/router.js'
 
 export default (component, data) => {
   let routes = data
   if (Array.isArray(data) === false) {
     component[symbols.routerHooks] = data.hooks
     routes = data.routes
+    // Set initial backNavigation value if provided in router config
+    if (data.backNavigation !== undefined) {
+      routerState.backNavigation = data.backNavigation !== false
+    }
   }
   component[symbols.routes] = []
 

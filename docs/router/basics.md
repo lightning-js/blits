@@ -107,6 +107,8 @@ export default Blits.Component('Poster', {
 
 Whenever you navigate to a new page, the URL hash will automatically be updated. Unless specified otherwise, navigating to a new page, will add that route to the history stack. The `back` input action is automatically wired up to navigate back down the history stack.
 
+If you want to disable this automatic history navigation on Back (for example, to let a top-level navigation component handle Back), set `this.$router.backNavigation = false`. Set `this.$router.backNavigation = true` to restore the default behavior.
+
 By default, every time you navigate to a new route, the application focus will be automatically passed to the newly loaded page. If you instead want to maintain the current focus (for example in a widget that sits above your RouterView), you can use `passFocus: false` as part of the router options.
 
 ## Deeplinking

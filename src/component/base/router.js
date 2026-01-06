@@ -23,6 +23,12 @@ export default {
     value: {
       to,
       back,
+      get backNavigation() {
+        return state.backNavigation !== false
+      },
+      set backNavigation(enabled) {
+        state.backNavigation = enabled !== false
+      },
       get currentRoute() {
         return currentRoute
       },
