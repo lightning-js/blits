@@ -375,28 +375,6 @@ declare module '@lightningjs/blits' {
     // Empty by design: extend in your app via TypeScript module augmentation.
   }
 
-  export interface LanguagePlugin {
-    translate(key: string, ...replacements: any[]): string
-    readonly language: string
-    set(language: string): void
-    translations(translationsObject: Record<string, unknown>): void
-    load(file: string): Promise<void>
-  }
-
-  export interface ThemePlugin {
-    get<T = unknown>(key: string): T | undefined
-    get<T>(key: string, fallback: T): T
-    set(theme: string): void
-  }
-
-  export interface StoragePlugin {
-    get<T = unknown>(key: string): T | null
-    set(key: string, value: unknown): boolean
-    remove(key: string): void
-    clear(): void
-  }
-
-  export type AppStatePlugin<TState extends Record<string, unknown> = Record<string, unknown>> = TState
 
   export interface ComponentBase extends CustomComponentProperties {
     /**
