@@ -21,9 +21,8 @@ export { default as appState } from './appstate.js'
 export { default as storage } from './storage/storage.js'
 
 // Re-export plugin interfaces for convenience
-export type { LanguagePlugin, ThemePlugin, StoragePlugin, AppStatePlugin } from '@lightningjs/blits'
-
-// Re-export option types
-export type { LanguagePluginOptions } from './language.js'
-export type { ThemePluginConfig } from './theme.js'
+export type { LanguagePlugin, LanguagePluginOptions } from './language.js'
+export type { ThemePlugin, ThemePluginConfig } from './theme.js'
+export type { StoragePlugin } from './storage/storage.js'
+export type { AppStatePlugin } from './appstate.js'
 

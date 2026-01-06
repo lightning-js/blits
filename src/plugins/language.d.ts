@@ -15,15 +15,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { LanguagePlugin } from '@lightningjs/blits'
+export interface LanguagePlugin {
+  translate(key: string, ...replacements: any[]): string
+  readonly language: string
+  set(language: string): void
+  translations(translationsObject: Record<string, unknown>): void
+  load(file: string): Promise<void>
+}
 
 export interface LanguagePluginOptions {
   file?: string
   language?: string
 }
-
-// Re-export LanguagePlugin for direct imports
-export type { LanguagePlugin }
 
 declare const language: {
   readonly name: 'language'
