@@ -322,23 +322,28 @@ declare module '@lightningjs/blits' {
     back(): boolean;
 
     /**
+     * Enable or disable RouterView history navigation on Back input
+     */
+    backNavigation: boolean;
+
+    /**
      * Get the current route read-only
     */
     readonly currentRoute: Route;
 
     /**
      * Get the list of all routes
-     */
+    */
     readonly routes: Route[];
 
     /**
      * Get navigating state
-     */
+    */
     readonly navigating: boolean;
 
     /**
      * Reactive router state
-     */
+    */
     state: {
       /**
        * Path of the current route

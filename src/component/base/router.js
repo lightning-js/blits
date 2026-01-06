@@ -16,18 +16,18 @@
  */
 
 import symbols from '../../lib/symbols.js'
-import { to, currentRoute, back, state, setNavigateHistory } from '../../router/router.js'
+import { to, currentRoute, back, state } from '../../router/router.js'
 
 export default {
   $router: {
     value: {
       to,
       back,
-      navigateHistory(enabled = true) {
-        setNavigateHistory(enabled)
+      get backNavigation() {
+        return state.backNavigation !== false
       },
-      get navigateHistoryEnabled() {
-        return state.navigateHistory !== false
+      set backNavigation(enabled) {
+        state.backNavigation = enabled !== false
       },
       get currentRoute() {
         return currentRoute

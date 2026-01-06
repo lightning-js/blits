@@ -56,13 +56,14 @@ export default () =>
       },
       input: {
         back(e) {
-          if (routerState.navigateHistory !== false && Router.back.call(this)) return
-
-          // If history navigation is disabled or fails, forward Back to parent
-          /** @type {RouterViewParent | undefined | null} */
-          const parent = this.parent
-          const handledByParent = parent?.$input?.(e) ?? false
-          if (handledByParent === false) parent?.$focus?.(e)
+          if (routerState.backNavigation === false) {
+            this.parent?.$input?.(e)
+            return
+          }
+          const navigating = Router.back.call(this)
+          if (navigating === false) {
+            this.parent?.$focus?.(e)
+          }
         },
       },
     })

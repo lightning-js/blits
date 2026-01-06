@@ -60,7 +60,7 @@ export const state = reactive(
     data: null,
     params: null,
     hash: '',
-    navigateHistory: true,
+    backNavigation: true,
   },
   Settings.get('reactivityMode'),
   true
@@ -642,18 +642,8 @@ export const back = function () {
   return false
 }
 
-/**
- * Enable or disable RouterView history navigation on Back input.
- * When disabled, RouterView will not call Router.back().
- * @param {boolean} enabled
- */
-export const setNavigateHistory = (enabled = true) => {
-  state.navigateHistory = enabled !== false
-}
-
 export default {
   navigate,
   to,
   back,
-  setNavigateHistory,
 }
