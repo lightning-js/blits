@@ -15,10 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AppStatePlugin } from '@lightningjs/blits'
-
-// Re-export AppStatePlugin for direct imports
-export type { AppStatePlugin }
+export type AppStatePlugin<TState extends Record<string, unknown> = Record<string, unknown>> = TState
 
 declare const appState: {
   readonly name: 'appState'
