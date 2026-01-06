@@ -663,6 +663,25 @@ declare module '@lightningjs/blits' {
      * ```
      */
     routes?: Route[]
+
+    /**
+     * Enable or disable RouterView history navigation on Back input
+     * 
+     * @default true
+     * 
+     * @remarks
+     * This is an app-wide setting that affects all RouterView instances in your application.
+     * The router state is global and shared across all router instances.
+     * 
+     * @example
+     * ```js
+     * router: {
+     *   backNavigation: false, // Disable automatic back navigation
+     *   routes: [...]
+     * }
+     * ```
+     */
+    backNavigation?: boolean
   }
 
   export type ApplicationConfig<P extends Props, S, M, C, W> = ComponentConfig<P, S, M, C, W> & (

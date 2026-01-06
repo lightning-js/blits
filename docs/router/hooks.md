@@ -77,6 +77,29 @@ In order to configure global router hooks the `routes` key in the Application co
 
 Alongside the `router.routes` key we can now define a `router.hooks` object, which can have any of the following pre-defined hook functions:
 
+### Router Settings
+
+The router configuration also supports router settings alongside `router.routes` and `router.hooks`:
+
+- `backNavigation` - Enable or disable RouterView history navigation on Back input (default: `true`). When set to `false`, the Back input will be passed to the parent component instead of navigating back through the history stack. This setting can be configured in the router config or changed at runtime via `this.$router.backNavigation`.
+
+> **Note:** `backNavigation` is an app-wide setting that affects all `RouterView` instances in your application, as the router state is global and shared.
+
+```js
+export default Blits.Application({
+  router: {
+    backNavigation: false,
+    routes: [
+      { path: '/', component: Home },
+      { path: '/details', component: Details },
+    ],
+    hooks: {
+      // router hooks can be defined here
+    }
+  }
+})
+```
+
 ### `beforeEach()`
 
 Similar to the `before`-hook, the `beforeEach`-hook will be execute for every router navigation. This can be useful if you find yourself repeating the same functionality for many routes, for example an _authentication check_ or sending _telemetry_.

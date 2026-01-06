@@ -57,12 +57,12 @@ export default () =>
       input: {
         back(e) {
           if (routerState.backNavigation === false) {
-            this.parent?.$input?.(e)
+            this.parent.$input(e)
             return
           }
           const navigating = Router.back.call(this)
           if (navigating === false) {
-            this.parent?.$focus?.(e)
+            this.parent.$focus(e)
           }
         },
       },
