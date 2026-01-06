@@ -22,14 +22,15 @@ import symbols from '../lib/symbols.js'
 export default () =>
   Component('Sprite', {
     template: `
-      <Element w="100%" h="100%" :texture="$texture" :color="$color" effects="$effects" />
-    `,
+    <Element w="100%" h="100%" :texture="$texture" :color="$color" effects="$effects" />
+  `,
     props: ['image', 'map', 'frame', 'color', 'effects'],
 
     state() {
       return {
         spriteTexture: null,
         currentSrc: null,
+        rendererReady: false,
       }
     },
 
@@ -40,9 +41,26 @@ export default () =>
           return null
         }
 
-        // Get renderer
+        // Get renderer - if not available yet, trigger re-computation later
         const renderer = this[symbols.renderer]()
         if (renderer === null || renderer === undefined || renderer.createTexture === undefined) {
+          // Access rendererReady to make this computed depend on it
+          void this.rendererReady
+
+          // Explicitly access reactive properties to establish dependencies before retuning
+          void this.image
+          void this.map
+          void this.frame
+          void this.spriteTexture
+          void this.currentSrc
+
+          // Schedule re execution when renderer becomes available
+          if (!this.rendererReady) {
+            this.$setTimeout(() => {
+              // Force re-execution by updating a reactive dependency
+              this.rendererReady = !this.rendererReady
+            })
+          }
           return null
         }
 
