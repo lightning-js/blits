@@ -339,6 +339,7 @@ export const navigate = async function () {
           return
         }
       }
+
       // add the previous route (technically still the current route at this point)
       // into the history stack when inHistory is true and we're not navigating back
       if (
@@ -481,15 +482,17 @@ export const navigate = async function () {
       }
 
       let shouldAnimate = false
+      // Declare oldView in broader scope so it can be used in hooks below
+      let oldView = null
 
       // apply out out transition on previous view if available, unless
       // we're reusing the prvious page component
       if (previousRoute !== undefined && reuse === false) {
         // only animate when there is a previous route
         shouldAnimate = true
-        const oldView = this[symbols.children].splice(1, 1).pop()
+        oldView = this[symbols.children].splice(1, 1).pop()
         if (oldView) {
-          removeView(previousRoute, oldView, route.transition.out, navigatingBack)
+          await removeView(previousRoute, oldView, route.transition.out, navigatingBack)
         }
       }
 
@@ -503,6 +506,37 @@ export const navigate = async function () {
           }
         } else {
           await setOrAnimate(holder, route.transition.in, shouldAnimate)
+        }
+      }
+
+      if (this.parent[symbols.routerHooks]) {
+        const hooks = this.parent[symbols.routerHooks]
+        if (hooks.afterEach) {
+          try {
+            await hooks.afterEach.call(
+              this.parent,
+              route, // to
+              view, // toComponent
+              previousRoute, // from
+              oldView // fromComponent
+            )
+          } catch (error) {
+            Log.error('Error in "AfterEach" Hook', error)
+          }
+        }
+      }
+
+      if (route.hooks.after) {
+        try {
+          await route.hooks.after.call(
+            this.parent,
+            route, // to
+            view, // toComponent
+            previousRoute, // from
+            oldView // fromComponent
+          )
+        } catch (error) {
+          Log.error('Error or Rejected Promise in "After" Hook', error)
         }
       }
     } else {

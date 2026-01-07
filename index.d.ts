@@ -641,6 +641,7 @@ declare module '@lightningjs/blits' {
   export interface RouterHooks {
     init?: () => Promise<void> | void;
     beforeEach?: (to: Route, from: Route) => string | Route | Promise<string | Route> | void;
+    afterEach?: (to: Route, toComponent: ComponentBase, from: Route | undefined, fromComponent: ComponentBase | null) => string | Route | Promise<string | Route> | void;
     error?: (err: string) => string | Route | Promise<string | Route> | void;
   }
 
@@ -783,6 +784,7 @@ declare module '@lightningjs/blits' {
 
   export interface RouteHooks {
     before?: (to: Route, from: Route) => string | Route | Promise<string | Route>;
+    after?: (to: Route, toComponent: ComponentBase, from: Route | undefined, fromComponent: ComponentBase | null) => string | Route | Promise<string | Route>;
   }
 
   export type Route = {
