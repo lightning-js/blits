@@ -103,7 +103,7 @@ export default {
 
       // clear existing debounce for this key if it exists
       const existing = this[symbols.debounces].get(key)
-      if (existing) {
+      if (existing !== undefined) {
         this.$clearTimeout(existing)
         this[symbols.debounces].delete(key)
       }
@@ -130,7 +130,7 @@ export default {
   $clearDebounce: {
     value: function (key) {
       const existing = this[symbols.debounces].get(key)
-      if (existing) {
+      if (existing !== undefined) {
         this.$clearTimeout(existing)
         this[symbols.debounces].delete(key)
       }
@@ -142,8 +142,9 @@ export default {
   $clearDebounces: {
     value: function () {
       // clear all timeouts associated with debounces
-      for (const timeoutId of this[symbols.debounces].values()) {
-        this.$clearTimeout(timeoutId)
+      const timeoutIds = Array.from(this[symbols.debounces].values())
+      for (let i = 0; i < timeoutIds.length; i++) {
+        this.$clearTimeout(timeoutIds[i])
       }
       this[symbols.debounces].clear()
     },

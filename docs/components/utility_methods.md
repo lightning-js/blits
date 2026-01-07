@@ -437,25 +437,25 @@ Similar to timeouts and intervals, debounced functions can cause memory leaks if
 
 ### $debounce
 
-The `this.$debounce()`-method creates a debounced function that delays execution until after a specified delay has passed since the last invocation. If the same key is debounced again before the delay completes, the previous debounce is cancelled and a new one is created.
+The `this.$debounce()`-method creates a debounced function that delays execution until after a specified delay has passed since the last invocation. If the same name is debounced again before the delay completes, the previous debounce is cancelled and a new one is created.
 
-The first argument is a `key` (string) that uniquely identifies this debounce instance. The second argument is the `callback` function to execute. The third argument is the `delay` in milliseconds. Additional arguments can be passed and will be forwarded to the callback function.
+The first argument is a `name` (string) that uniquely identifies this debounce instance within the component. The second argument is the `callback` function to execute. The third argument is the `delay` in milliseconds. Additional arguments can be passed and will be forwarded to the callback function.
 
-The method returns a `timeout id`, which can be used to manually clear the debounce.
+The method returns a `debounce id`, which can be used to manually clear the debounce.
 
 **Key Features:**
-- **Key-based**: Each debounce is identified by a unique key
-- **Automatic replacement**: Calling `$debounce` with the same key replaces the previous debounce
+- **Name-based**: Each debounce is identified by a unique name (unique per component instance)
+- **Automatic replacement**: Calling `$debounce` with the same name replaces the previous debounce
 - **Memory efficient**: Only stores timeout IDs, function is captured in closure
 - **Automatic cleanup**: All debounces are cleared when component is destroyed
 
 ### $clearDebounce
 
-The `this.$clearDebounce()`-method clears a specific debounce by its key. This prevents the debounced function from executing.
+The `this.$clearDebounce()`-method clears a specific debounce by its name. This prevents the debounced function from executing.
 
 ### $clearDebounces
 
-The `this.$clearDebounces()`-method clears all debounces created via `this.$debounce()` in one go. This method is automatically called when destroying a Component, preventing memory leaks due to dangling debounce timers.
+The `this.$clearDebounces()`-method clears all debounces registered on the component in one go. This method is automatically called when destroying a Component, preventing memory leaks due to dangling debounce timers.
 
 ```js
 export default Blits.Component('ListComponent', {

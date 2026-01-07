@@ -429,21 +429,21 @@ declare module '@lightningjs/blits' {
 
     /**
     * Debounce a function execution, preventing memory leaks and function re-allocation
-    * @param key - Unique identifier for this debounce instance
+    * @param name - Unique identifier for this debounce instance (unique per component instance)
     * @param callback - Function to debounce
     * @param ms - Delay in milliseconds
     * @param args - Arguments to pass to the callback
     */
-    $debounce: (key: string, callback: (...args: any[]) => void, ms?: number, ...args: any[]) => ReturnType<typeof setTimeout>
+    $debounce: (name: string, callback: (...args: any[]) => void, ms?: number, ...args: any[]) => ReturnType<typeof setTimeout>
 
     /**
-    * Clear a specific debounce by key
-    * @param key - The key of the debounce to clear
+    * Clear a specific debounce by name
+    * @param name - The name of the debounce to clear
     */
-    $clearDebounce: (key: string) => void
+    $clearDebounce: (name: string) => void
 
     /**
-    * Clear all debounces (automatically called on component destroy)
+    * Clear all debounces registered on the component (automatically called on component destroy)
     */
     $clearDebounces: () => void
 
