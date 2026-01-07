@@ -114,6 +114,20 @@ Blits.Plugin(theme, {
 In the definition above we've specified 3 different themes: `base`, `dark` and `large`. The dark and large theme are not complete definitions,
 which means that they will inherit missing values from the base theme.
 
+## TypeScript Support
+
+Enable autocomplete and type inference for the Theme plugin by adding a `blits.d.ts` file in the root folder of your app project:
+
+```typescript
+import type { ThemePlugin } from '@lightningjs/blits/plugins/theme'
+
+declare module '@lightningjs/blits' {
+  interface CustomComponentProperties {
+    $theme?: ThemePlugin
+  }
+}
+```
+
 
 ## Getting theme values
 

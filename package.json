@@ -8,7 +8,26 @@
     "./vite": "./vite/index.js",
     "./transitions": "./src/router/transitions/index.js",
     "./precompiler": "./src/lib/precompiler/precompiler.js",
-    "./plugins": "./src/plugins/index.js",
+    "./plugins": {
+      "types": "./src/plugins/index.d.ts",
+      "default": "./src/plugins/index.js"
+    },
+    "./plugins/language": {
+      "types": "./src/plugins/language.d.ts",
+      "default": "./src/plugins/language.js"
+    },
+    "./plugins/theme": {
+      "types": "./src/plugins/theme.d.ts",
+      "default": "./src/plugins/theme.js"
+    },
+    "./plugins/appstate": {
+      "types": "./src/plugins/appstate.d.ts",
+      "default": "./src/plugins/appstate.js"
+    },
+    "./plugins/storage": {
+      "types": "./src/plugins/storage/storage.d.ts",
+      "default": "./src/plugins/storage/storage.js"
+    },
     "./symbols": "./src/lib/symbols.js",
     "./blitsFileConverter": "./src/lib/blitsfileconverter/blitsfileconverter.js"
   },
@@ -49,6 +68,7 @@
     "husky": "^9.1.7",
     "jsdom": "24.0.0",
     "lint-staged": "^15.5.0",
+    "magic-string": "^0.30.21",
     "prettier": "^3.6.2",
     "sinon": "^21.0.0",
     "tap-diff": "^0.1.1",

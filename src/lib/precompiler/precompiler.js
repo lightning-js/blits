@@ -17,6 +17,7 @@
 
 import parser from '../templateparser/parser.js'
 import generator from '../codegenerator/generator.js'
+import MagicString from 'magic-string'
 
 export default (source, filePath, mode) => {
   if (
@@ -26,12 +27,9 @@ export default (source, filePath, mode) => {
     /\{.*?template\s*:\s*(['"`])((?:\\?.)*?)\1.*?\}/s.test(source) // object with template key
   ) {
     const templates = source.matchAll(/(?<!\/\/\s*)template\s*:\s*(['"`])((?:\\?.)*?)\1/gs)
-    let newSource = source
-    /*
-      if there are multiple templates in the file, we need to keep
-      track of the offset caused by the previous replacements
-    */
-    let offset = 0
+
+    // Use MagicString to track changes
+    const s = new MagicString(source)
 
     for (const template of templates) {
       if (template[2]) {
@@ -39,7 +37,8 @@ export default (source, filePath, mode) => {
 
         // Only process if it looks like a Blits template
         if (templateContent.match(/^\s*(<!--[\s\S]*?-->|<[A-Za-z][^>]*>)/s)) {
-          const templateStartIndex = template.index + offset
+          // Use original indices - MagicString handles position tracking automatically
+          const templateStartIndex = template.index
           const templateEndIndex = templateStartIndex + template[0].length
 
           // Parse the template
@@ -58,16 +57,26 @@ export default (source, filePath, mode) => {
             (fn) => fn.toString()
           )}], context: {}}`
 
-          offset += replacement.length - template[0].length
-
-          newSource =
-            newSource.substring(0, templateStartIndex) +
-            replacement +
-            newSource.substring(templateEndIndex)
+          // MagicString tracks all changes automatically, no offset needed
+          s.overwrite(templateStartIndex, templateEndIndex, replacement)
         }
       }
     }
-    return newSource
+
+    const newSource = s.toString()
+
+    if (newSource !== source) {
+      const fileName = filePath.split(/[\\/]/).pop()
+      return {
+        code: newSource,
+        map: s.generateMap({
+          hires: true,
+          source: fileName,
+          includeContent: true,
+          file: fileName,
+        }),
+      }
+    }
   }
   return source
 }
