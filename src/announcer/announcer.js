@@ -25,8 +25,13 @@ let isProcessing = false
 let currentId = null
 let debounce = null
 
+const isAndroid = /android/i.test((window.navigator || {}).userAgent || '')
+const defaultUtteranceKeepAlive = !isAndroid
+
 // Global default utterance options
-let globalDefaultOptions = {}
+let globalDefaultOptions = {
+  enableUtteranceKeepAlive: defaultUtteranceKeepAlive,
+}
 
 const noopAnnouncement = {
   then() {},
@@ -50,6 +55,11 @@ const toggle = (v) => {
 
 const speak = (message, politeness = 'off', options = {}) => {
   if (active === false) return noopAnnouncement
+
+  // if cancelPrevious option is set, clear the queue and stop current speech
+  if (options.cancelPrevious === true) {
+    clear(true)
+  }
 
   return addToQueue(message, politeness, false, options)
 }
@@ -106,6 +116,8 @@ const addToQueue = (message, politeness, delay = false, options = {}) => {
   return done
 }
 
+let currentResolveFn = null
+
 const processQueue = async () => {
   if (isProcessing === true || queue.length === 0) return
   isProcessing = true
@@ -113,11 +125,13 @@ const processQueue = async () => {
   const { message, resolveFn, delay, id, options = {} } = queue.shift()
 
   currentId = id
+  currentResolveFn = resolveFn
 
   if (delay) {
     setTimeout(() => {
       isProcessing = false
       currentId = null
+      currentResolveFn = null
       resolveFn('finished')
       processQueue()
     }, delay)
@@ -138,19 +152,21 @@ const processQueue = async () => {
           Log.debug(`Announcer - finished speaking: "${message}" (id: ${id})`)
 
           currentId = null
+          currentResolveFn = null
           isProcessing = false
           resolveFn('finished')
           processQueue()
         })
         .catch((e) => {
           currentId = null
+          currentResolveFn = null
           isProcessing = false
           Log.debug(`Announcer - error ("${e.error}") while speaking: "${message}" (id: ${id})`)
           resolveFn(e.error)
           processQueue()
         })
       debounce = null
-    }, 200)
+    }, 300)
   }
 }
 
@@ -158,13 +174,57 @@ const polite = (message, options = {}) => speak(message, 'polite', options)
 
 const assertive = (message, options = {}) => speak(message, 'assertive', options)
 
-const stop = () => {
-  speechSynthesis.cancel()
+// Clear debounce timer
+const clearDebounceTimer = () => {
+  if (debounce !== null) {
+    clearTimeout(debounce)
+    debounce = null
+  }
 }
 
-const clear = () => {
+const stop = () => {
+  // Clear debounce timer if speech hasn't started yet
+  clearDebounceTimer()
+
+  // Always cancel speech synthesis to ensure clean state
+  speechSynthesis.cancel()
+
+  // Store resolve function before resetting state
+  const resolveFn = currentResolveFn
+
+  // Reset state
+  currentId = null
+  currentResolveFn = null
   isProcessing = false
-  queue.length = 0
+
+  // Resolve promise if there was an active utterance
+  if (resolveFn !== null) {
+    resolveFn('interrupted')
+  }
+}
+
+const clear = (cancelPrevious = false) => {
+  // Clear debounce timer
+  clearDebounceTimer()
+
+  // Cancel any active speech synthesis
+  if (cancelPrevious === true) {
+    speechSynthesis.cancel()
+  }
+
+  // Resolve all pending items in queue
+  while (queue.length > 0) {
+    const item = queue.shift()
+    if (item.resolveFn) {
+      Log.debug(`Announcer - clearing queued item: "${item.message}" (id: ${item.id})`)
+      item.resolveFn('cleared')
+    }
+  }
+
+  // Reset state
+  currentId = null
+  currentResolveFn = null
+  isProcessing = false
 }
 
 const configure = (options = {}) => {

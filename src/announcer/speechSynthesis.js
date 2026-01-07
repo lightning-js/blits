@@ -19,33 +19,61 @@ import { Log } from '../lib/log.js'
 
 const syn = window.speechSynthesis
 
-const isAndroid = /android/i.test((window.navigator || {}).userAgent || '')
-
-const utterances = new Map() // Strong references with unique keys
+const utterances = new Map() // id -> { utterance, timer, ignoreResume }
 
 let initialized = false
-let infinityTimer = null
 
-const clear = () => {
-  if (infinityTimer) {
-    clearTimeout(infinityTimer)
-    infinityTimer = null
+const clear = (id) => {
+  const state = utterances.get(id)
+  if (!state) {
+    return
   }
+  if (state && state.timer !== null) {
+    clearTimeout(state.timer)
+    state.timer = null
+  }
+  utterances.delete(id)
 }
 
-const resumeInfinity = (target) => {
-  if (!target || infinityTimer) {
-    return clear()
+const startKeepAlive = (id) => {
+  const state = utterances.get(id)
+
+  // utterance status: utterance was removed (cancelled or finished)
+  if (!state) {
+    return
+  }
+
+  // Clear existing timer for this specific utterance
+  if (state && state.timer !== null) {
+    clearTimeout(state.timer)
+    state.timer = null
+  }
+
+  // syn status: syn might be undefined or cancelled
+  if (!syn) {
+    clear(id)
+    return
   }
 
   syn.pause()
   setTimeout(() => {
-    syn.resume()
+    // utterance status: utterance might have been removed during setTimeout
+    const currentState = utterances.get(id)
+    if (currentState) {
+      currentState.ignoreResume = true
+      syn.resume()
+    }
   }, 0)
 
-  infinityTimer = setTimeout(() => {
-    resumeInfinity(target)
-  }, 5000)
+  // Check if utterance still exists before scheduling next cycle
+  if (utterances.has(id)) {
+    state.timer = setTimeout(() => {
+      // Double-check utterance still exists before resuming
+      if (utterances.has(id)) {
+        startKeepAlive(id)
+      }
+    }, 5000)
+  }
 }
 
 const defaultUtteranceProps = {
@@ -57,45 +85,124 @@ const defaultUtteranceProps = {
 }
 
 const initialize = () => {
+  // syn api check: syn might not have getVoices method
+  if (!syn || typeof syn.getVoices !== 'function') {
+    initialized = false
+    return
+  }
+
   const voices = syn.getVoices()
   defaultUtteranceProps.voice = voices[0] || null
   initialized = true
 }
 
-const speak = (options) => {
-  const utterance = new SpeechSynthesisUtterance(options.message)
+const waitForSynthReady = (timeoutMs = 2000, checkIntervalMs = 100) => {
+  return new Promise((resolve) => {
+    if (!syn) {
+      Log.warn('SpeechSynthesis - syn unavailable')
+      resolve()
+      return
+    }
+
+    if (!syn.speaking && !syn.pending) {
+      Log.warn('SpeechSynthesis - ready immediately')
+      resolve()
+      return
+    }
+
+    Log.warn('SpeechSynthesis - waiting for ready state...')
+
+    const startTime = Date.now()
+
+    const intervalId = window.setInterval(() => {
+      const elapsed = Date.now() - startTime
+      const isReady = !syn.speaking && !syn.pending
+
+      if (isReady) {
+        Log.debug(`SpeechSynthesis - ready after ${elapsed}ms`)
+        window.clearInterval(intervalId)
+        resolve()
+      } else if (elapsed >= timeoutMs) {
+        Log.warn(`SpeechSynthesis - timeout after ${elapsed}ms, forcing ready`, {
+          speaking: syn.speaking,
+          pending: syn.pending,
+        })
+        window.clearInterval(intervalId)
+        resolve()
+      }
+    }, checkIntervalMs)
+  })
+}
+
+const speak = async (options) => {
+  // options check: missing required options
+  if (!options || !options.message) {
+    return Promise.reject({ error: 'Missing message' })
+  }
+
+  // options check: missing or invalid id
   const id = options.id
+  if (id === undefined || id === null) {
+    return Promise.reject({ error: 'Missing id' })
+  }
+
+  // utterance status: utterance with same id already exists
+  if (utterances.has(id)) {
+    clear(id)
+  }
+
+  // Wait for engine to be ready
+  await waitForSynthReady()
+
+  const utterance = new SpeechSynthesisUtterance(options.message)
   utterance.lang = options.lang || defaultUtteranceProps.lang
   utterance.pitch = options.pitch || defaultUtteranceProps.pitch
   utterance.rate = options.rate || defaultUtteranceProps.rate
   utterance.voice = options.voice || defaultUtteranceProps.voice
   utterance.volume = options.volume || defaultUtteranceProps.volume
-  utterances.set(id, utterance) // Strong reference
 
-  if (isAndroid === false) {
-    utterance.onstart = () => {
-      resumeInfinity(utterance)
-    }
-
-    utterance.onresume = () => {
-      resumeInfinity(utterance)
-    }
-  }
+  utterances.set(id, { utterance, timer: null, ignoreResume: false })
 
   return new Promise((resolve, reject) => {
-    utterance.onend = () => {
-      clear()
-      utterances.delete(id) // Cleanup
-      resolve()
+    utterance.onend = (result) => {
+      clear(id)
+      resolve(result)
     }
 
     utterance.onerror = (e) => {
-      clear()
-      utterances.delete(id) // Cleanup
-      reject(e)
+      Log.warn('SpeechSynthesisUtterance error:', e)
+      clear(id)
+      resolve()
     }
 
-    syn.speak(utterance)
+    if (options.enableUtteranceKeepAlive === true) {
+      utterance.onstart = () => {
+        // utterances status: check if utterance still exists
+        if (utterances.has(id)) {
+          startKeepAlive(id)
+        }
+      }
+
+      utterance.onresume = () => {
+        const state = utterances.get(id)
+        // utterance status: utterance might have been removed
+        if (!state) return
+
+        if (state.ignoreResume === true) {
+          state.ignoreResume = false
+          return
+        }
+
+        startKeepAlive(id)
+      }
+    }
+    // handle error: syn.speak might throw
+    try {
+      syn.speak(utterance)
+    } catch (error) {
+      clear(id)
+      reject(error)
+    }
   })
 }
 
@@ -113,8 +220,20 @@ export default {
   },
   cancel() {
     if (syn !== undefined) {
-      syn.cancel()
-      clear()
+      // timers: clear all timers before cancelling
+      for (const id of utterances.keys()) {
+        clear(id)
+      }
+
+      // handle errors: syn.cancel might throw
+      try {
+        syn.cancel()
+      } catch (error) {
+        Log.error('Error cancelling speech synthesis:', error)
+      }
+
+      // utterances status: ensure all utterances are cleaned up
+      utterances.clear()
     }
   },
   // @todo
