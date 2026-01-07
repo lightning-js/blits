@@ -3284,7 +3284,8 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
     }
 
     let eff1 = () => {
-        forloops[1](component.items, elms, created[1])
+        const collection = component.items
+        forloops[1](collection, elms, created[1])
     }
 
     component[Symbol.for('effects')].push(eff1)
@@ -3439,7 +3440,8 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
     }
 
     let eff1 = () => {
-        forloops[1](component.$appState.list, elms, created[1])
+        const collection = component.$appState.list
+        forloops[1](collection, elms, created[1])
     }
 
     component[Symbol.for('effects')].push(eff1)
@@ -3594,7 +3596,8 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
     }
 
     let eff1 = () => {
-        forloops[1](component.content.data, elms, created[1])
+        const collection = component.content.data
+        forloops[1](collection, elms, created[1])
     }
 
     component[Symbol.for('effects')].push(eff1)
@@ -3747,7 +3750,8 @@ test('Generate code for a template with a simple for-loop on an Element with a c
     }
 
     let eff1 = () => {
-        forloops[1](component.items, elms, created[1])
+        const collection = component.items
+        forloops[1](collection, elms, created[1])
     }
 
     component[Symbol.for('effects')].push(eff1)
@@ -3900,7 +3904,8 @@ test('Generate code for a template with a simple for-loop on an Element with a k
     }
 
     let eff1 = () => {
-        forloops[1](component.items, elms, created[1])
+        const collection = component.items
+        forloops[1](collection, elms, created[1])
     }
 
     component[Symbol.for('effects')].push(eff1)
@@ -4090,7 +4095,8 @@ test('Generate code for a template with a simple for-loop on a Component with a 
     }
 
     let eff1 = () => {
-        forloops[1](component.items, elms, created[1])
+        const collection = component.items
+        forloops[1](collection, elms, created[1])
     }
 
     component[Symbol.for('effects')].push(eff1)
@@ -4254,7 +4260,8 @@ test('Generate code for a template with a simple for-loop on an Element with an 
     }
 
     let eff1 = () => {
-        forloops[1](component.items, elms, created[1])
+        const collection = component.items
+        forloops[1](collection, elms, created[1])
     }
 
     component[Symbol.for('effects')].push(eff1)
@@ -4302,6 +4309,42 @@ test('Generate code for a template with a simple for-loop on an Element with an 
   assert.ok(
     Array.isArray(actual.effects) && actual.effects.length === 0,
     'Generator should return an effects array with 1 function'
+  )
+
+  assert.end()
+})
+
+test('Generate code for for-loop with empty array that gets populated - verifies reactivity fix', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        children: [
+          {
+            [Symbol.for('componentType')]: 'Element',
+            ':for': 'item in $items',
+          },
+        ],
+      },
+    ],
+  }
+
+  const generated = generator.call(scope, templateObject)
+  const renderCode = generated.render.toString()
+
+  assert.ok(
+    renderCode.includes('const collection = component.items'),
+    'Effect should store array in variable to ensure reactive tracking when array changes from empty to populated'
+  )
+
+  assert.ok(
+    renderCode.includes('effect(eff1') && renderCode.includes("'items'"),
+    'Effect should be registered with items key for tracking'
+  )
+
+  assert.ok(
+    renderCode.includes('forloops[1](collection, elms, created[1])'),
+    'Forloop should use the collection variable to ensure reactive property access is tracked'
   )
 
   assert.end()
