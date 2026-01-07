@@ -17,6 +17,7 @@
 
 import fs from 'fs'
 import path from 'path'
+import { fileURLToPath } from 'url'
 import compiler from '../src/lib/precompiler/precompiler.js'
 import { exec } from 'child_process'
 
@@ -84,4 +85,9 @@ function formatFileWithESLint(filePath) {
   })
 }
 
-precompileComponents()
+// Only run if this file is executed directly (not imported)
+if (fileURLToPath(import.meta.url) === process.argv[1]) {
+  precompileComponents()
+}
+
+export { precompileComponents, processDirectory, processFile, formatFileWithESLint }
