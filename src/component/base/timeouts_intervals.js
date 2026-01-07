@@ -96,4 +96,59 @@ export default {
     enumerable: true,
     configurable: false,
   },
+  $debounce: {
+    value: function (key, fn, ms, ...params) {
+      // early exit when component is marked as end of life
+      if (this.eol === true) return
+
+      // clear existing debounce for this key if it exists
+      const existing = this[symbols.debounces].get(key)
+      if (existing) {
+        this.$clearTimeout(existing)
+        this[symbols.debounces].delete(key)
+      }
+
+      // create new timeout
+      const timeoutId = setTimeout(() => {
+        this[symbols.debounces].delete(key)
+        this.$clearTimeout(timeoutId)
+        fn.apply(this, params)
+      }, ms)
+
+      // track timeout in timeouts array for automatic cleanup
+      this[symbols.timeouts].push(timeoutId)
+
+      // store timeoutId per key to enable replace behavior and lifecycle cleanup
+      this[symbols.debounces].set(key, timeoutId)
+
+      return timeoutId
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
+  $clearDebounce: {
+    value: function (key) {
+      const existing = this[symbols.debounces].get(key)
+      if (existing) {
+        this.$clearTimeout(existing)
+        this[symbols.debounces].delete(key)
+      }
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
+  $clearDebounces: {
+    value: function () {
+      // clear all timeouts associated with debounces
+      for (const timeoutId of this[symbols.debounces].values()) {
+        this.$clearTimeout(timeoutId)
+      }
+      this[symbols.debounces].clear()
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
 }

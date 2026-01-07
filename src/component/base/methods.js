@@ -120,6 +120,8 @@ export default {
 
       this.$clearTimeouts()
       this.$clearIntervals()
+      this.$clearDebounces()
+
       eventListeners.removeListeners(this)
 
       const rendererEventListenersLength = this[symbols.rendererEventListeners].length

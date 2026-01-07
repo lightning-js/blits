@@ -386,6 +386,7 @@ export const getTestComponent = () => {
       // not required by default but getting into error without this
       [symbols.timeouts]: [],
       [symbols.intervals]: [],
+      [symbols.debounces]: new Map(),
     },
     { ...methods, ...timeouts_intervals }
   )
