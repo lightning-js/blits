@@ -96,4 +96,60 @@ export default {
     enumerable: true,
     configurable: false,
   },
+  $debounce: {
+    value: function (name, fn, ms, ...params) {
+      // early exit when component is marked as end of life
+      if (this.eol === true) return
+
+      // clear existing debounce for this name if it exists
+      const existing = this[symbols.debounces].get(name)
+      if (existing !== undefined) {
+        this.$clearTimeout(existing)
+        this[symbols.debounces].delete(name)
+      }
+
+      // create new timeout
+      const timeoutId = setTimeout(() => {
+        this[symbols.debounces].delete(name)
+        this.$clearTimeout(timeoutId)
+        fn.apply(this, params)
+      }, ms)
+
+      // track timeout in timeouts array for automatic cleanup
+      this[symbols.timeouts].push(timeoutId)
+
+      // store timeoutId per name to enable replace behavior and lifecycle cleanup
+      this[symbols.debounces].set(name, timeoutId)
+
+      return timeoutId
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
+  $clearDebounce: {
+    value: function (name) {
+      const existing = this[symbols.debounces].get(name)
+      if (existing !== undefined) {
+        this.$clearTimeout(existing)
+        this[symbols.debounces].delete(name)
+      }
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
+  $clearDebounces: {
+    value: function () {
+      // clear all timeouts associated with debounces
+      const timeoutIds = Array.from(this[symbols.debounces].values())
+      for (let i = 0; i < timeoutIds.length; i++) {
+        this.$clearTimeout(timeoutIds[i])
+      }
+      this[symbols.debounces].clear()
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
 }

@@ -428,6 +428,26 @@ declare module '@lightningjs/blits' {
     $clearTimeout: (id: ReturnType<typeof setTimeout>) => void
 
     /**
+    * Debounce a function execution, preventing memory leaks and function re-allocation
+    * @param name - Unique identifier for this debounce instance (unique per component instance)
+    * @param callback - Function to debounce
+    * @param ms - Delay in milliseconds
+    * @param args - Arguments to pass to the callback
+    */
+    $debounce: (name: string, callback: (...args: any[]) => void, ms?: number, ...args: any[]) => ReturnType<typeof setTimeout>
+
+    /**
+    * Clear a specific debounce by name
+    * @param name - The name of the debounce to clear
+    */
+    $clearDebounce: (name: string) => void
+
+    /**
+    * Clear all debounces registered on the component (automatically called on component destroy)
+    */
+    $clearDebounces: () => void
+
+    /**
     * Set an interval that is automatically cleaned upon component destroy
     */
     $setInterval: (callback: (args: any) => void, ms?: number | undefined) => ReturnType<typeof setInterval>
