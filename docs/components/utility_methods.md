@@ -446,7 +446,7 @@ The method returns a `debounce id`, which can be used to manually clear the debo
 **Key Features:**
 - **Name-based**: Each debounce is identified by a unique name (unique per component instance)
 - **Automatic replacement**: Calling `$debounce` with the same name replaces the previous debounce
-- **Memory efficient**: Only stores timeout IDs, function is captured in closure
+- **Memory efficient**: Only stores debounce IDs internally, function is captured in closure
 - **Automatic cleanup**: All debounces are cleared when component is destroyed
 
 ### $clearDebounce
