@@ -481,13 +481,24 @@ const generateForLoopCode = function (templateObject, parent) {
       const length = rawCollection.length
 
       component !== null && component[Symbol.for('removeGlobalEffects')](effects[${forStartCounter}])
+  `)
 
-      for(let i = 0; i < effects[${forStartCounter}].length; i++) {
-        const value = effects[${forStartCounter}][i]
-        const index = component[Symbol.for('effects')].indexOf(value)
-        if (index > -1) component[Symbol.for('effects')].splice(index, 1)
-      }
+  if (shallow === false) {
+    ctx.renderCode.push(`
+      setTimeout(() => {
+        const effs = effects[${forStartCounter}]
+        const effsLength = effs.length
+        for(let i = 0; i < effsLength; i++) {
+          const value = effs[i]
+          const index = component[Symbol.for('effects')].indexOf(value)
+          if (index > -1) component[Symbol.for('effects')].splice(index, 1)
+        }
+        effs.length = 0
+      }, 100)
+    `)
+  }
 
+  ctx.renderCode.push(`
       effects[${forStartCounter}].length = 0
       for(let __index = 0; __index < length; __index++) {
         if(__index < from${forStartCounter} || __index >= to${forStartCounter}) continue
