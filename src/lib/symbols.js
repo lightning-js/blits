@@ -48,6 +48,7 @@
  * @property {symbol} isComponent
  * @property {symbol} effects
  * @property {symbol} removeGlobalEffects
+ * @property {symbol} computedThisRefVars
  */
 
 /**
@@ -59,7 +60,6 @@ export default {
   cleanup: Symbol('cleanup'),
   currentView: Symbol('currentView'),
   cursorTagStart: Symbol('cursorTagStart'),
-  computedKeys: Symbol('computedKeys'),
   destroy: Symbol('destroy'),
   rendererEventListeners: Symbol('rendererEventListeners'),
   getChildren: Symbol('getChildren'),
@@ -115,4 +115,9 @@ export default {
   effects: Symbol.for('effects'),
   // Symbol 'removeGlobalEffects' utilized within generated code
   removeGlobalEffects: Symbol.for('removeGlobalEffects'),
+  // Symbol 'computedThisRefVars' utilized within generated code
+  computedThisRefVars: Symbol.for('computedThisRefVars'),
+
+  // Symbol 'computedKeys' utilized within generated code
+  computedKeys: Symbol.for('computedKeys'),
 }
