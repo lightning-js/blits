@@ -61,10 +61,13 @@ jobs:
             const testOutput = fs.readFileSync('test-report.txt', 'utf8');
 
             // Check for errors and test results
-            const hasError = testOutput.includes('Error');
             const testSummaryMatch = testOutput.match(/^#\s*\{.*?pass:\s*(\d+),?\s*(?:fail:)?\s*(\d*).*?\}$/mu);
 
-            if (hasError && (!testSummaryMatch || (testSummaryMatch[1] === '0' && testSummaryMatch[2] === '0'))) {
+            if (
+              !testSummaryMatch ||
+              ((testSummaryMatch[1] === "0" || testSummaryMatch[1] === "") &&
+                (testSummaryMatch[2] === "0" || testSummaryMatch[2] === ""))
+            ) {
               // Error with no tests or zero tests
               results.summary = 'Test execution encountered errors. No tests were run.';
               results.testsFailed = true;
