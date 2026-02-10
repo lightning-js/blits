@@ -114,6 +114,16 @@ const layoutFn = function (config) {
   this.node[dimension] = offset - gap + padding.end
   this.node[oppositeDimension] = otherDimension
 
+  // Sync layout-computed size to holder so it doesn't clip when scrolling (e.g. horizontal list)
+  if (
+    this.props.raw['___wrapper'] === true &&
+    this.component?.eol !== true &&
+    this.component?.[symbols.holder] !== undefined
+  ) {
+    this.component[symbols.holder].set('w', this.node.w)
+    this.component[symbols.holder].set('h', this.node.h)
+  }
+
   const align = {
     start: 0,
     end: 1,
@@ -625,7 +635,7 @@ const Element = {
       this.props.props['data'] = {}
     }
 
-    // Merge framework data (with $ prefix to prevent collisions)
+    // Merge framework data (blits-* keys data attributes)
     Object.assign(this.props['data'], data)
     Object.assign(this.props.props['data'], data)
 
@@ -679,13 +689,31 @@ const Element = {
     }
   },
   animate(prop, value, transition) {
+    // Clear any existing debounce timeout for this property
+    if (this.debounceTimeouts[prop] !== undefined) {
+      clearTimeout(this.debounceTimeouts[prop])
+      Log.debug(`Cleared debounce timeout for property "${prop}"`)
+    }
+
+    // Debounce the animation execution
+    this.debounceTimeouts[prop] = setTimeout(() => {
+      delete this.debounceTimeouts[prop]
+      this._executeAnimation(prop, value, transition)
+    }, 0)
+  },
+  _executeAnimation(prop, value, transition) {
     // check if a transition is already scheduled to run on the same prop
     // and cancels it if it does
+    const stateOfAnimation =
+      this.scheduledTransitions[prop] !== undefined
+        ? this.scheduledTransitions[prop].f.state
+        : undefined
+
     if (
-      this.scheduledTransitions[prop] !== undefined &&
-      this.scheduledTransitions[prop].f.state === 'scheduled'
+      stateOfAnimation !== undefined &&
+      (stateOfAnimation === 'scheduled' || stateOfAnimation === 'running')
     ) {
-      this.scheduledTransitions[prop].f.stop()
+      this.scheduledTransitions[prop].f.stop(stateOfAnimation === 'running' ? false : true)
     }
 
     // if current value is the same as the value to animate to, instantly resolve
@@ -723,7 +751,7 @@ const Element = {
 
     // Update inspector metadata when transition starts
     if (inspectorEnabled === true) {
-      this.setInspectorMetadata({ $isTransitioning: true })
+      this.setInspectorMetadata({ 'blits-isTransitioning': true })
     }
 
     if (transition.start !== undefined && typeof transition.start === 'function') {
@@ -763,7 +791,7 @@ const Element = {
       // Update inspector metadata when transition ends
       if (inspectorEnabled === true) {
         this.setInspectorMetadata({
-          $isTransitioning: Object.keys(this.scheduledTransitions).length > 0,
+          'blits-isTransitioning': Object.keys(this.scheduledTransitions).length > 0,
         })
       }
     })
@@ -775,6 +803,14 @@ const Element = {
     if (this.node === null) return
 
     Log.debug('Deleting Node', this.nodeId)
+
+    // Clear all pending debounce timeouts
+    const debounceProps = Object.keys(this.debounceTimeouts)
+    for (let i = 0; i < debounceProps.length; i++) {
+      clearTimeout(this.debounceTimeouts[debounceProps[i]])
+    }
+    this.debounceTimeouts = null
+
     // Clearing transition end callback functions
     const transitionProps = Object.keys(this.scheduledTransitions)
     for (let i = 0; i < transitionProps.length; i++) {
@@ -857,6 +893,7 @@ export default (config, component) => {
   return Object.assign(Object.create(Element), {
     props: Object.assign(Object.create(propsTransformer), { props: {} }),
     scheduledTransitions: {},
+    debounceTimeouts: {},
     config,
     component,
   })

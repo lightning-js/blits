@@ -239,3 +239,240 @@ test('Multiple intervals management', (assert) => {
 
   assert.end()
 })
+
+function createComponent(eol = false) {
+  const component = {
+    eol,
+    [symbols.timeouts]: [],
+    [symbols.debounces]: new Map(),
+  }
+  Object.defineProperties(component, timeoutsIntervals)
+  return component
+}
+
+test('$debounce method', (assert) => {
+  const component = createComponent()
+  let called = false
+  const timeoutId = timeoutsIntervals.$debounce.value.call(
+    component,
+    'test-key',
+    () => {
+      called = true
+    },
+    50
+  )
+
+  assert.ok(timeoutId !== undefined, 'Should return timeout ID')
+  assert.equal(component[symbols.timeouts].length, 1, 'Should add timeout to array')
+  assert.equal(component[symbols.debounces].size, 1, 'Should cache debounce by key')
+
+  setTimeout(() => {
+    assert.ok(called, 'Debounced function should execute after delay')
+    assert.equal(component[symbols.debounces].size, 0, 'Should remove from cache after execution')
+    assert.end()
+  }, 100)
+})
+
+test('$debounce method when eol is true', (assert) => {
+  const component = createComponent(true)
+  const result = timeoutsIntervals.$debounce.value.call(component, 'test-key', () => {}, 50)
+
+  assert.equal(result, undefined, 'Should return undefined when eol is true')
+  assert.equal(component[symbols.timeouts].length, 0, 'Should not add timeout when eol is true')
+  assert.equal(component[symbols.debounces].size, 0, 'Should not cache debounce when eol is true')
+  assert.end()
+})
+
+test('$debounce method replaces existing debounce for same key', (assert) => {
+  const component = createComponent()
+  let called1 = false
+  let called2 = false
+
+  const timeoutId1 = timeoutsIntervals.$debounce.value.call(
+    component,
+    'same-key',
+    () => {
+      called1 = true
+    },
+    50
+  )
+
+  const timeoutId2 = timeoutsIntervals.$debounce.value.call(
+    component,
+    'same-key',
+    () => {
+      called2 = true
+    },
+    50
+  )
+
+  assert.notEqual(timeoutId1, timeoutId2, 'Should create new timeout ID')
+  assert.equal(component[symbols.timeouts].length, 1, 'Should have only one timeout')
+  assert.equal(component[symbols.debounces].size, 1, 'Should have only one cached debounce')
+
+  setTimeout(() => {
+    assert.false(called1, 'First debounced function should not execute')
+    assert.ok(called2, 'Second debounced function should execute')
+    assert.end()
+  }, 100)
+})
+
+test('$debounce method with multiple keys', (assert) => {
+  const component = createComponent()
+  let called1 = false
+  let called2 = false
+
+  timeoutsIntervals.$debounce.value.call(
+    component,
+    'key1',
+    () => {
+      called1 = true
+    },
+    50
+  )
+
+  timeoutsIntervals.$debounce.value.call(
+    component,
+    'key2',
+    () => {
+      called2 = true
+    },
+    50
+  )
+
+  assert.equal(component[symbols.timeouts].length, 2, 'Should track both timeouts')
+  assert.equal(component[symbols.debounces].size, 2, 'Should cache both debounces')
+
+  setTimeout(() => {
+    assert.ok(called1, 'First debounced function should execute')
+    assert.ok(called2, 'Second debounced function should execute')
+    assert.end()
+  }, 100)
+})
+
+test('$clearDebounce method', (assert) => {
+  const component = createComponent()
+  let called = false
+
+  timeoutsIntervals.$debounce.value.call(
+    component,
+    'test-key',
+    () => {
+      called = true
+    },
+    50
+  )
+
+  timeoutsIntervals.$clearDebounce.value.call(component, 'test-key')
+
+  assert.equal(component[symbols.timeouts].length, 0, 'Removes timeout from array')
+  assert.equal(component[symbols.debounces].size, 0, 'Removes from cache')
+
+  setTimeout(() => {
+    assert.false(called, 'Debounced function should not execute after clear')
+    assert.end()
+  }, 100)
+})
+
+test('$clearDebounce method with non-existent key', (assert) => {
+  const component = createComponent()
+  timeoutsIntervals.$clearDebounce.value.call(component, 'non-existent')
+
+  assert.equal(component[symbols.timeouts].length, 0, 'Should not affect timeouts')
+  assert.equal(component[symbols.debounces].size, 0, 'Should not affect debounces')
+  assert.end()
+})
+
+test('$clearDebounces method', (assert) => {
+  const component = createComponent()
+  let called1 = false
+  let called2 = false
+
+  timeoutsIntervals.$debounce.value.call(
+    component,
+    'key1',
+    () => {
+      called1 = true
+    },
+    50
+  )
+
+  timeoutsIntervals.$debounce.value.call(
+    component,
+    'key2',
+    () => {
+      called2 = true
+    },
+    50
+  )
+
+  timeoutsIntervals.$clearDebounces.value.call(component)
+
+  assert.equal(component[symbols.timeouts].length, 0, 'Clears all timeouts from array')
+  assert.equal(component[symbols.debounces].size, 0, 'Clears all from cache')
+
+  setTimeout(() => {
+    assert.false(called1, 'First debounced function should not execute')
+    assert.false(called2, 'Second debounced function should not execute')
+    assert.end()
+  }, 100)
+})
+
+test('$debounce method with parameters', (assert) => {
+  const component = createComponent()
+  let receivedParams = null
+
+  timeoutsIntervals.$debounce.value.call(
+    component,
+    'test-key',
+    (param1, param2) => {
+      receivedParams = [param1, param2]
+    },
+    50,
+    'value1',
+    'value2'
+  )
+
+  setTimeout(() => {
+    assert.deepEqual(receivedParams, ['value1', 'value2'], 'Should pass parameters correctly')
+    assert.end()
+  }, 100)
+})
+
+test('$debounce method with context', (assert) => {
+  const component = createComponent()
+  let receivedContext = null
+
+  timeoutsIntervals.$debounce.value.call(
+    component,
+    'test-key',
+    function () {
+      receivedContext = this
+    },
+    50
+  )
+
+  setTimeout(() => {
+    assert.equal(receivedContext, component, 'Should call with component as context')
+    assert.end()
+  }, 100)
+})
+
+test('$debounce method with zero delay', (assert) => {
+  const component = createComponent()
+  let called = false
+
+  timeoutsIntervals.$debounce.value.call(
+    component,
+    'test-key',
+    () => {
+      called = true
+    },
+    0
+  )
+
+  setTimeout(() => {
+    assert.ok(called, 'Should execute with zero delay')
+    assert.end()
+  }, 10)
+})

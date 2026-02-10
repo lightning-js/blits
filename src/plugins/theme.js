@@ -20,13 +20,17 @@ import { reactive } from '../lib/reactivity/reactive.js'
 
 import Settings from '../settings.js'
 
-const getValueByDotNotation = (obj, base, path) => {
+const getValueByDotNotation = (obj, base, variant, path) => {
   const keys = path.split('.')
 
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i]
 
-    if (obj !== null && key in obj === true) {
+    if (variant !== null && key in variant === true) {
+      obj = variant[key]
+      variant = variant !== null && key in variant === true ? variant[key] : null
+      base = base !== null && key in base === true ? base[key] : null
+    } else if (obj !== null && key in obj === true) {
       obj = obj[key]
       base = base !== null && key in base === true ? base[key] : null
     }
@@ -51,6 +55,7 @@ export default {
     const state = reactive(
       {
         current: 'default',
+        variant: null,
       },
       Settings.get('reactivityMode'),
       true
@@ -62,6 +67,7 @@ export default {
       themes = config.themes
       state.current = config.current || 'default'
       base = config.base || 'default'
+      state.variant = config.variant || null
     } else {
       themes = { default: config }
     }
@@ -71,8 +77,14 @@ export default {
         // reference state.current, to trigger reactive effects for
         // theme get function when current theme is modified
         state.current
+        state.variant
         if (themeMap[key] !== undefined) return themeMap[key]
-        const value = getValueByDotNotation(themes[state.current], themes[base] || null, key)
+        const value = getValueByDotNotation(
+          themes[state.current],
+          themes[base] || null,
+          themes[state.variant] || null,
+          key
+        )
         if (value !== undefined) {
           // store the value for next time
           themeMap[key] = value
@@ -82,11 +94,26 @@ export default {
       },
 
       set(theme) {
+        Log.warn('$theme.set() is deprecated, use $theme.current() instead')
+        this.current(theme)
+      },
+
+      current(theme) {
         if (theme in themes) {
           themeMap = {}
           state.current = theme
         } else {
           Log.warn(`Theme ${theme} not found`)
+        }
+      },
+
+      variant(theme) {
+        if (theme in themes) {
+          themeMap = {}
+          state.variant = theme
+          console.log('change variant', theme)
+        } else {
+          Log.warn(`Variant ${theme} not found`)
         }
       },
     }

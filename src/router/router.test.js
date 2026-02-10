@@ -16,10 +16,13 @@
  */
 
 import test from 'tape'
-import { matchHash, getHash, to, navigate, state } from './router.js'
+import { initLog } from '../lib/log.js'
+import { matchHash, getHash, to, navigate, back, state } from './router.js'
 import { stage } from '../launch.js'
 import Component from '../component.js'
 import symbols from '../lib/symbols.js'
+
+initLog()
 
 const mockComponents = {
   Home: () => {},
@@ -603,6 +606,136 @@ test('Router updates state.path, state.params, and state.data correctly', async 
 
   // Restore
   stage.element = originalElement
+  assert.end()
+})
+
+test('Router.back() pops history and navigates to previous route', async (assert) => {
+  const originalElement = stage.element
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/first',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/second',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/first')
+  await navigate.call(host)
+  to('/second')
+  await navigate.call(host)
+
+  assert.equal(state.path, '/second', 'Should be on second route before back')
+  assert.equal(back.call(host), true, 'back() should return true when history has previous route')
+  assert.ok(window.location.hash.includes('first'), 'Should set hash to previous route')
+
+  stage.element = originalElement
+  assert.end()
+})
+
+test('Transition out with end callback is invoked on navigate away', async (assert) => {
+  const originalElement = stage.element
+
+  let endCalled = false
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/from',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+          transition: {
+            in: { prop: 'alpha', value: 1 },
+            out: {
+              prop: 'alpha',
+              value: 0,
+              end() {
+                endCalled = true
+              },
+            },
+          },
+        },
+        { path: '/to', component: TestComponent, options: { inHistory: true, passFocus: false } },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/from')
+  await navigate.call(host)
+  to('/to')
+  await navigate.call(host)
+
+  assert.ok(endCalled, 'Should call transition.out.end when navigating away')
+  stage.element = originalElement
+  assert.end()
+})
+
+test('Navigate to unknown path calls routerHooks.error', async (assert) => {
+  let errorMsg
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [{ path: '/known', component: mockComponents.Home }],
+      [symbols.routerHooks]: {
+        error(msg) {
+          errorMsg = msg
+        },
+      },
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/unknown')
+  await navigate.call(host)
+
+  assert.ok(errorMsg != null, 'Error hook should be called with a message')
+  assert.ok(String(errorMsg).includes('not found'), 'Error message should indicate not found')
+  assert.equal(state.navigating, false, 'Should reset state.navigating after navigate completes')
   assert.end()
 })
 

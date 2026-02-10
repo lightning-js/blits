@@ -623,28 +623,32 @@ test('Element - Listen to transition start callback on `w` prop changes', (asser
   el.set('w', { transition: { value: 100, start: startSpy } })
 
   assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
-  assert.ok(startSpy.calledOnce, 'Transition start callback should be called once')
-  assert.equal(
-    startSpy.getCall(0).args.length,
-    3,
-    'Transition start callback should be called with three arguments'
-  )
-  assert.equal(
-    startSpy.getCall(0).args[0],
-    el,
-    'Transition start callback first argument should be element itself'
-  )
-  assert.equal(
-    startSpy.getCall(0).args[1],
-    'w',
-    'Transition start callback second argument should be `w` property'
-  )
-  assert.equal(
-    startSpy.getCall(0).args[2],
-    0,
-    'Transition start callback third argument value should be an initial value of `0`'
-  )
-  assert.end()
+
+  // Transition start runs async (debounce + animation 'animating' event);
+  setTimeout(() => {
+    assert.ok(startSpy.calledOnce, 'Transition start callback should be called once')
+    assert.equal(
+      startSpy.getCall(0).args.length,
+      3,
+      'Transition start callback should be called with three arguments'
+    )
+    assert.equal(
+      startSpy.getCall(0).args[0],
+      el,
+      'Transition start callback first argument should be element itself'
+    )
+    assert.equal(
+      startSpy.getCall(0).args[1],
+      'w',
+      'Transition start callback second argument should be `w` property'
+    )
+    assert.equal(
+      startSpy.getCall(0).args[2],
+      0,
+      'Transition start callback third argument value should be an initial value of `0`'
+    )
+    assert.end()
+  }, 100)
 })
 
 test('Element - Cancel transition running on same prop `W` ', (assert) => {

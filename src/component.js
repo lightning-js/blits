@@ -459,6 +459,9 @@ const Component = (name = required('name'), config = required('config')) => {
   // during the code generation step
   factory[Symbol.for('config')] = config
 
+  // Display name for inspector
+  factory[Symbol.for('componentType')] = name
+
   // To determine whether dynamic component is actual Blits component or not
   factory[symbols.isComponent] = true
 

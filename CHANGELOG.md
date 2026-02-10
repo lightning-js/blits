@@ -1,5 +1,27 @@
 # Changelog
 
+
+## v1.48.0
+
+_10 feb 2026_
+
+- Improved cleanup of for-loop effects
+- Fixed router issue with params not being reset
+- Added next tick debouncing for transitions on multiple props
+- Bumped renderer to 2.21.0
+- Added support for using function-notation in `@loaded`, `@error` and `@updated` callbacks
+- Added displaying of correct component type in inspector data when using `is`-attribute
+- Replaced `$`-prefix for automatic inspector data with `blits-` prefix (fixes fatal error in Safari)
+
+
+## v1.47.0
+
+_26 jan 2026_
+
+- Fixed issue with reactivity guard vite plugin failing for commented-out code
+- Fixed issue with autosizing of holder node by adding extra `eol` check
+- Added support for _variants_ to the Theme plugin
+
 ## v1.46.0
 
 _22 jan 2026_

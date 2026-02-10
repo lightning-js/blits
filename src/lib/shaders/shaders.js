@@ -139,11 +139,12 @@ export default {
       return v
     }
     if (typeof v === 'string') {
-      return colors.normalize(v)
+      return colors.normalize(v, v)
     }
     if (Array.isArray(v) === true) {
       return v.map((i) => this.parseProp(i))
     }
+    return v
   },
   parseProps(v) {
     if (typeof v === 'string') {

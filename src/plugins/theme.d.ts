@@ -18,13 +18,20 @@
 export interface ThemePlugin {
   get<T = unknown>(key: string): T | undefined
   get<T>(key: string, fallback: T): T
+  /**
+   * @deprecated
+   * Deprecated:  use `$theme.current()` instead
+   */
   set(theme: string): void
+  current(theme: string): void
+  variant(theme: string): void
 }
 
 export interface ThemePluginConfig {
   themes?: Record<string, Record<string, unknown>>
   current?: string
   base?: string
+  variant?: string
 }
 
 declare const theme: {

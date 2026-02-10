@@ -32,9 +32,10 @@ const objectMap = new WeakMap()
 const globalEffectsMap = new Map()
 
 export const removeGlobalEffects = (effectsToRemove) => {
-  if (globalEffectsMap.size === 0) return
+  if (globalEffectsMap.size === 0 || effectsToRemove.length === 0) return
+  const effectsToRemoveSet = new Set(effectsToRemove)
   for (const [effect, target] of globalEffectsMap) {
-    if (effectsToRemove.indexOf(effect) === -1) continue
+    if (!effectsToRemoveSet.has(effect)) continue
     const effectsSet = objectMap.get(target)
     if (effectsSet === undefined) continue
     for (const set of effectsSet.values()) {

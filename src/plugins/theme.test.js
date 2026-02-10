@@ -63,8 +63,71 @@ test('Advanced theme creation & usage', (assert) => {
   assert.equal(theme.get('someColor'), 'orange', 'someColor should be orange')
   assert.equal(theme.get('someSizes.tile'), 200, 'someSizes.tile should be 200')
 
-  theme.set('apple')
+  theme.current('apple')
   assert.equal(theme.get('someColor'), 'pink', 'someColor should be pink')
   assert.equal(theme.get('someSizes.tile'), 50, 'someSizes.tile should be 50')
+  assert.end()
+})
+
+test('Applying theme variant', (assert) => {
+  const theme = themePlugin.plugin({
+    themes: {
+      base: {
+        hero: {
+          width: 1920,
+          height: 500,
+          colors: {
+            gradient1: 'red',
+            gradient2: 'transparent',
+          },
+        },
+      },
+      partner1: {
+        hero: {
+          width: 1820,
+          height: 400,
+          colors: {
+            gradient1: 'blue',
+          },
+        },
+      },
+      highcontrast: {
+        hero: {
+          colors: {
+            gradient1: '#333',
+            gradient2: '#333',
+          },
+        },
+      },
+    },
+    base: 'base',
+    current: 'partner1',
+    variant: null,
+  })
+
+  assert.equal(theme.get('hero.width'), 1820, 'should get width from partner1 theme')
+  assert.equal(
+    theme.get('hero.colors.gradient1'),
+    'blue',
+    'should get gradient 1 from partner1 theme'
+  )
+  assert.equal(
+    theme.get('hero.colors.gradient2'),
+    'transparent',
+    'should get gradient 2 from base theme'
+  )
+
+  theme.variant('highcontrast')
+
+  assert.equal(
+    theme.get('hero.colors.gradient1'),
+    '#333',
+    'should get gradient 1 from high contrast theme'
+  )
+  assert.equal(
+    theme.get('hero.colors.gradient2'),
+    '#333',
+    'should get gradient 2 from high contrast theme'
+  )
   assert.end()
 })

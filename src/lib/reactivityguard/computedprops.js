@@ -35,10 +35,12 @@ const findMatchingBrace = (text, startPos) => {
     // Skip comments when not in strings
     else if (!inString && char === '/' && text[position + 1] === '/') {
       // Skip line comment
-      position = text.indexOf('\n', position) || text.length - 1
+      const nextNewline = text.indexOf('\n', position + 2)
+      position = nextNewline === -1 ? text.length - 1 : nextNewline
     } else if (!inString && char === '/' && text[position + 1] === '*') {
       // Skip block comment
-      position = text.indexOf('*/', position + 2) || text.length - 1
+      const end = text.indexOf('*/', position + 2)
+      position = end === -1 ? text.length - 1 : end + 1
     }
     // Count braces only outside strings and comments
     else if (!inString) {
@@ -58,6 +60,44 @@ const findComputedObjectEnd = (configObject, computedStart) => {
 // Find individual computed function boundaries
 const findComputedFunctionEnd = (computedObj, openingBracePos) => {
   return findMatchingBrace(computedObj, openingBracePos)
+}
+
+// Skip whitespace + commas + comments (line and block) starting from `pos`, return next code position.
+const skipNonCode = (text, pos) => {
+  let p = pos
+  while (p < text.length) {
+    const c = text[p]
+
+    // whitespace
+    if (c === ' ' || c === '\t' || c === '\n' || c === '\r') {
+      p++
+      continue
+    }
+
+    // separators between object members
+    if (c === ',') {
+      p++
+      continue
+    }
+
+    // line comment
+    if (c === '/' && text[p + 1] === '/') {
+      const nextNewline = text.indexOf('\n', p + 2)
+      p = nextNewline === -1 ? text.length : nextNewline + 1
+      continue
+    }
+
+    // block comment
+    if (c === '/' && text[p + 1] === '*') {
+      const end = text.indexOf('*/', p + 2)
+      p = end === -1 ? text.length : end + 2
+      continue
+    }
+
+    return p
+  }
+
+  return p
 }
 
 export default (code) => {
@@ -83,6 +123,8 @@ export default (code) => {
 
       if (computedEnd !== -1) {
         const computedObj = configObject.substring(computedStart, computedEnd)
+        const computedBlockStart = computedKeywordMatch.index
+        const computedBlockEnd = computedEnd
 
         // Process each computed property
         const computedProps = []
@@ -93,15 +135,20 @@ export default (code) => {
         // using cursor-based parsing gives better accuracy
         while (currentPos < computedObj.length - 1) {
           // -1 to exclude the closing brace
-          // Find the next function name
-          const functionNameMatch = /\s*(\w+)\s*\(\)/.exec(computedObj.substring(currentPos))
+          // Skip whitespace/comments so we don't match commented-out computed functions
+          currentPos = skipNonCode(computedObj, currentPos)
+          if (currentPos >= computedObj.length - 1) break
+
+          // Find the next function name (computed properties are `name() { ... }`)
+          const functionNameMatch = /^(\w+)\s*\(\)\s*/.exec(computedObj.substring(currentPos))
           if (!functionNameMatch) break
 
           const funcName = functionNameMatch[1]
-          const funcNamePos = currentPos + functionNameMatch.index
+          const funcNamePos = currentPos
 
           // Find opening brace for this function
-          const openingBracePos = computedObj.indexOf('{', funcNamePos)
+          const afterSignaturePos = funcNamePos + functionNameMatch[0].length
+          const openingBracePos = computedObj.indexOf('{', afterSignaturePos)
           if (openingBracePos === -1) break
 
           // Find closing brace for individual computed function
@@ -133,13 +180,14 @@ export default (code) => {
         }
 
         // Store the original computed object for later replacement
-        const originalComputedObj = configObject.substring(
-          computedStart - 'computed: '.length,
-          computedEnd
-        )
+        const originalComputedObj = configObject.substring(computedBlockStart, computedBlockEnd)
+        const computedObjOffsetInOriginal = computedStart - computedBlockStart
+        const computedObjEndInOriginal = computedObjOffsetInOriginal + computedObj.length
 
         let modifiedComputedObj = originalComputedObj
         let hasChanges = false
+
+        const replacements = []
 
         for (const prop of computedProps) {
           const thisRefs = extractThisReferences(prop.body)
@@ -181,11 +229,29 @@ export default (code) => {
                 prop.fullText.substring(0, openBraceIndex).match(/^(\s*)/)[0] +
                 '}'
 
-              // Replace this property in the computed object text
-              modifiedComputedObj = modifiedComputedObj.replace(prop.fullText, modifiedPropText)
-              hasChanges = true
+              replacements.push({
+                start: prop.startPos,
+                end: prop.endPos,
+                text: modifiedPropText,
+              })
             }
           }
+        }
+
+        if (replacements.length > 0) {
+          let modifiedComputedInner = computedObj
+
+          replacements.sort((a, b) => b.start - a.start)
+          for (const r of replacements) {
+            modifiedComputedInner =
+              modifiedComputedInner.slice(0, r.start) + r.text + modifiedComputedInner.slice(r.end)
+          }
+
+          modifiedComputedObj =
+            originalComputedObj.slice(0, computedObjOffsetInOriginal) +
+            modifiedComputedInner +
+            originalComputedObj.slice(computedObjEndInOriginal)
+          hasChanges = true
         }
 
         if (hasChanges) {
