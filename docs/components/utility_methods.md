@@ -243,7 +243,7 @@ export default Blits.Component('MyComponent', {
       // activate event without any additional value
       this.$listen('activate', () => {
         console.log('activated')
-        // set a text state valuye
+        // set a text state value
         this.text = 'We are active!'
       })
 

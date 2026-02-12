@@ -97,7 +97,7 @@ export default {
           this.component[symbols.holder] &&
           typeof this.component[symbols.holder].setInspectorMetadata === 'function'
         ) {
-          this.component[symbols.holder].setInspectorMetadata({ $hasFocus: true })
+          this.component[symbols.holder].setInspectorMetadata({ 'blits-hasFocus': true })
         }
       }
       if (v === 'unfocus') {
@@ -107,7 +107,7 @@ export default {
           this.component[symbols.holder] &&
           typeof this.component[symbols.holder].setInspectorMetadata === 'function'
         ) {
-          this.component[symbols.holder].setInspectorMetadata({ $hasFocus: false })
+          this.component[symbols.holder].setInspectorMetadata({ 'blits-hasFocus': false })
         }
       }
     }

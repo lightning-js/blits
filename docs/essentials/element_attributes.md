@@ -203,11 +203,11 @@ The `inspector-data` attribute allows you to attach custom metadata to elements 
 <Button inspector-data="{testId: 'submit-button', role: 'action'}" />
 ```
 
-The framework automatically provides the following inspector metadata keys for **Components only** (prefixed with `$` to prevent naming collisions):
-- `$componentType` - The component name (e.g., 'MyComponent', 'Button', etc.)
-- `$hasFocus` - Whether the component currently has focus (automatically updates on focus/unfocus events)
-- `$isTransitioning` - Whether the element is currently animating/transitioning (automatically updates)
+The framework automatically provides the following inspector metadata keys for **Components only** (prefixed with `blits-`):
+- `blits-componentType` – The component name (e.g. 'MyComponent', 'Button'). Exposed as `data-blits-componenttype`.
+- `blits-hasFocus` – Whether the component currently has focus (updates on focus/unfocus). Exposed as `data-blits-hasfocus`.
+- `blits-isTransitioning` – Whether the element is currently animating/transitioning. Exposed as `data-blits-istransitioning`.
 
 > **Note:** 
 > - The `inspector-data` attribute is only processed in development mode when the inspector is enabled. It's automatically filtered out in production builds for performance.
-> - Automatic framework metadata (`$componentType`, `$hasFocus`, `$isTransitioning`) is only set for Components, to keep the render path lightweight.
+> - Automatic framework metadata (`blits-componentType`, `blits-hasFocus`, `blits-isTransitioning`) is only set for Components, to keep the render path lightweight.
