@@ -306,12 +306,12 @@ test('$debounce method replaces existing debounce for same key', (assert) => {
     50
   )
 
-  assert.notEqual(timeoutId1, timeoutId2, 'Should create new timeout ID')
+  assert.not(timeoutId1, timeoutId2, 'Should create new timeout ID')
   assert.equal(component[symbols.timeouts].length, 1, 'Should have only one timeout')
   assert.equal(component[symbols.debounces].size, 1, 'Should have only one cached debounce')
 
   setTimeout(() => {
-    assert.false(called1, 'First debounced function should not execute')
+    assert.equal(false, called1, 'First debounced function should not execute')
     assert.ok(called2, 'Second debounced function should execute')
     assert.end()
   }, 100)
@@ -369,7 +369,7 @@ test('$clearDebounce method', (assert) => {
   assert.equal(component[symbols.debounces].size, 0, 'Removes from cache')
 
   setTimeout(() => {
-    assert.false(called, 'Debounced function should not execute after clear')
+    assert.equal(false, called, 'Debounced function should not execute after clear')
     assert.end()
   }, 100)
 })
@@ -412,8 +412,8 @@ test('$clearDebounces method', (assert) => {
   assert.equal(component[symbols.debounces].size, 0, 'Clears all from cache')
 
   setTimeout(() => {
-    assert.false(called1, 'First debounced function should not execute')
-    assert.false(called2, 'Second debounced function should not execute')
+    assert.equal(false, called1, 'First debounced function should not execute')
+    assert.equal(false, called2, 'Second debounced function should not execute')
     assert.end()
   }, 100)
 })
@@ -434,7 +434,7 @@ test('$debounce method with parameters', (assert) => {
   )
 
   setTimeout(() => {
-    assert.deepEqual(receivedParams, ['value1', 'value2'], 'Should pass parameters correctly')
+    assert.same(receivedParams, ['value1', 'value2'], 'Should pass parameters correctly')
     assert.end()
   }, 100)
 })
