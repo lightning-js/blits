@@ -61,7 +61,7 @@ jobs:
             const testOutput = fs.readFileSync('test-report.txt', 'utf8');
 
             // Check for errors and test results
-            const testSummaryMatch = testOutput.match(/^#\s*\{.*?pass:\s*(\d+),?\s*(?:fail:)?\s*(\d*).*?\}$/mu);
+            const testSummaryMatch = testOutput.match(/^#\s*\{\s*total:\s*(\d+),?\s*pass:\s*(\d+),?\s*(?:fail:)?\s*(\d*),?\s*(?:skip:)?\s*(\d*)\s*\}$/mu);
 
             if (
               !testSummaryMatch ||
@@ -74,11 +74,12 @@ jobs:
               results.error = testOutput;
             } else if (testSummaryMatch) {
               // We have a test summary
-              const passed = parseInt(testSummaryMatch[1]);
-              const failed = parseInt(testSummaryMatch[2]);
-              const total = passed + failed;
+              const total = parseInt(testSummaryMatch[1])
+              const passed = parseInt(testSummaryMatch[2]);
+              const failed = parseInt(testSummaryMatch[3]);
+              const skipped = parseInt(testSummaryMatch[4]);
 
-              results.summary = testSummaryMatch[0];
+              results.summary = `passed: ${passed} failed: ${failed} skipped: ${skipped} of ${total} tests`;
 
               if (failed > 0 || total === 0) {
                 results.testsFailed = true;
