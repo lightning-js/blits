@@ -74,10 +74,10 @@ jobs:
             results.error = testOutput;
           } else if (testSummaryMatch) {
             // We have a test summary
-            const total = parseInt(testSummaryMatch[1])
+            const total = parseInt(testSummaryMatch[1]);
             const passed = parseInt(testSummaryMatch[2]);
-            const failed = parseInt(testSummaryMatch[3]);
-            const skipped = parseInt(testSummaryMatch[4]);
+            const failed = testSummaryMatch[3] === "" ? 0 : parseInt(testSummaryMatch[3]);
+            const skipped = testSummaryMatch[4] === "" ? 0 : parseInt(testSummaryMatch[4]);
 
             results.summary = `passed: ${passed} failed: ${failed} skipped: ${skipped} of ${total} tests`;
 
