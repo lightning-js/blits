@@ -23,7 +23,7 @@ import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
 import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
 import { renderer } from '../../launch.js'
-import { keyMap } from '../../application.js'
+import keyMap from '../../keymap.js'
 
 export default {
   focus: {
@@ -64,7 +64,10 @@ export default {
       if (event === null || event === undefined || event instanceof KeyboardEvent === false)
         return false
 
-      const key = keyMap[event.key] || keyMap[event.keyCode] || event.key || event.keyCode
+      const appKeyMap = keyMap.get()
+
+      const key =
+        appKeyMap[event.key] || appKeyMap[event.keyCode] || event.key || String(event.keyCode)
 
       const componentWithInputEvent = getComponentWithInputEvent(this, key)
       if (componentWithInputEvent === null) return false

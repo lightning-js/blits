@@ -1,4 +1,4 @@
-import test from 'tape'
+import { test } from 'tap'
 import routes from './routes.js'
 import symbols from '../../lib/symbols.js'
 
@@ -20,12 +20,12 @@ test('Array routes with default options', (assert) => {
   routes(component, routeData)
 
   assert.equal(component[symbols.routes].length, 2, 'Should set correct number of routes')
-  assert.deepEqual(
+  assert.same(
     component[symbols.routes][0].options,
     { inHistory: true },
     'Should apply default options when none specified'
   )
-  assert.deepEqual(
+  assert.same(
     component[symbols.routes][1].options,
     { inHistory: false },
     'Should override default options when specified'

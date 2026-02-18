@@ -1,4 +1,4 @@
-import test from 'tape'
+import { test } from 'tap'
 import Sprite from './Sprite.js'
 import symbols from '../lib/symbols.js'
 import { initLog } from '../lib/log.js'

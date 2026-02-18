@@ -61,21 +61,25 @@ jobs:
           const testOutput = fs.readFileSync('test-report.txt', 'utf8');
 
           // Check for errors and test results
-          const hasError = testOutput.includes('Error');
-          const testSummaryMatch = testOutput.match(/passed:\s*(\d+)\s*failed:\s*(\d+)\s*of\s*(\d+)\s*tests/);
+          const testSummaryMatch = testOutput.match(/^#\s*\{\s*total:\s*(\d+),?\s*pass:\s*(\d+),?\s*(?:fail:)?\s*(\d*),?\s*(?:skip:)?\s*(\d*)\s*\}$/mu);
 
-          if (hasError && (!testSummaryMatch || testSummaryMatch[3] === '0')) {
+          if (
+            !testSummaryMatch ||
+            ((testSummaryMatch[1] === "0" || testSummaryMatch[1] === "") &&
+              (testSummaryMatch[2] === "0" || testSummaryMatch[2] === ""))
+          ) {
             // Error with no tests or zero tests
             results.summary = 'Test execution encountered errors. No tests were run.';
             results.testsFailed = true;
             results.error = testOutput;
           } else if (testSummaryMatch) {
             // We have a test summary
-            const passed = parseInt(testSummaryMatch[1]);
-            const failed = parseInt(testSummaryMatch[2]);
-            const total = parseInt(testSummaryMatch[3]);
+            const total = parseInt(testSummaryMatch[1]);
+            const passed = parseInt(testSummaryMatch[2]);
+            const failed = testSummaryMatch[3] === "" ? 0 : parseInt(testSummaryMatch[3]);
+            const skipped = testSummaryMatch[4] === "" ? 0 : parseInt(testSummaryMatch[4]);
 
-            results.summary = testSummaryMatch[0];
+            results.summary = `passed: ${passed} failed: ${failed} skipped: ${skipped} of ${total} tests`;
 
             if (failed > 0 || total === 0) {
               results.testsFailed = true;

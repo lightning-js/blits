@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import test from 'tape'
+import { test } from 'tap'
 import { reactive } from './reactive.js'
 import { effect, pauseTracking, resumeTracking } from './effect.js'
 import symbols from '../symbols.js'
@@ -247,20 +247,20 @@ test('Reactive - Get raw object from proxy', (assert) => {
   const originalObj = { a: 100, b: 200 }
   const proxiedObj = reactive(originalObj)
 
-  assert.deepEqual(
+  assert.same(
     proxiedObj[symbols.raw],
     originalObj,
     'Should return the original object from the proxy using the raw symbol'
   )
 
-  assert.notEqual(originalObj, proxiedObj, 'Original object should not be equal to proxied object')
+  assert.not(originalObj, proxiedObj, 'Original object should not be equal to proxied object')
   assert.end()
 })
 
 test('Reactive - Check reactive object is a proxy or not', (assert) => {
   const proxiedObj = reactive({ a: 100, b: 200 })
 
-  assert.deepEqual(proxiedObj[symbols.isProxy], true, 'Reactive object should be a proxy')
+  assert.same(proxiedObj[symbols.isProxy], true, 'Reactive object should be a proxy')
   assert.end()
 })
 

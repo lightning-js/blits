@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import test from 'tape'
+import { test } from 'tap'
 import colors from './colors.js'
 
 test('Object', (assert) => {
@@ -54,7 +54,7 @@ test('6 character hex', (assert) => {
 
   const actual = input.map(colors.normalize)
 
-  assert.deepEqual(
+  assert.same(
     actual,
     expected,
     'A 6 character hex code should return the correct color in rgba format'
@@ -75,7 +75,7 @@ test('3 character hex', (assert) => {
 
   const actual = input.map(colors.normalize)
 
-  assert.deepEqual(
+  assert.same(
     actual,
     expected,
     'A 3 character hex code should return the correct color in rgba format'
@@ -111,7 +111,7 @@ test('8 character hex (rgba)', (assert) => {
 
   const actual = input.map(colors.normalize)
 
-  assert.deepEqual(
+  assert.same(
     actual,
     expected,
     'A 8 character hex (rgba) code should return the correct color in rgba format'
@@ -149,11 +149,7 @@ test('Invalid hex values', (assert) => {
 
   const actual = input.map((color) => colors.normalize(color))
 
-  assert.deepEqual(
-    actual,
-    expected,
-    'Invalid hex values should return white color as the default color'
-  )
+  assert.same(actual, expected, 'Invalid hex values should return white color as the default color')
   assert.end()
 })
 
@@ -169,7 +165,7 @@ test('RGB colors', (assert) => {
 
   const actual = input.map(colors.normalize)
 
-  assert.deepEqual(actual, expected, 'RGB codes should return the correct color in rgba format')
+  assert.same(actual, expected, 'RGB codes should return the correct color in rgba format')
   assert.end()
 })
 
@@ -185,7 +181,7 @@ test('Invalid RGB colors', (assert) => {
 
   const actual = input.map((color) => colors.normalize(color))
 
-  assert.deepEqual(actual, expected, 'Invalid RGB codes should return white color in rgba format')
+  assert.same(actual, expected, 'Invalid RGB codes should return white color in rgba format')
   assert.end()
 })
 
@@ -211,7 +207,7 @@ test('RGBA colors', (assert) => {
 
   const actual = input.map(colors.normalize)
 
-  assert.deepEqual(actual, expected, 'RGBA codes should return the correct color in rgba format')
+  assert.same(actual, expected, 'RGBA codes should return the correct color in rgba format')
   assert.end()
 })
 
@@ -237,7 +233,7 @@ test('Invalid RGBA colors', (assert) => {
 
   const actual = input.map((color) => colors.normalize(color))
 
-  assert.deepEqual(actual, expected, 'Invalid RGBA codes should return white color in rgba format')
+  assert.same(actual, expected, 'Invalid RGBA codes should return white color in rgba format')
   assert.end()
 })
 
@@ -247,11 +243,7 @@ test('HTML colors', (assert) => {
 
   const actual = input.map(colors.normalize)
 
-  assert.deepEqual(
-    actual,
-    expected,
-    'HTML color codes should return the correct color in rgba format'
-  )
+  assert.same(actual, expected, 'HTML color codes should return the correct color in rgba format')
   assert.end()
 })
 
@@ -261,11 +253,7 @@ test('Invalid HTML colors', (assert) => {
 
   const actual = input.map((color) => colors.normalize(color))
 
-  assert.deepEqual(
-    actual,
-    expected,
-    'Invalid HTML color codes should return white color in rgba format'
-  )
+  assert.same(actual, expected, 'Invalid HTML color codes should return white color in rgba format')
   assert.end()
 })
 
@@ -281,7 +269,7 @@ test('Invalid HTML colors', (assert) => {
 
 //   const actual = input.map(colors.normalize)
 
-//   assert.deepEqual(actual, expected, 'A hsl code should return the correct color in rgba format')
+//   assert.same(actual, expected, 'A hsl code should return the correct color in rgba format')
 //   assert.end()
 // })
 

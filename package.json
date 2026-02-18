@@ -32,9 +32,8 @@
     "./blitsFileConverter": "./src/lib/blitsfileconverter/blitsfileconverter.js"
   },
   "scripts": {
-    "test": "c8 node scripts/runTests.js",
-    "test:ci": "c8 npm run test:run",
-    "test:run": "node -r global-jsdom/register ./node_modules/.bin/tape '{,!(node_modules|packages)/**/}*.test.js' | tap-diff",
+    "test": "tap --node-arg=\"--import=global-jsdom/register\" --disable-coverage",
+    "test:ci": "tap --node-arg=\"--import=global-jsdom/register\" --allow-incomplete-coverage --no-color",
     "lint": "node scripts/lint.js",
     "lint:fix": "node scripts/lint.js fix",
     "prepublishOnly": "node scripts/prepublishOnly.js",
@@ -57,7 +56,6 @@
     "@babel/plugin-syntax-import-assertions": "^7.26.0",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.33.0",
-    "c8": "^9.1.0",
     "eslint": "^9.33.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
@@ -69,8 +67,7 @@
     "lint-staged": "^15.5.0",
     "prettier": "^3.6.2",
     "sinon": "^21.0.0",
-    "tap-diff": "^0.1.1",
-    "tape": "^5.5.0"
+    "tap": "^21.5.0"
   },
   "dependencies": {
     "@lightningjs/msdf-generator": "^1.2.0",

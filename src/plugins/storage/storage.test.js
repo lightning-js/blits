@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import test from 'tape'
+import { test } from 'tap'
 import storagePlugin from './storage.js'
 
 const storage = storagePlugin.plugin()
@@ -58,7 +58,7 @@ test('Storage - get existing key', (assert) => {
   const expected = value
   const actual = storage.get(key)
 
-  assert.deepEqual(actual, expected, 'Get should return the correct value for existing key')
+  assert.same(actual, expected, 'Get should return the correct value for existing key')
   assert.end()
 })
 

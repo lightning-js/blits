@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import test from 'tape'
+import { test } from 'tap'
 import propsFn from './props.js'
 import { initLog } from '../../lib/log.js'
 import Settings from '../../settings.js'
@@ -34,7 +34,7 @@ test('Has correct symbols', (assert) => {
   const props = ['index', 'img', 'url']
   propsFn(component, props)
   /* eslint-disable */
-  assert.true(component[symbols.propKeys], 'Component should have a propKey symbol')
+  assert.type(component[symbols.propKeys], 'Array', 'Component should have a propKey symbol')
   assert.end()
 })
 
@@ -47,7 +47,7 @@ test('Pass props as an array', (assert) => {
   assert.equal(props.length, props.map(prop => component[symbols.propKeys].indexOf(prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on propKeys')
 
   props.forEach((prop) => {
-    assert.true(typeof Object.getOwnPropertyDescriptor(component, prop).get === 'function', `A getter should have been created for property ${prop}`)
+    assert.equal(true, typeof Object.getOwnPropertyDescriptor(component, prop).get === 'function', `A getter should have been created for property ${prop}`)
   })
 
   assert.end()
@@ -86,14 +86,14 @@ test('Get value of props', (assert) => {
 test('Passing props as an object', (assert) => {
 
   const component = new Function()
-  const props = [{key: 'index'}, {key: 'img'}, {key: 'url'}]
+  const props = [{ key: 'index' }, { key: 'img' }, { key: 'url' }]
   propsFn(component, props)
 
   assert.equal(props.length, component[symbols.propKeys].length, 'All passed props should be stored on propKeys')
   assert.equal(props.length, props.map(prop => component[symbols.propKeys].indexOf(typeof prop === 'object' ? prop.key : prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on propKeys')
 
   props.forEach((prop) => {
-    assert.true(typeof Object.getOwnPropertyDescriptor(component, typeof prop === 'object' ? prop.key : prop).get === 'function', `A getter should have been created for property ${prop}`)
+    assert.equal(true, typeof Object.getOwnPropertyDescriptor(component, typeof prop === 'object' ? prop.key : prop).get === 'function', `A getter should have been created for property ${prop}`)
   })
 
   assert.end()
@@ -102,14 +102,14 @@ test('Passing props as an object', (assert) => {
 test('Passing props as an object mixed with single keys', (assert) => {
 
   const component = new Function()
-  const props = [{key: 'index'}, 'img', {key: 'url'}]
+  const props = [{ key: 'index' }, 'img', { key: 'url' }]
   propsFn(component, props)
 
   assert.equal(props.length, component[symbols.propKeys].length, 'All passed props should be stored on propKeys')
   assert.equal(props.length, props.map(prop => component[symbols.propKeys].indexOf(typeof prop === 'object' ? prop.key : prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on propKeys')
 
   props.forEach((prop) => {
-    assert.true(typeof Object.getOwnPropertyDescriptor(component, typeof prop === 'object' ? prop.key : prop).get === 'function', `A getter should have been created for property ${prop}`)
+    assert.equal(true, typeof Object.getOwnPropertyDescriptor(component, typeof prop === 'object' ? prop.key : prop).get === 'function', `A getter should have been created for property ${prop}`)
   })
 
   assert.end()
@@ -135,7 +135,7 @@ test('Casting props to a type', (assert) => {
   }, {
     key: 'boolean',
     cast: Boolean
-  },{
+  }, {
     key: 'image',
     cast(v) {
       return `http://localhost/${v}`
@@ -146,7 +146,7 @@ test('Casting props to a type', (assert) => {
   assert.equal(typeof componentInstance.number, 'number', 'Should cast prop value to a Number')
   assert.equal(typeof componentInstance.string, 'string', 'Should cast prop value to a String')
   assert.equal(typeof componentInstance.boolean, 'boolean', 'Should cast prop value to a Boolean')
-  assert.equal(componentInstance.image, 'http://localhost/my_image.jpg','Should cast according to a custom function')
+  assert.equal(componentInstance.image, 'http://localhost/my_image.jpg', 'Should cast according to a custom function')
 
   assert.end()
 })
@@ -162,7 +162,7 @@ test('Setting default value for undefined props', (assert) => {
   }]
   propsFn(component, props)
 
-  assert.equal(componentInstance.missing, 'I am missing','Should return default prop value when undefined')
+  assert.equal(componentInstance.missing, 'I am missing', 'Should return default prop value when undefined')
 
   assert.end()
 })

@@ -22,7 +22,7 @@ jobs:
       run: npm install
 
     - name: Run Tests with Coverage
-      run: npx c8 --reporter=lcov --reporter=text node scripts/runTests.js
+      run: npm run test:ci
 
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v4

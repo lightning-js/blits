@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import test from 'tape'
+import t from 'tap'
 import Component from './component.js'
 import { initLog } from './lib/log.js'
 import symbols from './lib/symbols.js'
@@ -23,7 +23,9 @@ import util from 'node:util'
 import Settings from './settings.js'
 import { renderer, stage } from './launch.js'
 
-test('Type', (assert) => {
+initLog()
+
+t.test('Type', (assert) => {
   const expected = 'function'
   const actual = typeof Component
 
@@ -31,7 +33,7 @@ test('Type', (assert) => {
   assert.end()
 })
 
-test('Component - Factory function', (assert) => {
+t.test('Component - Factory function', (assert) => {
   const expected = 'function'
   const actual = typeof Component('my component', {})
 
@@ -39,7 +41,7 @@ test('Component - Factory function', (assert) => {
   assert.end()
 })
 
-test('Component - Factory requires a name to be passed', (assert) => {
+t.test('Component - Factory requires a name to be passed', (assert) => {
   assert.throws(() => {
     Component()
   }, 'Throw an error when no name argument has been passed')
@@ -47,7 +49,7 @@ test('Component - Factory requires a name to be passed', (assert) => {
   assert.end()
 })
 
-test('Component - Factory requires a config to be passed', (assert) => {
+t.test('Component - Factory requires a config to be passed', (assert) => {
   assert.throws(() => {
     Component('Foo')
   }, 'Throw an error when no config argument has been passed')
@@ -55,7 +57,7 @@ test('Component - Factory requires a config to be passed', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should create internal id', (assert) => {
+t.test('Component - Instance should create internal id', (assert) => {
   const button = Component('Button', {})()
   const heading = Component('Heading', {})()
 
@@ -64,7 +66,7 @@ test('Component - Instance should create internal id', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should create component Id', (assert) => {
+t.test('Component - Instance should create component Id', (assert) => {
   const foo = Component('Foo', {})
   const bar = Component('Bar', {})
   const fooInstance0 = foo()
@@ -89,7 +91,7 @@ test('Component - Instance should create component Id', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should initiate lifecycle object', (assert) => {
+t.test('Component - Instance should initiate lifecycle object', (assert) => {
   const foo = Component('Foo', {})()
 
   assert.ok(foo.lifecycle, 'Lifecycle object should be initialized')
@@ -107,7 +109,7 @@ test('Component - Instance should initiate lifecycle object', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should set a parent reference', (assert) => {
+t.test('Component - Instance should set a parent reference', (assert) => {
   const parentElement = {}
   const parentComponent = {}
 
@@ -126,7 +128,7 @@ test('Component - Instance should set a parent reference', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should set a root reference', (assert) => {
+t.test('Component - Instance should set a root reference', (assert) => {
   const root = {}
 
   const foo = Component('Foo', {})({}, {}, {}, root)
@@ -139,7 +141,7 @@ test('Component - Instance should set a root reference', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should initialize reactive props', (assert) => {
+t.test('Component - Instance should initialize reactive props', (assert) => {
   const foo = Component(
     'Foo',
     {}
@@ -155,7 +157,7 @@ test('Component - Instance should initialize reactive props', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should initialize timeouts array', (assert) => {
+t.test('Component - Instance should initialize timeouts array', (assert) => {
   const foo = Component('Foo', {})()
 
   const timeouts = foo[symbols.timeouts]
@@ -164,7 +166,7 @@ test('Component - Instance should initialize timeouts array', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should initialize intervals array', (assert) => {
+t.test('Component - Instance should initialize intervals array', (assert) => {
   const foo = Component('Foo', {})()
 
   const intervals = foo[symbols.intervals]
@@ -173,7 +175,7 @@ test('Component - Instance should initialize intervals array', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should initialize originalState', (assert) => {
+t.test('Component - Instance should initialize originalState', (assert) => {
   const config = {
     state() {
       return {
@@ -190,7 +192,7 @@ test('Component - Instance should initialize originalState', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should initialize reactive state', (assert) => {
+t.test('Component - Instance should initialize reactive state', (assert) => {
   const config = {
     state() {
       return {
@@ -208,7 +210,7 @@ test('Component - Instance should initialize reactive state', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should initialize children', (assert) => {
+t.test('Component - Instance should initialize children', (assert) => {
   const parent = {}
   const expected = []
   const config = {
@@ -242,7 +244,7 @@ test('Component - Instance should initialize children', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should initialize wrapper', (assert) => {
+t.test('Component - Instance should initialize wrapper', (assert) => {
   const expected = {}
   const config = {
     code: {
@@ -260,7 +262,7 @@ test('Component - Instance should initialize wrapper', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should initialize slots', (assert) => {
+t.test('Component - Instance should initialize slots', (assert) => {
   const expected = {
     [symbols.isSlot]: true,
   }
@@ -281,7 +283,7 @@ test('Component - Instance should initialize slots', (assert) => {
   assert.end()
 })
 
-test.skip('Component - Instance should initialize hook events', (assert) => {
+t.skip('Component - Instance should initialize hook events', (assert) => {
   const wrapper = {
     node: {
       on() {},
@@ -338,7 +340,7 @@ test.skip('Component - Instance should initialize hook events', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should execute all side effects', (assert) => {
+t.test('Component - Instance should execute all side effects', (assert) => {
   const root = {}
   const capture = assert.captureFn(() => {})
   const children = []
@@ -354,17 +356,17 @@ test('Component - Instance should execute all side effects', (assert) => {
 
   const calls = capture.calls[0]
   // todo: look into this
-  // assert.equals(calls.receiver, stage, 'Effect`s receiver should be the stage object')
-  assert.equals(calls.args[0], foo, 'Effect should be invoked with foo component instance')
-  assert.equals(calls.args[1], children, 'Effect should be invoked with component`s children')
-  assert.equals(calls.args[2], config, 'Effect should be invoked with config object')
+  // assert.equal(calls.receiver, stage, 'Effect`s receiver should be the stage object')
+  assert.equal(calls.args[0], foo, 'Effect should be invoked with foo component instance')
+  assert.equal(calls.args[1], children, 'Effect should be invoked with component`s children')
+  assert.equal(calls.args[2], config, 'Effect should be invoked with config object')
   assert.ok(calls.args[3].Sprite, 'Effect should be invoked with global components object')
-  assert.equals(calls.args[4], root, 'Effect should be invoked with root component')
+  assert.equal(calls.args[4], root, 'Effect should be invoked with root component')
   assert.ok(typeof calls.args[5] === 'function', 'Effect should be invoked with effect function')
   assert.end()
 })
 
-test('Component - Instance should have all symbols configured', (assert) => {
+t.test('Component - Instance should have all symbols configured', (assert) => {
   const config = {
     state() {
       return {
@@ -385,7 +387,7 @@ test('Component - Instance should have all symbols configured', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should have ready state after the next process tick', (assert) => {
+t.test('Component - Instance should have ready state after the next process tick', (assert) => {
   assert.plan(1)
 
   const foo = Component('Foo', {})()
@@ -399,7 +401,7 @@ test('Component - Instance should have ready state after the next process tick',
   })
 })
 
-test('Component - Configure input events', (assert) => {
+t.test('Component - Configure input events', (assert) => {
   const config = {
     input: {
       up() {},
@@ -414,7 +416,7 @@ test('Component - Configure input events', (assert) => {
   assert.end()
 })
 
-test('Component - Warn non-function input events', (assert) => {
+t.test('Component - Warn non-function input events', (assert) => {
   initLogTest(assert)
   const capture = assert.capture(console, 'warn')
 
@@ -443,7 +445,7 @@ test('Component - Warn non-function input events', (assert) => {
   assert.end()
 })
 
-test('Component - Configure methods', (assert) => {
+t.test('Component - Configure methods', (assert) => {
   const config = {
     methods: {
       foo() {},
@@ -465,7 +467,7 @@ test('Component - Configure methods', (assert) => {
   assert.end()
 })
 
-test('Component - Warn non-function methods', (assert) => {
+t.test('Component - Warn non-function methods', (assert) => {
   initLogTest(assert)
   const capture = assert.capture(console, 'warn')
 
@@ -495,7 +497,7 @@ test('Component - Warn non-function methods', (assert) => {
   assert.end()
 })
 
-test('Component - Warn when method name matches prop name', (assert) => {
+t.test('Component - Warn when method name matches prop name', (assert) => {
   initLogTest(assert)
   const capture = assert.capture(console, 'error')
 

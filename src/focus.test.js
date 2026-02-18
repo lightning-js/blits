@@ -15,10 +15,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import test from 'tape'
+import { test } from 'tap'
 import Focus from './focus.js'
-import Component from './component.js'
-import { stage } from './launch.js'
+import { initLog } from './lib/log.js'
+
+initLog()
 
 test('Focus type', (assert) => {
   const expected = 'object'
@@ -29,9 +30,9 @@ test('Focus type', (assert) => {
 })
 
 test('Public methods on focus object', (assert) => {
-  assert.true(typeof Focus.get === 'function', 'Focus should have a get method')
-  assert.true(typeof Focus.set === 'function', 'Focus should have a set method')
-  assert.true(typeof Focus.input === 'function', 'Focus should have an input method')
+  assert.equal(true, typeof Focus.get === 'function', 'Focus should have a get method')
+  assert.equal(true, typeof Focus.set === 'function', 'Focus should have a set method')
+  assert.equal(true, typeof Focus.input === 'function', 'Focus should have an input method')
 
   assert.end()
 })

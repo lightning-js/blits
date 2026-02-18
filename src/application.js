@@ -15,19 +15,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import keyMap from './keymap.js'
 import Component from './component.js'
 import { default as Focus, keyUpCallbacks } from './focus.js'
 import Settings from './settings.js'
 
 import symbols from './lib/symbols.js'
 import { DEFAULT_HOLD_TIMEOUT_MS, DEFAULT_KEYMAP } from './constants.js'
-
-/**
- * Merged keyMap (default + custom settings).
- * Initialized once during application init.
- * @type {Object<string, string>}
- */
-export let keyMap = {}
 
 const Application = (config) => {
   config.hooks = config.hooks || {}
@@ -52,7 +46,7 @@ const Application = (config) => {
       this.$announcer.configure(announcerOptions)
     }
     // Initialize merged keyMap once during application init
-    keyMap = { ...DEFAULT_KEYMAP, ...Settings.get('keymap', {}) }
+    const appKeyMap = keyMap.set({ ...DEFAULT_KEYMAP, ...Settings.get('keymap', {}) })
 
     /** @type {number} Input throttle time in milliseconds (0 = disabled) */
     const throttleMs = Settings.get('inputThrottle', 0)
@@ -60,7 +54,7 @@ const Application = (config) => {
     keyDownHandler = async (e) => {
       const currentTime = performance.now()
 
-      const key = keyMap[e.key] || keyMap[e.keyCode] || e.key || e.keyCode
+      const key = appKeyMap[e.key] || appKeyMap[e.keyCode] || e.key || String(e.keyCode)
       const sameKey = lastInputKey === key
       lastInputKey = key
       // execute immediately when no throttle is specified or event is internal (bubbled up by focus manager)

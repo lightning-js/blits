@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import test from 'tape'
+import { test } from 'tap'
 import eventListener from './eventListeners.js'
 
 const resetModule = () => {
@@ -101,7 +101,7 @@ test('executeListeners - priority order', (t) => {
   eventListener.registerListener(component, event, cb3, 2)
 
   eventListener.executeListeners(event)
-  t.deepEqual(order, [2, 3, 1], 'Should execute callbacks in priority order')
+  t.same(order, [2, 3, 1], 'Should execute callbacks in priority order')
 
   t.end()
 })
@@ -223,14 +223,14 @@ test('cache invalidation', (t) => {
   eventListener.registerListener(component, event, cb2, 1)
   eventListener.executeListeners(event)
 
-  t.deepEqual(callOrder, [1, 2, 1], 'Should invalidate cache when new listener is added')
+  t.same(callOrder, [1, 2, 1], 'Should invalidate cache when new listener is added')
 
   callOrder = []
   eventListener.removeListeners(component)
   eventListener.registerListener(component, event, cb1)
   eventListener.executeListeners(event)
 
-  t.deepEqual(callOrder, [1], 'Should invalidate cache when listeners are removed')
+  t.same(callOrder, [1], 'Should invalidate cache when listeners are removed')
 
   t.end()
 })

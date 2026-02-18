@@ -111,7 +111,7 @@ export default {
         if (theme in themes) {
           themeMap = {}
           state.variant = theme
-          console.log('change variant', theme)
+          Log.info('change variant', theme)
         } else {
           Log.warn(`Variant ${theme} not found`)
         }

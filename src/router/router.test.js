@@ -15,12 +15,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import test from 'tape'
+import { test } from 'tap'
 import { initLog } from '../lib/log.js'
 import { matchHash, getHash, to, navigate, back, state } from './router.js'
 import { stage } from '../launch.js'
 import Component from '../component.js'
 import symbols from '../lib/symbols.js'
+
+initLog()
 
 initLog()
 
@@ -200,7 +202,7 @@ test('Match paths with a wildcard asterix', (assert) => {
 test('Add params to route for dynamic route matches', (assert) => {
   const match1 = matchHash({ path: '/tv/simpsons/seasons/first' }, routes)
 
-  assert.deepEqual(
+  assert.same(
     match1.params,
     {
       show: 'simpsons',
@@ -210,7 +212,7 @@ test('Add params to route for dynamic route matches', (assert) => {
   )
 
   const match2 = matchHash({ path: '/movies/avengers-endgame' }, routes)
-  assert.deepEqual(
+  assert.same(
     match2.params,
     {
       name: 'avengers-endgame',
@@ -219,7 +221,7 @@ test('Add params to route for dynamic route matches', (assert) => {
   )
 
   const match3 = matchHash({ path: '/dutchmovies/1' }, routes)
-  assert.deepEqual(
+  assert.same(
     match3.params,
     {
       id: '1',
@@ -232,20 +234,20 @@ test('Add params to route for dynamic route matches', (assert) => {
 
 test('Add remaining path as param for wild card routes', (assert) => {
   const match1 = matchHash({ path: '/examples/example1' }, routes)
-  assert.deepEqual(match1.params, { path: 'example1' }, 'Should return the correct route object')
+  assert.same(match1.params, { path: 'example1' }, 'Should return the correct route object')
 
   const match2 = matchHash({ path: '/examples/example1/subexample/and-another-page' }, routes)
-  assert.deepEqual(
+  assert.same(
     match2.params,
     { path: 'example1/subexample/and-another-page' },
     'Should return the correct params object'
   )
 
   const match3 = matchHash({ path: '/404' }, routes)
-  assert.deepEqual(match3.params, { path: '404' }, 'Should return the correct params object')
+  assert.same(match3.params, { path: '404' }, 'Should return the correct params object')
 
   const match4 = matchHash({ path: '/page1/subpage1/i-dont-exist' }, routes)
-  assert.deepEqual(
+  assert.same(
     match4.params,
     { path: 'page1/subpage1/i-dont-exist' },
     'Should return the correct params object'
@@ -351,7 +353,7 @@ test('Match routes case insensitive', (assert) => {
 
 test('Match routes case insensitive, but pass props with original casing', (assert) => {
   const match1 = matchHash({ path: '/Tv/SimpsonS/Seasons/First' }, routes)
-  assert.deepEqual(
+  assert.same(
     match1.params,
     {
       show: 'SimpsonS',
@@ -361,7 +363,7 @@ test('Match routes case insensitive, but pass props with original casing', (asse
   )
 
   const match2 = matchHash({ path: '/Movies/Avengers-Endgame' }, routes)
-  assert.deepEqual(
+  assert.same(
     match2.params,
     {
       name: 'Avengers-Endgame',
@@ -370,7 +372,7 @@ test('Match routes case insensitive, but pass props with original casing', (asse
   )
 
   const match3 = matchHash({ path: '/DutchMovies/ID_123' }, routes)
-  assert.deepEqual(
+  assert.same(
     match3.params,
     {
       id: 'ID_123',
@@ -492,7 +494,7 @@ test('Get route object from Match hash when navigating using to() method', (asse
     'The results object should contain the default options object'
   )
 
-  assert.deepEqual(
+  assert.same(
     Object.entries(result.options),
     [
       ['inHistory', true],
@@ -597,8 +599,8 @@ test('Router updates state.path, state.params, and state.data correctly', async 
 
   // Assertions directly against router.js `state`
   assert.equal(state.path, '/cap/:id', 'state.path matches route definition')
-  assert.deepEqual(state.params, { id: '123' }, 'state.params extracted correctly')
-  assert.deepEqual(
+  assert.same(state.params, { id: '123' }, 'state.params extracted correctly')
+  assert.same(
     state.data,
     { title: 'Test', dynamic: true, lang: 'en' },
     'state.data merged correctly (route + navigation + query)'
@@ -698,7 +700,11 @@ test('Transition out with end callback is invoked on navigate away', async (asse
             },
           },
         },
-        { path: '/to', component: TestComponent, options: { inHistory: true, passFocus: false } },
+        {
+          path: '/to',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
       ],
     },
     [symbols.children]: [{}],
@@ -808,10 +814,6 @@ test('BeforeEach hook route object redirect', async (assert) => {
 
 test('Route meta data is accessible in route object', async (assert) => {
   const route = { path: '/test', meta: { auth: true, role: 'admin' } }
-  assert.deepEqual(
-    route.meta,
-    { auth: true, role: 'admin' },
-    'Should have access to route meta data'
-  )
+  assert.same(route.meta, { auth: true, role: 'admin' }, 'Should have access to route meta data')
   assert.end()
 })

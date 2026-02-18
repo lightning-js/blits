@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import test from 'tape'
+import { test } from 'tap'
 import announcer from './announcer.js'
 import { initLog } from '../lib/log.js'
 
@@ -61,8 +61,8 @@ test('Announcer disable/enable/toggle', (assert) => {
   const enabled1 = announcer.speak('enabled msg 1')
   const enabled2 = announcer.speak('enabled msg 2')
 
-  assert.notEqual(enabled1, disabled1, 'Enabled returns real promise, not noop')
-  assert.notEqual(enabled1, enabled2, 'Each enabled message gets unique promise')
+  assert.not(enabled1, disabled1, 'Enabled returns real promise, not noop')
+  assert.not(enabled1, enabled2, 'Each enabled message gets unique promise')
 
   enabled1.then(() => {
     enabledProcessed = true
@@ -76,11 +76,11 @@ test('Announcer disable/enable/toggle', (assert) => {
   // Test toggle on
   announcer.toggle(true)
   const toggledOn = announcer.speak('toggled on msg')
-  assert.notEqual(toggledOn, disabled1, 'Toggle on returns real promise')
+  assert.not(toggledOn, disabled1, 'Toggle on returns real promise')
 
   // Verify processing behavior after a delay
   setTimeout(() => {
-    assert.false(disabledProcessed, 'Disabled messages are NOT processed')
+    assert.equal(disabledProcessed, false, 'Disabled messages are NOT processed')
     assert.ok(enabledProcessed || enabled1, 'Enabled messages are queued for processing')
 
     // Clean up

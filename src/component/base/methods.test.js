@@ -1,4 +1,4 @@
-import test from 'tape'
+import t from 'tap'
 import methods from './methods.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
@@ -7,7 +7,12 @@ import timeouts_intervals from './timeouts_intervals.js'
 import { registerHooks } from '../../lib/hooks.js'
 import lifecycle from '../../lib/lifecycle.js'
 
-test('Methods - Should contain all the defined methods', (assert) => {
+t.beforeEach((assert) => {
+  // Keeps noise of the the test output
+  assert.capture(console, 'info')
+})
+
+t.test('Methods - Should contain all the defined methods', (assert) => {
   const component = Object.defineProperties({}, { ...methods })
 
   assert.equal(typeof component.focus, 'function', 'should have focus method')
@@ -27,7 +32,7 @@ test('Methods - Should contain all the defined methods', (assert) => {
   assert.end()
 })
 
-test('Methods - Validate focus method behavior', (assert) => {
+t.test('Methods - Validate focus method behavior', (assert) => {
   initLogTest(assert)
   const capture = assert.capture(console, 'warn')
 
@@ -55,7 +60,7 @@ test('Methods - Validate focus method behavior', (assert) => {
   }, 100)
 })
 
-test('Methods - Validate $focus and unfocus method behavior', (assert) => {
+t.test('Methods - Validate $focus and unfocus method behavior', (assert) => {
   // flags to verify if hooks are called
   let focusHookCalled = false
   let unfocusHookCalled = false
@@ -120,7 +125,7 @@ test('Methods - Validate $focus and unfocus method behavior', (assert) => {
   }, 100)
 })
 
-test('Methods - Refocus already focused component', (assert) => {
+t.test('Methods - Refocus already focused component', (assert) => {
   const component = Object.defineProperties(
     {
       [symbols.state]: { hasFocus: true },
@@ -137,7 +142,7 @@ test('Methods - Refocus already focused component', (assert) => {
   }, 100)
 })
 
-test('Methods - Validate select method behavior', (assert) => {
+t.test('Methods - Validate select method behavior', (assert) => {
   initLogTest(assert)
   const capture = assert.capture(console, 'warn')
 
@@ -172,7 +177,7 @@ test('Methods - Validate select method behavior', (assert) => {
   assert.end()
 })
 
-test('Methods - Validate $select method behavior', (assert) => {
+t.test('Methods - Validate $select method behavior', (assert) => {
   const ChildComponent = function (id, ref) {
     this.componentId = id
     this.ref = ref
@@ -196,7 +201,7 @@ test('Methods - Validate $select method behavior', (assert) => {
   assert.end()
 })
 
-test('Methods - Validate $select method with nested array of children structure', (assert) => {
+t.test('Methods - Validate $select method with nested array of children structure', (assert) => {
   const ChildComponent = function (id, ref) {
     this.componentId = id
     this.ref = ref
@@ -225,7 +230,7 @@ test('Methods - Validate $select method with nested array of children structure'
   assert.end()
 })
 
-test('Methods - Validate $select method with object of children structure', (assert) => {
+t.test('Methods - Validate $select method with object of children structure', (assert) => {
   const ChildComponent = function (id, ref) {
     this.componentId = id
     this.ref = ref
@@ -256,7 +261,7 @@ test('Methods - Validate $select method with object of children structure', (ass
   assert.end()
 })
 
-test('Methods - Validate shader method behavior', (assert) => {
+t.test('Methods - Validate shader method behavior', (assert) => {
   const component = Object.defineProperties({}, { ...methods })
 
   const shaderObj = component.shader('customShader', { prop1: 2.0, prop2: 'fast' })
@@ -267,7 +272,7 @@ test('Methods - Validate shader method behavior', (assert) => {
   assert.end()
 })
 
-test('Methods - Validate removeGlobalEffects method behavior', (assert) => {
+t.test('Methods - Validate removeGlobalEffects method behavior', (assert) => {
   const component = Object.defineProperties({}, { ...methods })
 
   const effects = []
@@ -277,7 +282,7 @@ test('Methods - Validate removeGlobalEffects method behavior', (assert) => {
   assert.end()
 })
 
-test('Methods - Validate destroy method behavior', (assert) => {
+t.test('Methods - Validate destroy method behavior', (assert) => {
   const { component, cleanupMock, holderMock, childrenDestroyMock } = getTestComponent()
 
   // add some timeouts and intervals to verify they are cleared as part of destroy
@@ -288,8 +293,8 @@ test('Methods - Validate destroy method behavior', (assert) => {
 
   // Following properties can still exists in component instance but with reset/cleared values
   assert.equal(component.eol, true, 'Component should be marked as end of life')
-  assert.deepEqual(component.lifecycle, {}, 'Lifecycle state should be destroy')
-  assert.deepEqual(component[symbols.state], {}, 'symbol state should be deleted')
+  assert.same(component.lifecycle, {}, 'Lifecycle state should be destroy')
+  assert.same(component[symbols.state], {}, 'symbol state should be deleted')
   assert.equal(
     component[symbols.rendererEventListeners],
     null,
@@ -297,7 +302,7 @@ test('Methods - Validate destroy method behavior', (assert) => {
   )
   assert.equal(component[symbols.timeouts].length, 0, 'All timeouts should be cleared')
   assert.equal(component[symbols.intervals].length, 0, 'All intervals should be cleared')
-  assert.deepEqual(component[symbols.props], {}, 'symbol props should be cleared')
+  assert.same(component[symbols.props], {}, 'symbol props should be cleared')
 
   // Following properties should be deleted from component instance
   assert.equal(component[symbols.effects], undefined, 'symbol effects should be deleted')

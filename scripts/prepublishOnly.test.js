@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import test from 'tape'
+import { test } from 'tap'
 import sinon from 'sinon'
 import path from 'path'
 import fs from 'fs'
@@ -232,8 +232,8 @@ test('processDirectory - should handle empty directory', (assert) => {
 })
 
 test('processFile - should create backup with .orig.js extension', (assert) => {
-  const filePath = path.resolve(process.cwd(), 'Component.js')
-  const expectedBackup = path.resolve(process.cwd(), 'Component.orig.js')
+  const filePath = path.resolve(process.cwd(), 'src', 'component.js')
+  const expectedBackup = path.resolve(process.cwd(), 'src', 'component.orig.js')
   const readStub = sinon.stub(fs, 'readFileSync').returns('const test = "code"')
   const writeStub = sinon.stub(fs, 'writeFileSync')
   const copyStub = sinon.stub(fs, 'copyFileSync')
@@ -270,7 +270,7 @@ test('processFile - should create backup with .orig.ts extension', (assert) => {
 })
 
 test('processFile - should read and compile file', (assert) => {
-  const filePath = path.resolve(process.cwd(), 'Component.js')
+  const filePath = path.resolve(process.cwd(), 'src', 'component.js')
   const originalCode = 'const original = "code"'
   const readStub = sinon.stub(fs, 'readFileSync').returns(originalCode)
   const writeStub = sinon.stub(fs, 'writeFileSync')
@@ -289,7 +289,7 @@ test('processFile - should read and compile file', (assert) => {
 })
 
 test('processFile - should write compiled result', (assert) => {
-  const filePath = path.resolve(process.cwd(), 'Component.js')
+  const filePath = path.resolve(process.cwd(), 'src', 'component.js')
   const readStub = sinon.stub(fs, 'readFileSync').returns('const original = "code"')
   const writeStub = sinon.stub(fs, 'writeFileSync')
   const copyStub = sinon.stub(fs, 'copyFileSync')
@@ -307,7 +307,7 @@ test('processFile - should write compiled result', (assert) => {
 })
 
 test('processFile - should handle compiler returning object with code property', (assert) => {
-  const filePath = path.resolve(process.cwd(), 'Component.js')
+  const filePath = path.resolve(process.cwd(), 'src', 'component.js')
   const readStub = sinon.stub(fs, 'readFileSync').returns('const original = "code"')
   const writeStub = sinon.stub(fs, 'writeFileSync')
   const copyStub = sinon.stub(fs, 'copyFileSync')
@@ -325,7 +325,7 @@ test('processFile - should handle compiler returning object with code property',
 })
 
 test('processFile - should format file when source changes', (assert) => {
-  const filePath = path.resolve(process.cwd(), 'Component.js')
+  const filePath = path.resolve(process.cwd(), 'src', 'component.js')
   const readStub = sinon.stub(fs, 'readFileSync').returns('const original = "code"')
   const writeStub = sinon.stub(fs, 'writeFileSync')
   const copyStub = sinon.stub(fs, 'copyFileSync')
@@ -344,7 +344,7 @@ test('processFile - should format file when source changes', (assert) => {
 })
 
 test('processFile - should NOT format file when source unchanged', (assert) => {
-  const filePath = path.resolve(process.cwd(), 'Component.js')
+  const filePath = path.resolve(process.cwd(), 'src', 'component.js')
   const sameCode = 'const same = "code"'
   const readStub = sinon.stub(fs, 'readFileSync').returns(sameCode)
   const writeStub = sinon.stub(fs, 'writeFileSync')
@@ -363,7 +363,7 @@ test('processFile - should NOT format file when source unchanged', (assert) => {
 })
 
 test('processFile - should log precompiling message', (assert) => {
-  const filePath = path.resolve(process.cwd(), 'Component.js')
+  const filePath = path.resolve(process.cwd(), 'src', 'component.js')
   const readStub = sinon.stub(fs, 'readFileSync').returns('const test = "code"')
   const writeStub = sinon.stub(fs, 'writeFileSync')
   const copyStub = sinon.stub(fs, 'copyFileSync')
@@ -384,7 +384,7 @@ test('processFile - should log precompiling message', (assert) => {
 })
 
 test('formatFileWithESLint - should accept file path', (assert) => {
-  const filePath = path.resolve(process.cwd(), 'Component.js')
+  const filePath = path.resolve(process.cwd(), 'src', 'component.js')
 
   // Just verify the function can be called without errors
   assert.doesNotThrow(() => {
@@ -395,7 +395,7 @@ test('formatFileWithESLint - should accept file path', (assert) => {
 })
 
 test('formatFileWithESLint - should handle file path parameter', (assert) => {
-  const filePath = path.resolve(process.cwd(), 'Component.js')
+  const filePath = path.resolve(process.cwd(), 'src', 'component.js')
 
   // Verify function accepts path parameter
   assert.doesNotThrow(() => {
@@ -406,7 +406,7 @@ test('formatFileWithESLint - should handle file path parameter', (assert) => {
 })
 
 test('formatFileWithESLint - should be callable', (assert) => {
-  const filePath = path.resolve(process.cwd(), 'Component.js')
+  const filePath = path.resolve(process.cwd(), 'src', 'component.js')
 
   // Verify function is callable
   assert.equal(typeof formatFileWithESLint, 'function', 'Should be a function')
@@ -416,7 +416,7 @@ test('formatFileWithESLint - should be callable', (assert) => {
 })
 
 test('formatFileWithESLint - should execute without errors', (assert) => {
-  const filePath = path.resolve(process.cwd(), 'Component.js')
+  const filePath = path.resolve(process.cwd(), 'src', 'component.js')
 
   // Verify function executes without throwing
   assert.doesNotThrow(() => {

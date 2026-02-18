@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import test from 'tape'
+import { test } from 'tap'
 import timeoutsIntervals from './timeouts_intervals.js'
 import symbols from '../../lib/symbols.js'
 
@@ -69,7 +69,7 @@ test('$clearTimeout method', (assert) => {
   assert.equal(component[symbols.timeouts].length, 0, 'Removes timeout from array')
 
   setTimeout(() => {
-    assert.false(called, 'Timeout does not execute after clear')
+    assert.equal(called, false, 'Timeout does not execute after clear')
     assert.end()
   }, 100)
 })
@@ -98,8 +98,8 @@ test('$clearTimeouts method', (assert) => {
   assert.equal(component[symbols.timeouts].length, 0, 'Clears all timeouts from array')
 
   setTimeout(() => {
-    assert.false(called1, 'First timeout does not execute')
-    assert.false(called2, 'Second timeout does not execute')
+    assert.equal(called1, false, 'First timeout does not execute')
+    assert.equal(called2, false, 'Second timeout does not execute')
     assert.end()
   }, 100)
 })
@@ -149,7 +149,7 @@ test('$clearInterval method', (assert) => {
   assert.equal(component[symbols.intervals].length, 0, 'Removes interval from array')
 
   setTimeout(() => {
-    assert.false(called, 'Interval does not execute after clear')
+    assert.equal(called, false, 'Interval does not execute after clear')
     assert.end()
   }, 150)
 })
@@ -178,8 +178,8 @@ test('$clearIntervals method', (assert) => {
   assert.equal(component[symbols.intervals].length, 0, 'Clears all intervals from array')
 
   setTimeout(() => {
-    assert.false(called1, 'First interval does not execute')
-    assert.false(called2, 'Second interval does not execute')
+    assert.equal(called1, false, 'First interval does not execute')
+    assert.equal(called2, false, 'Second interval does not execute')
     assert.end()
   }, 150)
 })
@@ -306,12 +306,12 @@ test('$debounce method replaces existing debounce for same key', (assert) => {
     50
   )
 
-  assert.notEqual(timeoutId1, timeoutId2, 'Should create new timeout ID')
+  assert.not(timeoutId1, timeoutId2, 'Should create new timeout ID')
   assert.equal(component[symbols.timeouts].length, 1, 'Should have only one timeout')
   assert.equal(component[symbols.debounces].size, 1, 'Should have only one cached debounce')
 
   setTimeout(() => {
-    assert.false(called1, 'First debounced function should not execute')
+    assert.equal(false, called1, 'First debounced function should not execute')
     assert.ok(called2, 'Second debounced function should execute')
     assert.end()
   }, 100)
@@ -369,7 +369,7 @@ test('$clearDebounce method', (assert) => {
   assert.equal(component[symbols.debounces].size, 0, 'Removes from cache')
 
   setTimeout(() => {
-    assert.false(called, 'Debounced function should not execute after clear')
+    assert.equal(false, called, 'Debounced function should not execute after clear')
     assert.end()
   }, 100)
 })
@@ -412,8 +412,8 @@ test('$clearDebounces method', (assert) => {
   assert.equal(component[symbols.debounces].size, 0, 'Clears all from cache')
 
   setTimeout(() => {
-    assert.false(called1, 'First debounced function should not execute')
-    assert.false(called2, 'Second debounced function should not execute')
+    assert.equal(false, called1, 'First debounced function should not execute')
+    assert.equal(false, called2, 'Second debounced function should not execute')
     assert.end()
   }, 100)
 })
@@ -434,7 +434,7 @@ test('$debounce method with parameters', (assert) => {
   )
 
   setTimeout(() => {
-    assert.deepEqual(receivedParams, ['value1', 'value2'], 'Should pass parameters correctly')
+    assert.same(receivedParams, ['value1', 'value2'], 'Should pass parameters correctly')
     assert.end()
   }, 100)
 })

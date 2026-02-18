@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import test from 'tape'
+import { test } from 'tap'
 import element from './element.js'
 import { renderer } from './launch.js'
 import { EventEmitter } from 'node:events'
@@ -24,6 +24,73 @@ import symbols from '../../lib/symbols.js'
 import sinon from 'sinon'
 
 initLog()
+
+class CustomNode extends EventEmitter {
+  constructor() {
+    super()
+    // setting initial props of renderer node
+    this.width = 0
+    this.x = 0
+    this.height = 0
+    this.y = 0
+
+    // setting children to empty []
+    this.children = []
+
+    const loadedTimeout = setTimeout(() => {
+      this.emit('loaded', this, { type: '', dimensions: { width: 100, height: 100 } })
+      clearTimeout(loadedTimeout)
+    }, 0)
+  }
+
+  animate(props, transObj) {
+    const animationEmitter = new CustomAnimator(this, props, transObj)
+    return animationEmitter
+  }
+
+  destroy() {}
+  fail() {
+    this.emit('failed')
+  }
+
+  addChildren(el) {
+    this.children.push(el)
+  }
+}
+
+class CustomAnimator extends EventEmitter {
+  constructor(node, props, transObj) {
+    super()
+    this.node = node
+    this.props = props
+    this.transObj = transObj
+    this.state = 'init'
+  }
+
+  start() {
+    this.state = 'scheduled'
+    this.emit('animating')
+
+    let elapsed = 0
+    const tickInterval = this.transObj.duration / 10
+    const propsKeys = Object.keys(this.props)
+    const valueChunk = this.props[propsKeys[0]] / 10
+    let valueCounter = 0
+    const tickTimer = setInterval(() => {
+      elapsed += tickInterval
+      valueCounter++
+      this.emit('tick', {}, { progress: valueChunk * valueCounter })
+      if (elapsed >= this.transObj.duration) {
+        clearInterval(tickTimer)
+        this.node[propsKeys[0]] = this.props[propsKeys[0]]
+        this.emit('stopped')
+      }
+    }, tickInterval)
+  }
+  stop() {
+    this.state = 'stopped'
+  }
+}
 
 let elementRef
 
@@ -88,7 +155,7 @@ test('Children', (assert) => {
   const result = el.children
 
   assert.equal(result.length, 2, 'Children amount should be correct')
-  assert.deepEqual(
+  assert.same(
     result.map((c) => c.id),
     [1, 4],
     'Children should be correct'
@@ -954,73 +1021,6 @@ test('Element - Element with loaded callback', (assert) => {
 
   assert.end()
 })
-
-class CustomAnimator extends EventEmitter {
-  constructor(node, props, transObj) {
-    super()
-    this.node = node
-    this.props = props
-    this.transObj = transObj
-    this.state = 'init'
-  }
-
-  start() {
-    this.state = 'scheduled'
-    this.emit('animating')
-
-    let elapsed = 0
-    const tickInterval = this.transObj.duration / 10
-    const propsKeys = Object.keys(this.props)
-    const valueChunk = this.props[propsKeys[0]] / 10
-    let valueCounter = 0
-    const tickTimer = setInterval(() => {
-      elapsed += tickInterval
-      valueCounter++
-      this.emit('tick', {}, { progress: valueChunk * valueCounter })
-      if (elapsed >= this.transObj.duration) {
-        clearInterval(tickTimer)
-        this.node[propsKeys[0]] = this.props[propsKeys[0]]
-        this.emit('stopped')
-      }
-    }, tickInterval)
-  }
-  stop() {
-    this.state = 'stopped'
-  }
-}
-
-class CustomNode extends EventEmitter {
-  constructor() {
-    super()
-    // setting initial props of renderer node
-    this.width = 0
-    this.x = 0
-    this.height = 0
-    this.y = 0
-
-    // setting children to empty []
-    this.children = []
-
-    const loadedTimeout = setTimeout(() => {
-      this.emit('loaded', this, { type: '', dimensions: { width: 100, height: 100 } })
-      clearTimeout(loadedTimeout)
-    }, 0)
-  }
-
-  animate(props, transObj) {
-    const animationEmitter = new CustomAnimator(this, props, transObj)
-    return animationEmitter
-  }
-
-  destroy() {}
-  fail() {
-    this.emit('failed')
-  }
-
-  addChildren(el) {
-    this.children.push(el)
-  }
-}
 
 function createElement(props = {}) {
   const el = element({ parent: { node: { width: 1920, height: 1080 } } }, {})
