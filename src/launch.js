@@ -89,6 +89,7 @@ async function rendererVersion() {
  * @property {number} [textureProcessingTimeLimit] - Max time renderer can process textures in a frame
  * @property {Partial<import('@lightningjs/renderer').RendererMainSettings>} [advanced] - Advanced renderer settings
  * @property {boolean} [announcer] - Whether or not the announcer should be activated on initialization
+ * @property {boolean} [enableMouse] - Enable mouse support (hover and click-to-focus). Defaults to false.
  * @property {number} [maxFPS] - Maximum FPS
  */
 

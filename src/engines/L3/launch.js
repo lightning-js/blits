@@ -118,7 +118,9 @@ export default (App, target, settings = {}) => {
 
   shaderLoader()
   fontLoader()
-  initApp()
+  // Defer app initialization until after the current call stack is cleared,
+  // allowing the renderer to finish setting up before the app starts creating components
+  Promise.resolve().then(initApp)
 
   return renderer
 }

@@ -18,7 +18,7 @@
 import Component from '../component.js'
 import Router, { state as routerState } from '../router/router.js'
 import symbols from '../lib/symbols.js'
-import Focus from '../focus.js'
+import Focus from '../focus/focus.js'
 
 let hashchangeHandler = null
 

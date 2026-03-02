@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "1.49.0",
+  "version": "1.50.0",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
@@ -29,7 +29,8 @@
       "default": "./src/plugins/storage/storage.js"
     },
     "./symbols": "./src/lib/symbols.js",
-    "./blitsFileConverter": "./src/lib/blitsfileconverter/blitsfileconverter.js"
+    "./blitsFileConverter": "./src/lib/blitsfileconverter/blitsfileconverter.js",
+    "./components": "./src/components/FPScounter.js"
   },
   "scripts": {
     "test": "c8 node scripts/runTests.js",

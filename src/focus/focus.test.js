@@ -17,8 +17,8 @@
 
 import test from 'tape'
 import Focus from './focus.js'
-import Component from './component.js'
-import { stage } from './launch.js'
+import Component from '../component.js'
+import { stage } from '../launch.js'
 
 test('Focus type', (assert) => {
   const expected = 'object'

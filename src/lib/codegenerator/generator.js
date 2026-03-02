@@ -174,6 +174,10 @@ const generateElementCode = function (
     renderCode.push(`elementConfigs[${counter}][Symbol.for('isSlot')] = true`)
   }
 
+  if (options.holder) {
+    renderCode.push(`elementConfigs[${counter}]['holder'] = true`)
+  }
+
   Object.keys(templateObject).forEach((key) => {
     if (key === 'slot') {
       renderCode.push(`

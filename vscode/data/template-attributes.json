@@ -2,11 +2,12 @@
   "x": {
     "attrType": "regular",
     "types": [
-      "number"
+      "number",
+      "string"
     ],
     "defaultValue": 0,
     "reactive": true,
-    "description": "The x position of the Element in pixels, relative to its parent - allows negative values and decimals.",
+    "description": "The x position of the Element in pixels (or percentage), relative to its parent - allows negative values and decimals.",
     "usedIn": [
       "Element",
       "Text",
@@ -18,11 +19,12 @@
   "y": {
     "attrType": "regular",
     "types": [
-      "number"
+      "number",
+      "string"
     ],
     "defaultValue": 0,
     "reactive": true,
-    "description": "The y position of the Element in pixels, relative to its parent - allows negative values and decimals.",
+    "description": "The y position of the Element in pixels (or percentage), relative to its parent - allows negative values and decimals.",
     "usedIn": [
       "Element",
       "Text",
@@ -49,11 +51,12 @@
   "w": {
     "attrType": "regular",
     "types": [
-      "number"
+      "number",
+      "string"
     ],
     "defaultValue": 0,
     "reactive": true,
-    "description": "The width of the element in pixels. Allows negative values and decimals.",
+    "description": "The width of the element in pixels or percentage (e.g., \"50%\"). Allows decimals.",
     "usedIn": [
       "Element",
       "Text",
@@ -63,11 +66,12 @@
   "h": {
     "attrType": "regular",
     "types": [
-      "number"
+      "number",
+      "string"
     ],
     "defaultValue": 0,
     "reactive": true,
-    "description": "The height of the element in pixels, relative to its parent. Allows negative values and decimals.",
+    "description": "The height of the element in pixels or percentage (e.g., \"50%\"). Allows decimals.",
     "usedIn": [
       "Element",
       "Text",
@@ -81,7 +85,7 @@
     ],
     "defaultValue": 0,
     "reactive": true,
-    "description": "The z-index of the element.",
+    "description": "The z-index of the element. Alias for z.",
     "usedIn": [
       "Element",
       "Text",
@@ -92,11 +96,12 @@
   "width": {
     "attrType": "regular",
     "types": [
-      "number"
+      "number",
+      "string"
     ],
     "defaultValue": 0,
     "reactive": true,
-    "description": "The width of the element in pixels. Allows negative values and decimals.",
+    "description": "The width of the element in pixels or percentage. Allows negative values and decimals. Alias for w.",
     "usedIn": [
       "Element",
       "Text",
@@ -106,11 +111,12 @@
   "height": {
     "attrType": "regular",
     "types": [
-      "number"
+      "number",
+      "string"
     ],
     "defaultValue": 0,
     "reactive": true,
-    "description": "The height of the element in pixels, relative to its parent. Allows negative values and decimals.",
+    "description": "The height of the element in pixels or percentage. Alias for h.",
     "usedIn": [
       "Element",
       "Text",
@@ -120,11 +126,28 @@
   "color": {
     "attrType": "regular",
     "types": [
-      "string"
+      "string",
+      {
+        "type": "object",
+        "properties": {
+          "top": {
+            "type": "string"
+          },
+          "bottom": {
+            "type": "string"
+          },
+          "left": {
+            "type": "string"
+          },
+          "right": {
+            "type": "string"
+          }
+        }
+      }
     ],
     "defaultValue": "transparent",
     "reactive": true,
-    "description": "The color of the Element. Allows any hexadecimal, hexadecimal with alpha channel, hexadecimal shorthands, RGB, RGBA, and HTML color names.",
+    "description": "The color of the Element. Accepts hexadecimal, hex with alpha, hex shorthands, RGB, RGBA, HTML color names, or an object with top/bottom/left/right keys for linear gradients.",
     "usedIn": [
       "Element",
       "Text",
@@ -139,7 +162,7 @@
     ],
     "defaultValue": 1,
     "reactive": true,
-    "description": "The alpha attribute controls the opacity of the element. Allows values equal to 0, 1, and between 0 and 1.",
+    "description": "The alpha attribute controls the opacity of the element. Allows values between 0 (fully transparent) and 1 (fully visible).",
     "usedIn": [
       "Element",
       "Text",
@@ -155,7 +178,7 @@
     ],
     "defaultValue": 0,
     "reactive": true,
-    "description": "The rotation attribute rotates the Element. Allows both positive and negative values in degrees.",
+    "description": "Rotates the Element. Accepts positive and negative values in degrees.",
     "usedIn": [
       "Element",
       "Text",
@@ -166,11 +189,22 @@
   "scale": {
     "attrType": "regular",
     "types": [
-      "number"
+      "number",
+      {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          }
+        }
+      }
     ],
     "defaultValue": 1,
     "reactive": true,
-    "description": "The scale attribute scales the element. Allows any value greater than 0.",
+    "description": "Scales the element. Accepts a single number for uniform scaling or an object {x, y} for independent axis scaling. Values below 1 scale down, above 1 scale up.",
     "usedIn": [
       "Element",
       "Text",
@@ -197,7 +231,7 @@
     ],
     "defaultValue": 0,
     "reactive": true,
-    "description": "The x or y position of the Element in pixels, relative to its parent. Allows values between 0 and 1 and decimals.",
+    "description": "Sets the mount point of the Element. Accepts a single number or an object {x, y} with values between 0 and 1. Default {x: 0, y: 0} is the top-left corner.",
     "usedIn": [
       "Element",
       "Text",
@@ -221,9 +255,9 @@
         }
       }
     ],
-    "defaultValue": 0,
+    "defaultValue": 0.5,
     "reactive": true,
-    "description": "The x or y position of the pivot point in pixels, relative to its parent. Allows values between 0 and 1 and decimals.",
+    "description": "Sets the pivot point for rotation and scaling. Accepts a single number or an object {x, y} with values between 0 and 1. Default {x: 0.5, y: 0.5} is the center.",
     "usedIn": [
       "Element",
       "Text",
@@ -242,7 +276,7 @@
     ],
     "defaultValue": "false",
     "reactive": true,
-    "description": "The clipping attribute cuts off the element positioning within specified height and width. Possible values are true or false.",
+    "description": "Clips child content to the element's width and height boundaries.",
     "usedIn": [
       "Element",
       "Text",
@@ -260,10 +294,159 @@
     ],
     "defaultValue": "true",
     "reactive": true,
-    "description": "The overflow attribute allows the element to extend beyond the specified height and width. Possible values are true or false.",
+    "description": "Allows content to extend beyond the element's width and height. Inverse of clipping.",
     "usedIn": [
-      "Text",
+      "Element",
+      "Text"
+    ]
+  },
+  "src": {
+    "attrType": "regular",
+    "types": [
+      "string",
+      {
+        "type": "object",
+        "properties": {
+          "src": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "regular",
+              "svg",
+              "compressed"
+            ]
+          }
+        }
+      }
+    ],
+    "defaultValue": null,
+    "reactive": true,
+    "description": "The image source URL. Can be a string path or an object {src, type} where type is 'regular', 'svg', or 'compressed' (for cases where file type can't be derived from the file name).",
+    "usedIn": [
       "Element"
+    ]
+  },
+  "fit": {
+    "attrType": "regular",
+    "types": [
+      "enum",
+      {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "cover",
+              "contain"
+            ]
+          },
+          "position": {
+            "type": "number"
+          }
+        }
+      }
+    ],
+    "values": [
+      "cover",
+      "contain"
+    ],
+    "defaultValue": null,
+    "reactive": true,
+    "description": "Controls how an image is resized to fit the Element's dimensions. Accepts 'cover', 'contain', or an object {type, position} for fine-grained control over clip position.",
+    "usedIn": [
+      "Element"
+    ]
+  },
+  "rtt": {
+    "attrType": "regular",
+    "types": [
+      "enum"
+    ],
+    "values": [
+      "true",
+      "false"
+    ],
+    "defaultValue": "false",
+    "reactive": true,
+    "description": "Enables render-to-texture mode, rendering the element and its children to an off-screen texture.",
+    "usedIn": [
+      "Element"
+    ]
+  },
+  "effects": {
+    "attrType": "regular",
+    "types": [
+      "array"
+    ],
+    "defaultValue": null,
+    "reactive": true,
+    "description": "Applies one or more shader effects using DynamicShader. Accepts an array of objects, each with a type and optional props (e.g., [{type: 'radius', props: {radius: 20}}]).",
+    "usedIn": [
+      "Element"
+    ]
+  },
+  "placement": {
+    "attrType": "regular",
+    "types": [
+      "enum",
+      {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "string",
+            "enum": [
+              "left",
+              "center",
+              "right"
+            ]
+          },
+          "y": {
+            "type": "string",
+            "enum": [
+              "top",
+              "middle",
+              "bottom"
+            ]
+          }
+        }
+      }
+    ],
+    "values": [
+      "left",
+      "center",
+      "right",
+      "top",
+      "middle",
+      "bottom"
+    ],
+    "defaultValue": null,
+    "reactive": true,
+    "description": "Predefined placement relative to the parent's dimensions. Accepts 'left', 'center', 'right', 'top', 'middle', 'bottom', or an object {x, y} for combined placement.",
+    "usedIn": [
+      "Element",
+      "Text",
+      "Layout",
+      "RouterView"
+    ]
+  },
+  "inspector-data": {
+    "attrType": "regular",
+    "types": [
+      {
+        "type": "object"
+      }
+    ],
+    "defaultValue": null,
+    "reactive": false,
+    "description": "Attaches custom metadata to elements for debugging and automated testing, visible in the Lightning inspector. Only processed in dev mode when inspector is enabled.",
+    "usedIn": [
+      "Element",
+      "Text",
+      "Layout",
+      "RouterView",
+      "Component"
     ]
   },
   "content": {
@@ -285,7 +468,7 @@
     ],
     "defaultValue": "sans-serif",
     "reactive": true,
-    "description": "The font family.",
+    "description": "The font family to use for text rendering.",
     "usedIn": [
       "Text"
     ]
@@ -297,7 +480,7 @@
     ],
     "defaultValue": 32,
     "reactive": true,
-    "description": "The size of a text element. Allows any number greater than or equal to zero.",
+    "description": "The font size of a Text element in pixels.",
     "usedIn": [
       "Text"
     ]
@@ -326,7 +509,7 @@
     ],
     "defaultValue": null,
     "reactive": true,
-    "description": "Align position of the element.",
+    "description": "The alignment of the text. Centering and right alignment require maxwidth to be set.",
     "usedIn": [
       "Text"
     ]
@@ -338,7 +521,7 @@
     ],
     "defaultValue": null,
     "reactive": true,
-    "description": "The maximum length of a line of text in pixels.",
+    "description": "The maximum length of a line of text in pixels. Words surpassing this length will be wrapped onto the next line.",
     "usedIn": [
       "Text"
     ]
@@ -362,7 +545,7 @@
     ],
     "defaultValue": null,
     "reactive": true,
-    "description": "Maximum height of a text block; lines exceeding this height will not be displayed.",
+    "description": "Maximum height of a text block in pixels. Lines exceeding this height will not be displayed.",
     "usedIn": [
       "Text"
     ]
@@ -391,7 +574,7 @@
     ],
     "defaultValue": "none",
     "reactive": true,
-    "description": "The strategy for containing text within the bounds.",
+    "description": "The strategy for containing text within bounds. Usually set automatically by Blits based on other specified attributes.",
     "usedIn": [
       "Text"
     ]
@@ -399,11 +582,28 @@
   "textoverflow": {
     "attrType": "regular",
     "types": [
-      "string"
+      "string",
+      "enum"
+    ],
+    "values": [
+      "false"
+    ],
+    "defaultValue": "...",
+    "reactive": true,
+    "description": "The suffix added when text is cropped due to bounds limits. Defaults to '...'. Set to false or empty string for no suffix.",
+    "usedIn": [
+      "Text"
+    ]
+  },
+  "wordwrap": {
+    "attrType": "regular",
+    "types": [
+      "number"
     ],
     "defaultValue": null,
     "reactive": true,
-    "description": "The suffix to be added when text is cropped due to bounds limits. Defaults to ...",
+    "deprecated": true,
+    "description": "Deprecated - use maxwidth instead. Sets the maximum line width in pixels for text wrapping.",
     "usedIn": [
       "Text"
     ]
@@ -419,7 +619,7 @@
     ],
     "defaultValue": "horizontal",
     "reactive": true,
-    "description": "Controls the direction of content.",
+    "description": "Controls the direction of layout content arrangement.",
     "usedIn": [
       "Layout"
     ]
@@ -429,71 +629,11 @@
     "types": [
       "number"
     ],
-    "defaultValue": null,
+    "defaultValue": 0,
     "reactive": true,
-    "description": "Controls how much space will be added between each Element or Component.",
+    "description": "Controls how much space in pixels is added between each child Element or Component in a Layout.",
     "usedIn": [
       "Layout"
-    ]
-  },
-  "is": {
-    "attrType": "regular",
-    "types": [
-      "string"
-    ],
-    "defaultValue": null,
-    "reactive": true,
-    "description": "Dynamically instantiates a Component.",
-    "usedIn": [
-      "Component"
-    ]
-  },
-  "ref": {
-    "attrType": "regular",
-    "types": [
-      "string"
-    ],
-    "defaultValue": null,
-    "reactive": true,
-    "description": "Refers to the Element or Component in the template.",
-    "usedIn": [
-      "Element",
-      "Text",
-      "Layout",
-      "RouterView",
-      "Component"
-    ]
-  },
-  "for": {
-    "attrType": "regular",
-    "types": [
-      "string"
-    ],
-    "defaultValue": null,
-    "reactive": true,
-    "description": "Directive for repeating multiple instances of an Element or a Component.",
-    "usedIn": [
-      "Element",
-      "Text",
-      "Layout",
-      "RouterView",
-      "Component"
-    ]
-  },
-  "show": {
-    "attrType": "regular",
-    "types": [
-      "string"
-    ],
-    "defaultValue": null,
-    "reactive": true,
-    "description": "Conditionally shows and hides Components and Elements.",
-    "usedIn": [
-      "Element",
-      "Text",
-      "Layout",
-      "RouterView",
-      "Component"
     ]
   },
   "align-items": {
@@ -506,9 +646,9 @@
       "center",
       "end"
     ],
-    "defaultValue": null,
+    "defaultValue": "start",
     "reactive": true,
-    "description": "Specifies how to align children on the opposite axis.",
+    "description": "Specifies how to align children on the opposite axis of the Layout direction.",
     "usedIn": [
       "Layout"
     ]
@@ -541,21 +681,128 @@
         }
       }
     ],
-    "defaultValue": null,
+    "defaultValue": 0,
     "reactive": true,
-    "description": "Adds spacing between the content and the edges of the Layout Component.",
+    "description": "Adds spacing between the content and the edges of the Layout. Accepts a number for uniform padding or an object with top/bottom/left/right/x/y keys.",
     "usedIn": [
       "Layout"
     ]
   },
-  "@loaded": {
-    "attrType": "event",
+  "is": {
+    "attrType": "regular",
     "types": [
       "string"
     ],
     "defaultValue": null,
     "reactive": false,
-    "description": "Fires when an image or text element loads, providing its dimensions. Must be a function reference.",
+    "description": "Dynamically instantiates a Component based on a state variable or prop value.",
+    "usedIn": [
+      "Component"
+    ]
+  },
+  "ref": {
+    "attrType": "regular",
+    "types": [
+      "string"
+    ],
+    "defaultValue": null,
+    "reactive": false,
+    "description": "A reference identifier for the Element or Component, accessible via this.select() in the component logic.",
+    "usedIn": [
+      "Element",
+      "Text",
+      "Layout",
+      "RouterView",
+      "Component"
+    ]
+  },
+  "for": {
+    "attrType": "directive",
+    "types": [
+      "string"
+    ],
+    "defaultValue": null,
+    "reactive": true,
+    "description": "Directive for repeating multiple instances of an Element or Component. Uses 'item in $array' or '(item, index) in $array' syntax.",
+    "usedIn": [
+      "Element",
+      "Text",
+      "Layout",
+      "RouterView",
+      "Component"
+    ]
+  },
+  "key": {
+    "attrType": "regular",
+    "types": [
+      "string"
+    ],
+    "defaultValue": null,
+    "reactive": false,
+    "description": "A unique identifier for items in a for-loop, enabling efficient reuse of Element/Component instances when the array changes. Should reference a unique field (e.g., key=\"$item.id\").",
+    "usedIn": [
+      "Element",
+      "Text",
+      "Layout",
+      "RouterView",
+      "Component"
+    ]
+  },
+  "range": {
+    "attrType": "regular",
+    "types": [
+      {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "number"
+          },
+          "to": {
+            "type": "number"
+          }
+        }
+      }
+    ],
+    "defaultValue": null,
+    "reactive": true,
+    "description": "Limits a for-loop to render only a subset of items. Accepts an object {from, to} where 'from' is inclusive and 'to' is exclusive. Items outside the range are destroyed and recreated when they re-enter.",
+    "usedIn": [
+      "Element",
+      "Text",
+      "Layout",
+      "RouterView",
+      "Component"
+    ]
+  },
+  "show": {
+    "attrType": "directive",
+    "types": [
+      "enum"
+    ],
+    "values": [
+      "true",
+      "false"
+    ],
+    "defaultValue": "true",
+    "reactive": true,
+    "description": "Conditionally shows or hides the Element/Component by setting alpha to 0 or restoring it.",
+    "usedIn": [
+      "Element",
+      "Text",
+      "Layout",
+      "RouterView",
+      "Component"
+    ]
+  },
+  "@loaded": {
+    "attrType": "event",
+    "types": [
+      "string",
+      "function"
+    ],
+    "defaultValue": null,
+    "reactive": false,
+    "description": "Fires when an image or text element loads, providing its dimensions ({w, h}). Accepts a function reference (e.g., $handlerName) or an inline arrow function.",
     "usedIn": [
       "Element",
       "Text"
@@ -564,11 +811,12 @@
   "@error": {
     "attrType": "event",
     "types": [
-      "string"
+      "string",
+      "function"
     ],
     "defaultValue": null,
     "reactive": false,
-    "description": " Fires when an image fails to load, passing an error message. Must be a function reference.",
+    "description": "Fires when an image fails to load, passing an error message. Accepts a function reference (e.g., $handlerName) or an inline arrow function.",
     "usedIn": [
       "Element",
       "Text"
@@ -577,11 +825,12 @@
   "@updated": {
     "attrType": "event",
     "types": [
-      "string"
+      "string",
+      "function"
     ],
     "defaultValue": null,
     "reactive": false,
-    "description": " Fires when each update in Layout children. Must be a function reference.",
+    "description": "Fires after each Layout children update, providing current dimensions ({w, h}). Can fire multiple times.",
     "usedIn": [
       "Layout"
     ]

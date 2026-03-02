@@ -170,6 +170,8 @@ declare module '@lightningjs/blits' {
     * Fires when the Component is being destroyed and removed.
     */
     destroy?: () => void;
+    hover?: () => void;
+    unhover?: () => void;
     /**
     * Fires upon each frame start  (allowing you to tap directly into the renderloop)
     *
@@ -393,6 +395,13 @@ declare module '@lightningjs/blits' {
     * @returns Boolean
     */
     hasFocus: boolean,
+
+    /**
+    * Indicates whether the component currently is hovered
+    *
+    * @returns Boolean
+    */
+    isHovered: boolean,
 
     /**
     * Listen to events emitted by other components
@@ -1253,6 +1262,16 @@ declare module '@lightningjs/blits' {
      * ```
      */
     announcerOptions?: AnnouncerUtteranceOptions,
+    /**
+     * Enable mouse support (hover and click-to-focus).
+     *
+     * When set to `true`, pointer movement over the canvas updates hover state on components
+     * and click dispatches focus and Enter key input to the component under the cursor.
+     * When set to `false`, no mouse or pointer listeners are registered.
+     *
+     * @default false
+     */
+    enableMouse?: boolean,
     /**
      * Maximum FPS at which the App will be rendered
      *

@@ -22,6 +22,8 @@ import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 
+const holderComponentMap = new WeakMap()
+
 /**
  * Creates a padding object from a value and direction.
  * @param {number|object|string|undefined} padding - The padding value.
@@ -512,6 +514,9 @@ const propsTransformer = {
       this.props['data'] = v
     }
   },
+  set holder(v) {
+    this.props['interactive'] = v
+  },
 }
 
 const Element = {
@@ -554,6 +559,10 @@ const Element = {
     this.node = props.__textnode
       ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
       : renderer.createNode(this.props.props)
+
+    if (this.props['holder'] === true) {
+      holderComponentMap.set(this.node, this.component)
+    }
 
     if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
       this.node.on('loaded', (el, { type, dimensions }) => {

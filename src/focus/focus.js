@@ -15,11 +15,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import symbols from './lib/symbols.js'
-import { state } from './router/router.js'
-import Settings from './settings.js'
-import { DEFAULT_HOLD_TIMEOUT_MS } from './constants.js'
-import { Log } from './lib/log.js'
+import symbols from '../lib/symbols.js'
+import { state } from '../router/router.js'
+import Settings from '../settings.js'
+import { DEFAULT_HOLD_TIMEOUT_MS } from '../constants.js'
+import { Log } from '../lib/log.js'
+import { getAncestors } from './helpers.js'
 
 let focusedComponent = null
 let focusChain = []
@@ -97,19 +98,6 @@ export default {
       keyUpCallbacks.set(event.code, cb)
     }
   },
-}
-
-/**
- * Recursive function that retrieves the ancestors of a component
- * @param {Array} components
- * @returns array components
- */
-const getAncestors = (components) => {
-  if (components[0].parent !== undefined) {
-    components.unshift(components[0].parent)
-    return getAncestors(components)
-  }
-  return components
 }
 
 /**

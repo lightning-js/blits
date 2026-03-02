@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.50.0
+
+_27 feb 2026_
+
+- Fixed issue with router navigation options not properly being overriden
+- Fixed FPS counter component and made it into a separate importable component (`import { FPScounter } from @lightningjs/blits/components`)
+- Added mouse (magic wand) support (including new `hover` lifecycle hook and `isHovered` state indicator)
+- Updated template attributes for VScode extension
+
 
 ## v1.49.0
 
