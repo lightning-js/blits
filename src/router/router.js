@@ -645,7 +645,7 @@ export const to = (location, data = {}, options = {}) => {
   navigationData = data
   overrideOptions = options
 
-  location.hash = location
+  window.location.hash = location
 }
 
 export const back = function () {

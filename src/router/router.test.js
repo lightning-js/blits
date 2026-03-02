@@ -850,7 +850,7 @@ test('keepAlive override keeps the route being LEFT alive (not the destination)'
   })
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [
         { path: '/pageA', component: PageA, options: { inHistory: true, passFocus: false } },
         { path: '/pageB', component: PageB, options: { inHistory: true, passFocus: false } },
@@ -908,7 +908,7 @@ test('keepAlive override does not bleed into the destination route options', asy
   ]
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: routesList,
     },
     [symbols.children]: [{}],
@@ -972,7 +972,7 @@ test('reuseComponent still works when keepAlive override is passed', async (asse
   const dummyView = { [symbols.holder]: mockElement(), destroy() {} }
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [
         {
           path: '/shared1',
@@ -1041,7 +1041,7 @@ test('Stale overrideOptions do not bleed into subsequent navigations', async (as
   })
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [
         { path: '/rx', component: RouteX, options: { inHistory: true, passFocus: false } },
         { path: '/ry', component: RouteY, options: { inHistory: true, passFocus: false } },
