@@ -29,6 +29,7 @@ export default () =>
       map: undefined,
       frame: undefined,
       color: undefined,
+      effects: undefined,
     },
     state() {
       return {
