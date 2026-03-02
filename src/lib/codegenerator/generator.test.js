@@ -1542,6 +1542,7 @@ test('Generate code for a template with custom components', (assert) => {
 
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+    elementConfigs[1]['holder'] = true
     skips[1] = []
     if (typeof cmps[1] !== 'undefined' && cmps[1][Symbol.for('config')].props !== undefined) {
       let props = cmps[1][Symbol.for('config')].props
@@ -1590,6 +1591,7 @@ test('Generate code for a template with custom components', (assert) => {
 
     elementConfigs[3] = {}
     elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+    elementConfigs[3]['holder'] = true
     skips[3] = []
     if (typeof cmps[3] !== 'undefined' && cmps[3][Symbol.for('config')].props !== undefined) {
       let props = cmps[3][Symbol.for('config')].props
@@ -1728,6 +1730,7 @@ test('Generate code for a template with an unregistered custom component', (asse
     parent = elms[0]
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+    elementConfigs[1]['holder'] = true
     skips[1] = []
     if (typeof cmps[1] !== 'undefined' && cmps[1][Symbol.for('config')].props !== undefined) {
       let props = cmps[1][Symbol.for('config')].props
@@ -1772,6 +1775,7 @@ test('Generate code for a template with an unregistered custom component', (asse
     parent = elms[0]
     elementConfigs[3] = {}
     elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+    elementConfigs[3]['holder'] = true
     skips[3] = []
     if (typeof cmps[3] !== 'undefined' && cmps[3][Symbol.for('config')].props !== undefined) {
       let props = cmps[3][Symbol.for('config')].props
@@ -1908,7 +1912,8 @@ test('Generate code for a template with custom components with arguments', (asse
     cmps[1] = (context.components && context.components['Poster']) || components['Poster']
     parent = elms[0]
     elementConfigs[1] = {}
-    elms[1] = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
+    elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+    elementConfigs[1]['holder'] = true
     elementConfigs[1]['x'] = 10
     skips[1] = []
     if(typeof cmps[1] !== 'undefined' && cmps[1][Symbol.for('config')].props !== undefined) {
@@ -1954,7 +1959,8 @@ test('Generate code for a template with custom components with arguments', (asse
     cmps[3] = (context.components && context.components['Poster']) || components['Poster']
     parent = elms[0]
     elementConfigs[3] = {}
-    elms[3] = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
+    elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+    elementConfigs[3]['holder'] = true
     elementConfigs[3]['x'] = 100
     elementConfigs[3]['img'] = component.img
     skips[3] = []
@@ -2098,7 +2104,10 @@ test('Generate code for a template with custom components with argument value as
     parent = elms[0]
 
     elementConfigs[1] = {}
-    elms[1] = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
+
+    elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+
+    elementConfigs[1]['holder'] = true
     elementConfigs[1]['x'] = 1000
     elementConfigs[1]['y'] = 100
     elementConfigs[1]['h'] = parent.node.h * (45 / 100)
@@ -2252,7 +2261,8 @@ test('Generate code for a template with custom components with reactive props', 
     cmps[1] = (context.components && context.components['Poster']) || components['Poster']
     parent = elms[0]
     elementConfigs[1] = {}
-    elms[1] = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
+    elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+    elementConfigs[1]['holder'] = true
     elementConfigs[1]['x'] = 10
     elementConfigs[1]['img'] = component.image
     skips[1] = []
@@ -2305,7 +2315,8 @@ test('Generate code for a template with custom components with reactive props', 
     cmps[3] = (context.components && context.components['Poster']) || components['Poster']
     parent = elms[0]
     elementConfigs[3] = {}
-    elms[3] = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
+    elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+    elementConfigs[3]['holder'] = true
     elementConfigs[3]['x'] = 100
     elementConfigs[3]['img'] = component.image
     skips[3] = []
@@ -2581,6 +2592,7 @@ test('Generate code for a template with slot content', (assert) => {
 
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+    elementConfigs[1]['holder'] = true
     elementConfigs[1]['w'] = 1920
     elementConfigs[1]['h'] = 1080
     skips[1] = []
@@ -2769,6 +2781,7 @@ test('Generate code for a template with slot content, using a named slot', (asse
 
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
+    elementConfigs[1]['holder'] = true
     elementConfigs[1]['w'] = 1920
     elementConfigs[1]['h'] = 1080
     skips[1] = []
@@ -4349,11 +4362,188 @@ test('Generate code for a template with a simple for-loop on a Component with a 
     from1 = range['from'] || 0
     to1 = 'to' in range ? range['to'] : rawCollection.length
 
-    while (l--) {
-      const item = rawCollection[l]
-      const myIndex = l
-      if (l < to1 && l >= from1) {
-        keys.add('' + item.id)
+    parent = elms[0]
+
+    created[1] = []
+    effects[1] = []
+
+    let from1
+    let to1
+
+    forloops[1] = (collection = [], elms, created) => {
+      const rawCollection = getRaw(collection)
+      const keys = new Set()
+      let l = rawCollection.length
+
+      const range = {} || {}
+      from1 = range['from'] || 0
+      to1 = 'to' in range ? range['to'] : rawCollection.length
+
+      while (l--) {
+        const item = rawCollection[l]
+
+        const myIndex = l
+
+        if (l < to1 && l >= from1) {
+          keys.add('' + item.id)
+        }
+      }
+
+      let i = created.length
+
+      while (i--) {
+        if (keys.has(created[i]) === false) {
+          const key = created[i]
+
+          elms[1][key] && elms[1][key].destroy()
+          elms[1][key] = null
+          delete elms[1][key]
+
+          elms[2][key] && elms[2][key].destroy()
+          elms[2][key] = null
+          delete elms[2][key]
+        }
+      }
+
+      created.length = 0
+      const length = rawCollection.length
+
+      component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
+
+      const effectsToRemove = new Set(effects[1].slice(0))
+      if (effectsToRemove.size > 0) {
+        const componentEffects = component?.[Symbol.for('effects')] || []
+        let writeIndex = 0
+        for (let readIndex = 0; readIndex < componentEffects.length; readIndex++) {
+          if (!effectsToRemove.has(componentEffects[readIndex])) {
+            componentEffects[writeIndex++] = componentEffects[readIndex]
+          }
+        }
+        componentEffects.length = writeIndex
+      }
+
+      effects[1].length = 0
+      for (let __index = 0; __index < length; __index++) {
+        if (__index < from1 || __index >= to1) continue
+        let scope = Object.create(component)
+        parent = elms[0]
+        scope['item'] = rawCollection[__index]
+
+        scope['myIndex'] = __index
+
+        scope['key'] = '' + scope.item.id
+
+        created.push(scope.key)
+
+        cmps[1] = (context.components && context.components['ListItem']) || components['ListItem']
+
+        if (elms[1] === undefined) {
+          elms[1] = {}
+        }
+
+        elementConfigs[1] = {}
+        if (elms[1][scope.key] === undefined) {
+          elms[1][scope.key] = this.element(
+            { parent: parent || 'root' },
+            inSlot === true ? slotComponent : component
+          )
+        }
+
+        elementConfigs[1]['holder'] = true
+        skips[1] = []
+        if (typeof cmps[1] !== 'undefined') {
+          for (let key in cmps[1][Symbol.for('config')].props) {
+            delete elementConfigs[1][cmps[1][Symbol.for('config')].props[key]]
+            skips[1].push(cmps[1][Symbol.for('config')].props[key])
+          }
+        }
+
+        if (elms[1][scope.key].nodeId === undefined) {
+          elms[1][scope.key].populate(elementConfigs[1])
+
+          if (inSlot === true) {
+            slotChildCounter -= 1
+          }
+        }
+
+        if (elms[2] === undefined) {
+          elms[2] = {}
+        }
+
+        parent = elms[1][scope.key];
+        props[2] = {}
+        if (elms[2][scope.key] === undefined) {
+          componentType = props[2]['is'] || 'ListItem'
+
+          components[2]
+          if (typeof componentType === 'string') {
+            components[2] =
+              context.components && context.components[componentType] || components[componentType]
+            if (!components[2]) {
+              throw new Error('Component "ListItem" not found')
+            }
+          } else if (
+            typeof componentType === 'function' &&
+            componentType[Symbol.for('isComponent')] === true
+          ) {
+            components[2] = componentType
+          }
+
+          elms[2][scope.key] = components[2].call(
+            null,
+            { props: props[2] },
+            elms[1][scope.key],
+            component
+          )
+
+          if (elms[2][scope.key][Symbol.for('slots')][0]) {
+            parent = elms[2][scope.key][Symbol.for('slots')][0]
+            slotComponent = elms[2][scope.key]
+            inSlot = true
+          } else {
+            parent = elms[2][scope.key][Symbol.for('children')][0]
+          }
+        }
+      }
+      return effects
+    }
+
+    let eff1 = () => {
+      forloops[1](component.items, elms, created[1])
+    }
+
+    component[Symbol.for('effects')].push(eff1)
+
+    effect(eff1, ['items',])
+
+    return {
+      elms,
+      cleanup: () => {
+        rootComponent = null
+        propData = null
+        slotComponent = null
+        parent = null
+
+        created[1].length = 0
+
+        cmps[1] = null
+
+        props[2] = null
+        components[2] = null
+
+        eff1 = null
+        // call loop with empty array
+        forloops[1]([], elms, created[1])
+        forloops[1] = null
+
+        component = null
+        cmps.length = 0
+        elms.length = 0
+        components.length = 0
+        elementConfigs.length = 0
+        forloops.length = 0
+        props.length = 0
+        skips.length = 0
       }
     }
 

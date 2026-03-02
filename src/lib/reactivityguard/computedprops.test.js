@@ -69,6 +69,55 @@ test('Deterministic replacements for identical computed methods', (assert) => {
   assert.end()
 })
 
+test('Does not duplicate guards when processing output twice', (assert) => {
+  const input = `
+    import Blits from '@lightningjs/blits'
+    export default Blits.Component('C', {
+      computed: {
+        height() {
+          return this.h - ((this.children[this.focusIndex] && this.children[this.focusIndex].y) || 0) + 64
+        },
+      }
+    })
+  `
+
+  const pass1 = processComputedProps(input)
+  assert.ok(pass1, 'first pass should inject guards')
+  assert.equal(
+    countOccurrences(pass1.code, 'auto-generated reactivity guard'),
+    1,
+    'first pass: one guard comment'
+  )
+
+  const pass2 = processComputedProps(pass1.code)
+  assert.equal(pass2, null, 'second pass should return null (no changes)')
+
+  assert.end()
+})
+
+test('Does not duplicate guards when guard comment is stripped', (assert) => {
+  // Simulates what happens when esbuild strips the guard comment
+  // but leaves the this.X; statements intact
+  const alreadyGuarded = `
+    import Blits from '@lightningjs/blits'
+    export default Blits.Component('C', {
+      computed: {
+        height() {
+          this.h;
+          this.children;
+          this.focusIndex;
+          return this.h - ((this.children[this.focusIndex] && this.children[this.focusIndex].y) || 0) + 64
+        },
+      }
+    })
+  `
+
+  const result = processComputedProps(alreadyGuarded)
+  assert.equal(result, null, 'should return null when guards already present (no comment)')
+
+  assert.end()
+})
+
 test('Does not process non-method computed syntaxes', (assert) => {
   const input = `
     import Blits from '@lightningjs/blits'

@@ -505,7 +505,10 @@ test('Get route object from Match hash when navigating using to() method', (asse
   assert.end()
 })
 
-test('Get route object from Match hash when navigating using to() method with options', (assert) => {
+// FIX: updated assertion. keepAlive passed via $router.to() applies to the
+// route being LEFT, not the destination. makeRouteObject() now strips it from
+// the destination's options so the destination keeps its static default (false).
+test('keepAlive override from to() does NOT merge into destination route options', (assert) => {
   const hash = '/page1/subpage1'
 
   to(hash, undefined, { keepAlive: true })
@@ -520,8 +523,8 @@ test('Get route object from Match hash when navigating using to() method with op
 
   assert.equal(
     result.options.keepAlive,
-    true,
-    'The results object should contain a options key with keep alive as True'
+    false,
+    'keepAlive override should not be merged into destination route options'
   )
 
   assert.end()
@@ -813,5 +816,259 @@ test('Route meta data is accessible in route object', async (assert) => {
     { auth: true, role: 'admin' },
     'Should have access to route meta data'
   )
+  assert.end()
+})
+
+// ---------------------------------------------------------------------------
+// keepAlive override tests
+// ---------------------------------------------------------------------------
+
+test('keepAlive override keeps the route being LEFT alive (not the destination)', async (assert) => {
+  const originalElement = stage.element
+  let destroyedViews = []
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {
+      destroyedViews.push('destroyed')
+    },
+    parent,
+  })
+
+  const PageA = Component('PageA', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const PageB = Component('PageB', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    parent: {
+      [symbols.routes]: [
+        { path: '/pageA', component: PageA, options: { inHistory: true, passFocus: false } },
+        { path: '/pageB', component: PageB, options: { inHistory: true, passFocus: false } },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  // Navigate to /pageA (no keepAlive in static config)
+  to('/pageA')
+  await navigate.call(host)
+
+  // Navigate to /pageB with keepAlive override — should keep /pageA alive
+  destroyedViews = []
+  to('/pageB', {}, { keepAlive: true })
+  await navigate.call(host)
+
+  assert.equal(
+    destroyedViews.length,
+    0,
+    'The route being left (/pageA) should NOT be destroyed when keepAlive override is passed'
+  )
+
+  stage.element = originalElement
+  assert.end()
+})
+
+test('keepAlive override does not bleed into the destination route options', async (assert) => {
+  const originalElement = stage.element
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const PageA = Component('PageA_bleed', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const PageB = Component('PageB_bleed', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const routesList = [
+    { path: '/srcA', component: PageA, options: { inHistory: true, passFocus: false } },
+    { path: '/srcB', component: PageB, options: { inHistory: true, passFocus: false } },
+  ]
+
+  const host = {
+    parent: {
+      [symbols.routes]: routesList,
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  // Navigate to /srcA first
+  to('/srcA')
+  await navigate.call(host)
+
+  // Navigate to /srcB with keepAlive override
+  to('/srcB', {}, { keepAlive: true })
+  await navigate.call(host)
+
+  assert.equal(state.path, '/srcB', 'Should be on /srcB')
+
+  // Verify destination route (/srcB) does NOT have keepAlive in its options —
+  // the override only applies to the route being left
+  const destRoute = matchHash({ path: '/srcB' }, routesList)
+  assert.equal(
+    destRoute.options.keepAlive,
+    false,
+    'Destination route should not inherit keepAlive from the override'
+  )
+
+  stage.element = originalElement
+  assert.end()
+})
+
+test('reuseComponent still works when keepAlive override is passed', async (assert) => {
+  const originalElement = stage.element
+  let createdViews = 0
+
+  const mockElement = () => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+  })
+
+  stage.element = ({ parent }) => ({ ...mockElement(), parent })
+
+  // Same component used by both routes — reuseComponent should kick in
+  const SharedPage = Component('SharedPage', {
+    template: '<Element />',
+    code: {
+      render: () => {
+        createdViews++
+        return { elms: [], cleanup: () => {} }
+      },
+      effects: [],
+    },
+  })
+
+  // Seed children with a dummy view at index 1.
+  // When navigate() inherits a truthy currentRoute from previous tests,
+  // splice(1,1) removes this dummy instead of the newly pushed view.
+  const dummyView = { [symbols.holder]: mockElement(), destroy() {} }
+
+  const host = {
+    parent: {
+      [symbols.routes]: [
+        {
+          path: '/shared1',
+          component: SharedPage,
+          options: { inHistory: true, passFocus: false, reuseComponent: true },
+        },
+        {
+          path: '/shared2',
+          component: SharedPage,
+          options: { inHistory: true, passFocus: false, reuseComponent: true },
+        },
+      ],
+    },
+    [symbols.children]: [{}, dummyView],
+    [symbols.props]: {},
+  }
+
+  // Navigate to /shared1 — establishes a proper view in children
+  to('/shared1')
+  await navigate.call(host)
+  const viewsAfterFirst = createdViews
+
+  // Navigate to /shared2 with keepAlive override — keepAlive applies to the
+  // route being left, so reuseComponent on the destination should still work
+  to('/shared2', {}, { keepAlive: true })
+  await navigate.call(host)
+
+  assert.equal(
+    createdViews,
+    viewsAfterFirst,
+    'reuseComponent should reuse the view — no new component created despite keepAlive override'
+  )
+
+  stage.element = originalElement
+  assert.end()
+})
+
+test('Stale overrideOptions do not bleed into subsequent navigations', async (assert) => {
+  const originalElement = stage.element
+  let destroyCount = 0
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {
+      destroyCount++
+    },
+    parent,
+  })
+
+  const RouteX = Component('RouteX', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const RouteY = Component('RouteY', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const RouteZ = Component('RouteZ', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    parent: {
+      [symbols.routes]: [
+        { path: '/rx', component: RouteX, options: { inHistory: true, passFocus: false } },
+        { path: '/ry', component: RouteY, options: { inHistory: true, passFocus: false } },
+        { path: '/rz', component: RouteZ, options: { inHistory: true, passFocus: false } },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  // Step 1: navigate to /rx
+  to('/rx')
+  await navigate.call(host)
+
+  // Step 2: navigate to /ry with keepAlive override (keeps /rx alive)
+  destroyCount = 0
+  to('/ry', {}, { keepAlive: true })
+  await navigate.call(host)
+  assert.equal(destroyCount, 0, '/rx should be kept alive by the override')
+
+  // Step 3: navigate to /rz WITHOUT any override — /ry should be destroyed
+  // because the previous keepAlive override must not bleed into this navigation
+  destroyCount = 0
+  to('/rz')
+  await navigate.call(host)
+  assert.equal(destroyCount, 1, '/ry should be destroyed — stale keepAlive must not persist')
+
+  stage.element = originalElement
   assert.end()
 })

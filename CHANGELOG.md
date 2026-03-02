@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.50.0
+
+_27 feb 2026_
+
+- Fixed issue with router navigation options not properly being overriden
+- Fixed FPS counter component and made it into a separate importable component (`import { FPScounter } from @lightningjs/blits/components`)
+- Added mouse (magic wand) support (including new `hover` lifecycle hook and `isHovered` state indicator)
+- Updated template attributes for VScode extension
+
+
+## v1.49.0
+
+_20 feb 2026_
+
+- Added `data-blits-renderstate` inspector attribute
+- Fixed `data-blits-hasfocus` inspector attribute to always be available
+- Added boolean attribute to `idle` lifecycle hook to indicate `idle` or `active` state
+- Fixed type definitions for router beforeEach hooks
+- Fixed double processing of reactivity guard
 
 ## v1.48.0
 

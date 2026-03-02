@@ -46,6 +46,9 @@ test('precompileComponents - should log start and end messages', (assert) => {
 
   precompileComponents()
 
+  readdirStub.restore()
+  consoleLogStub.restore()
+
   assert.ok(
     consoleLogStub.firstCall && consoleLogStub.firstCall.args[0].includes('Checking files'),
     'Should log checking message'
@@ -54,9 +57,6 @@ test('precompileComponents - should log start and end messages', (assert) => {
     consoleLogStub.calledWith('Finished processing files suitable for precompilation'),
     'Should log completion message'
   )
-
-  readdirStub.restore()
-  consoleLogStub.restore()
   assert.end()
 })
 
@@ -71,18 +71,18 @@ test('processDirectory - should process JS files in directory', (assert) => {
 
   processDirectory(testDir)
 
-  assert.ok(readdirStub.calledWith(testDir), 'Should read directory')
-  assert.ok(statStub.called, 'Should check file stats')
-  assert.ok(readStub.called, 'Should read file')
-  assert.ok(writeStub.called, 'Should write compiled file')
-  assert.ok(copyStub.called, 'Should create backup')
-
   readdirStub.restore()
   statStub.restore()
   readStub.restore()
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
+
+  assert.ok(readdirStub.calledWith(testDir), 'Should read directory')
+  assert.ok(statStub.called, 'Should check file stats')
+  assert.ok(readStub.called, 'Should read file')
+  assert.ok(writeStub.called, 'Should write compiled file')
+  assert.ok(copyStub.called, 'Should create backup')
   assert.end()
 })
 
@@ -97,14 +97,14 @@ test('processDirectory - should process TS files in directory', (assert) => {
 
   processDirectory(testDir)
 
-  assert.ok(readStub.called, 'Should read TS file')
-
   readdirStub.restore()
   statStub.restore()
   readStub.restore()
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
+
+  assert.ok(readStub.called, 'Should read TS file')
   assert.end()
 })
 
@@ -119,6 +119,13 @@ test('processDirectory - should skip .orig.js files', (assert) => {
 
   processDirectory(testDir)
 
+  readdirStub.restore()
+  statStub.restore()
+  readStub.restore()
+  writeStub.restore()
+  copyStub.restore()
+  consoleLogStub.restore()
+
   // Should only process Helper.js
   assert.equal(readStub.callCount, 1, 'Should only read one file')
   assert.ok(consoleLogStub.calledWith(sinon.match(/Helper\.js/)), 'Should process Helper.js')
@@ -126,13 +133,6 @@ test('processDirectory - should skip .orig.js files', (assert) => {
     consoleLogStub.calledWith(sinon.match(/Component\.orig\.js/)),
     'Should not process .orig.js'
   )
-
-  readdirStub.restore()
-  statStub.restore()
-  readStub.restore()
-  writeStub.restore()
-  copyStub.restore()
-  consoleLogStub.restore()
   assert.end()
 })
 
@@ -147,18 +147,18 @@ test('processDirectory - should skip .orig.ts files', (assert) => {
 
   processDirectory(testDir)
 
-  assert.equal(readStub.callCount, 1, 'Should only read one file')
-  assert.notOk(
-    consoleLogStub.calledWith(sinon.match(/Component\.orig\.ts/)),
-    'Should not process .orig.ts'
-  )
-
   readdirStub.restore()
   statStub.restore()
   readStub.restore()
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
+
+  assert.equal(readStub.callCount, 1, 'Should only read one file')
+  assert.notOk(
+    consoleLogStub.calledWith(sinon.match(/Component\.orig\.ts/)),
+    'Should not process .orig.ts'
+  )
   assert.end()
 })
 
@@ -175,15 +175,15 @@ test('processDirectory - should skip non-JS/TS files', (assert) => {
 
   processDirectory(testDir)
 
-  assert.equal(readStub.callCount, 1, 'Should only process JS file')
-  assert.ok(consoleLogStub.calledWith(sinon.match(/Component\.js/)), 'Should process Component.js')
-
   readdirStub.restore()
   statStub.restore()
   readStub.restore()
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
+
+  assert.equal(readStub.callCount, 1, 'Should only process JS file')
+  assert.ok(consoleLogStub.calledWith(sinon.match(/Component\.js/)), 'Should process Component.js')
   assert.end()
 })
 
@@ -205,15 +205,15 @@ test('processDirectory - should recursively process subdirectories', (assert) =>
 
   processDirectory(testDir)
 
-  assert.equal(readdirStub.callCount, 2, 'Should read 2 directories')
-  assert.equal(readStub.callCount, 2, 'Should process 2 files')
-
   readdirStub.restore()
   statStub.restore()
   readStub.restore()
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
+
+  assert.equal(readdirStub.callCount, 2, 'Should read 2 directories')
+  assert.equal(readStub.callCount, 2, 'Should process 2 files')
   assert.end()
 })
 
@@ -224,11 +224,11 @@ test('processDirectory - should handle empty directory', (assert) => {
 
   processDirectory(testDir)
 
-  assert.ok(readdirStub.calledOnce, 'Should read directory once')
-  assert.notOk(statStub.called, 'Should not check any stats')
-
   readdirStub.restore()
   statStub.restore()
+
+  assert.ok(readdirStub.calledOnce, 'Should read directory once')
+  assert.notOk(statStub.called, 'Should not check any stats')
   assert.end()
 })
 
@@ -243,13 +243,13 @@ test('processFile - should create backup with .orig.js extension', (assert) => {
 
   processFile(filePath)
 
-  assert.ok(copyStub.calledWith(filePath, expectedBackup), 'Should create .orig.js backup')
-
   readStub.restore()
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
   execStub.restore()
+
+  assert.ok(copyStub.calledWith(filePath, expectedBackup), 'Should create .orig.js backup')
   assert.end()
 })
 
@@ -264,13 +264,13 @@ test('processFile - should create backup with .orig.ts extension', (assert) => {
 
   processFile(filePath)
 
-  assert.ok(copyStub.calledWith(filePath, expectedBackup), 'Should create .orig.ts backup')
-
   readStub.restore()
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
   execStub.restore()
+
+  assert.ok(copyStub.calledWith(filePath, expectedBackup), 'Should create .orig.ts backup')
   assert.end()
 })
 
@@ -285,13 +285,13 @@ test('processFile - should read and compile file', (assert) => {
 
   processFile(filePath)
 
-  assert.ok(readStub.calledWith(filePath, 'utf-8'), 'Should read file with utf-8')
-
   readStub.restore()
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
   execStub.restore()
+
+  assert.ok(readStub.calledWith(filePath, 'utf-8'), 'Should read file with utf-8')
   assert.end()
 })
 
@@ -305,13 +305,13 @@ test('processFile - should write compiled result', (assert) => {
 
   processFile(filePath)
 
-  assert.ok(writeStub.calledWith(filePath, sinon.match.string), 'Should write compiled code')
-
   readStub.restore()
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
   execStub.restore()
+
+  assert.ok(writeStub.calledWith(filePath, sinon.match.string), 'Should write compiled code')
   assert.end()
 })
 
@@ -325,13 +325,13 @@ test('processFile - should handle compiler returning object with code property',
 
   processFile(filePath)
 
-  assert.ok(writeStub.calledWith(filePath, sinon.match.string), 'Should extract code from object')
-
   readStub.restore()
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
   execStub.restore()
+
+  assert.ok(writeStub.calledWith(filePath, sinon.match.string), 'Should extract code from object')
   assert.end()
 })
 
@@ -345,14 +345,14 @@ test('processFile - should format file when source changes', (assert) => {
 
   processFile(filePath)
 
-  assert.ok(writeStub.called, 'Should write compiled file')
-  assert.ok(copyStub.called, 'Should create backup')
-
   readStub.restore()
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
   execStub.restore()
+
+  assert.ok(writeStub.called, 'Should write compiled file')
+  assert.ok(copyStub.called, 'Should create backup')
   assert.end()
 })
 
@@ -367,13 +367,13 @@ test('processFile - should NOT format file when source unchanged', (assert) => {
 
   processFile(filePath)
 
-  assert.ok(copyStub.called, 'Should still create backup')
-
   readStub.restore()
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
   execStub.restore()
+
+  assert.ok(copyStub.called, 'Should still create backup')
   assert.end()
 })
 
@@ -387,16 +387,16 @@ test('processFile - should log precompiling message', (assert) => {
 
   processFile(filePath)
 
-  assert.ok(
-    consoleLogStub.calledWith(`Precompiling ${filePath}`),
-    'Should log precompiling message'
-  )
-
   readStub.restore()
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
   execStub.restore()
+
+  assert.ok(
+    consoleLogStub.calledWith(`Precompiling ${filePath}`),
+    'Should log precompiling message'
+  )
   assert.end()
 })
 

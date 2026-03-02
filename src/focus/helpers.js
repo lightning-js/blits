@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Comcast Cable Communications Management, LLC
+ * Copyright 2025 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,12 +15,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import Circle from './Circle.js'
-import RouterView from './RouterView.js'
-import Sprite from './Sprite.js'
-
-export default () => ({
-  Circle: Circle(),
-  RouterView: RouterView(),
-  Sprite: Sprite(),
-})
+/**
+ * Recursive function that retrieves the ancestors of a component
+ * @param {Array} components
+ * @returns array components
+ */
+export const getAncestors = (components) => {
+  if (components[0].parent !== undefined) {
+    components.unshift(components[0].parent)
+    return getAncestors(components)
+  }
+  return components
+}

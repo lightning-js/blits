@@ -31,6 +31,8 @@ const states = [
   'ready', // fired when component instantiated, reactivity setup done and template spawned
   'focus', // fired when receiving focus (can occur multiple times)
   'unfocus', // fired when losing focus (can occur multiple times)
+  'hover', // fired when receiving focus (can occur multiple times)
+  'unhover', // fired when losing focus (can occur multiple times)
   'destroy', // fired when component is destroyed and removed
   'attach', // fired when entering the viewport margin and attached to the render tree
   'detach', // fired when leaving the viewport margin and detached from the render tree
@@ -90,6 +92,9 @@ export default {
           inspectorEnabled = Settings.get('inspector', false)
         }
       }
+      // update the built-in isHovered state variable
+      if (v === 'hover') this.component[symbols.state].isHovered = true
+      if (v === 'unhover') this.component[symbols.state].isHovered = false
       if (v === 'focus') {
         this.component[symbols.state].$hasFocus = true
         if (

@@ -43,6 +43,9 @@ const required = (name) => {
   throw new Error(`Parameter ${name} is required`)
 }
 
+// map that holds component to their holder node
+export const componentMap = new WeakMap()
+
 /**
  * @typedef {function} BlitsComponentFactory
  * @param {object} opts - The options for the component instance
@@ -217,6 +220,10 @@ const Component = (name = required('name'), config = required('config')) => {
     // such as rotation and scale to components)
     this[symbols.holder] = parentEl
 
+    if (parentEl !== undefined && parentEl.node !== undefined) {
+      componentMap.set(parentEl.node, this)
+    }
+
     // generate an internal id (simple counter)
     this[symbols.id] = createInternalId()
 
@@ -238,6 +245,9 @@ const Component = (name = required('name'), config = required('config')) => {
       (config.state && typeof config.state === 'function' && config.state.apply(this)) || {}
     // add $hasFocus key in
     this[symbols.originalState]['$hasFocus'] = false
+
+    // add isHovered key in
+    this[symbols.originalState]['isHovered'] = false
 
     // generate a reactive state (using the result of previously execute state function)
     // and store it
@@ -268,35 +278,59 @@ const Component = (name = required('name'), config = required('config')) => {
     this[symbols.slots] = this[symbols.children].filter((child) => child[symbols.isSlot])
 
     this[symbols.rendererEventListeners] = []
+
+    if (this[symbols.holder] !== undefined && Settings.get('inspector', false)) {
+      this[symbols.holder].setInspectorMetadata({ 'blits-hasFocus': false })
+    }
+
+    // setup inspector data for render state
+    if (name === 'App' && Settings.get('inspector', false)) {
+      this.$setTimeout(() => {
+        const wrapperEl = this[symbols.wrapper]
+        const idleCb = () => {
+          wrapperEl.setInspectorMetadata({ 'blits-renderState': 'idle' })
+        }
+        const activeCb = () => {
+          wrapperEl.setInspectorMetadata({ 'blits-renderState': 'active' })
+        }
+        renderer.on('idle', idleCb)
+        renderer.on('active', activeCb)
+        this[symbols.rendererEventListeners].push({ event: 'idle', cb: idleCb })
+        this[symbols.rendererEventListeners].push({ event: 'active', cb: activeCb })
+      })
+    }
+
     // register hooks if component has hooks specified
     if (config.hooks) {
-      // push to next tick to ensure
-      setTimeout(() => {
-        // frame tick event
-        if (config.hooks.frameTick) {
-          const cb = (r, data) => emit('frameTick', this[symbols.identifier], this, [data])
-          this[symbols.rendererEventListeners].push({ event: 'frameTick', cb })
-          renderer.on('frameTick', cb)
-        }
+      // frame tick event
+      if (config.hooks.frameTick) {
+        const cb = (_r, data) => emit('frameTick', this[symbols.identifier], this, [data])
+        renderer.on('frameTick', cb)
+        this[symbols.rendererEventListeners].push({ event: 'frameTick', cb })
+      }
 
-        // idle event
-        if (config.hooks.idle) {
-          const cb = () => {
-            emit('idle', this[symbols.identifier], this)
-          }
-          this[symbols.rendererEventListeners].push({ event: 'idle', cb })
-          renderer.on('idle', cb)
+      // idle event
+      if (config.hooks.idle) {
+        const idleCb = () => {
+          emit('idle', this[symbols.identifier], this, [true])
         }
+        const activeCb = () => {
+          emit('idle', this[symbols.identifier], this, [false])
+        }
+        renderer.on('idle', idleCb)
+        renderer.on('active', activeCb)
+        this[symbols.rendererEventListeners].push({ event: 'idle', cb: idleCb })
+        this[symbols.rendererEventListeners].push({ event: 'active', cb: activeCb })
+      }
 
-        // fpsUpdate event
-        if (config.hooks.fpsUpdate) {
-          const cb = (r, data) => {
-            emit('fpsUpdate', this[symbols.identifier], this, [data.fps])
-          }
-          this[symbols.rendererEventListeners].push({ event: 'fpsUpdate', cb })
-          renderer.on('fpsUpdate', cb)
+      // fpsUpdate event
+      if (config.hooks.fpsUpdate) {
+        const cb = (_r, data) => {
+          emit('fpsUpdate', this[symbols.identifier], this, [data.fps])
         }
-      })
+        renderer.on('fpsUpdate', cb)
+        this[symbols.rendererEventListeners].push({ event: 'fpsUpdate', cb })
+      }
 
       // inBounds event emiting a lifecycle attach event
       if (config.hooks.attach) {
