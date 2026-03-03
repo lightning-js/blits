@@ -16,8 +16,7 @@
  */
 
 import symbols from '../../lib/symbols.js'
-import Focus from '../../focus.js'
-import { keyUpCallbacks, getComponentWithInputEvent } from '../../focus.js'
+import { default as Focus, keyUpCallbacks, getComponentWithInputEvent } from '../../focus/focus.js'
 import eventListeners from '../../lib/eventListeners.js'
 import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'

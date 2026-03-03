@@ -63,6 +63,7 @@ Example font object:
 | `keymap`       | `object`  | Custom key mapping for input events |
 | `holdTimeout`  | `number`  | Time (ms) to consider a key press as hold |
 | `inputThrottle`| `number`  | Input throttle time (ms) to prevent rapid successive inputs |
+| `enableMouse`  | `boolean` | Enable mouse support (hover and click-to-focus). Defaults to false. |
 
 ## Renderer
 
@@ -116,5 +117,6 @@ Blits.Launch(App, 'app', {
   },
   inspector: false,
   announcer: true,
+  enableMouse: false, // set true for hover + click-to-focus on canvas
 })
 ```

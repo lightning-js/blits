@@ -21,7 +21,7 @@ import { reactive } from '../lib/reactivity/reactive.js'
 import symbols from '../lib/symbols.js'
 import { Log } from '../lib/log.js'
 import { stage } from '../launch.js'
-import Focus from '../focus.js'
+import Focus from '../focus/focus.js'
 import Announcer from '../announcer/announcer.js'
 import Settings from '../settings.js'
 
@@ -216,12 +216,17 @@ const defaultOptions = {
 }
 
 const makeRouteObject = (route, overrides) => {
+  // FIX: exclude keepAlive from the destination route options. Unlike other
+  // overrides, keepAlive applies to the route being LEFT, not the destination.
+  // It is consumed by removeView() instead.
+  const { keepAlive: _keepAlive, ...destOverrides } = overrideOptions // eslint-disable-line no-unused-vars
+
   const cleanRoute = {
     hash: overrides.hash,
     path: route.path,
     component: route.component,
     transition: 'transition' in route ? route.transition : fadeInFadeOutTransition,
-    options: { ...defaultOptions, ...route.options, ...overrideOptions },
+    options: { ...defaultOptions, ...route.options, ...destOverrides },
     announce: route.announce || false,
     hooks: route.hooks || {},
     data: { ...route.data, ...navigationData, ...overrides.queryParams },
@@ -350,8 +355,12 @@ export const navigate = async function () {
 
       // add the previous route (technically still the current route at this point)
       // into the history stack when inHistory is true and we're not navigating back
+      //
+      // FIX: use truthy check instead of `!== undefined` because matchHash()
+      // can return `false`, which survives `!== undefined` but has no `.options`.
       if (
-        previousRoute !== undefined &&
+        previousRoute &&
+        previousRoute.options &&
         previousRoute.options.inHistory === true &&
         navigatingBack === false
       ) {
@@ -493,7 +502,8 @@ export const navigate = async function () {
 
       // apply out out transition on previous view if available, unless
       // we're reusing the prvious page component
-      if (previousRoute !== undefined && reuse === false) {
+      // FIX: truthy guard — previousRoute can be `false` (see history-push comment above).
+      if (previousRoute && reuse === false) {
         // only animate when there is a previous route
         shouldAnimate = true
         const oldView = this[symbols.children].splice(1, 1).pop()
@@ -550,6 +560,12 @@ export const navigate = async function () {
     }
   }
 
+  // Clear module-level variables after removeView has consumed them.
+  // Placed here so it executes for all navigation flows, not only when
+  // previousRoute exists and reuse is false.
+  overrideOptions = {}
+  navigationData = {}
+
   // reset navigating indicators
   navigatingBack = false
   state.navigating = false
@@ -577,11 +593,18 @@ const removeView = async (route, view, transition, navigatingBack) => {
     }
   }
 
+  // Resolve effective keepAlive: runtime override from $router.to() takes precedence
+  // over the static route config option
+  const keepAlive =
+    overrideOptions.keepAlive !== undefined
+      ? overrideOptions.keepAlive
+      : route.options && route.options.keepAlive
+
   // cache the page when it's as 'keepAlive' instead of destroying
   if (
     navigatingBack === false &&
     route.options &&
-    route.options.keepAlive === true &&
+    keepAlive === true &&
     route.options.inHistory === true
   ) {
     const historyItem = history[history.length - 1]
@@ -596,7 +619,7 @@ const removeView = async (route, view, transition, navigatingBack) => {
    * 2. Navigating back, and the previous route is configured with "keep alive" set to true.
    * 3. Navigating back, and the previous route is not configured with "keep alive" set to true.
    */
-  if (route.options && (route.options.keepAlive !== true || navigatingBack === true)) {
+  if (route.options && (keepAlive !== true || navigatingBack === true)) {
     view.destroy()
     view = null
   }

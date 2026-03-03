@@ -15,12 +15,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import Component from './component.js'
-import { default as Focus, keyUpCallbacks } from './focus.js'
-import Settings from './settings.js'
+import { default as Component, componentMap } from './component.js'
+import { default as Focus, keyUpCallbacks } from './focus/focus.js'
+import Hover from './focus/hover.js'
 
+import Settings from './settings.js'
 import symbols from './lib/symbols.js'
 import { DEFAULT_HOLD_TIMEOUT_MS, DEFAULT_KEYMAP } from './constants.js'
+import { renderer } from './launch.js'
 
 /**
  * Merged keyMap (default + custom settings).
@@ -34,13 +36,24 @@ const Application = (config) => {
 
   let keyDownHandler
   let keyUpHandler
+  let mouseMoveHandler
+  let mouseClickHandler
+  let updateCanvasRect
   let holdTimeout
   let lastInputTime = 0
   let lastInputKey = null
+  let mouseListenersAdded = false
 
   config.hooks[symbols.destroy] = function () {
     document.removeEventListener('keydown', keyDownHandler)
     document.removeEventListener('keyup', keyUpHandler)
+    if (mouseListenersAdded) {
+      document.removeEventListener('mousemove', mouseMoveHandler)
+      document.removeEventListener('click', mouseClickHandler)
+      window.removeEventListener('resize', updateCanvasRect)
+      window.removeEventListener('scroll', updateCanvasRect)
+      Hover.clear()
+    }
   }
 
   config.hooks[symbols.init] = function () {
@@ -56,6 +69,8 @@ const Application = (config) => {
 
     /** @type {number} Input throttle time in milliseconds (0 = disabled) */
     const throttleMs = Settings.get('inputThrottle', 0)
+
+    const mouseEnabled = Settings.get('enableMouse', false)
 
     keyDownHandler = async (e) => {
       const currentTime = performance.now()
@@ -89,6 +104,7 @@ const Application = (config) => {
       }
 
       Focus.input(key, e)
+      if (mouseEnabled === true) Hover.clear()
       clearTimeout(holdTimeout)
       holdTimeout = setTimeout(
         () => {
@@ -108,8 +124,84 @@ const Application = (config) => {
       Focus.hold = false
     }
 
+    let lastMoved = 0
+    let currentNode = undefined
+    let currentComponent = undefined
+    let canvasRect = null
+
+    updateCanvasRect = () => {
+      if (renderer.canvas !== undefined) {
+        canvasRect = renderer.canvas.getBoundingClientRect()
+      }
+    }
+
+    // limit the amount of move events per time frame
+    mouseMoveHandler = (e) => {
+      if (e.timeStamp - lastMoved < 100) return
+      lastMoved = e.timeStamp
+
+      this.$emit('mouse::move', e)
+
+      if (canvasRect === null && renderer.canvas != null) {
+        updateCanvasRect()
+      }
+      if (canvasRect === null) {
+        return
+      }
+
+      const stage = renderer.stage
+      if (stage == null) {
+        return
+      }
+
+      // Convert viewport → canvas display coordinates
+      const x = e.clientX - canvasRect.left
+      const y = e.clientY - canvasRect.top
+
+      const node = stage.getNodeFromPosition({ x, y })
+
+      if (node === null) {
+        currentComponent = undefined
+        Hover.clear()
+        return
+      }
+      if (node === currentNode) return
+
+      currentNode = node
+      currentComponent = componentMap.get(currentNode)
+
+      if (currentComponent === undefined) {
+        Hover.clear()
+        return
+      }
+      Hover.set(currentComponent)
+    }
+
+    mouseClickHandler = () => {
+      if (currentComponent === undefined || currentComponent.eol === true) return
+
+      const e = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        code: 'Enter',
+        keyCode: 13,
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+      })
+      currentComponent.$focus()
+      currentComponent.$input(e)
+    }
+
     document.addEventListener('keydown', keyDownHandler)
     document.addEventListener('keyup', keyUpHandler)
+    if (mouseEnabled === true) {
+      updateCanvasRect()
+      document.addEventListener('mousemove', mouseMoveHandler)
+      document.addEventListener('click', mouseClickHandler)
+      window.addEventListener('resize', updateCanvasRect)
+      window.addEventListener('scroll', updateCanvasRect)
+      mouseListenersAdded = true
+    }
 
     // next tick
     setTimeout(() => Focus.set(this))

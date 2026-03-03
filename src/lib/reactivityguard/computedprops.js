@@ -195,7 +195,7 @@ export default (code) => {
           if (thisRefs.size > 0) {
             // Skip if already modified
             if (
-              prop.body.includes(commentText) ||
+              prop.body.includes(commentText.trim()) ||
               Array.from(thisRefs).some((ref) => prop.body.startsWith(ref))
             ) {
               continue

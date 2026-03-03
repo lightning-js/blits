@@ -174,6 +174,8 @@ declare module '@lightningjs/blits' {
     * Fires when the Component is being destroyed and removed.
     */
     destroy?: () => void;
+    hover?: () => void;
+    unhover?: () => void;
     /**
     * Fires upon each frame start  (allowing you to tap directly into the renderloop)
     *
@@ -205,11 +207,14 @@ declare module '@lightningjs/blits' {
     */
     exit?: () => void;
     /**
-    * Fires when the renderer is done rendering and enters an idle state
+    * Fires when the renderer is done rendering and enters an idle state (idle = true)
+    * and when the renderer starts rendering again and leaves the idle state (idle = false)
+    *
+    * @param idle - boolean to indicate whether the renderer is in idle state or not
     *
     * Note: This event can fire multiple times
     */
-    idle?: () => void;
+    idle?: (idle: boolean) => void;
     /**
     * Fires at a predefined interval and reports the current FPS value
     *
@@ -394,6 +399,13 @@ declare module '@lightningjs/blits' {
     * @returns Boolean
     */
     readonly $hasFocus: boolean,
+
+    /**
+    * Indicates whether the component currently is hovered
+    *
+    * @returns Boolean
+    */
+    isHovered: boolean,
 
     /**
     * Listen to events emitted by other components
@@ -653,9 +665,9 @@ declare module '@lightningjs/blits' {
 
   export interface RouterHooks {
     init?: () => Promise<void> | void;
-    beforeEach?: (to: Route, from: Route) => string | Route | Promise<string | Route> | void;
-    afterEach?: (to: Route, from: Route) => string | Route | Promise<string | Route> | void;
-    error?: (err: string) => string | Route | Promise<string | Route> | void;
+    beforeEach?: (to: Route, from: Route) => string | Route | void | boolean | Promise<string | Route | void | boolean>;
+    afterEach?: (to: Route, from: Route) => string | Route | void | boolean | Promise<string | Route | void | boolean>;
+    error?: (err: string) => string | Route | void | boolean | Promise<string | Route | void | boolean>;
   }
 
   export interface RouterConfig<P extends Props, S, M, C> {
@@ -681,13 +693,13 @@ declare module '@lightningjs/blits' {
 
     /**
      * Enable or disable RouterView history navigation on Back input
-     * 
+     *
      * @default true
-     * 
+     *
      * @remarks
      * This is an app-wide setting that affects all RouterView instances in your application.
      * The router state is global and shared across all router instances.
-     * 
+     *
      * @example
      * ```js
      * router: {
@@ -796,8 +808,8 @@ declare module '@lightningjs/blits' {
   }[keyof T]
 
   export interface RouteHooks {
-    before?: (to: Route, from: Route) => string | Route | Promise<string | Route>;
-    after?: (to: Route, from: Route) => string | Route | Promise<string | Route>;
+    before?: (to: Route, from: Route) => string | Route | void | boolean | Promise<string | Route | void | boolean>;
+    after?: (to: Route, from: Route) => string | Route | void | boolean | Promise<string | Route | void | boolean>;
   }
 
   export type Route = {
@@ -1221,6 +1233,16 @@ declare module '@lightningjs/blits' {
      * ```
      */
     announcerOptions?: AnnouncerUtteranceOptions,
+    /**
+     * Enable mouse support (hover and click-to-focus).
+     *
+     * When set to `true`, pointer movement over the canvas updates hover state on components
+     * and click dispatches focus and Enter key input to the component under the cursor.
+     * When set to `false`, no mouse or pointer listeners are registered.
+     *
+     * @default false
+     */
+    enableMouse?: boolean,
     /**
      * Maximum FPS at which the App will be rendered
      *
