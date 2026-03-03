@@ -45,6 +45,9 @@ const Application = (config) => {
   let mouseListenersAdded = false
 
   config.hooks[symbols.destroy] = function () {
+    // Cancel pending key-hold timeout and reset hold state so focus is not left in hold mode after teardown
+    clearTimeout(holdTimeout)
+    Focus.hold = false
     document.removeEventListener('keydown', keyDownHandler)
     document.removeEventListener('keyup', keyUpHandler)
     if (mouseListenersAdded) {
