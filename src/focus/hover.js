@@ -17,7 +17,7 @@
 
 import { Log } from '../lib/log.js'
 import { getAncestors } from './helpers.js'
-import symbols from 'src/lib/symbols.js'
+import symbols from '../lib/symbols.js'
 
 let hoveredComponent = null
 let hoverChain = []
