@@ -267,7 +267,11 @@ export const navigate = async function () {
         const hooks = this[symbols.parent][symbols.routerHooks]
         if (hooks.beforeEach) {
           try {
-            beforeEachResult = await hooks.beforeEach.call(this.parent, route, previousRoute)
+            beforeEachResult = await hooks.beforeEach.call(
+              this[symbols.parent],
+              route,
+              previousRoute
+            )
             if (isString(beforeEachResult)) {
               currentRoute = previousRoute
               to(beforeEachResult)
@@ -308,7 +312,11 @@ export const navigate = async function () {
       let beforeHookOutput
       if (route.hooks.before) {
         try {
-          beforeHookOutput = await route.hooks.before.call(this.parent, route, previousRoute)
+          beforeHookOutput = await route.hooks.before.call(
+            this[symbols.parent],
+            route,
+            previousRoute
+          )
           if (isString(beforeHookOutput)) {
             currentRoute = previousRoute
             to(beforeHookOutput)
@@ -522,7 +530,7 @@ export const navigate = async function () {
         if (hooks.afterEach) {
           try {
             await hooks.afterEach.call(
-              this.parent,
+              this[symbols.parent],
               route, // to
               previousRoute // from
             )
@@ -535,7 +543,7 @@ export const navigate = async function () {
       if (route.hooks.after) {
         try {
           await route.hooks.after.call(
-            this.parent,
+            this[symbols.parent],
             route, // to
             previousRoute // from
           )
@@ -641,11 +649,11 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
   })
 }
 
-export const to = (location, data = {}, options = {}) => {
+export const to = (path, data = {}, options = {}) => {
   navigationData = data
   overrideOptions = options
 
-  window.location.hash = location
+  location.hash = path.replace(/^#/, '')
 }
 
 export const back = function () {
