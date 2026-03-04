@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.51.0
+
+_04 mar 2026_
+
+- Fixed wrong message from being interrupted in announcer
+- Added `@loaded` and `@error` callbacks to Sprites
+
 ## v1.50.0
 
 _27 feb 2026_
