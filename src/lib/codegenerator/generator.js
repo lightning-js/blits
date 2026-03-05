@@ -664,11 +664,21 @@ const generateForLoopCode = function (templateObject, parent) {
   const forEndCounter = counter
 
   for (let i = forStartCounter; i <= forEndCounter; i++) {
-    destroyCode.push(`
+    if (i == forStartCounter) {
+      destroyCode.push(`
         elms[${i}][key] && elms[${i}][key].destroy()
         elms[${i}][key] = null
         delete elms[${i}][key]
     `)
+    } else {
+      destroyCode.push(`
+        if (elms[${i}][key] && elms[${i}][key].$componentId !== undefined) {
+          elms[${i}][key] && elms[${i}][key].destroy()
+        }
+        elms[${i}][key] = null
+        delete elms[${i}][key]
+      `)
+    }
   }
   destroyCode.push(`
       }
