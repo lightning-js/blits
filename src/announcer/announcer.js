@@ -149,9 +149,11 @@ const processQueue = async () => {
           processQueue()
         })
         .catch((e) => {
-          currentId = null
-          currentResolveFn = null
-          isProcessing = false
+          if (id === currentId) {
+            currentId = null
+            currentResolveFn = null
+            isProcessing = false
+          }
           Log.debug(`Announcer - error ("${e.error}") while speaking: "${message}" (id: ${id})`)
           resolveFn(e.error)
           processQueue()
