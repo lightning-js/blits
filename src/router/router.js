@@ -618,11 +618,10 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
   })
 }
 
-export const to = (location, data = {}, options = {}) => {
+export const to = (path, data = {}, options = {}) => {
   navigationData = data
   overrideOptions = options
-
-  location.hash = location
+  window.location.hash = path.replace(/^#/, '')
 }
 
 export const back = function () {
