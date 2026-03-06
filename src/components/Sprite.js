@@ -32,12 +32,41 @@ export default () =>
       rounded: undefined,
       border: undefined,
       shadow: undefined,
+      '@loaded': undefined,
+      '@error': undefined,
     },
     state() {
       return {
         spriteTexture: null,
         currentSrc: null,
       }
+    },
+
+    hooks: {
+      ready() {
+        const loaded = this['@loaded']
+        if (loaded && typeof loaded === 'function') {
+          const cb = (payload) => loaded({ w: payload?.w, h: payload?.h }, this[symbols.wrapper])
+          this._loadedCb = cb
+          if (this.spriteTexture !== undefined && this.spriteTexture !== null) {
+            this.spriteTexture.on('loaded', cb)
+          }
+        }
+        const error = this['@error']
+        if (error && typeof error === 'function') {
+          const cb = (payload) => error(payload, this[symbols.wrapper])
+          this._failedCb = cb
+          if (this.spriteTexture !== undefined && this.spriteTexture !== null) {
+            this.spriteTexture.on('failed', cb)
+          }
+        }
+      },
+      destroy() {
+        if (this.spriteTexture !== undefined && this.spriteTexture !== null) {
+          if (this._loadedCb) this.spriteTexture.off('loaded', this._loadedCb)
+          if (this._failedCb) this.spriteTexture.off('failed', this._failedCb)
+        }
+      },
     },
 
     computed: {
@@ -59,10 +88,17 @@ export default () =>
           this.spriteTexture === null ||
           this.currentSrc !== this.image
         ) {
+          const prevTexture = this.spriteTexture
+          if (prevTexture !== undefined && prevTexture !== null) {
+            if (this._loadedCb) prevTexture.off('loaded', this._loadedCb)
+            if (this._failedCb) prevTexture.off('failed', this._failedCb)
+          }
           this.spriteTexture = renderer.createTexture('ImageTexture', {
             src: this.image,
           })
           this.currentSrc = this.image
+          if (this._loadedCb) this.spriteTexture.on('loaded', this._loadedCb)
+          if (this._failedCb) this.spriteTexture.on('failed', this._failedCb)
         }
 
         // Resolve frame data from sprite map
