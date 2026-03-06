@@ -32,12 +32,32 @@ export default () =>
       rounded: undefined,
       border: undefined,
       shadow: undefined,
+      '@loaded': undefined,
+      '@error': undefined,
     },
     state() {
       return {
         spriteTexture: null,
         currentSrc: null,
       }
+    },
+
+    hooks: {
+      ready() {
+        const loaded = this['@loaded']
+        if (loaded && typeof loaded === 'function') {
+          this.spriteTexture.on('loaded', ({ _type, dimensions }) => {
+            loaded({ w: dimensions.width, h: dimensions.height }, this[symbols.wrapper])
+          })
+        }
+
+        const error = this['@error']
+        if (error && typeof error === 'function') {
+          this.spriteTexture.on('failed', ({ _type, dimensions }) => {
+            error({ w: dimensions.width, h: dimensions.height }, this[symbols.wrapper])
+          })
+        }
+      },
     },
 
     computed: {
