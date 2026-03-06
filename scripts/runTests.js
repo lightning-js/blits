@@ -29,7 +29,18 @@ const excludeTestFiles = []
 // For testing and debugging purposes only - leave empty to run all tests
 // When populated, ONLY these test files will run (matches partial file paths)
 /** @type {string[]} */
-const includeOnlyTestFiles = []
+const manualIncludeOnlyTestFiles = []
+
+/** @type {string[]} */
+const cliIncludeOnlyTestFiles = process.argv
+  .slice(2)
+  .map((value) => value.trim())
+  .filter(Boolean)
+
+console.log(`CLI includeOnly patterns: ${cliIncludeOnlyTestFiles.join(', ')}`)
+
+/** @type {string[]} */
+const includeOnlyTestFiles = [...manualIncludeOnlyTestFiles, ...cliIncludeOnlyTestFiles]
 
 try {
   // Find all *.test.js files excluding node_modules and packages
@@ -43,6 +54,7 @@ try {
   // If includeOnly is specified, filter to only those files (for debugging)
   // When includeOnly is set, exclude filters are ignored
   if (includeOnlyTestFiles.length > 0) {
+    console.log(`Applying includeOnly patterns from CLI: ${includeOnlyTestFiles.join(', ')}`)
     testFiles = testFiles.filter((file) => {
       const normalizedPath = file.replace(/\\/g, '/')
       return includeOnlyTestFiles.some((pattern) => normalizedPath.includes(pattern))
