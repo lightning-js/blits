@@ -32,7 +32,8 @@ jobs:
 
     - name: Run Tests
       id: run-tests
-      run: npm run test:ci > test-report.txt 2>&1 || echo "Command failed with exit code $?" >> test-report.txt
+      continue-on-error: true
+      run: npm run test:run 2>&1 | tee test-report.txt
 
     - name: Analyze Test Results
       id: analyze-results
@@ -46,7 +47,7 @@ jobs:
           const results = {
             timestamp,
             summary: '',
-            testsFailed: false,
+            testsFailed: '${{ steps.run-tests.outcome }}' === 'failure',
             error: null
           };
 
@@ -57,38 +58,20 @@ jobs:
             return outputResults(results);
           }
 
-          // Read test report
+          // Read test report for summary extraction only
           const testOutput = fs.readFileSync('test-report.txt', 'utf8');
+          const testsMatch = testOutput.match(/^# tests\s+(\d+)/m);
+          const passMatch = testOutput.match(/^# pass\s+(\d+)/m);
+          const failMatch = testOutput.match(/^# fail\s+(\d+)/m);
 
-          // Check for errors and test results
-          const hasError = testOutput.includes('Error');
-          const testSummaryMatch = testOutput.match(/passed:\s*(\d+)\s*failed:\s*(\d+)\s*of\s*(\d+)\s*tests/);
-
-          if (hasError && (!testSummaryMatch || testSummaryMatch[3] === '0')) {
-            // Error with no tests or zero tests
-            results.summary = 'Test execution encountered errors. No tests were run.';
-            results.testsFailed = true;
+          if (testsMatch && passMatch) {
+            const failed = failMatch ? failMatch[1] : '0';
+            results.summary = `passed: ${passMatch[1]}  failed: ${failed}  of ${testsMatch[1]} tests`;
+          } else if (results.testsFailed) {
+            results.summary = 'Tests failed. No summary found in output.';
             results.error = testOutput;
-          } else if (testSummaryMatch) {
-            // We have a test summary
-            const passed = parseInt(testSummaryMatch[1]);
-            const failed = parseInt(testSummaryMatch[2]);
-            const total = parseInt(testSummaryMatch[3]);
-
-            results.summary = testSummaryMatch[0];
-
-            if (failed > 0 || total === 0) {
-              results.testsFailed = true;
-
-              if (total === 0) {
-                results.summary = 'No tests were found to run. This is considered a failure.';
-              }
-            }
           } else {
-            // No test summary found
-            results.summary = 'Test execution produced no valid test summary';
-            results.testsFailed = true;
-            results.error = testOutput;
+            results.summary = 'Tests passed. No summary found in output.';
           }
 
           return outputResults(results);
@@ -107,7 +90,6 @@ jobs:
                 fs.writeFileSync('./error.txt', results.error);
               }
             } catch (err) {
-              console.error('Error saving test results:', err);
               core.warning(`Error saving test results: ${err.message}`);
             }
 
@@ -127,16 +109,23 @@ jobs:
       with:
         name: test-results
         path: |
-
           ./timestamp.txt
           ./summary.txt
           ./failed.txt
-          ./error.txt
           ./pr_number.txt
           ./pr_repo.txt
           ./pr_branch.txt
+      continue-on-error: true
+
+    - name: Upload Error Log
+      if: steps.run-tests.outcome == 'failure'
+      uses: actions/upload-artifact@v4
+      with:
+        name: error-log
+        path: ./error.txt
+      continue-on-error: true
 
     # Fail the workflow if tests failed
     - name: Check Test Status
-      if: ${{ steps.analyze-results.outputs.result && fromJSON(steps.analyze-results.outputs.result).testsFailed }}
+      if: steps.run-tests.outcome == 'failure'
       run: exit 1

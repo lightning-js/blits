@@ -33,9 +33,8 @@
     "./components": "./src/components/FPScounter.js"
   },
   "scripts": {
-    "test": "c8 node scripts/runTests.js",
-    "test:ci": "c8 npm run test:run",
-    "test:run": "node -r global-jsdom/register ./node_modules/.bin/tape '{,!(node_modules|packages)/**/}*.test.js' | tap-diff",
+    "test": "c8 npm run test:run | tap-diff",
+    "test:run": "node -r global-jsdom/register node_modules/tape/bin/tape \"scripts/**/*.test.js\" \"src/**/*.test.js\"",
     "lint": "node scripts/lint.js",
     "lint:fix": "node scripts/lint.js fix",
     "prepublishOnly": "node scripts/prepublishOnly.js",
