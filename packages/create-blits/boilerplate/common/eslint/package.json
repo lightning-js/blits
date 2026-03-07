@@ -1,6 +1,7 @@
 {
   "lint-staged": {
-    "*.js": [
+    "*.?(c|m)[jt]s": [
+      "prettier --write",
       "eslint --fix"
     ]
   },

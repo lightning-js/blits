@@ -5,11 +5,12 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "npm run dev",
-    "lint": "eslint '**/*.js'",
-    "lint:fix": "eslint '**/*.js' --fix",
     "build": "vite build",
-    "dev": "vite dev --host"
+    "dev": "vite dev --host",
+    "format": "prettier --write .",
+    "lint": "eslint '**/*.?(c|m)[jt]s'",
+    "lint:fix": "eslint '**/*.?(c|m)[jt]s' --fix",
+    "start": "npm run dev"
   },
   "devDependencies": {
     "vite": "^5.4.8",

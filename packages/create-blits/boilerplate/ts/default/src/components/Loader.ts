@@ -1,6 +1,5 @@
 import Blits from '@lightningjs/blits'
 
-
 export default Blits.Component('Loader', {
   template: `
     <Element>
