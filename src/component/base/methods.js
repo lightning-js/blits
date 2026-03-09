@@ -42,6 +42,9 @@ export default {
      * @this {import('../../component').BlitsComponent}
      */
     value: function (e) {
+      // early exit when component is marked as end of life
+      if (this.eol === true) return
+
       // force refocus when the component is already in focused state
       if (this.lifecycle.state === 'focus') {
         this.lifecycle.state = 'refocus'
@@ -60,6 +63,9 @@ export default {
      * @returns {boolean} - Returns true if this component or a parent component handled the event, false otherwise
      */
     value: function (event) {
+      // early exit when component is marked as end of life
+      if (this.eol === true) return
+
       if (event === null || event === undefined || event instanceof KeyboardEvent === false)
         return false
 
@@ -92,6 +98,9 @@ export default {
      * @this {import('../../component').BlitsComponent}
      */
     value: function () {
+      // early exit when component is marked as end of life
+      if (this.eol === true) return
+
       this[symbols.state].hasFocus = false
       this.lifecycle.state = 'unfocus'
     },
@@ -246,6 +255,9 @@ export default {
      * @this {import('../../component').BlitsComponent}
      */
     value: function (key) {
+      // early exit when component is marked as end of life
+      if (this.eol === true) return
+
       let target = this[symbols.originalState]
       // when dot notation used, find the nested target
       if (key.indexOf('.') > -1) {
