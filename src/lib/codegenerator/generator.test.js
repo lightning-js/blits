@@ -4372,7 +4372,9 @@ test('Generate code for a template with a simple for-loop on a Component with a 
               elms[1][key] && elms[1][key].destroy()
               elms[1][key] = null
               delete elms[1][key]
-              elms[2][key] && elms[2][key].destroy()
+              if (elms[2][key] && elms[2][key].$componentId !== undefined) {
+                elms[2][key] && elms[2][key].destroy()
+              }
               elms[2][key] = null
               delete elms[2][key]
             }

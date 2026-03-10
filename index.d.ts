@@ -401,6 +401,11 @@ declare module '@lightningjs/blits' {
     readonly $hasFocus: boolean,
 
     /**
+     * Parent component instance. Undefined for the root Application component or after destroy.
+     */
+    readonly $parent: ComponentBase | null | undefined,
+
+    /**
     * Indicates whether the component currently is hovered
     *
     * @returns Boolean
