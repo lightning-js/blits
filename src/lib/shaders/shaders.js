@@ -83,7 +83,34 @@ const parseRounded = (rounded, props = {}) => {
   }
 }
 
+const parse = {
+  border: (v, prefixed) => {
+    const props = typeof v === 'object' ? v : {}
+    parseBorder(v, props, prefixed)
+    return props
+  },
+  shadow: (v, prefixed) => {
+    const props = typeof v === 'object' ? v : {}
+    parseShadow(v, props, prefixed)
+    return props
+  },
+  rounded: (v) => {
+    const props = typeof v === 'object' ? v : {}
+    parseRounded(v, props)
+    return props
+  },
+  shader: (v) => {
+    //@ts-ignore
+    this.parseProps(v)
+    return {}
+  },
+}
+
 export default {
+  parsableProps: ['border', 'shadow', 'rounded', 'shader'],
+  parseToAnimationProps(shaderType, targetProp, v) {
+    return parse[targetProp].call(this, shaderType.startsWith('rounded'), v)
+  },
   createElementProps(v) {
     let { border, shadow, rounded } = v
     const props = {}

@@ -719,7 +719,15 @@ const Element = {
     if (this.node[prop] === value) return
 
     const props = {}
-    props[prop] = value
+    if (shaders.parsableProps.indexOf(prop) !== -1) {
+      props.shaderProps = shaders.parseToAnimationProps(
+        this.node.shader.shaderKey,
+        prop,
+        value.value || value
+      )
+    } else {
+      props[prop] = value
+    }
 
     // construct animate function
     const f = this.node.animate(props, {
