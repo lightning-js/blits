@@ -16,9 +16,9 @@ The following lifecycle events are available in Blits components.
 
 - **unfocus()**: The `unfocus` event fires whenever the component instance loses focus. Similar to the `focus` event, it can occur multiple times during the component's lifecycle. After the `unfocus`-hooks is invoked, the built-in state variable `$hasFocus` is set to the default value `false`.
 
-- **hover()**: This event fires when the pointer enters the component (mouse support only). When [mouse support](./mouse_support.md) is enabled, the built-in state variable `isHovered` is set to `true`. You can use `$isHovered` in your template.
+- **hover()**: This event fires when the pointer enters the component (mouse support only). When [mouse support](./mouse_support.md) is enabled, the built-in state variable `$isHovered` is set to `true`. You can use `$$isHovered` in your template (or `this.$isHovered` in JavaScript).
 
-- **unhover()**: This event fires when the pointer leaves the component (mouse support only). After the `unhover`-hook is invoked, the built-in state variable `isHovered` is set to `false`.
+- **unhover()**: This event fires when the pointer leaves the component (mouse support only). After the `unhover`-hook is invoked, the built-in state variable `$isHovered` is set to `false`.
 
 - **destroy()**: The `destroy` event fires when the component is being destroyed and removed. This event provides an opportunity to perform any custom cleanup operations before the component is removed.
 

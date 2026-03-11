@@ -19,7 +19,7 @@ Blits.Launch(App, document.getElementById('app'), {
 
 When `enableMouse` is `true`:
 
-- **Hover:** Moving the pointer over the canvas updates which component is hovered. Components receive the `hover` and `unhover` lifecycle events and the built-in `isHovered` state.
+- **Hover:** Moving the pointer over the canvas updates which component is hovered. Components receive the `hover` and `unhover` lifecycle events and the built-in `$isHovered` state.
 - **Click:** A click focuses the component under the cursor and dispatches an **Enter** key event to it, so your existing `input.enter` handlers run.
 
 When `enableMouse` is `false` (the default), no mouse or pointer listeners are added.
@@ -29,15 +29,15 @@ When `enableMouse` is `false` (the default), no mouse or pointer listeners are a
 When the pointer moves over the canvas, Blits hit-tests the scene and sets the hovered component. Only one component is hovered at a time (the leaf under the cursor). Move events are throttled (about once every 100ms) to limit updates. When the pointer moves off the canvas or over empty space, hover is cleared.
 
 - **Lifecycle:** The component (and its ancestors along the hover chain) receive a `hover` event when the pointer enters, and `unhover` when it leaves or moves to another component. These are lifecycle hooks; you can define `hover()` and `unhover()` in the `hooks` key of your component config.
-- **State:** Each component has a built-in reactive property `isHovered` — `true` while that component is hovered, `false` otherwise. You can use `$isHovered` in your template.
+- **State:** Each component has a built-in reactive property `$isHovered` — `true` while that component is hovered, `false` otherwise. In JavaScript use `this.$isHovered`; in your template use `$$isHovered`.
 
-**Note:** The `hover` and `unhover` hooks and the `isHovered` state only apply when `enableMouse` is `true`. Use a regular function (not an arrow function) in your hooks if you need to access the component's `this` scope.
+**Note:** The `hover` and `unhover` hooks and the `$isHovered` state only apply when `enableMouse` is `true`. Use a regular function (not an arrow function) in your hooks if you need to access the component's `this` scope.
 
 ```js
 export default Blits.Component('Card', {
   template: `
     <Element
-      :color="$isHovered ? 0x4488ff : 0x222222"
+      :color="$$isHovered ? 0x4488ff : 0x222222"
     />
   `,
   state() {
@@ -112,7 +112,7 @@ export default Blits.Application({
 | Topic | Description |
 |-------|-------------|
 | Enable | Set `enableMouse: true` in the object passed to `Blits.Launch()` (e.g. in `src/index.js`). |
-| Hover | Pointer over canvas updates hovered component; use `hooks.hover()` / `hooks.unhover()` and `$isHovered` in templates. |
+| Hover | Pointer over canvas updates hovered component; use `hooks.hover()` / `hooks.unhover()` and `$$isHovered` in templates. |
 | Click | Click focuses the component under the cursor and sends an Enter key event (same as `input.enter`). |
 | Keyboard | Any key press clears hover; focus and key handling are unchanged. |
 | App event | Listen for `mouse::move` on the Application to react to pointer movement (e.g. custom cursor). |
