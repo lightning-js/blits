@@ -37,7 +37,7 @@ export default (component, state = () => {}) => {
     stateKeys.push('$hasFocus')
   }
   // add built-in isHovered key
-  stateKeys.push(['isHovered'])
+  stateKeys.push(['$isHovered'])
   const stateKeysLength = stateKeys.length
 
   for (let i = 0; i < stateKeysLength; i++) {

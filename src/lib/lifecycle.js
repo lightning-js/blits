@@ -93,8 +93,8 @@ export default {
         }
       }
       // update the built-in isHovered state variable
-      if (v === 'hover') this.component[symbols.state].isHovered = true
-      if (v === 'unhover') this.component[symbols.state].isHovered = false
+      if (v === 'hover') this.component[symbols.state].$isHovered = true
+      if (v === 'unhover') this.component[symbols.state].$isHovered = false
       if (v === 'focus') {
         this.component[symbols.state].$hasFocus = true
         if (

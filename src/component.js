@@ -246,8 +246,8 @@ const Component = (name = required('name'), config = required('config')) => {
     // add $hasFocus key in
     this[symbols.originalState]['$hasFocus'] = false
 
-    // add isHovered key in
-    this[symbols.originalState]['isHovered'] = false
+    // add $isHovered key in
+    this[symbols.originalState]['$isHovered'] = false
 
     // generate a reactive state (using the result of previously execute state function)
     // and store it

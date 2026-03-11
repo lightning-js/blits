@@ -410,7 +410,7 @@ declare module '@lightningjs/blits' {
     *
     * @returns Boolean
     */
-    isHovered: boolean,
+    $isHovered: boolean,
 
     /**
     * Listen to events emitted by other components
