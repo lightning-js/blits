@@ -16,6 +16,7 @@
   - [Watchers](/components/watchers.md)
   - [Hooking into lifecycle events](/components/lifecycle_events.md)
   - [Handling User input](/components/user_input.md)
+  - [Mouse support](/components/mouse_support.md)
   - [Methods](/components/methods.md)
   - [Utility methods](/components/utility_methods.md)
 - Transitions and Animations
