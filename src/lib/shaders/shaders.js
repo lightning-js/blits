@@ -109,7 +109,7 @@ const parse = {
 export default {
   parsableProps: ['border', 'shadow', 'rounded', 'shader'],
   parseToAnimationProps(shaderType, targetProp, v) {
-    return parse[targetProp].call(this, shaderType.startsWith('rounded'), v)
+    return parse[targetProp].call(this, v, shaderType.startsWith('rounded'))
   },
   createElementProps(v) {
     let { border, shadow, rounded } = v
