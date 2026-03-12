@@ -645,7 +645,7 @@ declare module '@lightningjs/blits' {
      * }
      * ```
      */
-    state?: (this: InferProps<P>) => S;
+    state?: (this: Readonly<InferProps<P>> & ComponentBase) => S;
     /**
      * Methods for abstracting more complex business logic into separate function
      */
