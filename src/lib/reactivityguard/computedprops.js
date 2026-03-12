@@ -293,24 +293,38 @@ export default (code) => {
 const extractThisReferences = (funcBody) => {
   const thisRefs = new Set()
 
-  // Find all this.X references, but exclude method calls
-  const refRegex = /this\.\w+(?!\s*\()/g // matches this.X but not this.X() or this.X.Y()
+  // Match full property chains, including optional chaining
+  const refRegex = /this(?:\.[$\w]+|\?\.[$\w]+)+/g
   let refMatch
 
   while ((refMatch = refRegex.exec(funcBody)) !== null) {
     const fullRef = refMatch[0]
 
-    // Extract just the variable part (this.X)
-    // We need to avoid method calls or chained methods
-    const varRef = fullRef.split('.').slice(0, 2).join('.')
+    const segmentRegex = /(\??\.)([$\w]+)/g
+    let segMatch
+    let lastValidRef = 'this'
 
-    // Don't add if it's part of a method call
-    if (
-      !funcBody
-        .substring(refMatch.index)
-        .match(new RegExp(`^${varRef.replace(/\./g, '\\.')}\\s*\\(`))
-    ) {
-      thisRefs.add(varRef)
+    while ((segMatch = segmentRegex.exec(fullRef.substring(4))) !== null) {
+      const candidate = 'this' + fullRef.substring(4, 4 + segMatch.index + segMatch[0].length)
+      const afterCandidate = funcBody.substring(refMatch.index + candidate.length)
+      if (afterCandidate.match(/^\s*\(/)) {
+        break
+      }
+      lastValidRef = candidate
+    }
+
+    if (lastValidRef !== 'this') {
+      thisRefs.add(lastValidRef)
+    }
+  }
+
+  // Remove shorter prefixes when a longer chain already covers them
+  for (const ref of [...thisRefs]) {
+    for (const other of thisRefs) {
+      if (other !== ref && other.startsWith(ref + '.')) {
+        thisRefs.delete(ref)
+        break
+      }
     }
   }
 
