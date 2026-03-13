@@ -102,9 +102,3 @@ export default Blits.Application({
   },
 })
 ```
-
-## Requirements and notes
-
-- **Renderer:** Mouse hit-testing uses the Lightning renderer's `stage.getNodeFromPosition()`. The canvas must be in the DOM; Blits listens to `resize` and `scroll` when mouse is enabled to keep the canvas rect up to date.
-- **No touch events:** Only mouse events are wired; touch is not translated to hover or click in this implementation.
-- **Destroyed components:** Hover and click ignore components that are end-of-life or destroyed.
