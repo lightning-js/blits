@@ -62,8 +62,8 @@ function processFile(filePath) {
   const newSource = typeof result === 'object' && result.code ? result.code : result
   fs.writeFileSync(filePath, newSource)
 
-  // only format the file if it was changed
-  if (source !== newSource) {
+  // only format the file if it was changed (compiler returns undefined for non-Blits files)
+  if (newSource !== undefined && source !== newSource) {
     formatFileWithESLint(filePath)
   }
 }
