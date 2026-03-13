@@ -118,6 +118,30 @@ test('Does not duplicate guards when guard comment is stripped', (assert) => {
   assert.end()
 })
 
+test('Guards full property chain for nested reactive references', (assert) => {
+  const input = `
+    import Blits from '@lightningjs/blits'
+    export default Blits.Component('C', {
+      computed: {
+        showContent() {
+          const isActive = this.item.tags?.some(tag => tag.id === 1);
+          return isActive && !this.$appState.ui.sidebar;
+        },
+      }
+    })
+  `
+
+  assert.doesNotThrow(() => processComputedProps(input), 'should not throw')
+  const result = processComputedProps(input)
+  assert.ok(result, 'injects guards')
+  const out = result.code
+  assert.ok(out.includes('this.$appState.ui.sidebar;'), 'guards full chain')
+  assert.ok(out.includes('this.item.tags;'), 'stops chain before method call')
+  assert.notOk(out.includes('this.$appState;'), 'no redundant prefix this.$appState')
+  assert.notOk(out.includes('this.item;'), 'no redundant prefix this.item')
+  assert.end()
+})
+
 test('Does not process non-method computed syntaxes', (assert) => {
   const input = `
     import Blits from '@lightningjs/blits'
