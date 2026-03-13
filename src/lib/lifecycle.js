@@ -31,8 +31,8 @@ const states = [
   'ready', // fired when component instantiated, reactivity setup done and template spawned
   'focus', // fired when receiving focus (can occur multiple times)
   'unfocus', // fired when losing focus (can occur multiple times)
-  'hover', // fired when receiving focus (can occur multiple times)
-  'unhover', // fired when losing focus (can occur multiple times)
+  'hover', // fired when pointer enters the component (mouse support only; can occur multiple times)
+  'unhover', // fired when pointer leaves the component (mouse support only; can occur multiple times)
   'destroy', // fired when component is destroyed and removed
   'attach', // fired when entering the viewport margin and attached to the render tree
   'detach', // fired when leaving the viewport margin and detached from the render tree

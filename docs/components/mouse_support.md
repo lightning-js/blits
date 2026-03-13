@@ -28,6 +28,8 @@ When `enableMouse` is `false` (the default), no mouse or pointer listeners are a
 
 When the pointer moves over the canvas, Blits hit-tests the scene and sets the hovered component. Only one component is hovered at a time (the leaf under the cursor). Move events are throttled (about once every 100ms) to limit updates. When the pointer moves off the canvas or over empty space, hover is cleared.
 
+Hover applies only to **components**, not to individual `Element` nodes. A component must have **dimensions** to be hoverable: set `w`/`h` on the component tag, or on the root element of the template, or set them dynamically with `this.$size()`.
+
 - **Lifecycle:** The component (and its ancestors along the hover chain) receive a `hover` event when the pointer enters, and `unhover` when it leaves or moves to another component. These are lifecycle hooks; you can define `hover()` and `unhover()` in the `hooks` key of your component config.
 - **State:** Each component has a built-in reactive property `$isHovered` — `true` while that component is hovered, `false` otherwise. In JavaScript use `this.$isHovered`; in your template use `$$isHovered`.
 
@@ -106,13 +108,3 @@ export default Blits.Application({
 - **Renderer:** Mouse hit-testing uses the Lightning renderer's `stage.getNodeFromPosition()`. The canvas must be in the DOM; Blits listens to `resize` and `scroll` when mouse is enabled to keep the canvas rect up to date.
 - **No touch events:** Only mouse events are wired; touch is not translated to hover or click in this implementation.
 - **Destroyed components:** Hover and click ignore components that are end-of-life or destroyed.
-
-## Summary
-
-| Topic | Description |
-|-------|-------------|
-| Enable | Set `enableMouse: true` in the object passed to `Blits.Launch()` (e.g. in `src/index.js`). |
-| Hover | Pointer over canvas updates hovered component; use `hooks.hover()` / `hooks.unhover()` and `$$isHovered` in templates. |
-| Click | Click focuses the component under the cursor and sends an Enter key event (same as `input.enter`). |
-| Keyboard | Any key press clears hover; focus and key handling are unchanged. |
-| App event | Listen for `mouse::move` on the Application to react to pointer movement (e.g. custom cursor). |
