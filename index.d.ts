@@ -401,9 +401,9 @@ declare module '@lightningjs/blits' {
     readonly $hasFocus: boolean,
 
     /**
-     * Parent component instance. Undefined for the root Application component or after destroy.
+     * Parent component instance. Undefined for the root Application component (destroyed case not modeled).
      */
-    readonly $parent: ComponentBase | null | undefined,
+    readonly $parent: ComponentBase | undefined,
 
     /**
     * Indicates whether the component currently is hovered
@@ -545,6 +545,20 @@ declare module '@lightningjs/blits' {
   }
 
   /**
+   * Context type for the root Application: no parent.
+   */
+  export interface ApplicationBase extends Omit<ComponentBase, '$parent'> {
+    readonly $parent: undefined
+  }
+
+  /**
+   * Context type for Components (Blits.Component): always has a parent when mounted. Destroyed case is not modeled.
+   */
+  export interface ChildComponentBase extends Omit<ComponentBase, '$parent'> {
+    readonly $parent: ComponentBase
+  }
+
+  /**
    * Prop object
    */
   export type PropObject = {
@@ -587,7 +601,14 @@ declare module '@lightningjs/blits' {
     S,
     M,
     C
-  > = ThisType<Readonly<InferProps<P>> & S & M & Readonly<C> & ComponentBase>
+  > = ThisType<Readonly<InferProps<P>> & S & M & Readonly<C> & ChildComponentBase>
+
+  export type ApplicationContext<
+    P extends Record<string, any>,
+    S,
+    M,
+    C
+  > = ThisType<Readonly<InferProps<P>> & S & M & Readonly<C> & ApplicationBase>
 
   export interface ComponentConfig<P extends Props = {}, S, M, C, W> {
     components?: {
@@ -716,32 +737,40 @@ declare module '@lightningjs/blits' {
     backNavigation?: boolean
   }
 
-  export type ApplicationConfig<P extends Props, S, M, C, W> = ComponentConfig<P, S, M, C, W> & (
-    {
-      /**
-       * Router Configuration
-       */
-      router?: RouterConfig<P, S, M, C>,
-      routes?: never
-    }
-    |
-    {
-      router?: never
-      /**
-       * Routes definition
-       *
-       * @example
-       *
-       * ```js
-       * routes: [
-       *  { path: '/', component: Home },
-       *  { path: '/details', component: Details },
-       *  { path: '/account', component: Account },
-       * ]
-       * ```
-     */
-      routes?: Route[]
-    }
+  export type ApplicationConfig<P extends Props, S, M, C, W> = Omit<
+    ComponentConfig<P, S, M, C, W>,
+    'hooks' | 'methods' | 'input' | 'computed' | 'watch'
+  > & {
+    hooks?: Hooks & ApplicationContext<P, S, M, C>
+    methods?: M & ApplicationContext<P, S, M, C>
+    input?: Input & ApplicationContext<P, S, M, C>
+    computed?: C & ApplicationContext<P, S, M, C>
+    watch?: W & ApplicationContext<P, S, M, C>
+  } & (
+    | {
+        /**
+         * Router Configuration
+         */
+        router?: RouterConfig<P, S, M, C>
+        routes?: never
+      }
+    | {
+        router?: never
+        /**
+         * Routes definition
+         *
+         * @example
+         *
+         * ```js
+         * routes: [
+         *  { path: '/', component: Home },
+         *  { path: '/details', component: Details },
+         *  { path: '/account', component: Account },
+         * ]
+         * ```
+         */
+        routes?: Route[]
+      }
   )
 
   export interface Transition {
