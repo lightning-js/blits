@@ -4,7 +4,7 @@ In order to allow users to interact with your app, you will want to capture and 
 
 Blits offers an intuitive and straightforward interface to handle key input in Components.
 
-**Mouse and pointer:** To enable mouse support (hover state and click-to-focus on the canvas), set `enableMouse: true` in the settings object passed to `Blits.Launch()`. When enabled, pointer movement updates component hover state and a click focuses the component under the cursor and dispatches Enter key input.
+**Mouse and pointer:** To enable mouse support (hover state and click-to-focus on the canvas), set `enableMouse: true` in the settings object passed to `Blits.Launch()`. When enabled, pointer movement updates component hover state and a click focuses the component under the cursor and dispatches Enter key input. For full details, see [Mouse support](./mouse_support.md).
 
 ## Focus
 

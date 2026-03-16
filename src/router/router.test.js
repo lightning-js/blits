@@ -609,7 +609,6 @@ test('Router updates state.path, state.params, and state.data correctly', async 
 
   // Restore
   stage.element = originalElement
-  assert.end()
 })
 
 test('Router.back() pops history and navigates to previous route', async (assert) => {
@@ -660,7 +659,6 @@ test('Router.back() pops history and navigates to previous route', async (assert
   assert.ok(window.location.hash.includes('first'), 'Should set hash to previous route')
 
   stage.element = originalElement
-  assert.end()
 })
 
 test('Transition out with end callback is invoked on navigate away', async (assert) => {
@@ -715,7 +713,6 @@ test('Transition out with end callback is invoked on navigate away', async (asse
 
   assert.ok(endCalled, 'Should call transition.out.end when navigating away')
   stage.element = originalElement
-  assert.end()
 })
 
 test('Navigate to unknown path calls routerHooks.error', async (assert) => {
@@ -739,7 +736,6 @@ test('Navigate to unknown path calls routerHooks.error', async (assert) => {
   assert.ok(errorMsg != null, 'Error hook should be called with a message')
   assert.ok(String(errorMsg).includes('not found'), 'Error message should indicate not found')
   assert.equal(state.navigating, false, 'Should reset state.navigating after navigate completes')
-  assert.end()
 })
 
 test('Before hook route object redirect', async (assert) => {
@@ -774,7 +770,6 @@ test('Before hook route object redirect', async (assert) => {
   await navigate.call(host)
   assert.equal(location.hash, '#/redirected', 'Should redirect to new path')
   stage.element = originalElement
-  assert.end()
 })
 
 test('BeforeEach hook route object redirect', async (assert) => {
@@ -806,10 +801,9 @@ test('BeforeEach hook route object redirect', async (assert) => {
   await navigate.call(host)
   assert.equal(location.hash, '#/redirected', 'Should redirect via beforeEach hook')
   stage.element = originalElement
-  assert.end()
 })
 
-test('Route meta data is accessible in route object', async (assert) => {
+test('Route meta data is accessible in route object', (assert) => {
   const route = { path: '/test', meta: { auth: true, role: 'admin' } }
   assert.deepEqual(
     route.meta,
@@ -876,7 +870,6 @@ test('keepAlive override keeps the route being LEFT alive (not the destination)'
   )
 
   stage.element = originalElement
-  assert.end()
 })
 
 test('keepAlive override does not bleed into the destination route options', async (assert) => {
@@ -935,7 +928,6 @@ test('keepAlive override does not bleed into the destination route options', asy
   )
 
   stage.element = originalElement
-  assert.end()
 })
 
 test('reuseComponent still works when keepAlive override is passed', async (assert) => {
@@ -1007,7 +999,6 @@ test('reuseComponent still works when keepAlive override is passed', async (asse
   )
 
   stage.element = originalElement
-  assert.end()
 })
 
 test('Stale overrideOptions do not bleed into subsequent navigations', async (assert) => {
@@ -1070,5 +1061,4 @@ test('Stale overrideOptions do not bleed into subsequent navigations', async (as
   assert.equal(destroyCount, 1, '/ry should be destroyed — stale keepAlive must not persist')
 
   stage.element = originalElement
-  assert.end()
 })

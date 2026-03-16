@@ -77,6 +77,10 @@
         "link": "/components/user_input"
       },
       {
+        "text": "Mouse support",
+        "link": "/components/mouse_support"
+      },
+      {
         "text": "Methods",
         "link": "/components/methods"
       },
