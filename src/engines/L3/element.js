@@ -405,6 +405,7 @@ const propsTransformer = {
     }
   },
   set shader(v) {
+    this.props['shader'] = v
     let type = v
     if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
       type = v.type
