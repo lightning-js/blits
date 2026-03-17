@@ -99,7 +99,7 @@ const parse = {
     parseRounded(v, props)
     return props
   },
-  shader: (v) => {
+  shader: function (v) {
     //@ts-ignore
     return this.parseProps(v)
   },
