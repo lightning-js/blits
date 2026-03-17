@@ -101,8 +101,7 @@ const parse = {
   },
   shader: (v) => {
     //@ts-ignore
-    this.parseProps(v)
-    return {}
+    return this.parseProps(v)
   },
 }
 
