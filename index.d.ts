@@ -666,7 +666,7 @@ declare module '@lightningjs/blits' {
      * }
      * ```
      */
-    state?: (this: Readonly<InferProps<P>> & ComponentBase) => S;
+    state?: (this: Readonly<InferProps<P>> & ChildComponentBase) => S;
     /**
      * Methods for abstracting more complex business logic into separate function
      */
@@ -739,13 +739,14 @@ declare module '@lightningjs/blits' {
 
   export type ApplicationConfig<P extends Props, S, M, C, W> = Omit<
     ComponentConfig<P, S, M, C, W>,
-    'hooks' | 'methods' | 'input' | 'computed' | 'watch'
+    'hooks' | 'methods' | 'input' | 'computed' | 'watch' | 'state'
   > & {
     hooks?: Hooks & ApplicationContext<P, S, M, C>
     methods?: M & ApplicationContext<P, S, M, C>
     input?: Input & ApplicationContext<P, S, M, C>
     computed?: C & ApplicationContext<P, S, M, C>
     watch?: W & ApplicationContext<P, S, M, C>
+    state?: (this: Readonly<InferProps<P>> & ApplicationBase) => S
   } & (
     | {
         /**
