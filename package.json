@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "2.0.0-beta.7",
+  "version": "2.0.0-beta.10",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
@@ -33,10 +33,9 @@
     "./components": "./src/components/FPScounter.js"
   },
   "scripts": {
-    "test": "c8 node scripts/runTests.js",
-    "test:ci": "c8 npm run test:run",
-    "test:run": "node -r global-jsdom/register ./node_modules/.bin/tape '{,!(node_modules|packages)/**/}*.test.js' | tap-diff",
-    "test:run:failures": "node -r global-jsdom/register ./node_modules/.bin/tape '{,!(node_modules|packages)/**/}*.test.js' |  tap-filter test-fail | tap-diff",
+    "test": "c8 npm run test:run | tap-diff",
+    "test:run": "node -r global-jsdom/register node_modules/tape/bin/tape \"scripts/**/*.test.js\" \"src/**/*.test.js\"",
+    "test:run:failures": "node -r global-jsdom/register node_modules/tape/bin/tape \"scripts/**/*.test.js\" \"src/**/*.test.js\" | tap-filter test-fail | tap-diff",
     "lint": "node scripts/lint.js",
     "lint:fix": "node scripts/lint.js fix",
     "prepublishOnly": "node scripts/prepublishOnly.js",
@@ -76,7 +75,7 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "^3.0.0-beta23",
+    "@lightningjs/renderer": "3.0.0-beta23",
     "magic-string": "^0.30.21"
   },
   "repository": {
