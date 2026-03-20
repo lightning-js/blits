@@ -1,5 +1,21 @@
 # Changelog
 
+## v2.0.0
+
+_20 mar 2026_
+
+**Blits v2 as part of the Lightning 3.1 release**
+
+- Upgraded to Lightning renderer v3
+- Prefixed built-in variables with `$` (i.e. `hasFocus` => `$hasFocus`)
+- Changed array based props to object based props
+- Removed several deprecated methods and variables (`focus`, `select`, `trigger`, `wordwrap`, `width`, `height`)
+- Removed `effects` attribute and replaced for `border`, `rounded` and `shadow`
+- Changed handling of props with the same name as know Element attributes
+- Removed MSDF font generator as a blits dependency
+- Updated key mapping to rely only on `keyCode`
+
+
 ## v1.51.0
 
 _04 mar 2026_
