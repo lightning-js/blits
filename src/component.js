@@ -437,6 +437,12 @@ const Component = (name = required('name'), config = required('config')) => {
       const pluginKeysLength = pluginKeys.length
       /** @type {Object} */
       const pluginInstances = {}
+
+      // pre-configured reactive helper for plugins (uses current reactivityMode, global scope)
+      const pluginHelpers = {
+        reactive: (target) => reactive(target, Settings.get('reactivityMode'), true),
+      }
+
       for (let i = 0; i < pluginKeysLength; i++) {
         const pluginName = pluginKeys[i]
         const prefixedPluginName = `$${pluginName}`
@@ -449,8 +455,8 @@ const Component = (name = required('name'), config = required('config')) => {
         const plugin = plugins[pluginName]
 
         pluginInstances[prefixedPluginName] = {
-          // instantiate the plugin, passing in provided options
-          value: Object.defineProperties(plugin.plugin(plugin.options), shared),
+          // instantiate the plugin, passing in provided options and helpers
+          value: Object.defineProperties(plugin.plugin(plugin.options, pluginHelpers), shared),
           writable: false,
           enumerable: true,
           configurable: true,
