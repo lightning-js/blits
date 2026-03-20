@@ -535,6 +535,14 @@ declare module '@lightningjs/blits' {
      */
     $router: Router
     /**
+     * Creates a reactive object. Changes to properties on the returned object
+     * will automatically trigger re-renders in any component that accesses them.
+     *
+     * Pre-configured with the app's reactivity mode and global scope.
+     * Primarily intended for use inside custom plugins.
+     */
+    $reactive: <T extends Record<string, any>>(target: T) => T
+    /**
      * Dynamically set the size of a component holder node
      */
     $size: (dimensions: {
@@ -1317,18 +1325,6 @@ declare module '@lightningjs/blits' {
     [key: string]: any
   }
 
-  /**
-   * Helpers object passed as the second argument to a plugin's instantiation function.
-   */
-  interface PluginHelpers {
-    /**
-     * Creates a reactive object. Changes to properties on the returned object
-     * will automatically trigger re-renders in any component that accesses them.
-     *
-     * Pre-configured with the app's reactivity mode and global scope.
-     */
-    reactive: <T extends Record<string, any>>(target: T) => T
-  }
 
   interface Plugin {
     /**
@@ -1339,12 +1335,9 @@ declare module '@lightningjs/blits' {
     /**
      * Singleton function that will be used to instantiate the plugin.
      * Should do all necessary setup and ideally return an object with
-     * properties or methods that can be used in the App.
-     *
-     * Receives the options object as first argument and a helpers object
-     * (containing `reactive`) as second argument.
+     * properties or methods that can be used in the App
      */
-    plugin: (options?: any, helpers: PluginHelpers) => any
+    plugin: (options?: any) => any
   }
 
 
@@ -1402,7 +1395,7 @@ declare module '@lightningjs/blits' {
      * Object with options to be passed into the plugin instantiation method.
      * Can be used to set default values
      */
-    Plugin(plugin: Plugin | ((options?: any, helpers: PluginHelpers) => any), nameOrOptions?: string | object , options?: object) : void
+    Plugin(plugin: Plugin | ((options?: any) => any), nameOrOptions?: string | object , options?: object) : void
   }
 
   const Blits: Blits;
