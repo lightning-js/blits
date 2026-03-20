@@ -38,9 +38,11 @@ export default () =>
       },
       hooks: {
         async ready() {
-          if (this.parent[symbols.routerHooks] && this.parent[symbols.routerHooks].init) {
-            await this.parent[symbols.routerHooks].init.apply(this.parent)
+          const parent = this[symbols.parent]
+          if (parent && parent[symbols.routerHooks] && parent[symbols.routerHooks].init) {
+            await parent[symbols.routerHooks].init.apply(parent)
           }
+
           hashchangeHandler = () => Router.navigate.apply(this)
           Router.navigate.apply(this)
           window.addEventListener('hashchange', hashchangeHandler)
@@ -56,13 +58,20 @@ export default () =>
       },
       input: {
         back(e) {
+          const parent = this[symbols.parent]
+
           if (routerState.backNavigation === false) {
-            this.parent.$input(e)
+            if (parent && parent.$input) {
+              parent.$input(e)
+            }
             return
           }
+
           const navigating = Router.back.call(this)
           if (navigating === false) {
-            this.parent.$focus(e)
+            if (parent && parent.$focus) {
+              parent.$focus(e)
+            }
           }
         },
       },

@@ -138,7 +138,7 @@ export const componentMap = new WeakMap()
  * @property {any[]} [stateKeys] - The keys of the state of the component instance
  * Single props:
  * @property {object} activeView - The active view of the component instance
- * @property {boolean} hasFocus - Indicates if the component has focus
+ * @property {boolean} $hasFocus - Indicates if the component has focus
  * @property {string} ref - The reference name of the component instance
  * @property {number|undefined} index - The index in a for loop
  * @property {number|undefined} activeRow - The active row in a for loop
@@ -197,22 +197,23 @@ const Component = (name = required('name'), config = required('config')) => {
 
   const component = function (opts, parentEl, parentComponent, rootComponent) {
     // generate a human readable ID for the component instance (i.e. Blits::ComponentName1)
-    this.componentId = createHumanReadableId(name)
+    this.$componentId = createHumanReadableId(name)
+
+    this[symbols.effects] = []
 
     this[symbols.effects] = []
 
     // instantiate a lifecycle object for this instance
-    this.lifecycle = Object.assign(Object.create(Lifecycle), {
+    this[symbols.lifecycle] = Object.assign(Object.create(Lifecycle), {
       component: this,
       previous: null,
       current: null,
     })
 
     // set a reference to the parent component
-    this.parent = parentComponent
+    this[symbols.parent] = parentComponent
 
-    //
-    this.rootParent = rootComponent
+    this[symbols.rootParent] = rootComponent
 
     // set a reference to the holder / parentElement
     // Components are wrapped in a holder node (used to apply positioning and transforms
@@ -242,22 +243,22 @@ const Component = (name = required('name'), config = required('config')) => {
     // and store a reference to this original state
     this[symbols.originalState] =
       (config.state && typeof config.state === 'function' && config.state.apply(this)) || {}
-    // add hasFocus key in
-    this[symbols.originalState]['hasFocus'] = false
+    // add $hasFocus key in
+    this[symbols.originalState]['$hasFocus'] = false
 
-    // add isHovered key in
-    this[symbols.originalState]['isHovered'] = false
+    // add $isHovered key in
+    this[symbols.originalState]['$isHovered'] = false
 
     // generate a reactive state (using the result of previously execute state function)
     // and store it
     this[symbols.state] = reactive(this[symbols.originalState], Settings.get('reactivityMode'))
 
     // all basic setup has been done now, set the lifecycle to state 'init'
-    this.lifecycle.state = 'init'
+    this[symbols.lifecycle].state = 'init'
 
     // execute the render code that constructs the initial state of the component
     // and store the children result (a flat map of elements and components)
-    const { elms, cleanup } = config.code.render.apply(stage, [
+    const { elms, cleanup, skips } = config.code.render.apply(stage, [
       parentEl,
       this,
       config,
@@ -334,28 +335,28 @@ const Component = (name = required('name'), config = required('config')) => {
       // inBounds event emiting a lifecycle attach event
       if (config.hooks.attach) {
         this[symbols.wrapper].node.on('inBounds', () => {
-          this.lifecycle.state = 'attach'
+          this[symbols.lifecycle].state = 'attach'
         })
       }
 
       // outOfBounds event emiting a lifeycle detach event
       if (config.hooks.detach) {
         this[symbols.wrapper].node.on('outOfBounds', (node, { previous }) => {
-          if (previous > 0) this.lifecycle.state = 'detach'
+          if (previous > 0) this[symbols.lifecycle].state = 'detach'
         })
       }
 
       // inViewport event emiting a lifecycle enter event
       if (config.hooks.enter) {
         this[symbols.wrapper].node.on('inViewport', () => {
-          this.lifecycle.state = 'enter'
+          this[symbols.lifecycle].state = 'enter'
         })
       }
 
       // outOfViewport event emitting a lifecycle exit event
       if (config.hooks.exit) {
         this[symbols.wrapper].node.on('outOfBounds', () => {
-          this.lifecycle.state = 'exit'
+          this[symbols.lifecycle].state = 'exit'
         })
       }
     }
@@ -365,7 +366,15 @@ const Component = (name = required('name'), config = required('config')) => {
     const effects = config.code.effects
     for (let i = 0; i < effects.length; i++) {
       const eff = () => {
-        effects[i](this, this[symbols.children], config, globalComponents, rootComponent, effect)
+        effects[i](
+          this,
+          this[symbols.children],
+          config,
+          globalComponents,
+          rootComponent,
+          skips,
+          effect
+        )
       }
       // store reference to the effect
       this[symbols.effects].push(eff)
@@ -389,7 +398,7 @@ const Component = (name = required('name'), config = required('config')) => {
           }
         }
 
-        let old = this[key]
+        let old = target[key]
 
         const eff = (force = false) => {
           const newValue = target[key]
@@ -406,7 +415,7 @@ const Component = (name = required('name'), config = required('config')) => {
     }
 
     // finaly set the lifecycle state to ready (in the next tick)
-    setTimeout(() => (this.lifecycle.state = 'ready'))
+    setTimeout(() => (this[symbols.lifecycle].state = 'ready'))
 
     // and return this
     return this

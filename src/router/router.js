@@ -254,20 +254,24 @@ export const navigate = async function () {
   Announcer.clear()
   state.navigating = true
   let reuse = false
-  if (preventHashChangeNavigation === false && this.parent[symbols.routes]) {
+  if (preventHashChangeNavigation === false && this[symbols.parent][symbols.routes]) {
     let previousRoute = currentRoute //? Object.assign({}, currentRoute) : undefined
-    let route = matchHash(getHash(document.location.hash), this.parent[symbols.routes])
+    let route = matchHash(getHash(location.hash), this[symbols.parent][symbols.routes])
 
     currentRoute = route
 
     if (route) {
       const currentPath = currentRoute.path
       let beforeEachResult
-      if (this.parent[symbols.routerHooks]) {
-        const hooks = this.parent[symbols.routerHooks]
+      if (this[symbols.parent][symbols.routerHooks]) {
+        const hooks = this[symbols.parent][symbols.routerHooks]
         if (hooks.beforeEach) {
           try {
-            beforeEachResult = await hooks.beforeEach.call(this.parent, route, previousRoute)
+            beforeEachResult = await hooks.beforeEach.call(
+              this[symbols.parent],
+              route,
+              previousRoute
+            )
             if (isString(beforeEachResult)) {
               currentRoute = previousRoute
               to(beforeEachResult)
@@ -308,7 +312,11 @@ export const navigate = async function () {
       let beforeHookOutput
       if (route.hooks.before) {
         try {
-          beforeHookOutput = await route.hooks.before.call(this.parent, route, previousRoute)
+          beforeHookOutput = await route.hooks.before.call(
+            this[symbols.parent],
+            route,
+            previousRoute
+          )
           if (isString(beforeHookOutput)) {
             currentRoute = previousRoute
             to(beforeHookOutput)
@@ -517,12 +525,12 @@ export const navigate = async function () {
         }
       }
 
-      if (this.parent[symbols.routerHooks]) {
-        const hooks = this.parent[symbols.routerHooks]
+      if (this[symbols.parent][symbols.routerHooks]) {
+        const hooks = this[symbols.parent][symbols.routerHooks]
         if (hooks.afterEach) {
           try {
             await hooks.afterEach.call(
-              this.parent,
+              this[symbols.parent],
               route, // to
               previousRoute // from
             )
@@ -535,7 +543,7 @@ export const navigate = async function () {
       if (route.hooks.after) {
         try {
           await route.hooks.after.call(
-            this.parent,
+            this[symbols.parent],
             route, // to
             previousRoute // from
           )
@@ -545,9 +553,9 @@ export const navigate = async function () {
       }
     } else {
       Log.error(`Route ${route.hash} not found`)
-      const routerHooks = this.parent[symbols.routerHooks]
+      const routerHooks = this[symbols.parent][symbols.routerHooks]
       if (routerHooks && typeof routerHooks.error === 'function') {
-        routerHooks.error.call(this.parent, `Route ${route.hash} not found`)
+        routerHooks.error.call(this[symbols.parent], `Route ${route.hash} not found`)
       }
     }
   }
@@ -641,11 +649,11 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
   })
 }
 
-export const to = (location, data = {}, options = {}) => {
+export const to = (path, data = {}, options = {}) => {
   navigationData = data
   overrideOptions = options
 
-  window.location.hash = location
+  location.hash = path.replace(/^#/, '')
 }
 
 export const back = function () {
@@ -682,7 +690,7 @@ export const back = function () {
     }
     // Construct new path to backtrack to
     path = path.replace(hashEnd, '')
-    const route = matchHash(getHash(path), this.parent[symbols.routes])
+    const route = matchHash(getHash(path), this[symbols.parent][symbols.routes])
 
     if (route && backtrack) {
       to(route.path, route.data, route.options)

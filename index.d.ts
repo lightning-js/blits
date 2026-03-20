@@ -18,6 +18,10 @@
 // blits file type reference
 /// <reference path="./blits.d.ts" />
 
+import {type ShaderEffect as RendererShaderEffect, type RendererMainSettings} from '@lightningjs/renderer'
+import { CanvasShaderType } from '@lightningjs/renderer/canvas';
+import { WebGlShaderType } from '@lightningjs/renderer/webgl';
+
 declare module '@lightningjs/blits' {
   type RendererShaderEffect = import('@lightningjs/renderer').ShaderEffect
   type WebGlCoreShader = import('@lightningjs/renderer').WebGlCoreShader
@@ -394,14 +398,19 @@ declare module '@lightningjs/blits' {
     *
     * @returns Boolean
     */
-    hasFocus: boolean,
+    readonly $hasFocus: boolean,
+
+    /**
+     * Parent component instance. Undefined for the root Application component (destroyed case not modeled).
+     */
+    readonly $parent: ComponentBase | undefined,
 
     /**
     * Indicates whether the component currently is hovered
     *
     * @returns Boolean
     */
-    isHovered: boolean,
+    $isHovered: boolean,
 
     /**
     * Listen to events emitted by other components
@@ -491,12 +500,6 @@ declare module '@lightningjs/blits' {
      */
     $input: (event: KeyboardEvent) => boolean
     /**
-     * @deprecated
-     * Deprecated:  use `this.$focus()` instead
-     */
-    focus: (event?: KeyboardEvent) => void
-
-    /**
     * Select a child Element or Component by ref
     *
     * Elements and Components in the template can have an optional ref argument.
@@ -514,12 +517,6 @@ declare module '@lightningjs/blits' {
     $select: (ref: string) => ComponentBase
 
     /**
-     * @deprecated
-     * Deprecated: use `this.$select()` instead
-     */
-    select: (ref: string) => ComponentBase
-
-    /**
      * Announcer methods for screen reader support
      */
     $announcer: Announcer
@@ -528,13 +525,6 @@ declare module '@lightningjs/blits' {
      * Triggers a forced update on state variables.
      */
     $trigger: (key: string) => void
-    /**
-     * @deprecated
-     *
-     * Triggers a forced update on state variables.
-     * Deprecated: use `this.$trigger()` instead
-     */
-    trigger: (key: string) => void
     /**
      * Router instance
      */
@@ -552,6 +542,20 @@ declare module '@lightningjs/blits' {
        */
       h: number
     }) => void
+  }
+
+  /**
+   * Context type for the root Application: no parent.
+   */
+  export interface ApplicationBase extends Omit<ComponentBase, '$parent'> {
+    readonly $parent: undefined
+  }
+
+  /**
+   * Context type for Components (Blits.Component): always has a parent when mounted. Destroyed case is not modeled.
+   */
+  export interface ChildComponentBase extends Omit<ComponentBase, '$parent'> {
+    readonly $parent: ComponentBase
   }
 
   /**
@@ -584,20 +588,29 @@ declare module '@lightningjs/blits' {
     cast?: () => any
   };
 
-  // Props Array
-  export type Props = (string | PropObject)[];
+  export type Props = Record<string, any>
 
-  // Extract the prop names from the props array
-  type ExtractPropNames<P extends Props> = {
-      readonly [K in P[number] as K extends string ? K : K extends { key: infer Key } ? Key : never]: any;
-  };
+  type InferProp<T> = T extends (...args: any[]) => any ? ReturnType<T> : T
 
-  // Update the PropsDefinition to handle props as strings or objects
-  export type PropsDefinition<P extends Props> = ExtractPropNames<P>;
+  type InferProps<T extends Record<string, any>> = {
+    [K in keyof T]: InferProp<T[K]>
+  }
 
-  export type ComponentContext<P extends Props, S, M, C> = ThisType<PropsDefinition<P> & S & M & C & ComponentBase>
+  export type ComponentContext<
+    P extends Record<string, any>,
+    S,
+    M,
+    C
+  > = ThisType<Readonly<InferProps<P>> & S & M & Readonly<C> & ChildComponentBase>
 
-  export interface ComponentConfig<P extends Props, S, M, C, W> {
+  export type ApplicationContext<
+    P extends Record<string, any>,
+    S,
+    M,
+    C
+  > = ThisType<Readonly<InferProps<P>> & S & M & Readonly<C> & ApplicationBase>
+
+  export interface ComponentConfig<P extends Props = {}, S, M, C, W> {
     components?: {
         [key: string]: ComponentFactory,
     },
@@ -653,7 +666,7 @@ declare module '@lightningjs/blits' {
      * }
      * ```
      */
-    state?: (this: PropsDefinition<P>) => S;
+    state?: (this: Readonly<InferProps<P>> & ChildComponentBase) => S;
     /**
      * Methods for abstracting more complex business logic into separate function
      */
@@ -724,32 +737,41 @@ declare module '@lightningjs/blits' {
     backNavigation?: boolean
   }
 
-  export type ApplicationConfig<P extends Props, S, M, C, W> = ComponentConfig<P, S, M, C, W> & (
-    {
-      /**
-       * Router Configuration
-       */
-      router?: RouterConfig<P, S, M, C>,
-      routes?: never
-    }
-    |
-    {
-      router?: never
-      /**
-       * Routes definition
-       *
-       * @example
-       *
-       * ```js
-       * routes: [
-       *  { path: '/', component: Home },
-       *  { path: '/details', component: Details },
-       *  { path: '/account', component: Account },
-       * ]
-       * ```
-     */
-      routes?: Route[]
-    }
+  export type ApplicationConfig<P extends Props, S, M, C, W> = Omit<
+    ComponentConfig<P, S, M, C, W>,
+    'hooks' | 'methods' | 'input' | 'computed' | 'watch' | 'state'
+  > & {
+    hooks?: Hooks & ApplicationContext<P, S, M, C>
+    methods?: M & ApplicationContext<P, S, M, C>
+    input?: Input & ApplicationContext<P, S, M, C>
+    computed?: C & ApplicationContext<P, S, M, C>
+    watch?: W & ApplicationContext<P, S, M, C>
+    state?: (this: Readonly<InferProps<P>> & ApplicationBase) => S
+  } & (
+    | {
+        /**
+         * Router Configuration
+         */
+        router?: RouterConfig<P, S, M, C>
+        routes?: never
+      }
+    | {
+        router?: never
+        /**
+         * Routes definition
+         *
+         * @example
+         *
+         * ```js
+         * routes: [
+         *  { path: '/', component: Home },
+         *  { path: '/details', component: Details },
+         *  { path: '/account', component: Account },
+         * ]
+         * ```
+         */
+        routes?: Route[]
+      }
   )
 
   export interface Transition {
@@ -942,7 +964,7 @@ declare module '@lightningjs/blits' {
 
   type Shader = {
     name: string,
-    type: WebGlCoreShader
+    type: WebGlShaderType | CanvasShaderType
   }
 
   type ScreenResolutions = 'hd' | '720p' | 720 | 'fhd' | 'fullhd' | '1080p' | 1080 | '4k' | '2160p' | 2160
@@ -978,10 +1000,6 @@ declare module '@lightningjs/blits' {
      * Fonts to be used in the Application
      */
     fonts?: Font[],
-    /**
-     * Effects to be used by DynamicShader
-     */
-    effects?: ShaderEffect[],
     /**
      * Shaders to be used in the application
      */
@@ -1114,18 +1132,6 @@ declare module '@lightningjs/blits' {
      * Defaults to `0`
      */
     viewportMargin?: number | [number, number, number, number],
-    /**
-     * Threshold in `Megabytes` after which all the textures that are currently not visible
-     * within the configured viewport margin will be be freed and cleaned up
-     *
-     * When passed `0` the threshold is disabled and textures will not be actively freed
-     * and cleaned up
-     *
-     * Defaults to `200` (mb)
-     * @deprecated
-     * Deprecated:  use `gpuMemory` launch setting instead
-     */
-    gpuMemoryLimit?: number,
     /**
      * Configures the gpu memory settings used by the renderer
      */
@@ -1280,7 +1286,14 @@ declare module '@lightningjs/blits' {
      *
      * Defaults to `0` which means no maximum
      */
-    maxFPS?: number
+    maxFPS?: number,
+    /**
+     * Custom platform layer to be used by the App (experimental)
+     *
+     * Defaults to `null` which will be resolved internally to WebPlatform
+     */
+    platform?: any
+
   }
 
   interface State {

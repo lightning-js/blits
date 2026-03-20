@@ -29,6 +29,20 @@ export default {
     enumerable: true,
     configurable: false,
   },
+  $parent: {
+    get: function () {
+      return this[symbols.parent]
+    },
+    enumerable: true,
+    configurable: false,
+  },
+  $id: {
+    get: function () {
+      return this[symbols.id]
+    },
+    enumerable: true,
+    configurable: false,
+  },
   [symbols.renderer]: {
     value: () => renderer,
     writable: false,
@@ -37,7 +51,7 @@ export default {
   },
   [symbols.getChildren]: {
     value() {
-      const parent = this.rootParent || this.parent
+      const parent = this[symbols.rootParent] || this[symbols.parent]
       return (this[symbols.children] || []).concat(
         (parent &&
           parent[symbols.getChildren]()
@@ -46,7 +60,7 @@ export default {
                 return Object.values(child).map((c) => {
                   // ugly hack .. but the point is to reference the right component
                   c.forComponent =
-                    c[Symbol.for('config')] && c[Symbol.for('config')].parent.component
+                    c[Symbol.for('config')] && c[Symbol.for('config')][symbols.parent].component
                   return c
                 })
               }
@@ -57,8 +71,8 @@ export default {
               // problem is that component of a forloop in a slot has component of root component
               if (child && child.component) {
                 return (
-                  (child.component && child.component.componentId === this.componentId) ||
-                  (child.forComponent && child.forComponent.componentId === this.componentId)
+                  (child.component && child.component.$componentId === this.$componentId) ||
+                  (child.forComponent && child.forComponent.$componentId === this.$componentId)
                 )
               }
             })) ||

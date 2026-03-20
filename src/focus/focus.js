@@ -51,7 +51,7 @@ export default {
 
     // unfocus currently focused components
     if (focusedComponent !== null) {
-      if (focusChain[focusChain.length - 1] === component.parent) {
+      if (focusChain[focusChain.length - 1] === component[symbols.parent]) {
         focusChain.push(component)
       } else {
         const newFocusChain = getAncestors([component])
@@ -59,7 +59,7 @@ export default {
         while (i--) {
           // don't unfocus when part of the new focus chain
           if (newFocusChain.indexOf(focusChain[i]) > -1) break
-          focusChain[i].lifecycle.state = 'unfocus'
+          focusChain[i][symbols.lifecycle].state = 'unfocus'
         }
         focusChain = newFocusChain
       }
@@ -68,7 +68,7 @@ export default {
     // ensure that all components in the focus path have focus state
     let i = 0
     while (i < focusChain.length - 1) {
-      focusChain[i].lifecycle.state = 'focus'
+      focusChain[i][symbols.lifecycle].state = 'focus'
       i++
     }
 
@@ -113,8 +113,8 @@ export const getComponentWithInputEvent = (component, key) => {
       typeof component[symbols.inputEvents].any === 'function')
   ) {
     return component
-  } else if (component.parent !== undefined) {
-    return getComponentWithInputEvent(component.parent, key)
+  } else if (component[symbols.parent] !== undefined) {
+    return getComponentWithInputEvent(component[symbols.parent], key)
   } else return null
 }
 
@@ -126,11 +126,11 @@ export const getComponentWithInputEvent = (component, key) => {
 const setFocus = (component, event) => {
   Log.info(
     '\nFocus chain:\n',
-    focusChain.map((c, index) => '\t'.repeat(index) + '↳ ' + c.componentId).join('\n')
+    focusChain.map((c, index) => '\t'.repeat(index) + '↳ ' + c.$componentId).join('\n')
   )
 
   focusedComponent = component
-  component.lifecycle.state = 'focus'
+  component[symbols.lifecycle].state = 'focus'
 
   if (event instanceof KeyboardEvent) {
     const internalEvent = new KeyboardEvent('keydown', event)

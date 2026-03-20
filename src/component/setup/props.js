@@ -16,46 +16,55 @@
  */
 
 import { Log } from '../../lib/log.js'
-
 import symbols from '../../lib/symbols.js'
 
-const baseProp = {
-  cast: (v) => v,
-  required: false,
+const normalizeProps = (props) => {
+  Log.warn(
+    'Defining props as an Array has been deprecated and will stop working in future versions. Please use the new notation instead (an object with key values pairs).',
+    props
+  )
+  const out = {}
+  const propLength = props.length
+  for (let i = 0; i < propLength; i++) {
+    const prop = props[i]
+    if (typeof prop === 'string') {
+      out[prop] = undefined
+    } else {
+      Log.error(
+        'Defining props as an array of objects is no longer supported. Please use the new format: an object with key-value pairs.'
+      )
+      break
+    }
+  }
+  return out
 }
 
-export default (component, props = []) => {
-  if (props.indexOf('ref') === -1) {
-    props.push('ref')
+export default (component, props = {}) => {
+  if (Array.isArray(props) === true) {
+    props = normalizeProps(props)
   }
-  component[symbols.propKeys] = []
+  if (!('ref' in props)) {
+    props.ref = undefined
+  }
+  const keys = Object.keys(props)
+  component[symbols.propKeys] = keys
 
-  const propsLength = props.length
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    const defaultPropValue = props[key]
 
-  for (let i = 0; i < propsLength; i++) {
-    const prop = { ...baseProp, ...(typeof props[i] === 'object' ? props[i] : { key: props[i] }) }
-    component[symbols.propKeys].push(prop.key)
-    Object.defineProperty(component, prop.key, {
+    Object.defineProperty(component, key, {
       get() {
-        const value = prop.cast(
-          this[symbols.props] !== undefined && prop.key in this[symbols.props]
-            ? this[symbols.props][prop.key]
-            : 'default' in prop
-              ? prop.default
-              : undefined
-        )
-
-        if (prop.required === true && value === undefined) {
-          Log.warn(`${prop.key} is required`)
-        }
-
-        return value
+        if (this[symbols.props] === undefined) return undefined
+        // if the key is specified independent of the value (falsy, null, undefined) use that value
+        // otherwise return the default prop value
+        return key in this[symbols.props] ? this[symbols.props][key] : defaultPropValue
       },
       set(v) {
         Log.warn(
-          `Warning! Avoid mutating props directly (prop "${prop.key}" in component "${this.componentId}")`
+          `Warning! Avoid mutating props directly (prop "${key}" in component "${this.componentId}")`
         )
-        this[symbols.props][prop.key] = v
+        this[symbols.props][key] = v
       },
     })
   }

@@ -28,16 +28,16 @@ export default (component, state = () => {}) => {
   })
 
   const stateKeys = Object.keys(state.apply(component) || {})
-  if (stateKeys.indexOf('hasFocus') > -1) {
+  if (stateKeys.indexOf('$hasFocus') > -1) {
     Log.warn(
-      'State `hasFocus` already exists as a built-in Component variable (to indicate whether the component currently has focus). Avoid using your own `hasFocus` key in the Component state'
+      'State `$hasFocus` already exists as a built-in Component variable (to indicate whether the component currently has focus). Avoid using your own `$hasFocus` key in the Component state'
     )
   } else {
-    // add built-in hasFocus key
-    stateKeys.push(['hasFocus'])
+    // add built-in $hasFocus key
+    stateKeys.push('$hasFocus')
   }
   // add built-in isHovered key
-  stateKeys.push(['isHovered'])
+  stateKeys.push(['$isHovered'])
   const stateKeysLength = stateKeys.length
 
   for (let i = 0; i < stateKeysLength; i++) {

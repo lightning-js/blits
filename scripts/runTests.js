@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2023 Comcast Cable Communications Management, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,52 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = resolve(__filename, '../..')
 
+/** @type {string[]} */
+const excludeTestFiles = []
+
+// For testing and debugging purposes only - leave empty to run all tests
+// When populated, ONLY these test files will run (matches partial file paths)
+/** @type {string[]} */
+const manualIncludeOnlyTestFiles = []
+
+/** @type {string[]} */
+const cliIncludeOnlyTestFiles = process.argv
+  .slice(2)
+  .map((value) => value.trim())
+  .filter(Boolean)
+
+console.log(`CLI includeOnly patterns: ${cliIncludeOnlyTestFiles.join(', ')}`)
+
+/** @type {string[]} */
+const includeOnlyTestFiles = [...manualIncludeOnlyTestFiles, ...cliIncludeOnlyTestFiles]
+
 try {
   // Find all *.test.js files excluding node_modules and packages
-  const testFiles = await fg(['**/*.test.js', '!**/node_modules/**', '!**/packages/**'], {
+  let testFiles = await fg(['**/*.test.js', '!**/node_modules/**', '!**/packages/**'], {
     cwd: __dirname,
   })
+
+  console.log(`Found ${testFiles.length} test files to run.`)
+  testFiles.sort() // Sort first to ensure consistent ordering
+
+  // If includeOnly is specified, filter to only those files (for debugging)
+  // When includeOnly is set, exclude filters are ignored
+  if (includeOnlyTestFiles.length > 0) {
+    console.log(`Applying includeOnly patterns from CLI: ${includeOnlyTestFiles.join(', ')}`)
+    testFiles = testFiles.filter((file) => {
+      const normalizedPath = file.replace(/\\/g, '/')
+      return includeOnlyTestFiles.some((pattern) => normalizedPath.includes(pattern))
+    })
+    console.log(
+      `Filtered to ${testFiles.length} test files based on includeOnly patterns (excludes ignored).`
+    )
+  } else {
+    // Filter out excluded test files (only applies when includeOnly is not set)
+    testFiles = testFiles.filter((file) => {
+      const normalizedPath = file.replace(/\\/g, '/')
+      return !excludeTestFiles.some((pattern) => normalizedPath.includes(pattern))
+    })
+  }
 
   if (testFiles.length === 0) {
     console.log('No test files were found to run')
@@ -38,10 +79,17 @@ try {
   const tapDiff = process.platform === 'win32' ? 'tap-diff.cmd' : 'tap-diff'
   const tapDiffPath = resolve(__dirname, 'node_modules', '.bin', tapDiff)
 
-  // Spawn the tape process
-  const tapeProcess = spawn('node', ['-r', 'global-jsdom/register', tapePath, ...testFiles])
+  // Spawn the tape process with --unhandled-rejections=warn to prevent premature exit
+  const tapeProcess = spawn('node', [
+    '--unhandled-rejections=warn',
+    '-r',
+    'global-jsdom/register',
+    tapePath,
+    ...testFiles,
+  ])
 
   let outputBuffer = ''
+  let tapeExitCode = 0
 
   tapeProcess.stdout.on('data', (chunk) => {
     outputBuffer += chunk.toString()
@@ -50,7 +98,10 @@ try {
   // Stream stderr directly
   tapeProcess.stderr.pipe(process.stderr)
 
-  tapeProcess.on('close', () => {
+  tapeProcess.on('close', (code) => {
+    // Capture the tape exit code
+    tapeExitCode = code || 0
+
     // Pipe the full buffered output into tap-diff
     const tapDiff = spawn(tapDiffPath, [], {
       stdio: ['pipe', 'pipe', 'inherit'],
@@ -74,9 +125,8 @@ try {
     })
 
     tapDiff.on('close', (diffCode) => {
-      if (diffCode !== 0) {
-        process.exit(diffCode)
-      }
+      // Exit with tape's exit code if tests failed, otherwise use tap-diff's code
+      process.exit(tapeExitCode !== 0 ? tapeExitCode : diffCode)
     })
   })
 } catch (err) {

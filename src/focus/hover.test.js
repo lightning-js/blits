@@ -18,10 +18,15 @@
 import test from 'tape'
 import { initLog } from '../lib/log.js'
 import Hover from './hover.js'
+import symbols from '../lib/symbols.js'
 
 initLog()
 
-const createComponent = (id, parent) => ({ componentId: id, parent, lifecycle: { state: 'init' } })
+const createComponent = (id, parent) => ({
+  $componentId: id,
+  [symbols.parent]: parent,
+  [symbols.lifecycle]: { state: 'init' },
+})
 
 test('Public methods on Hover object', (assert) => {
   assert.true(typeof Hover.get === 'function', 'Hover should have a get method')
@@ -34,7 +39,7 @@ test('Setting hover on single component', (assert) => {
   const comp = createComponent('comp1')
   Hover.set(comp)
   assert.equal(Hover.get(), comp, 'get returns set component')
-  assert.equal(comp.lifecycle.state, 'hover', 'component has lifecycle state hover')
+  assert.equal(comp[symbols.lifecycle].state, 'hover', 'component has lifecycle state hover')
   Hover.clear()
   assert.end()
 })
@@ -44,8 +49,8 @@ test('Hovering along hover path', (assert) => {
   const comp = createComponent('comp1', parent)
   Hover.set(comp)
   assert.equal(Hover.get(), comp, 'get returns leaf component')
-  assert.equal(parent.lifecycle.state, 'hover', 'parent hovered')
-  assert.equal(comp.lifecycle.state, 'hover', 'component hovered')
+  assert.equal(parent[symbols.lifecycle].state, 'hover', 'parent hovered')
+  assert.equal(comp[symbols.lifecycle].state, 'hover', 'component hovered')
   Hover.clear()
   assert.end()
 })
@@ -56,7 +61,7 @@ test('Moving hover to child keeps parent hovered', (assert) => {
   Hover.set(parent)
   Hover.set(comp)
   assert.equal(Hover.get(), comp, 'get returns child')
-  assert.equal(parent.lifecycle.state, 'hover', 'parent remains hovered')
+  assert.equal(parent[symbols.lifecycle].state, 'hover', 'parent remains hovered')
   Hover.clear()
   assert.end()
 })
@@ -67,7 +72,7 @@ test('Moving hover to parent unhovers child', (assert) => {
   Hover.set(comp)
   Hover.set(parent)
   assert.equal(Hover.get(), parent, 'get returns parent')
-  assert.equal(comp.lifecycle.state, 'unhover', 'child unhovered')
+  assert.equal(comp[symbols.lifecycle].state, 'unhover', 'child unhovered')
   Hover.clear()
   assert.end()
 })
@@ -79,9 +84,9 @@ test('Unhover full chain when setting hover on unrelated component', (assert) =>
   Hover.set(comp)
   Hover.set(other)
   assert.equal(Hover.get(), other, 'hover moves to unrelated component')
-  assert.equal(comp.lifecycle.state, 'unhover', 'previous leaf unhovered')
-  assert.equal(parent.lifecycle.state, 'unhover', 'previous parent unhovered')
-  assert.equal(other.lifecycle.state, 'hover', 'other hovered')
+  assert.equal(comp[symbols.lifecycle].state, 'unhover', 'previous leaf unhovered')
+  assert.equal(parent[symbols.lifecycle].state, 'unhover', 'previous parent unhovered')
+  assert.equal(other[symbols.lifecycle].state, 'hover', 'other hovered')
   Hover.clear()
   assert.end()
 })
@@ -94,10 +99,10 @@ test('Unhover partial chain when moving to sibling', (assert) => {
   Hover.set(comp)
   Hover.set(other)
   assert.equal(Hover.get(), other, 'hover moves to sibling')
-  assert.equal(comp.lifecycle.state, 'unhover', 'previous leaf unhovered')
-  assert.equal(parent.lifecycle.state, 'hover', 'parent hovered')
-  assert.equal(grandparent.lifecycle.state, 'hover', 'grandparent hovered')
-  assert.equal(other.lifecycle.state, 'hover', 'sibling hovered')
+  assert.equal(comp[symbols.lifecycle].state, 'unhover', 'previous leaf unhovered')
+  assert.equal(parent[symbols.lifecycle].state, 'hover', 'parent hovered')
+  assert.equal(grandparent[symbols.lifecycle].state, 'hover', 'grandparent hovered')
+  assert.equal(other[symbols.lifecycle].state, 'hover', 'sibling hovered')
   Hover.clear()
   assert.end()
 })
@@ -111,11 +116,11 @@ test('Unhover partial chain when moving to cousin', (assert) => {
   Hover.set(compA)
   Hover.set(compB)
   assert.equal(Hover.get(), compB, 'hover moves to cousin')
-  assert.equal(compA.lifecycle.state, 'unhover', 'compA unhovered')
-  assert.equal(parentA.lifecycle.state, 'unhover', 'parentA unhovered')
-  assert.equal(grandparent.lifecycle.state, 'hover', 'grandparent hovered')
-  assert.equal(parentB.lifecycle.state, 'hover', 'parentB hovered')
-  assert.equal(compB.lifecycle.state, 'hover', 'compB hovered')
+  assert.equal(compA[symbols.lifecycle].state, 'unhover', 'compA unhovered')
+  assert.equal(parentA[symbols.lifecycle].state, 'unhover', 'parentA unhovered')
+  assert.equal(grandparent[symbols.lifecycle].state, 'hover', 'grandparent hovered')
+  assert.equal(parentB[symbols.lifecycle].state, 'hover', 'parentB hovered')
+  assert.equal(compB[symbols.lifecycle].state, 'hover', 'compB hovered')
   Hover.clear()
   assert.end()
 })
@@ -126,8 +131,8 @@ test('Clear hover resets get and unhovers chain', (assert) => {
   Hover.set(comp)
   Hover.clear()
   assert.equal(Hover.get(), null, 'get is null after clear')
-  assert.equal(comp.lifecycle.state, 'unhover', 'leaf unhovered')
-  assert.equal(parent.lifecycle.state, 'unhover', 'parent unhovered')
+  assert.equal(comp[symbols.lifecycle].state, 'unhover', 'leaf unhovered')
+  assert.equal(parent[symbols.lifecycle].state, 'unhover', 'parent unhovered')
   assert.end()
 })
 
@@ -166,13 +171,17 @@ test('Destroyed components in chain are skipped on unhover, set, and clear', (as
   Hover.set(comp)
   parent.eol = true
   Hover.set(other)
-  assert.equal(comp.lifecycle.state, 'unhover', 'comp unhovered when moving to other')
-  assert.notEqual(parent.lifecycle.state, 'unhover', 'destroyed parent skipped for unhover')
+  assert.equal(comp[symbols.lifecycle].state, 'unhover', 'comp unhovered when moving to other')
+  assert.notEqual(
+    parent[symbols.lifecycle].state,
+    'unhover',
+    'destroyed parent skipped for unhover'
+  )
   Hover.set(comp)
   assert.equal(Hover.get(), comp, 'hover can be set again on component')
-  assert.equal(comp.lifecycle.state, 'hover', 'component hovered')
+  assert.equal(comp[symbols.lifecycle].state, 'hover', 'component hovered')
   Hover.clear()
-  assert.equal(comp.lifecycle.state, 'unhover', 'clear unhovers comp')
+  assert.equal(comp[symbols.lifecycle].state, 'unhover', 'clear unhovers comp')
   assert.equal(Hover.get(), null, 'clear resets get')
   assert.end()
 })

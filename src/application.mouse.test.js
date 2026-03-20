@@ -27,14 +27,18 @@ import symbols from './lib/symbols.js'
 
 initLog()
 
-const createComponent = (id, parent) => ({ componentId: id, parent, lifecycle: { state: 'init' } })
+const createComponent = (id, parent) => ({
+  $componentId: id,
+  [symbols.parent]: parent,
+  [symbols.lifecycle]: { state: 'init' },
+})
 const getKeydown = (docAdded) => docAdded.find((c) => c.event === 'keydown')
 
 function createMockApp() {
   return {
-    componentId: 'App',
-    lifecycle: { state: 'init' },
-    parent: undefined,
+    $componentId: 'App',
+    [symbols.lifecycle]: { state: 'init' },
+    [symbols.parent]: undefined,
     $announcer: { toggle: () => {}, configure: () => {} },
     $emit: () => {},
   }
@@ -127,7 +131,6 @@ test('Mouse listeners not added when enableMouse is false', async (assert) => {
   } finally {
     cleanupAppAndRestore(config, restore)
   }
-  assert.end()
 })
 
 test('Destroy without prior init does not throw', async (assert) => {
@@ -143,7 +146,6 @@ test('Destroy without prior init does not throw', async (assert) => {
   } finally {
     Settings.set('enableMouse', false)
   }
-  assert.end()
 })
 
 test('Mouse listeners added when enableMouse is true', async (assert) => {
@@ -164,7 +166,6 @@ test('Mouse listeners added when enableMouse is true', async (assert) => {
   } finally {
     cleanupAppAndRestore(config, restore)
   }
-  assert.end()
 })
 
 test('Destroy removes mouse listeners and clears hover', async (assert) => {
@@ -192,7 +193,6 @@ test('Destroy removes mouse listeners and clears hover', async (assert) => {
   } finally {
     cleanupAppAndRestore(config, restore, { restoreHoverClear: hoverSpy.original })
   }
-  assert.end()
 })
 
 test('Key input clears hover when enableMouse is true', async (assert) => {
@@ -210,7 +210,6 @@ test('Key input clears hover when enableMouse is true', async (assert) => {
   } finally {
     cleanupAppAndRestore(config, restore, { restoreHoverClear: hoverSpy.original })
   }
-  assert.end()
 })
 
 test('Key input does NOT clear hover when enableMouse is false', async (assert) => {
@@ -224,7 +223,6 @@ test('Key input does NOT clear hover when enableMouse is false', async (assert) 
   } finally {
     cleanupAppAndRestore(config, restore, { restoreHoverClear: hoverSpy.original })
   }
-  assert.end()
 })
 
 test('Non-arrow key also clears hover when enableMouse is true', async (assert) => {
@@ -241,7 +239,6 @@ test('Non-arrow key also clears hover when enableMouse is true', async (assert) 
   } finally {
     cleanupAppAndRestore(config, restore, { restoreHoverClear: hoverSpy.original })
   }
-  assert.end()
 })
 
 test('Key input when hover already null does not throw', async (assert) => {
@@ -254,7 +251,6 @@ test('Key input when hover already null does not throw', async (assert) => {
   } finally {
     cleanupAppAndRestore(config, restore)
   }
-  assert.end()
 })
 
 test('Re-init after destroy re-registers listeners', async (assert) => {
@@ -275,5 +271,4 @@ test('Re-init after destroy re-registers listeners', async (assert) => {
   } finally {
     cleanupAppAndRestore(config, restore)
   }
-  assert.end()
 })

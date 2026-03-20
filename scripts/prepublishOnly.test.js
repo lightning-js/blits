@@ -37,7 +37,6 @@ test('Setup', async (assert) => {
   assert.ok(processDirectory, 'processDirectory function loaded')
   assert.ok(processFile, 'processFile function loaded')
   assert.ok(formatFileWithESLint, 'formatFileWithESLint function loaded')
-  assert.end()
 })
 
 test('precompileComponents - should log start and end messages', (assert) => {
@@ -68,6 +67,7 @@ test('processDirectory - should process JS files in directory', (assert) => {
   const writeStub = sinon.stub(fs, 'writeFileSync')
   const copyStub = sinon.stub(fs, 'copyFileSync')
   const consoleLogStub = sinon.stub(console, 'log')
+  const execStub = sinon.stub(childProcess, 'exec')
 
   processDirectory(testDir)
 
@@ -77,6 +77,7 @@ test('processDirectory - should process JS files in directory', (assert) => {
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
+  execStub.restore()
 
   assert.ok(readdirStub.calledWith(testDir), 'Should read directory')
   assert.ok(statStub.called, 'Should check file stats')
@@ -94,6 +95,7 @@ test('processDirectory - should process TS files in directory', (assert) => {
   const writeStub = sinon.stub(fs, 'writeFileSync')
   const copyStub = sinon.stub(fs, 'copyFileSync')
   const consoleLogStub = sinon.stub(console, 'log')
+  const execStub = sinon.stub(childProcess, 'exec')
 
   processDirectory(testDir)
 
@@ -103,6 +105,7 @@ test('processDirectory - should process TS files in directory', (assert) => {
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
+  execStub.restore()
 
   assert.ok(readStub.called, 'Should read TS file')
   assert.end()
@@ -116,6 +119,7 @@ test('processDirectory - should skip .orig.js files', (assert) => {
   const writeStub = sinon.stub(fs, 'writeFileSync')
   const copyStub = sinon.stub(fs, 'copyFileSync')
   const consoleLogStub = sinon.stub(console, 'log')
+  const execStub = sinon.stub(childProcess, 'exec')
 
   processDirectory(testDir)
 
@@ -125,6 +129,7 @@ test('processDirectory - should skip .orig.js files', (assert) => {
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
+  execStub.restore()
 
   // Should only process Helper.js
   assert.equal(readStub.callCount, 1, 'Should only read one file')
@@ -144,6 +149,7 @@ test('processDirectory - should skip .orig.ts files', (assert) => {
   const writeStub = sinon.stub(fs, 'writeFileSync')
   const copyStub = sinon.stub(fs, 'copyFileSync')
   const consoleLogStub = sinon.stub(console, 'log')
+  const execStub = sinon.stub(childProcess, 'exec')
 
   processDirectory(testDir)
 
@@ -153,6 +159,7 @@ test('processDirectory - should skip .orig.ts files', (assert) => {
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
+  execStub.restore()
 
   assert.equal(readStub.callCount, 1, 'Should only read one file')
   assert.notOk(
@@ -172,6 +179,7 @@ test('processDirectory - should skip non-JS/TS files', (assert) => {
   const writeStub = sinon.stub(fs, 'writeFileSync')
   const copyStub = sinon.stub(fs, 'copyFileSync')
   const consoleLogStub = sinon.stub(console, 'log')
+  const execStub = sinon.stub(childProcess, 'exec')
 
   processDirectory(testDir)
 
@@ -181,6 +189,7 @@ test('processDirectory - should skip non-JS/TS files', (assert) => {
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
+  execStub.restore()
 
   assert.equal(readStub.callCount, 1, 'Should only process JS file')
   assert.ok(consoleLogStub.calledWith(sinon.match(/Component\.js/)), 'Should process Component.js')
@@ -195,6 +204,7 @@ test('processDirectory - should recursively process subdirectories', (assert) =>
   const writeStub = sinon.stub(fs, 'writeFileSync')
   const copyStub = sinon.stub(fs, 'copyFileSync')
   const consoleLogStub = sinon.stub(console, 'log')
+  const execStub = sinon.stub(childProcess, 'exec')
 
   readdirStub.onFirstCall().returns(['subdir', 'Component.js'])
   statStub.onCall(0).returns({ isDirectory: () => true })
@@ -211,6 +221,7 @@ test('processDirectory - should recursively process subdirectories', (assert) =>
   writeStub.restore()
   copyStub.restore()
   consoleLogStub.restore()
+  execStub.restore()
 
   assert.equal(readdirStub.callCount, 2, 'Should read 2 directories')
   assert.equal(readStub.callCount, 2, 'Should process 2 files')
@@ -400,54 +411,76 @@ test('processFile - should log precompiling message', (assert) => {
   assert.end()
 })
 
-test('formatFileWithESLint - should accept file path', (assert) => {
+test('formatFileWithESLint - should run eslint --fix with the correct command', (assert) => {
   const filePath = path.resolve(process.cwd(), 'Component.js')
   const execStub = sinon.stub(childProcess, 'exec')
 
-  // Just verify the function can be called without errors
-  assert.doesNotThrow(() => {
-    formatFileWithESLint(filePath)
-  }, 'Should accept file path without throwing')
-
-  assert.ok(execStub.calledOnce, 'Should call exec once')
-  execStub.restore()
-  assert.end()
-})
-
-test('formatFileWithESLint - should handle file path parameter', (assert) => {
-  const filePath = path.resolve(process.cwd(), 'Component.js')
-  const execStub = sinon.stub(childProcess, 'exec')
-
-  // Verify function accepts path parameter
-  assert.doesNotThrow(() => {
-    formatFileWithESLint(filePath)
-  }, 'Should handle file path parameter')
-
-  execStub.restore()
-  assert.end()
-})
-
-test('formatFileWithESLint - should be callable', (assert) => {
-  const filePath = path.resolve(process.cwd(), 'Component.js')
-  const execStub = sinon.stub(childProcess, 'exec')
-
-  // Verify function is callable
-  assert.equal(typeof formatFileWithESLint, 'function', 'Should be a function')
   formatFileWithESLint(filePath)
 
   execStub.restore()
+
+  assert.ok(execStub.calledOnce, 'Should call exec once')
+  assert.ok(
+    execStub.calledWith(`eslint "${filePath}" --fix`, sinon.match.func),
+    'Should call exec with the correct eslint --fix command and a callback'
+  )
   assert.end()
 })
 
-test('formatFileWithESLint - should execute without errors', (assert) => {
+test('formatFileWithESLint - should log exec error message when eslint fails', (assert) => {
   const filePath = path.resolve(process.cwd(), 'Component.js')
-  const execStub = sinon.stub(childProcess, 'exec')
+  const consoleErrorStub = sinon.stub(console, 'error')
+  const execStub = sinon.stub(childProcess, 'exec').callsFake((_cmd, callback) => {
+    callback(new Error('eslint failed'), '', 'some stderr output')
+  })
 
-  // Verify function executes without throwing
-  assert.doesNotThrow(() => {
-    formatFileWithESLint(filePath)
-  }, 'Should execute without errors')
+  formatFileWithESLint(filePath)
 
   execStub.restore()
+  consoleErrorStub.restore()
+
+  assert.ok(consoleErrorStub.called, 'Should log error when exec fails')
+  assert.ok(
+    consoleErrorStub.calledWith(sinon.match(/eslint failed/)),
+    'Should include the error message in the log'
+  )
+  assert.end()
+})
+
+test('formatFileWithESLint - should log eslint stderr output when present', (assert) => {
+  const filePath = path.resolve(process.cwd(), 'Component.js')
+  const consoleErrorStub = sinon.stub(console, 'error')
+  const execStub = sinon.stub(childProcess, 'exec').callsFake((_cmd, callback) => {
+    callback(new Error('eslint failed'), '', 'Parsing error: unexpected token')
+  })
+
+  formatFileWithESLint(filePath)
+
+  execStub.restore()
+  consoleErrorStub.restore()
+
+  assert.ok(
+    consoleErrorStub.calledWith(sinon.match(/Parsing error: unexpected token/)),
+    'Should include stderr in the error log'
+  )
+  assert.end()
+})
+
+test('formatFileWithESLint - should not log anything when eslint succeeds silently', (assert) => {
+  const filePath = path.resolve(process.cwd(), 'Component.js')
+  const consoleLogStub = sinon.stub(console, 'log')
+  const consoleErrorStub = sinon.stub(console, 'error')
+  const execStub = sinon.stub(childProcess, 'exec').callsFake((_cmd, callback) => {
+    callback(null, '', '')
+  })
+
+  formatFileWithESLint(filePath)
+
+  execStub.restore()
+  consoleLogStub.restore()
+  consoleErrorStub.restore()
+
+  assert.notOk(consoleLogStub.called, 'Should not log anything on clean success')
+  assert.notOk(consoleErrorStub.called, 'Should not log errors on clean success')
   assert.end()
 })
