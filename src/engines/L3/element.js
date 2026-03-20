@@ -222,9 +222,6 @@ const propsTransformer = {
       this.element.component[symbols.holder].set('w', parsed)
     }
   },
-  set width(v) {
-    this.w = v
-  },
   set h(v) {
     const parsed = parsePercentage.call(this, v, 'h')
     this.props['h'] = parsed
@@ -235,9 +232,6 @@ const propsTransformer = {
     ) {
       this.element.component[symbols.holder].set('h', parsed)
     }
-  },
-  set height(v) {
-    this.h = v
   },
   set x(v) {
     this.props['x'] = parsePercentage.call(this, v, 'w')
