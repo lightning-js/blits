@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.0.1
+
+_23 mar 2026_
+
+- Fixed issue with height dimension of router view
+- Fixed issue with array or rounded corners not being reactive
+- Fixed issue with font not being mapped correctly when using `png` in the font config
+- Removed obselete key config
+- Fixed reactivity guard in computed props to handle deep nested references more safely
+
 ## v2.0.0
 
 _20 mar 2026_
