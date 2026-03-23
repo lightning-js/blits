@@ -38,12 +38,14 @@
  * @property {symbol} isProxy
  * @property {symbol} launched
  * @property {symbol} level
+ * @property {symbol} lifecycle
  * @property {symbol} methodKeys
  * @property {symbol} originalState
  * @property {symbol} propKeys
  * @property {symbol} raw
  * @property {symbol} ready
  * @property {symbol} renderer
+ * @property {symbol} rootParent
  * @property {symbol} routes
  * @property {symbol} routerHooks
  * @property {symbol} settings
@@ -60,6 +62,7 @@
  * @property {symbol} config
  * @property {symbol} isSlot
  * @property {symbol} props
+ * @property {symbol} parent
  * @property {symbol} slots
  * @property {symbol} componentType
  * @property {symbol} isComponent
@@ -92,12 +95,15 @@ export default {
   isProxy: Symbol('isProxy'),
   launched: Symbol('launched'),
   level: Symbol('level'),
+  lifecycle: Symbol('lifecycle'),
   methodKeys: Symbol('methodKeys'),
   originalState: Symbol('originalState'),
+  parent: Symbol('parent'),
   propKeys: Symbol('propKeys'),
   raw: Symbol('raw'),
   ready: Symbol('ready'),
   renderer: Symbol('renderer'),
+  rootParent: Symbol('rootParent'),
   routes: Symbol('routes'),
   routerHooks: Symbol('routerHooks'),
   settings: Symbol('settings'),
@@ -132,4 +138,6 @@ export default {
   effects: Symbol.for('effects'),
   // Symbol 'removeGlobalEffects' utilized within generated code
   removeGlobalEffects: Symbol.for('removeGlobalEffects'),
+  // Symbol 'removeGlobalEffects' utilized within generated code
+  tagContent: Symbol.for('tagContent'),
 }

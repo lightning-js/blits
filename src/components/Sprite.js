@@ -22,9 +22,19 @@ import symbols from '../lib/symbols.js'
 export default () =>
   Component('Sprite', {
     template: `
-      <Element w="100%" h="100%" :texture="$texture" :color="$color" effects="$effects" />
+      <Element w="100%" h="100%" :texture="$texture" :color="$color" :rounded="$rounded" :border="$border" :shadow="$shadow" />
     `,
-    props: ['image', 'map', 'frame', 'color', 'effects', '@loaded', '@error'],
+    props: {
+      image: undefined,
+      map: undefined,
+      frame: undefined,
+      color: undefined,
+      rounded: undefined,
+      border: undefined,
+      shadow: undefined,
+      '@loaded': undefined,
+      '@error': undefined,
+    },
     state() {
       return {
         spriteTexture: null,
@@ -121,8 +131,8 @@ export default () =>
             texture: this.spriteTexture,
             x: options.x,
             y: options.y,
-            width: options.w,
-            height: options.h,
+            w: options.w,
+            h: options.h,
           })
         }
 

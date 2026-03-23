@@ -78,7 +78,7 @@ const Application = (config) => {
     keyDownHandler = async (e) => {
       const currentTime = performance.now()
 
-      const key = keyMap[e.key] || keyMap[e.keyCode] || e.key || e.keyCode
+      const key = keyMap[e.keyCode] || e.keyCode
       const sameKey = lastInputKey === key
       lastInputKey = key
       // execute immediately when no throttle is specified or event is internal (bubbled up by focus manager)

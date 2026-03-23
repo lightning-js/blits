@@ -27,14 +27,18 @@ import symbols from './lib/symbols.js'
 
 initLog()
 
-const createComponent = (id, parent) => ({ componentId: id, parent, lifecycle: { state: 'init' } })
+const createComponent = (id, parent) => ({
+  $componentId: id,
+  [symbols.parent]: parent,
+  [symbols.lifecycle]: { state: 'init' },
+})
 const getKeydown = (docAdded) => docAdded.find((c) => c.event === 'keydown')
 
 function createMockApp() {
   return {
-    componentId: 'App',
-    lifecycle: { state: 'init' },
-    parent: undefined,
+    $componentId: 'App',
+    [symbols.lifecycle]: { state: 'init' },
+    [symbols.parent]: undefined,
     $announcer: { toggle: () => {}, configure: () => {} },
     $emit: () => {},
   }

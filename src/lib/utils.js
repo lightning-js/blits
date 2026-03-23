@@ -42,3 +42,39 @@ export const screenResolutions = {
   '2160p': 2,
   2160: 2,
 }
+
+/**
+ * Checks if a value is a transition object.
+ * @param {any} value - The value to check.
+ * @returns {boolean} True if the value is a transition object, false otherwise.
+ */
+export const isTransition = (value) => {
+  return value !== null && typeof value === 'object' && 'transition' in value === true
+}
+
+/**
+ * Checks if a string is an object string (starts and ends with curly braces).
+ * @param {string} str - The string to check.
+ * @returns {boolean} True if the string is an object string, false otherwise.
+ */
+export const isObjectString = (str) => {
+  return typeof str === 'string' && str.startsWith('{') && str.endsWith('}')
+}
+
+/**
+ * Checks if a string is an array string (starts and ends with brackets).
+ * @param {string} str - The string to check.
+ * @returns {boolean} True if the string is an object string, false otherwise.
+ */
+export const isArrayString = (str) => {
+  return typeof str === 'string' && str.startsWith('[') && str.endsWith(']')
+}
+
+/**
+ * Parses a string into an object, converting single quotes to double and adding quotes to keys.
+ * @param {string} str - The string to parse.
+ * @returns {object} The parsed object.
+ */
+export const parseToObject = (str) => {
+  return JSON.parse(str.replace(/'/g, '"').replace(/([\w-_]+)\s*:/g, '"$1":'))
+}

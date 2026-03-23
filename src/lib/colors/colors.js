@@ -86,7 +86,6 @@ export default {
       console.warn('HSL(A) color format is not supported yet')
       return '0xffffffff'
     }
-
     return defaultColor
   },
 }

@@ -17,6 +17,7 @@
 
 import { Log } from '../lib/log.js'
 import { getAncestors } from './helpers.js'
+import symbols from '../lib/symbols.js'
 
 let hoveredComponent = null
 let hoverChain = []
@@ -37,7 +38,7 @@ export default {
 
     // unhover currently hovered components
     if (hoveredComponent !== null) {
-      if (hoverChain[hoverChain.length - 1] === component.parent) {
+      if (hoverChain[hoverChain.length - 1] === component.$parent) {
         hoverChain.push(component)
       } else {
         const newhoverChain = getAncestors([component])
@@ -47,7 +48,7 @@ export default {
           if (newhoverChain.indexOf(hoverChain[i]) > -1) break
           // skip if component is destroyed
           if (hoverChain[i].eol !== true) {
-            hoverChain[i].lifecycle.state = 'unhover'
+            hoverChain[i][symbols.lifecycle].state = 'unhover'
           }
         }
         hoverChain = newhoverChain
@@ -59,7 +60,7 @@ export default {
     while (i < hoverChain.length - 1) {
       // skip if component is destroyed
       if (hoverChain[i].eol !== true) {
-        hoverChain[i].lifecycle.state = 'hover'
+        hoverChain[i][symbols.lifecycle].state = 'hover'
       }
       i++
     }
@@ -70,7 +71,7 @@ export default {
     if (hoveredComponent === null) return
     for (let i = 0; i < hoverChain.length; i++) {
       if (hoverChain[i].eol !== true) {
-        hoverChain[i].lifecycle.state = 'unhover'
+        hoverChain[i][symbols.lifecycle].state = 'unhover'
       }
     }
     hoveredComponent = null
@@ -85,9 +86,9 @@ export default {
 const setHover = (component) => {
   Log.info(
     '\nHover chain:\n',
-    hoverChain.map((c, index) => '\t'.repeat(index) + '↳ ' + c.componentId).join('\n')
+    hoverChain.map((c, index) => '\t'.repeat(index) + '↳ ' + c.$componentId).join('\n')
   )
 
   hoveredComponent = component
-  component.lifecycle.state = 'hover'
+  component[symbols.lifecycle].state = 'hover'
 }

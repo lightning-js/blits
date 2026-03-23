@@ -16,11 +16,13 @@
  */
 
 import { renderer } from './launch.js'
+import { parseToObject, isObjectString, isArrayString, isTransition } from '../../lib/utils.js'
 import colors from '../../lib/colors/colors.js'
 
 import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
+import shaders from '../../lib/shaders/shaders.js'
 
 const holderComponentMap = new WeakMap()
 
@@ -81,8 +83,8 @@ const layoutFn = function (config) {
   const position = config.direction === 'vertical' ? 'y' : 'x'
   const oppositePosition = config.direction === 'vertical' ? 'x' : 'y'
   const oppositeMount = config.direction === 'vertical' ? 'mountX' : 'mountY'
-  const dimension = config.direction === 'vertical' ? 'height' : 'width'
-  const oppositeDimension = config.direction === 'vertical' ? 'width' : 'height'
+  const dimension = config.direction === 'vertical' ? 'h' : 'w'
+  const oppositeDimension = config.direction === 'vertical' ? 'w' : 'h'
   const padding = createPaddingObject(config.padding, config.direction)
 
   let offset = padding.start
@@ -100,17 +102,10 @@ const layoutFn = function (config) {
     node[position] = offset
     node[oppositePosition] = padding.oppositeStart
     // todo: temporary text check, due to 1px width of empty text node
-    if (dimension === 'width') {
-      offset += node.width + (node.width !== ('text' in node ? 1 : 0) ? gap : 0)
+    if (dimension === 'w') {
+      offset += node.w + (node.w !== ('text' in node ? 1 : 0) ? gap : 0)
     } else {
-      offset +=
-        'text' in node
-          ? node.width > 1
-            ? node.height + gap
-            : 0
-          : node.height !== 0
-            ? node.height + gap
-            : 0
+      offset += 'text' in node ? (node.w > 1 ? node.h + gap : 0) : node.h !== 0 ? node.h + gap : 0
     }
     otherDimension = Math.max(
       otherDimension,
@@ -137,40 +132,13 @@ const layoutFn = function (config) {
 
   // emit an updated event
   if (config['@updated'] !== undefined) {
-    config['@updated']({ w: this.node.width, h: this.node.height }, this)
+    config['@updated']({ w: this.node.w, h: this.node.h }, this)
   }
 
   // trigger layout on parent if parent is a layout
   if (this.config.parent && this.config.parent.props.__layout === true) {
     this.config.parent.triggerLayout(this.config.parent.props)
   }
-}
-
-/**
- * Checks if a value is a transition object.
- * @param {any} value - The value to check.
- * @returns {boolean} True if the value is a transition object, false otherwise.
- */
-const isTransition = (value) => {
-  return value !== null && typeof value === 'object' && 'transition' in value === true
-}
-
-/**
- * Checks if a string is an object string (starts and ends with curly braces).
- * @param {string} str - The string to check.
- * @returns {boolean} True if the string is an object string, false otherwise.
- */
-const isObjectString = (str) => {
-  return typeof str === 'string' && str.startsWith('{') && str.endsWith('}')
-}
-
-/**
- * Parses a string into an object, converting single quotes to double and adding quotes to keys.
- * @param {string} str - The string to parse.
- * @returns {object} The parsed object.
- */
-const parseToObject = (str) => {
-  return JSON.parse(str.replace(/'/g, '"').replace(/([{,]\s*)([\w-_]+)(\s*:)/g, '$1"$2"$3'))
 }
 
 /**
@@ -244,36 +212,32 @@ const propsTransformer = {
     this.props['rotation'] = v * (Math.PI / 180)
   },
   set w(v) {
-    this.props['width'] = parsePercentage.call(this, v, 'width')
+    const parsed = parsePercentage.call(this, v, 'w')
+    this.props['w'] = parsed
     if (
       this.___wrapper === true &&
       this.element.component.eol !== true &&
       this.element.component[symbols.holder] !== undefined
     ) {
-      this.element.component[symbols.holder].set('w', this.props['width'])
+      this.element.component[symbols.holder].set('w', parsed)
     }
-  },
-  set width(v) {
-    this.w = v
   },
   set h(v) {
-    this.props['height'] = parsePercentage.call(this, v, 'height')
+    const parsed = parsePercentage.call(this, v, 'h')
+    this.props['h'] = parsed
     if (
       this.___wrapper === true &&
       this.element.component.eol !== true &&
       this.element.component[symbols.holder] !== undefined
     ) {
-      this.element.component[symbols.holder].set('h', this.props['height'])
+      this.element.component[symbols.holder].set('h', parsed)
     }
   },
-  set height(v) {
-    this.h = v
-  },
   set x(v) {
-    this.props['x'] = parsePercentage.call(this, v, 'width')
+    this.props['x'] = parsePercentage.call(this, v, 'w')
   },
   set y(v) {
-    this.props['y'] = parsePercentage.call(this, v, 'height')
+    this.props['y'] = parsePercentage.call(this, v, 'h')
   },
   set z(v) {
     this.props['zIndex'] = v
@@ -303,7 +267,7 @@ const propsTransformer = {
       this.props['color'] = this.props['src'] ? 0xffffffff : 0x00000000
     }
     // apply auto sizing when no width or height specified
-    if (!('w' in this.raw) && !('w' in this.raw) && !('h' in this.raw) && !('height' in this.raw)) {
+    if (!('w' in this.raw) && !('h' in this.raw)) {
       this.props['autosize'] = true
     }
   },
@@ -395,37 +359,68 @@ const propsTransformer = {
       this.props['alpha'] = v
     }
   },
+  set rounded(v) {
+    this.props['rounded'] = v
+    if (this.element.node !== undefined && this.elementShader === true) {
+      if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+        this.element.node.props['shader'].props = v
+      } else {
+        if (isArrayString(v) === true) {
+          v = JSON.parse(v)
+        }
+        this.element.node.props['shader'].props.radius = v
+      }
+    }
+  },
+  set border(v) {
+    this.props['border'] = v
+    if (
+      this.element.node !== undefined &&
+      this.elementShader === true &&
+      (typeof v === 'object' || isObjectString(v) === true)
+    ) {
+      v = shaders.parseProps(v)
+      for (const key in v) {
+        this.element.node.props['shader'].props[`border-${key}`] = v[key]
+      }
+    }
+  },
+  set shadow(v) {
+    this.props['shadow'] = v
+    if (
+      this.element.node !== undefined &&
+      this.elementShader === true &&
+      (typeof v === 'object' || isObjectString(v) === true)
+    ) {
+      v = shaders.parseProps(v)
+      for (const key in v) {
+        this.element.node.props['shader'].props[`shadow-${key}`] = v[key]
+      }
+    }
+  },
   set shader(v) {
+    let type = v
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      type = v.type
+      v = shaders.parseProps(v)
+    }
     const target = this.element.node !== undefined ? this.element.node : this.props
-
-    if (v === null) {
-      target['shader'] = null
+    //if v remains a string we can change shader types
+    if (typeof v === 'string') {
+      target['shader'] = renderer.createShader(type)
       return
     }
 
-    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
-      if (target.shader !== undefined && target.shader.type === v.type) {
-        for (const prop in v.props) {
-          target.shader.props[prop] = v.props[prop]
-        }
+    //check again if v is an object since it could have been an object string
+    if (typeof v === 'object') {
+      if (target.shader !== undefined && type === target.shader.shaderKey) {
+        target['shader'].props = v
         return
       }
-      target['shader'] = renderer.createShader(v.type, v.props)
+      target['shader'] = renderer.createShader(type, v)
+      return
     }
-  },
-  set effects(v) {
-    for (let i = 0; i < v.length; i++) {
-      if (v[i].props && v[i].props.color) {
-        v[i].props.color = colors.normalize(v[i].props.color)
-      }
-    }
-    if (this.element.node === undefined) {
-      this.props['shader'] = renderer.createShader('DynamicShader', {
-        effects: v.map((effect) => {
-          return renderer.createEffect(effect.type, effect.props)
-        }),
-      })
-    }
+    target['shader'] = renderer.createShader('DefaultShader')
   },
   set clipping(v) {
     this.props['clipping'] = v
@@ -439,21 +434,27 @@ const propsTransformer = {
   set size(v) {
     this.props['fontSize'] = v
   },
-  set wordwrap(v) {
-    Log.warn('The wordwrap attribute is deprecated, use maxwidth instead')
-    this.props['width'] = v
-    this.props['contain'] = 'width'
-  },
   set maxwidth(v) {
-    this.props['width'] = v
+    this.props['maxWidth'] = v
+    if (this.manualTextContain === true) {
+      return
+    }
+    if (this.props['contain'] === 'height') {
+      this.props['contain'] = 'both'
+      return
+    }
     this.props['contain'] = 'width'
   },
   set maxheight(v) {
-    this.props['height'] = v
-    this.props['contain'] = 'both'
-  },
-  set contain(v) {
-    this.props['contain'] = v
+    this.props['maxHeight'] = v
+    if (this.manualTextContain === true) {
+      return
+    }
+    if (this.props['contain'] === 'width') {
+      this.props['contain'] = 'both'
+      return
+    }
+    this.props['contain'] = 'height'
   },
   set maxlines(v) {
     this.props['maxLines'] = v
@@ -466,6 +467,10 @@ const propsTransformer = {
   },
   set lineheight(v) {
     this.props['lineHeight'] = v
+  },
+  set contain(v) {
+    this.props['contain'] = v
+    this.manualTextContain = true
   },
   set align(v) {
     this.props['textAlign'] = v
@@ -519,13 +524,14 @@ const propsTransformer = {
   },
 }
 
+export const elementAttributes = Object.keys(propsTransformer)
+
 const Element = {
   /**
    * Populates the element with data
-   * @param {import('../../component.js').BlitsElementProps} data
+   * @param {import('../../component.js').BlitsElementProps} props
    */
-  populate(data) {
-    const props = data
+  populate(props) {
     props['node'] = this.config.node
 
     if (props[symbols.isSlot] === true) {
@@ -538,10 +544,21 @@ const Element = {
     //@ts-ignore This might be a left over from the old code?
     delete props.parent
 
-    this.props.raw = data
+    this.props.raw = props
+    this.props.elementShader = false
 
     const propKeys = Object.keys(props)
     const length = propKeys.length
+
+    if (
+      props['shader'] === undefined &&
+      (props['rounded'] !== undefined ||
+        props['border'] !== undefined ||
+        props['shadow'] !== undefined)
+    ) {
+      this.props.elementShader = true
+      this.props.props['shader'] = shaders.createElementShader(props)
+    }
 
     for (let i = 0; i < length; i++) {
       const key = propKeys[i]
@@ -566,7 +583,7 @@ const Element = {
 
     if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
       this.node.on('loaded', (el, { type, dimensions }) => {
-        props['@loaded']({ w: dimensions.width, h: dimensions.height, type }, this)
+        props['@loaded']({ w: dimensions.w, h: dimensions.h, type }, this)
       })
     }
 

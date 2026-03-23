@@ -46,7 +46,7 @@ const logger = (context) => {
       return (
         ((level >= 1 || (Array.isArray(level) && level.indexOf('info') > -1)) &&
           console.info.bind(
-            window.console,
+            console,
             `%c ⚡️ ${context} %c ${time()}`,
             'background-color: #0284c7; color: white; padding: 3px 6px 3px 1px; border-radius: 3px',
             'color: ##94a3b8;'
@@ -61,7 +61,7 @@ const logger = (context) => {
       return (
         ((level >= 1 || (Array.isArray(level) && level.indexOf('warn') > -1)) &&
           console.warn.bind(
-            window.console,
+            console,
             `%c ⚡️ ${context} %c ${time()}`,
             'background-color: #fbbf24; color: white; padding: 3px 6px 3px 1px; border-radius: 3px',
             'color: ##94a3b8;'
@@ -76,7 +76,7 @@ const logger = (context) => {
       return (
         ((level >= 1 || (Array.isArray(level) && level.indexOf('error') > -1)) &&
           console.error.bind(
-            window.console,
+            console,
             `%c ⚡️ ${context} %c ${time()}`,
             'background-color: #dc2626; color: white; padding: 3px 6px 3px 1px; border-radius: 3px',
             'color: ##94a3b8;'
@@ -91,7 +91,7 @@ const logger = (context) => {
       return (
         ((level >= 2 || (Array.isArray(level) && level.indexOf('debug') > -1)) &&
           console.debug.bind(
-            window.console,
+            console,
             `%c ⚡️ ${context} %c (${new Date().toLocaleTimeString([], {
               hour: '2-digit',
               minute: '2-digit',

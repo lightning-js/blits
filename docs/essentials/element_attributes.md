@@ -194,6 +194,52 @@ In order to contain / cut off the content inside an Element's `w` and `h`, you c
 
 Alternatively you can also use the `overflow`-attribute (and pass it `true` or `false`), which works similar to clipping just mapped inversly (i.e. `overflow="false"` ensures content that surpasses the parent dimensions is clipped-off).
 
+## Shaders
+
+Generally Elements that have a color or texture are simply rendered as a rectangle. With shaders you can add extra effects or even change the shape of what is rendered.
+
+In Blits there are two ways to apply these Shaders.
+
+### Built-in Element Shader attributes
+For better a better development experience Blits had the following shader attributes regularly used in app development:
+
+- `rounded` - Allows you to round corners of an Element. You can do this with a single value, array, or object. ([details](https://lightningjs.io/api/renderer/interfaces/Renderer.RoundedProps.html))
+- `border` - Allows you to add an inner border to an Element. You can do this with an object. ([details](https://lightningjs.io/api/renderer/interfaces/Renderer.BorderProps.html))
+- `shadow` - Allows you to add a box shadow "behind" an Element. You can do this with an object. ([details](https://lightningjs.io/api/renderer/interfaces/Renderer.ShadowProps.html))
+
+
+```xml
+<Element w="200" h="200" x="20" y="100" rounded="20" />
+<Element w="200" h="200" x="800" y="400" border="{w: 10, color: 'green'}" />
+<Element w="200" h="200" x="800" y="700" shadow="{blur: 10, spread: 10}" />
+```
+
+You can also use built-in shader attributes in combination with eachother f.e;
+
+```xml
+<Element w="200" h="200" x="20" y="100" rounded="20" border="{w: 20, color:'blue'}"/>
+```
+
+### Using shader attribute
+> [!WARNING]
+> This attribute does not work in combination with the built-in element shader attributes. This has to do with the complexity of shaders that makes mixing and matching quite heavy on performance.
+
+You can use a custom shader type by using the `shader` attribute. You can use [imported shaders](../shaders/importing-shaders.md) or some of the shaders Blits already has available to you:
+
+- `linearGradient` - linear gradient with multiple stops, and adjustable angle.
+- `radialGradient` - radial gradient with multiple stops, and adjustable center point.
+- `holePunch` - hole punch effect into a texture.
+
+```xml
+<!--load shader with its default values-->
+<Element w="200" h="200" x="20" y="100" shader="rhombus" />
+<!--load shader with props-->
+<Element w="200" h="200" x="20" y="100" shader="{type: 'holePunch', x: 100,
+ y: 200, width: 100, height: 100}" />
+```
+
+
+
 ## Inspector Data
 
 The `inspector-data` attribute allows you to attach custom metadata to elements and components for debugging and automated testing. This data is visible in the Lightning inspector tool when enabled.
@@ -208,6 +254,6 @@ The framework automatically provides the following inspector metadata keys for *
 - `blits-hasFocus` – Whether the component currently has focus (updates on focus/unfocus). Exposed as `data-blits-hasfocus`.
 - `blits-isTransitioning` – Whether the element is currently animating/transitioning. Exposed as `data-blits-istransitioning`.
 
-> **Note:** 
+> **Note:**
 > - The `inspector-data` attribute is only processed in development mode when the inspector is enabled. It's automatically filtered out in production builds for performance.
 > - Automatic framework metadata (`blits-componentType`, `blits-hasFocus`, `blits-isTransitioning`) is only set for Components, to keep the render path lightweight.

@@ -4,7 +4,7 @@ In order to allow users to interact with your app, you will want to capture and 
 
 Blits offers an intuitive and straightforward interface to handle key input in Components.
 
-**Mouse and pointer:** To enable mouse support (hover state and click-to-focus on the canvas), set `enableMouse: true` in the settings object passed to `Blits.Launch()`. When enabled, pointer movement updates component hover state and a click focuses the component under the cursor and dispatches Enter key input.
+**Mouse and pointer:** To enable mouse support (hover state and click-to-focus on the canvas), set `enableMouse: true` in the settings object passed to `Blits.Launch()`. When enabled, pointer movement updates component hover state and a click focuses the component under the cursor and dispatches Enter key input. For full details, see [Mouse support](./mouse_support.md).
 
 ## Focus
 
@@ -149,9 +149,9 @@ But it's possible that the keycodes and mapping of your target device are slight
 
 In Blits, you can easily configure the key mapping to match your needs. In the `src/index.js` file where we instantiate the App via the `Blits.Launch` function, we can add an extra key, called `keymap`, to the _settings object_.
 
-The `keymap` should contain an object literal, where you map a `key` or `keyCode` (from the `KeyboardEvent`) to an event name that you can use in your Components.
+The `keymap` should contain an object literal, where you map a `keyCode` (from the `KeyboardEvent`) to an event name that you can use in your Components.
 
-> You can use a site like [keyjs.dev](https://keyjs.dev/) to find the appropriate key and keyCode for your device
+> You can use [this page](https://blits-demo.lightningjs.io/#/examples/keycodes) in the Blits Example app to find the appropriate keyCode for your device
 
 ```js
 // src/index.js
@@ -160,14 +160,11 @@ Blits.Launch(App, 'app', {
   h: 1080,
   //...
   keymap: {
-    // switch left and right using the key
-    ArrowLeft: 'right',
-    ArrowRight: 'left',
-    // switch up and down using the keyCode
+    // switch up and down
     38: 'down',
     40: 'up',
     // register new handlers
-    '.': 'dot', // dot() can now be used in the input object
+    190: 'dot', // dot() can now be used in the input object
     // key code for letter 's'
     83: 'search' // search() can now be used in the input object
   }

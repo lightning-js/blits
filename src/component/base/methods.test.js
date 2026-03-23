@@ -24,10 +24,11 @@ import timeouts_intervals from './timeouts_intervals.js'
 import { registerHooks } from '../../lib/hooks.js'
 import lifecycle from '../../lib/lifecycle.js'
 
+initLog()
+
 test('Methods - Should contain all the defined methods', (assert) => {
   const component = Object.defineProperties({}, { ...methods })
 
-  assert.equal(typeof component.focus, 'function', 'should have focus method')
   assert.equal(typeof component.$focus, 'function', 'should have $focus method')
   assert.equal(typeof component.unfocus, 'function', 'should have unfocus method')
   assert.equal(typeof component.destroy, 'function', 'should have destroy method')
@@ -36,40 +37,9 @@ test('Methods - Should contain all the defined methods', (assert) => {
     'function',
     'should have removeGlobalEffects method'
   )
-  assert.equal(typeof component.trigger, 'function', 'should have trigger method')
   assert.equal(typeof component.$trigger, 'function', 'should have $trigger method')
-  assert.equal(typeof component.select, 'function', 'should have select method')
   assert.equal(typeof component.$select, 'function', 'should have $select method')
-  assert.equal(typeof component.shader, 'function', 'should have $shader method')
   assert.end()
-})
-
-test('Methods - Validate focus method behavior', (assert) => {
-  initLogTest(assert)
-  const capture = assert.capture(console, 'warn')
-
-  const component = Object.defineProperties(
-    {
-      [symbols.state]: { hasFocus: false },
-      lifecycle: { state: 'init' }, // mock lifecycle
-    },
-    { ...methods }
-  )
-
-  component.focus()
-
-  let logs = capture()
-  assert.equal(logs.length, 1)
-  assert.equal(
-    logs[0].args.pop(),
-    'this.focus is deprecated, use this.$focus instead',
-    'Should log warning message'
-  )
-
-  setTimeout(() => {
-    assert.equal(component.lifecycle.state, 'focus', 'lifecycle state should be focus')
-    assert.end()
-  }, 100)
 })
 
 test('Methods - Validate $focus and unfocus method behavior', (assert) => {
@@ -83,7 +53,7 @@ test('Methods - Validate $focus and unfocus method behavior', (assert) => {
       focus() {
         focusHookCalled = true
         assert.equal(
-          this[symbols.state].hasFocus,
+          this[symbols.state].$hasFocus,
           false,
           'hasFocus should be false by the time focus hook is called'
         )
@@ -91,7 +61,7 @@ test('Methods - Validate $focus and unfocus method behavior', (assert) => {
       unfocus() {
         unfocusHookCalled = true
         assert.equal(
-          this[symbols.state].hasFocus,
+          this[symbols.state].$hasFocus,
           false,
           'hasFocus should be false by the time unfocus hook is called'
         )
@@ -104,13 +74,13 @@ test('Methods - Validate $focus and unfocus method behavior', (assert) => {
     {
       [symbols.identifier]: 1,
       componentId: 'TestComponent_1',
-      [symbols.state]: { hasFocus: false },
+      [symbols.state]: { $hasFocus: false },
     },
     { ...methods }
   )
 
   // register lifecycle
-  component.lifecycle = Object.assign(Object.create(lifecycle), {
+  component[symbols.lifecycle] = Object.assign(Object.create(lifecycle), {
     component: component,
     previous: null,
     current: null,
@@ -121,16 +91,20 @@ test('Methods - Validate $focus and unfocus method behavior', (assert) => {
 
   component.$focus()
   setTimeout(() => {
-    assert.equal(component.lifecycle.state, 'focus', 'lifecycle state should be focus')
+    assert.equal(component[symbols.lifecycle].state, 'focus', 'lifecycle state should be focus')
     assert.equal(focusHookCalled, true, 'focus hook should be called')
     assert.equal(
-      component[symbols.state].hasFocus,
+      component[symbols.state].$hasFocus,
       true,
       'hasFocus should be true only after focus hook is called'
     )
     component.unfocus()
     setTimeout(() => {
-      assert.equal(component.lifecycle.state, 'unfocus', 'lifecycle state should be unfocus')
+      assert.equal(
+        component[symbols.lifecycle].state,
+        'unfocus',
+        'lifecycle state should be unfocus'
+      )
       assert.equal(unfocusHookCalled, true, 'unfocus hook should be called')
       assert.end()
     }, 100)
@@ -140,53 +114,18 @@ test('Methods - Validate $focus and unfocus method behavior', (assert) => {
 test('Methods - Refocus already focused component', (assert) => {
   const component = Object.defineProperties(
     {
-      [symbols.state]: { hasFocus: true },
-      lifecycle: { state: 'focus' },
+      [symbols.state]: { $hasFocus: true },
+      [symbols.lifecycle]: { state: 'focus' },
     },
     { ...methods }
   )
 
   component.$focus()
-  assert.equal(component.lifecycle.state, 'refocus', 'lifecycle state should be focus')
+  assert.equal(component[symbols.lifecycle].state, 'refocus', 'lifecycle state should be focus')
   setTimeout(() => {
-    assert.equal(component.lifecycle.state, 'focus', 'lifecycle state should be focus')
+    assert.equal(component[symbols.lifecycle].state, 'focus', 'lifecycle state should be focus')
     assert.end()
   }, 100)
-})
-
-test('Methods - Validate select method behavior', (assert) => {
-  initLogTest(assert)
-  const capture = assert.capture(console, 'warn')
-
-  const ChildComponent = function (id, ref) {
-    this.componentId = id
-    this.ref = ref
-  }
-
-  const component = Object.defineProperties(
-    {
-      [symbols.children]: [
-        new ChildComponent('child1', 'child1'),
-        new ChildComponent('child2', 'child2'),
-      ],
-    },
-    { ...methods }
-  )
-
-  let child = component.select('child2')
-  assert.equal(child.componentId, 'child2', 'select should return the correct child')
-
-  let logs = capture()
-  assert.equal(logs.length, 1)
-  assert.equal(
-    logs[0].args.pop(),
-    'this.select is deprecated, use this.$select instead',
-    'Should log warning message'
-  )
-
-  const noChild = component.select('nonexistent')
-  assert.equal(noChild, null, 'select should return null for nonexistent child')
-  assert.end()
 })
 
 test('Methods - Validate $select method behavior', (assert) => {
@@ -273,17 +212,6 @@ test('Methods - Validate $select method with object of children structure', (ass
   assert.end()
 })
 
-test('Methods - Validate shader method behavior', (assert) => {
-  const component = Object.defineProperties({}, { ...methods })
-
-  const shaderObj = component.shader('customShader', { prop1: 2.0, prop2: 'fast' })
-  assert.equal(typeof shaderObj, 'object', 'shader should return an object')
-  assert.equal(shaderObj.type, 'customShader', 'shader object should have correct type')
-  assert.equal(shaderObj.props.prop1, 2.0, 'shader object should have correct prop1')
-  assert.equal(shaderObj.props.prop2, 'fast', 'shader object should have correct prop2')
-  assert.end()
-})
-
 test('Methods - Validate removeGlobalEffects method behavior', (assert) => {
   const component = Object.defineProperties({}, { ...methods })
 
@@ -305,7 +233,7 @@ test('Methods - Validate destroy method behavior', (assert) => {
 
   // Following properties can still exists in component instance but with reset/cleared values
   assert.equal(component.eol, true, 'Component should be marked as end of life')
-  assert.deepEqual(component.lifecycle, {}, 'Lifecycle state should be destroy')
+  assert.deepEqual(component[symbols.lifecycle], {}, 'Lifecycle state should be destroy')
   assert.deepEqual(component[symbols.state], {}, 'symbol state should be deleted')
   assert.equal(
     component[symbols.rendererEventListeners],
@@ -319,8 +247,8 @@ test('Methods - Validate destroy method behavior', (assert) => {
   // Following properties should be deleted from component instance
   assert.equal(component[symbols.effects], undefined, 'symbol effects should be deleted')
   assert.equal(component[symbols.computed], undefined, 'symbol computed should be deleted')
-  assert.equal(component.parent, undefined, 'parent should be deleted')
-  assert.equal(component.rootParent, undefined, 'rootParent should be deleted')
+  assert.equal(component[symbols.parent], undefined, 'parent should be deleted')
+  assert.equal(component[symbols.rootParent], undefined, 'rootParent should be deleted')
   assert.equal(component[symbols.wrapper], undefined, 'symbol wrapper should be deleted')
   assert.equal(
     component[symbols.originalState],
@@ -329,7 +257,7 @@ test('Methods - Validate destroy method behavior', (assert) => {
   )
   assert.equal(component[symbols.children], undefined, 'symbol children should be deleted')
   assert.equal(component[symbols.slots], undefined, 'symbol slots should be deleted')
-  assert.equal(component.componentId, undefined, 'componentId should be deleted')
+  assert.equal(component.$componentId, undefined, 'componentId should be deleted')
   assert.equal(component[symbols.id], undefined, 'symbol id should be deleted')
   assert.equal(component.ref, undefined, 'ref should be deleted')
   assert.equal(component[symbols.holder], undefined, 'symbol holder should be deleted')
@@ -378,10 +306,10 @@ export const getTestComponent = () => {
   // define a component with necessary properties
   const component = Object.defineProperties(
     {
-      componentId: 'TestComponent_1',
+      $componentId: 'TestComponent_1',
       ref: 'mainRef',
       [symbols.id]: 'TestComponent_1',
-      [symbols.state]: { hasFocus: false },
+      [symbols.state]: { $hasFocus: false },
       [symbols.state]: { prop1: 'value1', prop2: 'value2', prop3: [1, 2, 3] },
       [symbols.rendererEventListeners]: [],
       [symbols.children]: [
@@ -398,7 +326,7 @@ export const getTestComponent = () => {
       [symbols.holder]: holderMock,
       [symbols.cleanup]: cleanupMock,
 
-      lifecycle: { state: 'init' },
+      [symbols.lifecycle]: { state: 'init' },
 
       // not required by default but getting into error without this
       [symbols.timeouts]: [],

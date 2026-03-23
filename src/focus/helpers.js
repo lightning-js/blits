@@ -15,14 +15,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import symbols from '../lib/symbols.js'
+
 /**
  * Recursive function that retrieves the ancestors of a component
  * @param {Array} components
  * @returns array components
  */
 export const getAncestors = (components) => {
-  if (components[0].parent !== undefined) {
-    components.unshift(components[0].parent)
+  if (components[0][symbols.parent] !== undefined) {
+    components.unshift(components[0][symbols.parent])
     return getAncestors(components)
   }
   return components

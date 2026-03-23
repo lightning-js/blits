@@ -16,6 +16,7 @@
   - [Watchers](/components/watchers.md)
   - [Hooking into lifecycle events](/components/lifecycle_events.md)
   - [Handling User input](/components/user_input.md)
+  - [Mouse support](/components/mouse_support.md)
   - [Methods](/components/methods.md)
   - [Utility methods](/components/utility_methods.md)
 - Transitions and Animations
@@ -28,6 +29,11 @@
   - [Basics](/router/basics.md)
   - [Hooks](/router/hooks.md)
   - [Transitions](/router/transitions.md)
+- Shaders
+  - [Importing Shaders](/shaders/importing-shader.md)
+  - [WebGl Shaders](/shaders/webgl-shadertypes.md)
+  - [Canvas Shaders](/shaders/canvas-shadertypes.md)
+  - [v2 Conversion Guide](/shaders/v2-conversion-guide.md)
 - Plugins
   - [Text-to-Speech / Announcer](/plugins/text-to-speech-announcer.md)
   - [Language](/plugins/language.md)

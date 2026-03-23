@@ -41,9 +41,9 @@ At the moment it's not possible to use the `is`-attribute as a _reactive_ attrib
 
 The declarative coding style that is promoted in Blits components, should generally remove the need to directly interact with individual Elements or Components in your template. However, in some cases you may need to reference them directly. For example, in order to delegate the focus.
 
-For this use case, you can specify a `ref`-attribute on Elements (or Components). And by using the helper function `this.select()`,  which is available on every Blits component, you can gain access to the child Element or Component inside your business logic.
+For this use case, you can specify a `ref`-attribute on Elements (or Components). And by using the helper function `this.$select()`,  which is available on every Blits component, you can gain access to the child Element or Component inside your business logic.
 
-The `select()`-function accepts the `ref`-value that you are looking for as a single argument, and returns the Element or Component if found.
+The `$select()`-function accepts the `ref`-value that you are looking for as a single argument, and returns the Element or Component if found.
 
 <!-- ### If-directive
 

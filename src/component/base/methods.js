@@ -25,26 +25,14 @@ import { renderer } from '../../launch.js'
 import { keyMap } from '../../application.js'
 
 export default {
-  focus: {
-    /**
-     * @this {import('../../component').BlitsComponent}
-     */
-    value: function (e) {
-      Log.warn('this.focus is deprecated, use this.$focus instead')
-      return this.$focus(e)
-    },
-    writable: false,
-    enumerable: true,
-    configurable: false,
-  },
   $focus: {
     /**
      * @this {import('../../component').BlitsComponent}
      */
     value: function (e) {
       // force refocus when the component is already in focused state
-      if (this.lifecycle.state === 'focus') {
-        this.lifecycle.state = 'refocus'
+      if (this[symbols.lifecycle].state === 'focus') {
+        this[symbols.lifecycle].state = 'refocus'
       }
       Focus.set(this, e)
     },
@@ -92,8 +80,8 @@ export default {
      * @this {import('../../component').BlitsComponent}
      */
     value: function () {
-      this[symbols.state].hasFocus = false
-      this.lifecycle.state = 'unfocus'
+      this[symbols.state].$hasFocus = false
+      this[symbols.lifecycle].state = 'unfocus'
     },
     writable: false,
     enumerable: true,
@@ -105,11 +93,11 @@ export default {
      */
     value: function () {
       this.eol = true
-      this.lifecycle.state = 'destroy'
+      this[symbols.lifecycle].state = 'destroy'
 
       // when destroying a component that currently has focus
       // pass focus to the parent so we don't get lost in focus limbo
-      if (this.hasFocus === true) this.parent.$focus()
+      if (this.$hasFocus === true) this[symbols.parent].$focus()
 
       // @todo - is this really necessary?
       // This cause an issue with auto sizing of parent (and required an extra eol check there)
@@ -142,26 +130,25 @@ export default {
       this[symbols.state] = {}
 
       this[symbols.props] = {}
-      this[symbols.computed] = null
-      this.lifecycle = {}
+      this[symbols.computedKeys] = null
+      this[symbols.lifecycle] = {}
       this[symbols.effects].length = 0
-      this.parent = null
-      this.rootParent = null
+      this[symbols.parent] = null
+      this[symbols.rootParent] = null
       this[symbols.wrapper] = null
       this[symbols.originalState] = null
       this[symbols.slots].length = 0
 
-      delete this[symbols.computed]
-      delete this.parent
-      delete this.rootParent
+      delete this[symbols.computedKeys]
+      delete this[symbols.parent]
+      delete this[symbols.rootParent]
       delete this[symbols.wrapper]
       delete this[symbols.originalState]
       delete this[symbols.children]
       delete this[symbols.slots]
-      delete this.componentId
       delete this[symbols.id]
       delete this.ref
-      delete this[symbols.state].hasFocus
+      delete this[symbols.state].$hasFocus
 
       this[symbols.holder].destroy()
       this[symbols.holder] = null
@@ -172,7 +159,8 @@ export default {
 
       delete this[symbols.effects]
 
-      Log.debug(`Destroyed component ${this.componentId}`)
+      Log.debug(`Destroyed component ${this.$componentId}`)
+      delete this.$componentId
     },
     writable: false,
     enumerable: true,
@@ -187,18 +175,6 @@ export default {
     },
     writable: false,
     enumerable: false,
-    configurable: false,
-  },
-  select: {
-    /**
-     * @this {import('../../component').BlitsComponent}
-     */
-    value: function (ref) {
-      Log.warn('this.select is deprecated, use this.$select instead')
-      return this.$select(ref)
-    },
-    writable: false,
-    enumerable: true,
     configurable: false,
   },
   $select: {
@@ -229,18 +205,6 @@ export default {
     enumerable: true,
     configurable: false,
   },
-  trigger: {
-    /**
-     * @this {import('../../component').BlitsComponent}
-     */
-    value: function (key) {
-      Log.warn('this.trigger is deprecated, use this.$trigger instead')
-      return this.$trigger(key)
-    },
-    writable: false,
-    enumerable: true,
-    configurable: false,
-  },
   $trigger: {
     /**
      * @this {import('../../component').BlitsComponent}
@@ -257,30 +221,6 @@ export default {
       }
       // trigger with force set to true
       trigger(target, key, true)
-    },
-    writable: false,
-    enumerable: true,
-    configurable: false,
-  },
-  shader: {
-    /**
-     * @this {import('../../component').BlitsComponent}
-     */
-    value: function (type, args) {
-      return {
-        type: type,
-        props: args,
-      }
-      // const shaders = renderer.driver.stage.shManager.getRegisteredEffects()
-
-      // if (target in shaders) {
-      //   return {
-      //     type: target,
-      //     props: args,
-      //   }
-      // } else {
-      //   Log.error(`Shader ${type} not found`)
-      // }
     },
     writable: false,
     enumerable: true,

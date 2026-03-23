@@ -580,7 +580,7 @@ test('Router updates state.path, state.params, and state.data correctly', async 
   })
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [
         {
           path: '/cap/:id',
@@ -631,7 +631,7 @@ test('Router.back() pops history and navigates to previous route', async (assert
   })
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [
         {
           path: '/first',
@@ -682,7 +682,7 @@ test('Transition out with end callback is invoked on navigate away', async (asse
   })
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [
         {
           path: '/from',
@@ -718,7 +718,7 @@ test('Transition out with end callback is invoked on navigate away', async (asse
 test('Navigate to unknown path calls routerHooks.error', async (assert) => {
   let errorMsg
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [{ path: '/known', component: mockComponents.Home }],
       [symbols.routerHooks]: {
         error(msg) {
@@ -748,7 +748,7 @@ test('Before hook route object redirect', async (assert) => {
   })
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [
         {
           path: '/original',
@@ -768,7 +768,7 @@ test('Before hook route object redirect', async (assert) => {
 
   to('/original')
   await navigate.call(host)
-  assert.equal(window.location.hash, '#/redirected', 'Should redirect to new path')
+  assert.equal(location.hash, '#/redirected', 'Should redirect to new path')
   stage.element = originalElement
 })
 
@@ -782,7 +782,7 @@ test('BeforeEach hook route object redirect', async (assert) => {
   })
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [
         { path: '/original', component: TestComponent },
         { path: '/redirected', component: TestComponent },
@@ -799,7 +799,7 @@ test('BeforeEach hook route object redirect', async (assert) => {
 
   to('/original')
   await navigate.call(host)
-  assert.equal(window.location.hash, '#/redirected', 'Should redirect via beforeEach hook')
+  assert.equal(location.hash, '#/redirected', 'Should redirect via beforeEach hook')
   stage.element = originalElement
 })
 
@@ -844,7 +844,7 @@ test('keepAlive override keeps the route being LEFT alive (not the destination)'
   })
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [
         { path: '/pageA', component: PageA, options: { inHistory: true, passFocus: false } },
         { path: '/pageB', component: PageB, options: { inHistory: true, passFocus: false } },
@@ -901,7 +901,7 @@ test('keepAlive override does not bleed into the destination route options', asy
   ]
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: routesList,
     },
     [symbols.children]: [{}],
@@ -964,7 +964,7 @@ test('reuseComponent still works when keepAlive override is passed', async (asse
   const dummyView = { [symbols.holder]: mockElement(), destroy() {} }
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [
         {
           path: '/shared1',
@@ -1032,7 +1032,7 @@ test('Stale overrideOptions do not bleed into subsequent navigations', async (as
   })
 
   const host = {
-    parent: {
+    [symbols.parent]: {
       [symbols.routes]: [
         { path: '/rx', component: RouteX, options: { inHistory: true, passFocus: false } },
         { path: '/ry', component: RouteY, options: { inHistory: true, passFocus: false } },
