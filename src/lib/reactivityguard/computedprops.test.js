@@ -135,10 +135,77 @@ test('Guards full property chain for nested reactive references', (assert) => {
   const result = processComputedProps(input)
   assert.ok(result, 'injects guards')
   const out = result.code
-  assert.ok(out.includes('this.$appState.ui.sidebar;'), 'guards full chain')
-  assert.ok(out.includes('this.item.tags;'), 'stops chain before method call')
-  assert.notOk(out.includes('this.$appState;'), 'no redundant prefix this.$appState')
-  assert.notOk(out.includes('this.item;'), 'no redundant prefix this.item')
+  assert.ok(
+    out.includes('this.$appState && this.$appState.ui && this.$appState.ui.sidebar;'),
+    'guards full chain with &&'
+  )
+  assert.ok(out.includes('this.item && this.item.tags;'), 'stops chain before method call')
+  assert.notOk(out.includes('this.$appState;'), 'no standalone this.$appState guard')
+  assert.notOk(out.includes('this.item;'), 'no standalone this.item guard')
+  assert.end()
+})
+
+test('Guards deep chain with && when intermediate values can be null', (assert) => {
+  const input = `
+    import Blits from '@lightningjs/blits'
+    export default Blits.Component('C', {
+      computed: {
+        posterUrl() {
+          if (!this.media) return null
+          return this.media.poster.src
+        },
+      }
+    })
+  `
+
+  assert.doesNotThrow(() => processComputedProps(input), 'should not throw')
+  const result = processComputedProps(input)
+  assert.ok(result, 'injects guards')
+  const out = result.code
+  assert.ok(
+    out.includes('this.media && this.media.poster && this.media.poster.src;'),
+    'injects full && chain'
+  )
+  assert.end()
+})
+
+test('Does not duplicate guards when && guard comment is stripped', (assert) => {
+  const alreadyGuarded = `
+    import Blits from '@lightningjs/blits'
+    export default Blits.Component('C', {
+      computed: {
+        posterUrl() {
+          this.media && this.media.poster && this.media.poster.src;
+          if (!this.media) return null
+          return this.media.poster.src
+        },
+      }
+    })
+  `
+
+  const result = processComputedProps(alreadyGuarded)
+  assert.equal(result, null, 'should return null when && guard already present')
+  assert.end()
+})
+
+test('Single-level ref guard has no && chain', (assert) => {
+  const input = `
+    import Blits from '@lightningjs/blits'
+    export default Blits.Component('C', {
+      computed: {
+        label() {
+          return this.title || 'fallback'
+        },
+      }
+    })
+  `
+
+  assert.doesNotThrow(() => processComputedProps(input), 'should not throw')
+  const result = processComputedProps(input)
+  assert.ok(result, 'injects guards')
+  const out = result.code
+  assert.ok(out.includes('this.title;'), 'single-level ref injected as-is')
+  assert.notOk(out.includes('&&'), 'no && for single-level ref')
   assert.end()
 })
 

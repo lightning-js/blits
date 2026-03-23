@@ -196,14 +196,19 @@ export default (code) => {
             // Skip if already modified
             if (
               prop.body.includes(commentText.trim()) ||
-              Array.from(thisRefs).some((ref) => prop.body.startsWith(ref))
+              Array.from(thisRefs).some((ref) => {
+                if (prop.body.startsWith(ref)) return true
+                // stripped && guard: body starts with the first segment, e.g. 'this.media &&'
+                const firstSegEnd = ref.indexOf('.', 5)
+                return firstSegEnd !== -1 && prop.body.startsWith(ref.substring(0, firstSegEnd))
+              })
             ) {
               continue
             }
 
             // reactivity code
             const refCode = Array.from(thisRefs)
-              .map((ref) => `${ref};`)
+              .map((ref) => `${toSafeRef(ref)};`)
               .join(' ')
 
             // replacement with the same whitespace
@@ -288,6 +293,18 @@ export default (code) => {
   }
 
   return null
+}
+
+const toSafeRef = (ref) => {
+  // Converts 'this.a.b.c' to 'this.a && this.a.b && this.a.b.c'
+  const normalized = ref.replace(/\?\./g, '.')
+  const segments = normalized.split('.')
+  if (segments.length <= 2) return normalized
+  const parts = []
+  for (let i = 2; i <= segments.length; i++) {
+    parts.push(segments.slice(0, i).join('.'))
+  }
+  return parts.join(' && ')
 }
 
 const extractThisReferences = (funcBody) => {
