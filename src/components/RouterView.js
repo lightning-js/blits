@@ -29,7 +29,7 @@ export default () =>
     'RouterView',
     /** @type {any} */ ({
       template: `
-        <Element w="100%" height="100%"></Element>
+        <Element w="100%" h="100%"></Element>
       `,
       state() {
         return {
