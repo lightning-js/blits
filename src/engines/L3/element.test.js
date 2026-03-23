@@ -1106,6 +1106,27 @@ test('Element - ElementShader with rounded', (assert) => {
   assert.end()
 })
 
+test('Element - Update rounded with array sets radius', (assert) => {
+  const shaderProps = { radius: 0 }
+  const mockNode = Object.assign(new EventEmitter(), {
+    props: { shader: { props: shaderProps } },
+  })
+  assert.capture(renderer, 'createNode', () => mockNode)
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({ parent: { node: new EventEmitter() }, rounded: 10 })
+  el.set('rounded', [40, 40, 10, 10])
+  assert.deepEqual(
+    el.node.props['shader'].props.radius,
+    [40, 40, 10, 10],
+    'radius should be updated to the new array'
+  )
+  assert.notOk(
+    Array.isArray(el.node.props['shader'].props),
+    'shader props should remain an object, not be replaced by the array'
+  )
+  assert.end()
+})
+
 test('Element - ElementShader with border', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
   const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
