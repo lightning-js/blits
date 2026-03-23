@@ -363,7 +363,7 @@ const propsTransformer = {
     this.props['rounded'] = v
     if (this.element.node !== undefined && this.elementShader === true) {
       if (
-        !Array.isArray(v) &&
+        Array.isArray(v) === false &&
         (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v))))
       ) {
         this.element.node.props['shader'].props = v
