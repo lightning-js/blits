@@ -18,14 +18,6 @@
 export const DEFAULT_HOLD_TIMEOUT_MS = 50
 
 export const DEFAULT_KEYMAP = {
-  ArrowLeft: 'left',
-  ArrowRight: 'right',
-  ArrowUp: 'up',
-  ArrowDown: 'down',
-  Enter: 'enter',
-  ' ': 'space',
-  Backspace: 'back',
-  Escape: 'escape',
   37: 'left',
   39: 'right',
   38: 'up',
