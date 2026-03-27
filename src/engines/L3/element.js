@@ -377,14 +377,17 @@ const propsTransformer = {
   },
   set border(v) {
     this.props['border'] = v
+
     if (
       this.element.node !== undefined &&
       this.elementShader === true &&
       (typeof v === 'object' || isObjectString(v) === true)
     ) {
       v = shaders.parseProps(v)
+      const shader = this.element.node.props['shader']
+      let prefix = shader.shaderKey.startsWith('rounded') ? 'border-' : ''
       for (const key in v) {
-        this.element.node.props['shader'].props[`border-${key}`] = v[key]
+        this.element.node.props['shader'].props[prefix + key] = v[key]
       }
     }
   },
@@ -396,8 +399,10 @@ const propsTransformer = {
       (typeof v === 'object' || isObjectString(v) === true)
     ) {
       v = shaders.parseProps(v)
+      const shader = this.element.node.props['shader']
+      let prefix = shader.shaderKey.startsWith('rounded') ? 'shadow-' : ''
       for (const key in v) {
-        this.element.node.props['shader'].props[`shadow-${key}`] = v[key]
+        this.element.node.props['shader'].props[prefix + key] = v[key]
       }
     }
   },
