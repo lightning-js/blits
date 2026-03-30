@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { default as fadeInFadeOutTransition } from './transitions/fadeInOut.js'
+import { getHash, isObject, isString, matchHash } from './utils.js'
 import { reactive } from '../lib/reactivity/reactive.js'
 
 import symbols from '../lib/symbols.js'
@@ -85,157 +85,6 @@ let previousFocus
 // Skips internal router navigation when set to true only for the next "navigate"
 // execution, needed for window.history management
 let preventHashChangeNavigation = false
-/**
- * Get the current hash
- * @returns {Hash}
- */
-export const getHash = (hash) => {
-  if (!hash) hash = '/'
-  const hashParts = hash.replace(/^#/, '').split('?')
-  return {
-    path: hashParts[0],
-    queryParams: new URLSearchParams(hashParts[1]),
-    hash: hash,
-  }
-}
-
-const normalizePath = (path) => {
-  return (
-    path
-      // remove leading and trailing slashes
-      .replace(/^\/+|\/+$/g, '')
-      .toLowerCase()
-  )
-}
-
-/**
- * Check if a value is an object
- * @param {any} v
- * @returns {boolean} True if v is an object
- */
-const isObject = (v) => typeof v === 'object' && v !== null
-
-/**
- * Check if a value is a function
- * @param {any} v
- * @returns {boolean} True if v is a string
- */
-const isString = (v) => typeof v === 'string'
-
-const queryParamsToObject = (queryParams) => {
-  if (!queryParams) return {}
-  const object = {}
-  const queryParamsEntries = [...queryParams.entries()]
-  for (let i = 0; i < queryParamsEntries.length; i++) {
-    object[queryParamsEntries[i][0]] = queryParamsEntries[i][1]
-  }
-
-  return object
-}
-
-/**
- * Match a path to a route
- *
- * @param {object} hashObject
- * @param {Route[]} routes
- * @returns {Route}
- */
-export const matchHash = ({ hash, path, queryParams }, routes = []) => {
-  // remove trailing slashes
-  const originalPath = path.replace(/^\/+|\/+$/g, '')
-  const originalNormalizedPath = normalizePath(path)
-
-  const override = {
-    hash: hash,
-    queryParams: queryParamsToObject(queryParams),
-    path: path,
-  }
-
-  /** @type {boolean|Route} */
-  let matchingRoute = false
-  let i = 0
-  while (!matchingRoute && i < routes.length) {
-    const route = routes[i]
-
-    const normalizedPath = normalizePath(route.path)
-    if (normalizePath(normalizedPath) === originalNormalizedPath) {
-      matchingRoute = makeRouteObject(route, override)
-    } else if (normalizedPath.indexOf(':') > -1) {
-      // match dynamic route parts
-      const dynamicRouteParts = [...normalizedPath.matchAll(/:([^\s/]+)/gi)]
-
-      // construct a regex for the route with dynamic parts
-      let dynamicRoutePartsRegex = normalizedPath
-      dynamicRouteParts.reverse().forEach((part) => {
-        dynamicRoutePartsRegex =
-          dynamicRoutePartsRegex.substring(0, part.index) +
-          '([^\\s/]+)' +
-          dynamicRoutePartsRegex.substring(part.index + part[0].length)
-      })
-
-      dynamicRoutePartsRegex = '^' + dynamicRoutePartsRegex
-
-      // test if the constructed regex matches the path
-      const match = originalPath.match(new RegExp(`${dynamicRoutePartsRegex}`, 'i'))
-
-      if (match) {
-        // map the route params to a params object
-        override.params = dynamicRouteParts.reverse().reduce((acc, part, index) => {
-          acc[part[1]] = match[index + 1]
-          return acc
-        }, {})
-
-        matchingRoute = makeRouteObject(route, override)
-      }
-    } else if (normalizedPath.endsWith('*')) {
-      const regex = new RegExp(normalizedPath.replace(/\/?\*/, '/?([^\\s]*)'), 'i')
-      const match = originalNormalizedPath.match(regex)
-
-      if (match) {
-        override.params = {}
-        if (match[1]) override.params.path = match[1]
-        matchingRoute = makeRouteObject(route, override)
-      }
-    }
-    i++
-  }
-
-  // @ts-ignore - Remove me when we have a better way to handle this
-  return matchingRoute
-}
-
-/**
- * Default Route options
- *
- */
-const defaultOptions = {
-  inHistory: true,
-  keepAlive: false,
-  passFocus: true,
-  reuseComponent: false,
-}
-
-const makeRouteObject = (route, overrides) => {
-  // FIX: exclude keepAlive from the destination route options. Unlike other
-  // overrides, keepAlive applies to the route being LEFT, not the destination.
-  // It is consumed by removeView() instead.
-  const { keepAlive: _keepAlive, ...destOverrides } = overrideOptions // eslint-disable-line no-unused-vars
-
-  const cleanRoute = {
-    hash: overrides.hash,
-    path: route.path,
-    component: route.component,
-    transition: 'transition' in route ? route.transition : fadeInFadeOutTransition,
-    options: { ...defaultOptions, ...route.options, ...destOverrides },
-    announce: route.announce || false,
-    hooks: route.hooks || {},
-    data: { ...route.data, ...navigationData, ...overrides.queryParams },
-    params: overrides.params || {},
-    meta: route.meta || {},
-  }
-
-  return cleanRoute
-}
 
 /**
  * Navigate to a route
@@ -256,7 +105,12 @@ export const navigate = async function () {
   let reuse = false
   if (preventHashChangeNavigation === false && this[symbols.parent][symbols.routes]) {
     let previousRoute = currentRoute //? Object.assign({}, currentRoute) : undefined
-    let route = matchHash(getHash(location.hash), this[symbols.parent][symbols.routes])
+    let route = matchHash(
+      getHash(location.hash),
+      this[symbols.parent][symbols.routes],
+      overrideOptions,
+      navigationData
+    )
 
     currentRoute = route
 
@@ -628,7 +482,7 @@ const removeView = async (route, view, transition, navigatingBack) => {
   route = null
 }
 
-const setOrAnimate = (node, transition, shouldAnimate = true) => {
+const setOrAnimate = (element, transition, shouldAnimate = true) => {
   return new Promise((resolve) => {
     if (shouldAnimate === true) {
       // resolve the promise in the transition end-callback
@@ -640,10 +494,10 @@ const setOrAnimate = (node, transition, shouldAnimate = true) => {
         existingEndCallback = null
         resolve()
       }
-      if (node !== undefined) node.set(transition.prop, { transition })
+      if (element !== undefined) element.set(transition.prop, { transition })
       else resolve()
     } else {
-      node !== undefined && node.set(transition.prop, transition.value)
+      element !== undefined && element.set(transition.prop, transition.value)
       resolve()
     }
   })
@@ -690,7 +544,12 @@ export const back = function () {
     }
     // Construct new path to backtrack to
     path = path.replace(hashEnd, '')
-    const route = matchHash(getHash(path), this[symbols.parent][symbols.routes])
+    const route = matchHash(
+      getHash(path),
+      this[symbols.parent][symbols.routes],
+      overrideOptions,
+      navigationData
+    )
 
     if (route && backtrack) {
       to(route.path, route.data, route.options)

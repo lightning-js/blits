@@ -17,7 +17,8 @@
 
 import test from 'tape'
 import { initLog } from '../lib/log.js'
-import { matchHash, getHash, to, navigate, back, state } from './router.js'
+import { to, navigate, back, state } from './router.js'
+import { matchHash, getHash } from './utils.js'
 import { stage } from '../launch.js'
 import Component from '../component.js'
 import symbols from '../lib/symbols.js'
@@ -920,7 +921,7 @@ test('keepAlive override does not bleed into the destination route options', asy
 
   // Verify destination route (/srcB) does NOT have keepAlive in its options —
   // the override only applies to the route being left
-  const destRoute = matchHash({ path: '/srcB' }, routesList)
+  const destRoute = matchHash({ path: '/srcB' }, routesList, {})
   assert.equal(
     destRoute.options.keepAlive,
     false,
