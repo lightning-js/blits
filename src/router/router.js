@@ -145,7 +145,6 @@ export const navigate = async function () {
     currentPath
   )
   if (beforeEachResult === false) return
-  // }
 
   // execute before route hook
   const beforeResult = await executeBeforeHook(
@@ -330,32 +329,16 @@ export const navigate = async function () {
     }
   }
 
-  if (this[symbols.parent][symbols.routerHooks]) {
-    const hooks = this[symbols.parent][symbols.routerHooks]
-    if (hooks.afterEach) {
-      try {
-        await hooks.afterEach.call(
-          this[symbols.parent],
-          route, // to
-          previousRoute // from
-        )
-      } catch (error) {
-        Log.error('Error in "AfterEach" Hook', error)
-      }
-    }
-  }
+  // execute after each Hook
+  await executeAfterHook(
+    this[symbols.parent][symbols.routerHooks],
+    'afterEach',
+    route,
+    previousRoute
+  )
 
-  if (route.hooks.after) {
-    try {
-      await route.hooks.after.call(
-        this[symbols.parent],
-        route, // to
-        previousRoute // from
-      )
-    } catch (error) {
-      Log.error('Error or Rejected Promise in "After" Hook', error)
-    }
-  }
+  // execute after route Hook
+  await executeAfterHook(route.hooks, 'after', route, previousRoute)
 
   // Clear module-level variables after removeView has consumed them.
   // Placed here so it executes for all navigation flows, not only when
@@ -488,6 +471,20 @@ const executeBeforeHook = async function (
       navigatingBack = false
       state.navigating = false
       return false
+    }
+  }
+}
+
+const executeAfterHook = async function (hooks, hookName, route, previousRoute) {
+  if (hooks && hooks[hookName]) {
+    try {
+      await hooks.afterEach.call(
+        this[symbols.parent],
+        route, // to
+        previousRoute // from
+      )
+    } catch (error) {
+      Log.error(`Error or Rejected Promise in "${hookName}" Hook`, error)
     }
   }
 }
