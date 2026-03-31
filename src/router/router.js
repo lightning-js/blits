@@ -119,7 +119,7 @@ export const navigate = async function () {
   )
 
   // early return when route not found
-  if (route == false) {
+  if (route === false) {
     state.navigating = false
 
     Log.error(`Route ${route.hash} not found`)
@@ -214,11 +214,10 @@ export const navigate = async function () {
   // Announce route change if a message has been specified for this route
   if (route.announce) {
     if (typeof route.announce === 'string') {
-      route.announce = {
-        message: route.announce,
-      }
+      Announcer.speak(route.announce)
+    } else {
+      Announcer.speak(route.announce.message, route.announce.politeness)
     }
-    Announcer.speak(route.announce.message, route.announce.politeness)
   }
 
   // Update router state after announcements and final route resolution,
@@ -229,29 +228,15 @@ export const navigate = async function () {
   state.data = null
   state.data = route.data || {}
 
-  if (!view) {
+  // routing to a new page (instead of routing back to a keepAlive page)
+  if (view === undefined) {
     // create a holder element for the new view
     holder = stage.element({ parent: this[symbols.children][0] })
     holder.populate({})
     holder.set('w', '100%')
     holder.set('h', '100%')
 
-    view = await route.component({ props }, holder, this)
-
-    // is the component a dynamic module?
-    if (view[Symbol.toStringTag] === 'Module') {
-      if (view.default && typeof view.default === 'function') {
-        view = view.default({ props }, holder, this)
-      } else {
-        Log.error("Dynamic import doesn't have a default export or default is not a function")
-      }
-    }
-
-    if (typeof view === 'function') {
-      // had to inline this because the tscompiler does not like LHS reassignments
-      // that also change the type of the variable in a variable union
-      view = /** @type {BlitsComponentFactory} */ (view)({ props }, holder, this)
-    }
+    view = await loadPage.call(this, route, holder, props)
   } else {
     holder = view[symbols.holder]
 
@@ -291,15 +276,9 @@ export const navigate = async function () {
     focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
   }
 
-  // apply before settings to holder element
+  // apply starting state of transition
   if (route.transition.before) {
-    if (Array.isArray(route.transition.before)) {
-      for (let i = 0; i < route.transition.before.length; i++) {
-        holder.set(route.transition.before[i].prop, route.transition.before[i].value)
-      }
-    } else {
-      holder.set(route.transition.before.prop, route.transition.before.value)
-    }
+    await executeTransition(route.transition.before, holder, false)
   }
 
   let shouldAnimate = false
@@ -310,24 +289,47 @@ export const navigate = async function () {
   if (previousRoute && reuse === false) {
     // only animate when there is a previous route
     shouldAnimate = true
-    const oldView = this[symbols.children].splice(1, 1).pop()
+    let oldView = this[symbols.children].splice(1, 1).pop()
     if (oldView) {
-      await removeView(previousRoute, oldView, route.transition.out, navigatingBack)
+      executeTransition(previousRoute.transition.out, oldView[symbols.holder], true)
+
+      // Resolve effective keepAlive: runtime override from $router.to() takes precedence
+      // over the static route config option
+      const keepAlive =
+        overrideOptions.keepAlive !== undefined
+          ? overrideOptions.keepAlive
+          : previousRoute.options && previousRoute.options.keepAlive
+
+      // cache the page when it's as 'keepAlive' instead of destroying
+      if (
+        navigatingBack === false &&
+        previousRoute.options &&
+        keepAlive === true &&
+        route.options.inHistory === true
+      ) {
+        const historyItem = history[history.length - 1]
+        if (historyItem !== undefined) {
+          historyItem.view = oldView
+          historyItem.focus = previousFocus
+        }
+      }
+
+      /* Destroy the view in the following cases:
+       * 1. Navigating forward, and the previous route is not configured with "keep alive" set to true.
+       * 2. Navigating back, and the previous route is configured with "keep alive" set to true.
+       * 3. Navigating back, and the previous route is not configured with "keep alive" set to true.
+       */
+      if (previousRoute.options && (keepAlive !== true || navigatingBack === true)) {
+        oldView.destroy()
+        oldView = null
+      }
+
+      previousFocus = null
     }
   }
 
   // apply in transition
-  if (route.transition.in) {
-    if (Array.isArray(route.transition.in)) {
-      for (let i = 0; i < route.transition.in.length; i++) {
-        i === route.transition.in.length - 1
-          ? await setOrAnimate(holder, route.transition.in[i], shouldAnimate)
-          : setOrAnimate(holder, route.transition.in[i], shouldAnimate)
-      }
-    } else {
-      await setOrAnimate(holder, route.transition.in, shouldAnimate)
-    }
-  }
+  if (route.transition.in) await executeTransition(route.transition.in, holder, shouldAnimate)
 
   // execute after each Hook
   await executeAfterHook(
@@ -352,65 +354,9 @@ export const navigate = async function () {
   preventHashChangeNavigation = false
 }
 
-/**
- * Remove the currently active view
- *
- * @param {Route} route
- * @param {BlitsComponent} view
- * @param {Object} transition
- */
-const removeView = async (route, view, transition, navigatingBack) => {
-  // apply out transition
-  if (transition) {
-    if (Array.isArray(transition)) {
-      for (let i = 0; i < transition.length; i++) {
-        i === transition.length - 1
-          ? await setOrAnimate(view[symbols.holder], transition[i])
-          : setOrAnimate(view[symbols.holder], transition[i])
-      }
-    } else {
-      await setOrAnimate(view[symbols.holder], transition)
-    }
-  }
-
-  // Resolve effective keepAlive: runtime override from $router.to() takes precedence
-  // over the static route config option
-  const keepAlive =
-    overrideOptions.keepAlive !== undefined
-      ? overrideOptions.keepAlive
-      : route.options && route.options.keepAlive
-
-  // cache the page when it's as 'keepAlive' instead of destroying
-  if (
-    navigatingBack === false &&
-    route.options &&
-    keepAlive === true &&
-    route.options.inHistory === true
-  ) {
-    const historyItem = history[history.length - 1]
-    if (historyItem !== undefined) {
-      historyItem.view = view
-      historyItem.focus = previousFocus
-    }
-  }
-
-  /* Destroy the view in the following cases:
-   * 1. Navigating forward, and the previous route is not configured with "keep alive" set to true.
-   * 2. Navigating back, and the previous route is configured with "keep alive" set to true.
-   * 3. Navigating back, and the previous route is not configured with "keep alive" set to true.
-   */
-  if (route.options && (keepAlive !== true || navigatingBack === true)) {
-    view.destroy()
-    view = null
-  }
-
-  previousFocus = null
-  route = null
-}
-
 const setOrAnimate = (element, transition, shouldAnimate = true) => {
-  return new Promise((resolve) => {
-    if (shouldAnimate === true) {
+  if (shouldAnimate === true) {
+    return new Promise((resolve) => {
       // resolve the promise in the transition end-callback
       // ("extending" end callback when one is already specified)
       let existingEndCallback = transition.end
@@ -422,11 +368,11 @@ const setOrAnimate = (element, transition, shouldAnimate = true) => {
       }
       if (element !== undefined) element.set(transition.prop, { transition })
       else resolve()
-    } else {
-      element !== undefined && element.set(transition.prop, transition.value)
-      resolve()
-    }
-  })
+    })
+  } else {
+    element !== undefined && element.set(transition.prop, transition.value)
+    return true
+  }
 }
 
 const executeBeforeHook = async function (
@@ -475,6 +421,27 @@ const executeBeforeHook = async function (
   }
 }
 
+const loadPage = async function (route, holder, props) {
+  let view = await route.component({ props }, holder, this)
+
+  // is the component a dynamic module?
+  if (view[Symbol.toStringTag] === 'Module') {
+    if (view.default && typeof view.default === 'function') {
+      view = view.default({ props }, holder, this)
+    } else {
+      Log.error("Dynamic import doesn't have a default export or default is not a function")
+    }
+  }
+
+  if (typeof view === 'function') {
+    // had to inline this because the tscompiler does not like LHS reassignments
+    // that also change the type of the variable in a variable union
+    view = /** @type {BlitsComponentFactory} */ (view)({ props }, holder, this)
+  }
+
+  return view
+}
+
 const executeAfterHook = async function (hooks, hookName, route, previousRoute) {
   if (hooks && hooks[hookName]) {
     try {
@@ -486,6 +453,18 @@ const executeAfterHook = async function (hooks, hookName, route, previousRoute) 
     } catch (error) {
       Log.error(`Error or Rejected Promise in "${hookName}" Hook`, error)
     }
+  }
+}
+
+const executeTransition = async (transition, element, animate) => {
+  if (Array.isArray(transition)) {
+    for (let i = 0; i < transition.length; i++) {
+      i === transition.length - 1
+        ? await setOrAnimate(element, transition, animate)
+        : setOrAnimate(element, transition, animate)
+    }
+  } else {
+    await setOrAnimate(element, transition, animate)
   }
 }
 
