@@ -110,22 +110,18 @@ export const navigate = async function () {
   Announcer.stop()
   Announcer.clear()
 
+  const hash = getHash(location.hash)
   // try to find the route
-  let route = matchHash(
-    getHash(location.hash),
-    this[symbols.parent][symbols.routes],
-    overrideOptions,
-    navigationData
-  )
+  let route = matchHash(hash, this[symbols.parent][symbols.routes], overrideOptions, navigationData)
 
   // early return when route not found
   if (route === false) {
     state.navigating = false
 
-    Log.error(`Route ${route.hash} not found`)
+    Log.error(`Route ${hash} not found`)
     const routerHooks = this[symbols.parent][symbols.routerHooks]
     if (routerHooks && typeof routerHooks.error === 'function') {
-      routerHooks.error.call(this[symbols.parent], `Route ${route.hash} not found`)
+      routerHooks.error.call(this[symbols.parent], `Route ${hash} not found`)
     }
     return
   }
