@@ -445,7 +445,7 @@ const loadPage = async function (route, holder, props) {
 const executeAfterHook = async function (hooks, hookName, route, previousRoute) {
   if (hooks && hooks[hookName]) {
     try {
-      await hooks.afterEach.call(
+      await hooks[hookName].call(
         this[symbols.parent],
         route, // to
         previousRoute // from
