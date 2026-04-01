@@ -16,7 +16,13 @@
  */
 
 import { renderer } from './launch.js'
-import { parseToObject, isObjectString, isArrayString, isTransition } from '../../lib/utils.js'
+import {
+  parseToObject,
+  isObjectString,
+  isArrayString,
+  isTransition,
+  isZeroDurationTransition,
+} from '../../lib/utils.js'
 import colors from '../../lib/colors/colors.js'
 
 import { Log } from '../../lib/log.js'
@@ -668,7 +674,7 @@ const Element = {
     const propsKeys = Object.keys(this.props.props)
 
     if (propsKeys.length === 1) {
-      if (isTransition(value) === true) {
+      if (isTransition(value) === true && isZeroDurationTransition(value) === false) {
         return this.animate(propsKeys[0], this.props.props[propsKeys[0]], value.transition)
       }
       // set the prop to the value on the node
@@ -676,7 +682,7 @@ const Element = {
     } else {
       for (let i = 0; i < propsKeys.length; i++) {
         // todo: fix code duplication
-        if (isTransition(value) === true) {
+        if (isTransition(value) === true && isZeroDurationTransition(value) === false) {
           this.animate(propsKeys[i], this.props.props[propsKeys[i]], value.transition)
         } else {
           // set the prop to the value on the node
