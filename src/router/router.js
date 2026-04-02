@@ -457,8 +457,8 @@ const executeTransition = async (transition, element, animate) => {
   if (Array.isArray(transition)) {
     for (let i = 0; i < transition.length; i++) {
       i === transition.length - 1
-        ? await setOrAnimate(element, transition, animate)
-        : setOrAnimate(element, transition, animate)
+        ? await setOrAnimate(element, transition[i], animate)
+        : setOrAnimate(element, transition[i], animate)
     }
   } else {
     await setOrAnimate(element, transition, animate)
