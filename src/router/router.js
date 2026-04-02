@@ -331,12 +331,13 @@ export const navigate = async function () {
   await executeAfterHook(
     this[symbols.parent][symbols.routerHooks],
     'afterEach',
+    this[symbols.parent],
     route,
     previousRoute
   )
 
   // execute after route Hook
-  await executeAfterHook(route.hooks, 'after', route, previousRoute)
+  await executeAfterHook(route.hooks, 'after', this[symbols.parent], route, previousRoute)
 
   // Clear module-level variables after removeView has consumed them.
   // Placed here so it executes for all navigation flows, not only when
@@ -438,11 +439,11 @@ const loadPage = async function (route, holder, props) {
   return view
 }
 
-const executeAfterHook = async function (hooks, hookName, route, previousRoute) {
+const executeAfterHook = async function (hooks, hookName, parent, route, previousRoute) {
   if (hooks && hooks[hookName]) {
     try {
       await hooks[hookName].call(
-        this[symbols.parent],
+        parent,
         route, // to
         previousRoute // from
       )
