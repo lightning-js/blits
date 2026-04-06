@@ -37,6 +37,7 @@ const mockComponents = {
   CatchAll: () => {},
 }
 
+// matchHash is typed as Route[]; fixtures are partial configs like real route tables.
 const routes = /** @type {import('./router.js').Route[]} */ (
   /** @type {unknown} */ ([
     {
