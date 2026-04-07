@@ -38,48 +38,51 @@ const mockComponents = {
   CatchAll: () => {},
 }
 
-const routes = [
-  {
-    path: '/',
-    component: mockComponents.Home,
-  },
-  {
-    path: '/page1',
-    component: mockComponents.Page1,
-  },
-  {
-    path: '/page1/subpage1',
-    component: mockComponents.SubPage1,
-  },
-  {
-    path: '/tv/:show/seasons/:season',
-    component: mockComponents.Season,
-  },
-  {
-    path: '/movies/special',
-    component: mockComponents.Special,
-  },
-  {
-    path: '/movies/:name',
-    component: mockComponents.Movie,
-  },
-  {
-    path: '/examples/*',
-    component: mockComponents.ExampleCatchAll,
-  },
-  {
-    path: '/route/with/trailing/slash/',
-    component: mockComponents.Slash,
-  },
-  {
-    path: '/dutchmovies/:id',
-    component: mockComponents.DutchMovies,
-  },
-  {
-    path: '*',
-    component: mockComponents.CatchAll,
-  },
-]
+// matchHash is typed as Route[]; fixtures are partial configs like real route tables.
+const routes = /** @type {import('./router.js').Route[]} */ (
+  /** @type {unknown} */ ([
+    {
+      path: '/',
+      component: mockComponents.Home,
+    },
+    {
+      path: '/page1',
+      component: mockComponents.Page1,
+    },
+    {
+      path: '/page1/subpage1',
+      component: mockComponents.SubPage1,
+    },
+    {
+      path: '/tv/:show/seasons/:season',
+      component: mockComponents.Season,
+    },
+    {
+      path: '/movies/special',
+      component: mockComponents.Special,
+    },
+    {
+      path: '/movies/:name',
+      component: mockComponents.Movie,
+    },
+    {
+      path: '/examples/*',
+      component: mockComponents.ExampleCatchAll,
+    },
+    {
+      path: '/route/with/trailing/slash/',
+      component: mockComponents.Slash,
+    },
+    {
+      path: '/dutchmovies/:id',
+      component: mockComponents.DutchMovies,
+    },
+    {
+      path: '*',
+      component: mockComponents.CatchAll,
+    },
+  ])
+)
 
 test('Type of matchHash', (assert) => {
   const expected = 'function'
@@ -896,10 +899,12 @@ test('keepAlive override does not bleed into the destination route options', asy
     code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
   })
 
-  const routesList = [
-    { path: '/srcA', component: PageA, options: { inHistory: true, passFocus: false } },
-    { path: '/srcB', component: PageB, options: { inHistory: true, passFocus: false } },
-  ]
+  const routesList = /** @type {import('./router.js').Route[]} */ (
+    /** @type {unknown} */ ([
+      { path: '/srcA', component: PageA, options: { inHistory: true, passFocus: false } },
+      { path: '/srcB', component: PageB, options: { inHistory: true, passFocus: false } },
+    ])
+  )
 
   const host = {
     [symbols.parent]: {
@@ -1060,6 +1065,663 @@ test('Stale overrideOptions do not bleed into subsequent navigations', async (as
   to('/rz')
   await navigate.call(host)
   assert.equal(destroyCount, 1, '/ry should be destroyed — stale keepAlive must not persist')
+
+  stage.element = originalElement
+})
+
+test('afterEach and after hooks fire in order with correct args and this context', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const callLog = []
+  const parentRef = {
+    [symbols.routes]: [
+      {
+        path: '/ahook-from',
+        component: TestComponent,
+        options: { inHistory: true, passFocus: false },
+      },
+      {
+        path: '/ahook-to',
+        component: TestComponent,
+        options: { inHistory: true, passFocus: false },
+        hooks: {
+          after(toRoute, fromRoute) {
+            callLog.push({
+              hook: 'after',
+              to: toRoute.path,
+              from: fromRoute && fromRoute.path,
+              self: this,
+            })
+          },
+        },
+      },
+    ],
+    [symbols.routerHooks]: {
+      afterEach(toRoute, fromRoute) {
+        callLog.push({
+          hook: 'afterEach',
+          to: toRoute.path,
+          from: fromRoute && fromRoute.path,
+          self: this,
+        })
+      },
+    },
+  }
+
+  const host = { [symbols.parent]: parentRef, [symbols.children]: [{}], [symbols.props]: {} }
+
+  to('/ahook-from')
+  await navigate.call(host)
+  to('/ahook-to')
+  await navigate.call(host)
+
+  const relevant = callLog.filter((e) => e.to === '/ahook-to')
+  assert.deepEqual(
+    relevant.map((e) => e.hook),
+    ['afterEach', 'after'],
+    'Hooks should fire in correct order'
+  )
+  assert.equal(relevant[0].from, '/ahook-from', 'afterEach should receive previous route as from')
+  assert.equal(relevant[1].from, '/ahook-from', 'after should receive previous route as from')
+  assert.equal(relevant[0].self, parentRef, 'afterEach this context should be the parent component')
+  assert.equal(relevant[1].self, parentRef, 'after this context should be the parent component')
+  assert.equal(state.navigating, false, 'state.navigating should reset after hooks complete')
+
+  stage.element = originalElement
+})
+
+test('afterEach and after errors do not break navigation', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  let afterCalled = false
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/err-from',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/err-to',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+          hooks: {
+            after() {
+              afterCalled = true
+              throw new Error('per-route after boom')
+            },
+          },
+        },
+      ],
+      [symbols.routerHooks]: {
+        afterEach() {
+          throw new Error('afterEach boom')
+        },
+      },
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/err-from')
+  await navigate.call(host)
+  to('/err-to')
+  await navigate.call(host)
+
+  assert.ok(afterCalled, 'Per-route after should still run despite afterEach error')
+  assert.equal(state.navigating, false, 'state.navigating should reset despite both hooks throwing')
+  assert.equal(state.path, '/err-to', 'Navigation should complete despite both hooks throwing')
+
+  stage.element = originalElement
+})
+
+test('after hooks do not fire when beforeEach cancels navigation', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const seedHost = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/hist-seed-a',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/hist-seed-b',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+  to('/hist-seed-a')
+  await navigate.call(seedHost)
+  to('/hist-seed-b')
+  await navigate.call(seedHost)
+
+  let afterEachCalled = false
+  let afterCalled = false
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/cancel-from',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/cancel-to',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+          hooks: {
+            after() {
+              afterCalled = true
+            },
+          },
+        },
+      ],
+      [symbols.routerHooks]: {
+        beforeEach() {
+          return false
+        },
+        afterEach() {
+          afterEachCalled = true
+        },
+      },
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/cancel-from')
+  await navigate.call(host)
+  to('/cancel-to')
+  await navigate.call(host)
+
+  assert.equal(afterEachCalled, false, 'afterEach should not fire when beforeEach cancels')
+  assert.equal(afterCalled, false, 'after should not fire when beforeEach cancels')
+  assert.equal(state.navigating, false, 'state.navigating should reset after cancelled navigations')
+
+  stage.element = originalElement
+})
+
+test('after hook receives correct route data and params', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  /** @type {import('./router.js').Route | null} */
+  let capturedTo = null
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/data-from',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/data-to/:id',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+          data: { title: 'Detail' },
+          hooks: {
+            after(toRoute) {
+              capturedTo = toRoute
+            },
+          },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/data-from')
+  await navigate.call(host)
+  to('/data-to/42', { extra: 'info' })
+  await navigate.call(host)
+
+  assert.ok(capturedTo, 'after hook should have been called')
+  assert.equal(capturedTo?.path, '/data-to/:id', 'toRoute should have the route definition path')
+  assert.deepEqual(capturedTo?.params, { id: '42' }, 'toRoute should have extracted params')
+  assert.equal(capturedTo?.data?.title, 'Detail', 'toRoute.data should contain static route data')
+  assert.equal(capturedTo?.data?.extra, 'info', 'toRoute.data should contain navigation data')
+
+  stage.element = originalElement
+})
+
+test('beforeEach rejection still clears navigating state when history is non-empty', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const SeedCmp = Component('ThrowSeedCmp', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const FailCmp = Component('HookFailTarget', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const seedHost = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/throw-seed-a',
+          component: SeedCmp,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/throw-seed-b',
+          component: SeedCmp,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+  to('/throw-seed-a')
+  await navigate.call(seedHost)
+  to('/throw-seed-b')
+  await navigate.call(seedHost)
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/hook-fail-target',
+          component: FailCmp,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+      [symbols.routerHooks]: {
+        async beforeEach() {
+          throw new Error('BeforeEach hook failed')
+        },
+      },
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/hook-fail-target')
+  await navigate.call(host)
+
+  assert.equal(state.navigating, false, 'Navigation state should reset after hook failure')
+
+  stage.element = originalElement
+})
+
+test('beforeEach returning false leaves state.path on previous route', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const SeedCmp = Component('EachSeedCmp', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const GuardCmp = Component('GuardFalseEach', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const seedHost = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/each-seed-a',
+          component: SeedCmp,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/each-seed-b',
+          component: SeedCmp,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+  to('/each-seed-a')
+  await navigate.call(seedHost)
+  to('/each-seed-b')
+  await navigate.call(seedHost)
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/guard-each-1',
+          component: GuardCmp,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/guard-each-2',
+          component: GuardCmp,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+      [symbols.routerHooks]: {
+        beforeEach(toRoute) {
+          if (toRoute.path === '/guard-each-2') {
+            return false
+          }
+        },
+      },
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/guard-each-1')
+  await navigate.call(host)
+  to('/guard-each-2')
+  await navigate.call(host)
+
+  assert.equal(
+    state.path,
+    '/guard-each-1',
+    'Navigation should be cancelled when beforeEach returns false'
+  )
+
+  stage.element = originalElement
+})
+
+test('route before returning false leaves state.path on previous route', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const SeedCmp = Component('BeforeSeedCmp', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const GuardCmp = Component('GuardFalseBefore', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const seedHost = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/before-seed-a',
+          component: SeedCmp,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/before-seed-b',
+          component: SeedCmp,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+  to('/before-seed-a')
+  await navigate.call(seedHost)
+  to('/before-seed-b')
+  await navigate.call(seedHost)
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/guard-before-1',
+          component: GuardCmp,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/guard-before-2',
+          component: GuardCmp,
+          options: { inHistory: true, passFocus: false },
+          hooks: {
+            before() {
+              return false
+            },
+          },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/guard-before-1')
+  await navigate.call(host)
+  to('/guard-before-2')
+  await navigate.call(host)
+
+  assert.equal(
+    state.path,
+    '/guard-before-1',
+    'Navigation should be cancelled when route before returns false'
+  )
+
+  stage.element = originalElement
+})
+
+test('keepAlive caches view and restores same instance on back', async (assert) => {
+  const originalElement = stage.element
+  let initCallCount = 0
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const KaOne = Component('KaRestoreOne', {
+    template: '<Element />',
+    code: {
+      render: () => ({ elms: [], cleanup: () => {} }),
+      effects: [],
+      init() {
+        initCallCount++
+      },
+    },
+  })
+  const KaTwo = Component('KaRestoreTwo', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/ka-restore-1',
+          component: KaOne,
+          options: { keepAlive: true, inHistory: true, passFocus: false },
+        },
+        {
+          path: '/ka-restore-2',
+          component: KaTwo,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  const kaChildren = /** @type {any[]} */ (/** @type {unknown} */ (host[symbols.children]))
+
+  to('/ka-restore-1')
+  await navigate.call(host)
+  const page1View = kaChildren[kaChildren.length - 1]
+  const initialInitCount = initCallCount
+
+  to('/ka-restore-2')
+  await navigate.call(host)
+
+  assert.equal(back.call(host), true, 'back() should pop history and queue previous route')
+  await navigate.call(host)
+
+  const restoredView = kaChildren[kaChildren.length - 1]
+  assert.equal(restoredView, page1View, 'Should restore the same cached view instance')
+  assert.equal(
+    initCallCount,
+    initialInitCount,
+    'Component init should not run again when restored from cache'
+  )
+
+  stage.element = originalElement
+})
+
+test('reuseComponent reuses the same view instance when returning to the route', async (assert) => {
+  const originalElement = stage.element
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const SharedRc = Component('RcReuseShared', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/rc-reuse-1',
+          component: SharedRc,
+          options: { reuseComponent: true, keepAlive: false, inHistory: true, passFocus: false },
+        },
+        {
+          path: '/rc-reuse-2',
+          component: SharedRc,
+          options: { reuseComponent: true, inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/rc-reuse-1')
+  await navigate.call(host)
+  const firstView = host.activeView
+
+  to('/rc-reuse-2')
+  await navigate.call(host)
+
+  to('/rc-reuse-1')
+  await navigate.call(host)
+  const secondView = host.activeView
+
+  assert.equal(
+    firstView,
+    secondView,
+    'Should reuse the same component instance when reuseComponent is true'
+  )
 
   stage.element = originalElement
 })
