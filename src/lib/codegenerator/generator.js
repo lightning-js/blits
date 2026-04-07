@@ -187,7 +187,9 @@ const generateElementCode = function (
   }
 
   if (options.holder) {
-    renderCode.push(`elementConfigs[${counter}]['holder'] = true`)
+    renderCode.push(
+      `elementConfigs[${counter}]['holder'] = cmps[${counter}] === undefined || cmps[${counter}][Symbol.for('config')].hoverable !== false`
+    )
   }
 
   Object.keys(templateObject).forEach((key) => {

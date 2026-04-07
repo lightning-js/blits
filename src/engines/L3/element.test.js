@@ -1255,3 +1255,27 @@ test('Element - Set maxheight property', (assert) => {
   assert.equal(el.props.props['contain'], 'height', 'maxheight should set contain to height')
   assert.end()
 })
+
+test('Element - holder true sets interactive to true', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({ parent: { node: new EventEmitter() }, holder: true })
+  assert.equal(
+    el.props.props['interactive'],
+    true,
+    'interactive should be true when holder is true'
+  )
+  assert.end()
+})
+
+test('Element - holder false sets interactive to false', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({ parent: { node: new EventEmitter() }, holder: false })
+  assert.equal(
+    el.props.props['interactive'],
+    false,
+    'interactive should be false when holder is false (hoverable: false)'
+  )
+  assert.end()
+})
