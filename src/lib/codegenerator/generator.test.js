@@ -5317,19 +5317,18 @@ test('Verify variables extracts plugins varibles outside string literals', (asse
   assert.end()
 })
 
-test.only('Verify variables skips $variables in plain text without expressions', (assert) => {
+test('Verify variables skips $variables in plain text without expressions', (assert) => {
   const templateObject = {
     children: [
       {
         [Symbol.for('componentType')]: 'Element',
-        content: '$$notifications.count, .items, .lastMessage update the template automatically',
+        content: 'Custom plugin with $reactive state — all values update automatically',
       },
     ],
   }
 
   const actual = generator.call(scope, templateObject, true)
   const rendered = normalize(actual.render.toString())
-  console.log(rendered)
 
   assert.false(
     rendered.includes("propInComponent('reactive"),
