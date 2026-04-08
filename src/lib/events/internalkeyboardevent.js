@@ -16,13 +16,6 @@ export default class InternalKeyboardEvent extends KeyboardEvent {
   }
 
   /**
-   * @param {number} value
-   */
-  set keyCode(value) {
-    this._keyCode = value
-  }
-
-  /**
    * @param {string} type - A string with the name of the event
    * @param {KeyboardEventInit} [eventInitDict] - An object that configures the event
    */
@@ -30,7 +23,7 @@ export default class InternalKeyboardEvent extends KeyboardEvent {
     super(type, eventInitDict)
 
     if ('keyCode' in eventInitDict) {
-      this.keyCode = eventInitDict.keyCode
+      this._keyCode = eventInitDict.keyCode
     }
   }
 }
