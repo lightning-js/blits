@@ -5249,3 +5249,92 @@ test('Generate code for a template with verification of attributes with Math cal
 
   assert.end()
 })
+
+test('Verify variables skips $variables inside string literals in static attributes', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        content: 'Any component can call this.$notifications.add(msg, type)',
+      },
+    ],
+  }
+
+  const actual = generator.call(scope, templateObject, true)
+  const rendered = normalize(actual.render.toString())
+
+  assert.false(
+    rendered.includes("propInComponent('notifications.add"),
+    'Should NOT verify $notifications when inside string literal'
+  )
+
+  assert.end()
+})
+
+test('Verify variables extracts $variables in expression with string concat', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        content: "'Sample' + $notification.add",
+      },
+    ],
+  }
+
+  const actual = generator.call(scope, templateObject, true)
+  const rendered = normalize(actual.render.toString())
+
+  assert.true(
+    rendered.includes("propInComponent('notification.add','dynamic')"),
+    'Should verify $notification.add when in expression with +'
+  )
+
+  assert.end()
+})
+
+test('Verify variables extracts plugins varibles outside string literals', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        content: '$$notification.count',
+      },
+    ],
+  }
+
+  const actual = generator.call(scope, templateObject, true)
+  const rendered = normalize(actual.render.toString())
+
+  assert.false(
+    rendered.includes("propInComponent('zero"),
+    'Should NOT verify $zero inside string literal'
+  )
+  assert.true(
+    rendered.includes("propInComponent('$notification.count','dynamic')"),
+    'Should verify $notification.count when in expression with +'
+  )
+
+  assert.end()
+})
+
+test.only('Verify variables skips $variables in plain text without expressions', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        content: '$$notifications.count, .items, .lastMessage update the template automatically',
+      },
+    ],
+  }
+
+  const actual = generator.call(scope, templateObject, true)
+  const rendered = normalize(actual.render.toString())
+  console.log(rendered)
+
+  assert.false(
+    rendered.includes("propInComponent('reactive"),
+    'Should NOT verify $reactive when embedded in plain text'
+  )
+
+  assert.end()
+})
