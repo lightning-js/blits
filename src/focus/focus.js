@@ -96,7 +96,7 @@ export default {
     }
 
     if (cb !== undefined) {
-      keyUpCallbacks.set(event.code, cb)
+      keyUpCallbacks.set(event.keyCode, cb)
     }
   },
 }
