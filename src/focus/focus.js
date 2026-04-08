@@ -21,6 +21,7 @@ import Settings from '../settings.js'
 import { DEFAULT_HOLD_TIMEOUT_MS } from '../constants.js'
 import { Log } from '../lib/log.js'
 import { getAncestors } from './helpers.js'
+import InternalKeyboardEvent from '../lib/events/internalkeyboardevent.js'
 
 let focusedComponent = null
 let focusChain = []
@@ -133,9 +134,7 @@ const setFocus = (component, event) => {
   component[symbols.lifecycle].state = 'focus'
 
   if (event instanceof KeyboardEvent) {
-    const internalEvent = new KeyboardEvent('keydown', event)
-    // @ts-ignore - this is an internal event
-    internalEvent[symbols.internalEvent] = true
+    const internalEvent = new InternalKeyboardEvent('keydown', event)
     document.dispatchEvent(internalEvent)
   }
 }
