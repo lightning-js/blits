@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.1.1
+
+_9 apr 2026_
+
+- Fixed import file extension issue
+
 ## v2.1.0
 
 _9 apr 2026_
