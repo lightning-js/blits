@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.1.0
+
+_9 apr 2026_
+
+- Fixed left over `KeyboardEvent.code` references
+- Fixed issue with allowing $-prefix to be used as text content
+- Fixed issue with internal keyboard event not working on older browsers
+- Added tests to router hooks
+- Fixed issue with transitions not being skipped when duration is set to `0`
+- Added `this.$nextTick` utility helper
+- Fixed issue with transitioning colours in `border`-attribute
+
 ## v2.0.1
 
 _23 mar 2026_
@@ -7,7 +19,7 @@ _23 mar 2026_
 - Fixed issue with height dimension of router view
 - Fixed issue with array or rounded corners not being reactive
 - Fixed issue with font not being mapped correctly when using `png` in the font config
-- Removed obselete key config
+- Removed obsolete key config
 - Fixed reactivity guard in computed props to handle deep nested references more safely
 
 ## v2.0.0
