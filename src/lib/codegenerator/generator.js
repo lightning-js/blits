@@ -130,9 +130,7 @@ const extractVariables = function (value, isContentKey = false) {
     // should not trigger verification.
     const isBareDollarVar = /^\s*\$\$?\w+/.test(stripped)
     const hasConcatExpression = /\+/.test(stripped)
-    console.log(
-      `isBareDollarVar: ${isBareDollarVar}, hasConcatExpression: ${hasConcatExpression}, stripped: ${stripped}`
-    )
+
     if (!isBareDollarVar && !hasConcatExpression) {
       return false
     }
