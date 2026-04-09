@@ -914,6 +914,70 @@ test('Element - Transition an element property with end callback', (assert) => {
   assert.end()
 })
 
+test('Element - Zero duration transition sets value directly without animating', (assert) => {
+  const customNode = new CustomNode()
+  assert.capture(renderer, 'createNode', () => customNode)
+  const el = createElement()
+
+  const animateSpy = sinon.spy(customNode, 'animate')
+
+  el.set('w', { transition: { value: 200, duration: 0 } })
+
+  assert.equal(el.props.props['w'], 200, 'Props w parameter should be set to 200')
+  assert.equal(customNode.w, 200, 'Node w should be set directly to 200')
+  assert.equal(animateSpy.callCount, 0, 'animate should not be called for zero duration transition')
+
+  animateSpy.restore()
+  assert.end()
+})
+
+test('Element - Zero duration transition on multiple properties sets values directly', (assert) => {
+  const customNode = new CustomNode()
+  assert.capture(renderer, 'createNode', () => customNode)
+  const el = createElement()
+
+  const animateSpy = sinon.spy(customNode, 'animate')
+
+  el.set('x', { transition: { value: 50, duration: 0 } })
+  el.set('y', { transition: { value: 75, duration: 0 } })
+
+  assert.equal(customNode.x, 50, 'Node x should be set directly to 50')
+  assert.equal(customNode.y, 75, 'Node y should be set directly to 75')
+  assert.equal(
+    animateSpy.callCount,
+    0,
+    'animate should not be called for any zero duration transition'
+  )
+
+  animateSpy.restore()
+  assert.end()
+})
+
+test('Element - Non-zero duration transition calls animate', (assert) => {
+  const customNode = new CustomNode()
+  assert.capture(renderer, 'createNode', () => customNode)
+  const el = createElement()
+
+  const animateSpy = sinon.spy(customNode, 'animate')
+
+  el.set('w', { transition: { value: 300, duration: 500 } })
+
+  assert.equal(el.props.props['w'], 300, 'Props w parameter should be set to 300')
+  assert.equal(animateSpy.callCount, 0, 'animate is debounced via setTimeout(0)')
+
+  setTimeout(() => {
+    assert.equal(
+      animateSpy.callCount,
+      1,
+      'animate should be called once for non-zero duration transition'
+    )
+    assert.equal(customNode.w, 300, 'Node w should be set to 300 after animation')
+
+    animateSpy.restore()
+    assert.end()
+  }, 1000)
+})
+
 test('Element - Destroy created Element node', (assert) => {
   assert.capture(renderer, 'createNode', () => new CustomNode())
   const el = createElement()
@@ -1103,6 +1167,27 @@ test('Element - ElementShader with rounded', (assert) => {
   const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
   el.populate({ parent: { node: new EventEmitter() }, rounded: 10 })
   assert.equal(el.props.elementShader, true, 'elementShader should be true')
+  assert.end()
+})
+
+test('Element - Update rounded with array sets radius', (assert) => {
+  const shaderProps = { radius: 0 }
+  const mockNode = Object.assign(new EventEmitter(), {
+    props: { shader: { props: shaderProps } },
+  })
+  assert.capture(renderer, 'createNode', () => mockNode)
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({ parent: { node: new EventEmitter() }, rounded: 10 })
+  el.set('rounded', [40, 40, 10, 10])
+  assert.deepEqual(
+    el.node.props['shader'].props.radius,
+    [40, 40, 10, 10],
+    'radius should be updated to the new array'
+  )
+  assert.notOk(
+    Array.isArray(el.node.props['shader'].props),
+    'shader props should remain an object, not be replaced by the array'
+  )
   assert.end()
 })
 

@@ -36,7 +36,7 @@ export default () => {
     if (type === 'sdf') {
       stage.loadFont('sdf', {
         fontFamily: font.family,
-        atlasUrl: font.json || (font.file && font.file.replace(/\.[^.]+$/, `.${font.type}.png`)),
+        atlasUrl: font.png || (font.file && font.file.replace(/\.[^.]+$/, `.${font.type}.png`)),
         atlasDataUrl:
           font.json || (font.file && font.file.replace(/\.[^.]+$/, `.${font.type}.json`)),
       })

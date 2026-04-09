@@ -152,4 +152,14 @@ export default {
     enumerable: true,
     configurable: false,
   },
+  $nextTick: {
+    value: function (fn, ...params) {
+      // early exit when component is marked as end of life
+      if (this.eol === true) return
+      return this.$setTimeout(fn, 0, ...params)
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
 }

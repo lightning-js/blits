@@ -16,7 +16,13 @@
  */
 
 import { renderer } from './launch.js'
-import { parseToObject, isObjectString, isArrayString, isTransition } from '../../lib/utils.js'
+import {
+  parseToObject,
+  isObjectString,
+  isArrayString,
+  isTransition,
+  isZeroDurationTransition,
+} from '../../lib/utils.js'
 import colors from '../../lib/colors/colors.js'
 
 import { Log } from '../../lib/log.js'
@@ -362,7 +368,10 @@ const propsTransformer = {
   set rounded(v) {
     this.props['rounded'] = v
     if (this.element.node !== undefined && this.elementShader === true) {
-      if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      if (
+        Array.isArray(v) === false &&
+        (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v))))
+      ) {
         this.element.node.props['shader'].props = v
       } else {
         if (isArrayString(v) === true) {
@@ -374,14 +383,17 @@ const propsTransformer = {
   },
   set border(v) {
     this.props['border'] = v
+
     if (
       this.element.node !== undefined &&
       this.elementShader === true &&
       (typeof v === 'object' || isObjectString(v) === true)
     ) {
       v = shaders.parseProps(v)
+      const shader = this.element.node.props['shader']
+      let prefix = shader.shaderKey.startsWith('rounded') ? 'border-' : ''
       for (const key in v) {
-        this.element.node.props['shader'].props[`border-${key}`] = v[key]
+        this.element.node.props['shader'].props[prefix + key] = v[key]
       }
     }
   },
@@ -393,8 +405,10 @@ const propsTransformer = {
       (typeof v === 'object' || isObjectString(v) === true)
     ) {
       v = shaders.parseProps(v)
+      const shader = this.element.node.props['shader']
+      let prefix = shader.shaderKey.startsWith('rounded') ? 'shadow-' : ''
       for (const key in v) {
-        this.element.node.props['shader'].props[`shadow-${key}`] = v[key]
+        this.element.node.props['shader'].props[prefix + key] = v[key]
       }
     }
   },
@@ -660,7 +674,7 @@ const Element = {
     const propsKeys = Object.keys(this.props.props)
 
     if (propsKeys.length === 1) {
-      if (isTransition(value) === true) {
+      if (isTransition(value) === true && isZeroDurationTransition(value) === false) {
         return this.animate(propsKeys[0], this.props.props[propsKeys[0]], value.transition)
       }
       // set the prop to the value on the node
@@ -668,7 +682,7 @@ const Element = {
     } else {
       for (let i = 0; i < propsKeys.length; i++) {
         // todo: fix code duplication
-        if (isTransition(value) === true) {
+        if (isTransition(value) === true && isZeroDurationTransition(value) === false) {
           this.animate(propsKeys[i], this.props.props[propsKeys[i]], value.transition)
         } else {
           // set the prop to the value on the node

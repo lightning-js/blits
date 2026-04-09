@@ -480,6 +480,13 @@ declare module '@lightningjs/blits' {
     $clearDebounces: () => void
 
     /**
+    * Defer a callback to the next tick (setTimeout 0), automatically cleaned upon component destroy
+    * @param callback - Function to execute on the next tick
+    * @param args - Arguments to pass to the callback
+    */
+    $nextTick: (callback: (...args: any[]) => void, ...args: any[]) => ReturnType<typeof setTimeout>
+
+    /**
     * Set an interval that is automatically cleaned upon component destroy
     */
     $setInterval: (callback: (args: any) => void, ms?: number | undefined) => ReturnType<typeof setInterval>
