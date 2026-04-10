@@ -85,7 +85,11 @@ const createPaddingObject = (padding, direction) => {
  * @param {object} config - The layout configuration object.
  * @this {import('../../component.js').BlitsElement}
  */
+
 const layoutFn = function (config) {
+  const w = this.node.w
+  const h = this.node.h
+
   const position = config.direction === 'vertical' ? 'y' : 'x'
   const oppositePosition = config.direction === 'vertical' ? 'x' : 'y'
   const oppositeMount = config.direction === 'vertical' ? 'mountX' : 'mountY'
@@ -98,6 +102,7 @@ const layoutFn = function (config) {
   const children = this.node.children
   const childrenLength = children.length
   const elementChildren = this.children
+
   let otherDimension = 0
   const gap = config.gap || 0
   for (let i = 0; i < childrenLength; i++) {
@@ -137,7 +142,7 @@ const layoutFn = function (config) {
   }
 
   // emit an updated event
-  if (config['@updated'] !== undefined) {
+  if ((config['@updated'] !== undefined) & (this.node.w !== w || this.node.h !== h)) {
     config['@updated']({ w: this.node.w, h: this.node.h }, this)
   }
 
