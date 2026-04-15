@@ -1,6 +1,6 @@
 # Lazy Loading with the :range Parameter
 
-The for-loop in Blits comes with a [`:range` parameter](../built-in/for-loop.html#using-the-range-attribute) that allows you to render only a portion of an array rather than all the items.
+The for-loop in Blits comes with a [`:range` parameter](../built-in/for-loop.md#using-the-range-attribute) that allows you to render only a portion of an array rather than all the items.
 
 This `:range` parameter can also be used to easily implement an efficient form of _lazy loading_. Lazy loading is a crucial concept for performance in TV applications where rails can contain hundreds of items, but only a small subset is visible at any time.
 
