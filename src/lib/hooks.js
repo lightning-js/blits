@@ -57,3 +57,7 @@ export const registerHooks = (hooks = {}, identifier) => {
     if (typeof hooks[hook] === 'function') cbs[identifier][hook] = hooks[hook]
   })
 }
+
+export const hasHook = (hook, identifier) => {
+  return !!(cbs[identifier] && cbs[identifier][hook])
+}

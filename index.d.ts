@@ -687,14 +687,7 @@ declare module '@lightningjs/blits' {
      * Watchers for changes to state variables, props or computed properties
      */
     watch?: W & ComponentContext<P, S, M, C>
-    /**
-     * Whether the component's holder node is interactive for mouse hit-testing.
-     * When set to `false`, the renderer skips this component's node during
-     * `getNodeFromPosition()`, allowing pointer events to pass through to
-     * the node underneath (e.g. a tile behind a focus ring overlay).
-     * Defaults to `true`.
-     */
-    hoverable?: boolean
+
   }
 
   export interface RouterHooks {
