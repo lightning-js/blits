@@ -176,6 +176,10 @@
       {
         "text": "Storage",
         "link": "/plugins/storage"
+      },
+      {
+        "text": "Custom Plugins",
+        "link": "/plugins/custom_plugins"
       }
     ]
   },
