@@ -20,8 +20,6 @@ import Router, { state as routerState } from '../router/router.js'
 import symbols from '../lib/symbols.js'
 import Focus from '../focus/focus.js'
 
-let hashchangeHandler = null
-
 /** @typedef {{ $input?: (event: any) => boolean, $focus?: (event: any) => void }} RouterViewParent */
 
 export default () =>
@@ -31,10 +29,25 @@ export default () =>
       template: `
         <Element w="100%" h="100%"></Element>
       `,
+      props: {
+        name: '',
+        active: true,
+      },
       state() {
         return {
           activeView: null,
+          previousRoute: null,
+          currentRoute: null,
+          history: [],
+          hashchangeHandler: null,
         }
+      },
+      watch: {
+        active(v, old) {
+          if (v === true && old === false) {
+            Router.navigate.apply(this)
+          }
+        },
       },
       hooks: {
         async ready() {
@@ -42,13 +55,16 @@ export default () =>
           if (parent && parent[symbols.routerHooks] && parent[symbols.routerHooks].init) {
             await parent[symbols.routerHooks].init.apply(parent)
           }
+          this.hashchangeHandler = () => Router.navigate.apply(this)
 
-          hashchangeHandler = () => Router.navigate.apply(this)
-          Router.navigate.apply(this)
-          window.addEventListener('hashchange', hashchangeHandler)
+          if (this.active === true) {
+            Router.navigate.apply(this)
+          }
+
+          window.addEventListener('hashchange', this.hashchangeHandler)
         },
         destroy() {
-          window.removeEventListener('hashchange', hashchangeHandler, false)
+          window.removeEventListener('hashchange', this.hashchangeHandler, false)
         },
         focus() {
           if (this.activeView && Focus.get() === this) {

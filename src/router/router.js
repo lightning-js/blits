@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getHash, isObject, isString, matchHash } from './utils.js'
+import { getHash, isObject, isString, matchHash, sameRouteObject, setHash } from './utils.js'
 import { reactive } from '../lib/reactivity/reactive.js'
 
 import symbols from '../lib/symbols.js'
@@ -52,7 +52,8 @@ import Settings from '../settings.js'
  */
 
 /** @type {Route} */
-export let currentRoute
+export let currentRoute = {}
+
 export const state = reactive(
   {
     path: '',
@@ -110,7 +111,7 @@ export const navigate = async function () {
   Announcer.stop()
   Announcer.clear()
 
-  const hash = getHash(location.hash)
+  const hash = getHash(location.hash, this.name)
   // try to find the route
   let route = matchHash(hash, this[symbols.parent][symbols.routes], overrideOptions, navigationData)
 
@@ -118,7 +119,7 @@ export const navigate = async function () {
   if (route === false) {
     state.navigating = false
 
-    Log.error(`Route ${hash} not found`)
+    Log.error(`Route ${hash.hash} not found`)
     const routerHooks = this[symbols.parent][symbols.routerHooks]
     if (routerHooks && typeof routerHooks.error === 'function') {
       routerHooks.error.call(this[symbols.parent], `Route ${hash} not found`)
@@ -126,10 +127,16 @@ export const navigate = async function () {
     return
   }
 
+  // sameRouteObject is too simple check for now!
+  if (this.currentRoute !== undefined && sameRouteObject(route, this.currentRoute)) {
+    state.navigating = false
+    return
+  }
+
   let reuse = false
-  let previousRoute = currentRoute
-  currentRoute = route
-  const currentPath = currentRoute.path
+  this.previousRoute = this.currentRoute
+  this.currentRoute = route
+  const currentPath = this.currentRoute.path
 
   // execute before each hook
   const beforeEachResult = await executeBeforeHook(
@@ -137,7 +144,7 @@ export const navigate = async function () {
     'beforeEach',
     this[symbols.parent],
     route,
-    previousRoute,
+    this.previousRoute,
     currentPath
   )
   if (beforeEachResult === false) return
@@ -148,7 +155,7 @@ export const navigate = async function () {
     'before',
     this[symbols.parent],
     route,
-    previousRoute,
+    this.previousRoute,
     currentPath
   )
   if (beforeResult === false) return
@@ -159,18 +166,18 @@ export const navigate = async function () {
   // FIX: use truthy check instead of `!== undefined` because matchHash()
   // can return `false`, which survives `!== undefined` but has no `.options`.
   if (
-    previousRoute &&
-    previousRoute.options &&
-    previousRoute.options.inHistory === true &&
+    this.previousRoute &&
+    this.previousRoute.options &&
+    this.previousRoute.options.inHistory === true &&
     navigatingBack === false
   ) {
-    history.push(previousRoute)
+    this.history.push(this.previousRoute)
   }
 
   // a transition can be a function returning a dynamic transition object
   // based on current and previous route
   if (typeof route.transition === 'function') {
-    route.transition = route.transition(previousRoute, route)
+    route.transition = route.transition(this.previousRoute, route)
   }
 
   /** @type {import('../engines/L3/element.js').BlitsElement} */
@@ -195,10 +202,10 @@ export const navigate = async function () {
   // see if the component of the previous route can be reused for the
   // current route
   if (
-    previousRoute &&
+    this.previousRoute &&
     route.options.reuseComponent === true &&
     route.options.keepAlive !== true &&
-    route.component === previousRoute.component
+    route.component === this.previousRoute.component
   ) {
     reuse = true
     view = this[symbols.children][this[symbols.children].length - 1]
@@ -282,28 +289,28 @@ export const navigate = async function () {
   // apply out out transition on previous view if available, unless
   // we're reusing the prvious page component
   // FIX: truthy guard — previousRoute can be `false` (see history-push comment above).
-  if (previousRoute && reuse === false) {
+  if (this.previousRoute && reuse === false) {
     // only animate when there is a previous route
     shouldAnimate = true
     let oldView = this[symbols.children].splice(1, 1).pop()
     if (oldView) {
-      executeTransition(previousRoute.transition.out, oldView[symbols.holder], true)
+      executeTransition(this.previousRoute.transition.out, oldView[symbols.holder], true)
 
       // Resolve effective keepAlive: runtime override from $router.to() takes precedence
       // over the static route config option
       const keepAlive =
         overrideOptions.keepAlive !== undefined
           ? overrideOptions.keepAlive
-          : previousRoute.options && previousRoute.options.keepAlive
+          : this.previousRoute.options && this.previousRoute.options.keepAlive
 
       // cache the page when it's as 'keepAlive' instead of destroying
       if (
         navigatingBack === false &&
-        previousRoute.options &&
+        this.previousRoute.options &&
         keepAlive === true &&
         route.options.inHistory === true
       ) {
-        const historyItem = history[history.length - 1]
+        const historyItem = this.history[history.length - 1]
         if (historyItem !== undefined) {
           historyItem.view = oldView
           historyItem.focus = previousFocus
@@ -315,7 +322,7 @@ export const navigate = async function () {
        * 2. Navigating back, and the previous route is configured with "keep alive" set to true.
        * 3. Navigating back, and the previous route is not configured with "keep alive" set to true.
        */
-      if (previousRoute.options && (keepAlive !== true || navigatingBack === true)) {
+      if (this.previousRoute.options && (keepAlive !== true || navigatingBack === true)) {
         oldView.destroy()
         oldView = null
       }
@@ -333,11 +340,11 @@ export const navigate = async function () {
     'afterEach',
     this[symbols.parent],
     route,
-    previousRoute
+    this.previousRoute
   )
 
   // execute after route Hook
-  await executeAfterHook(route.hooks, 'after', this[symbols.parent], route, previousRoute)
+  await executeAfterHook(route.hooks, 'after', this[symbols.parent], route, this.previousRoute)
 
   // Clear module-level variables after removeView has consumed them.
   // Placed here so it executes for all navigation flows, not only when
@@ -391,9 +398,10 @@ const executeBeforeHook = async function (
       }
     } catch (error) {
       Log.error(`Error or Rejected Promise in "${hookName}" Hook`, error)
-      if (history.length > 0) {
+      if (this.history.length > 0) {
         preventHashChangeNavigation = true
         currentRoute = previousRoute
+        /// hmmmm
         window.history.back()
         navigatingBack = false
         state.navigating = false
@@ -407,7 +415,7 @@ const executeBeforeHook = async function (
       return false
     }
     // If the resolved result is false, cancel navigation
-    if (result === false && history.length > 0) {
+    if (result === false && this.history.length > 0) {
       preventHashChangeNavigation = true
       currentRoute = previousRoute
       window.history.back()
@@ -465,24 +473,24 @@ const executeTransition = async (transition, element, animate) => {
   }
 }
 
-export const to = (path, data = {}, options = {}) => {
+export const to = (path, data = {}, options = {}, routerViewName = '') => {
   navigationData = data
   overrideOptions = options
 
-  location.hash = path.replace(/^#/, '')
+  setHash(path, routerViewName)
 }
 
 export const back = function () {
-  const route = history.pop()
-  if (route && currentRoute !== route) {
+  const route = this.history.pop()
+  if (route && this.currentRoute !== route) {
     // set indicator that we are navigating back (to prevent adding page to history stack)
     navigatingBack = true
     navigatingBackTo = route
-    to(route.hash, route.data, route.options)
+    to(route.hash, route.data, route.options, this.name)
     return true
   }
 
-  const backtrack = (currentRoute && currentRoute.options.backtrack) || false
+  const backtrack = (this.currentRoute && this.currentRoute.options.backtrack) || false
 
   // If we deeplink to a page without backtrack
   // we we let the RouterView handle back
@@ -491,7 +499,7 @@ export const back = function () {
   }
 
   const hashEnd = /(\/:?[\w%\s-]+)$/
-  let path = currentRoute.path
+  let path = this.currentRoute.path
 
   let level = path.split('/').length
 
@@ -514,7 +522,7 @@ export const back = function () {
     )
 
     if (route && backtrack) {
-      to(route.path, route.data, route.options)
+      to(route.path, route.data, route.options, this.name)
       return true
     }
   }

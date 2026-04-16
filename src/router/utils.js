@@ -4,16 +4,78 @@ import { default as fadeInFadeOutTransition } from './transitions/fadeInOut.js'
  * Get the current hash
  * @returns {Hash}
  */
-export const getHash = (hash) => {
+export const getHash = (hash, routerViewName = '') => {
   if (!hash) hash = '/'
-  const hashParts = hash.replace(/^#/, '').split('?')
+
+  // split router views
+  const [main, ...named] = hash.split('|')
+
+  if (routerViewName !== '') {
+    const match = named.find((name) => name.startsWith(routerViewName + '='))
+    if (match !== undefined) {
+      hash = match.slice(routerViewName.length + 1)
+    } else {
+      hash = '/'
+    }
+  } else {
+    hash = main
+  }
+
+  const [path = '', query = ''] = hash.replace(/^#/, '').split('?')
   return {
-    path: hashParts[0],
-    queryParams: new URLSearchParams(hashParts[1]),
+    path: path,
+    queryParams: new URLSearchParams(query),
     hash: hash,
   }
 }
 
+export const setHash = (path, routerViewName = '') => {
+  const cleanPath = (path || '').replace(/^#/, '')
+  const raw = (location.hash || '').replace(/^#/, '')
+
+  const parts = raw ? raw.split('|').filter(Boolean) : []
+
+  let newMain = '/'
+  const newNamed = {}
+
+  // Parse existing hash
+  for (const part of parts) {
+    const eqIndex = part.indexOf('=')
+
+    // named route: sidebar=/search
+    if (eqIndex > 0) {
+      const name = part.slice(0, eqIndex)
+      const value = part.slice(eqIndex + 1)
+      if (value) newNamed[name] = value
+      continue
+    }
+
+    // unnamed/main route
+    if (part) {
+      newMain = part
+    }
+  }
+
+  // Update target router view
+  if (routerViewName === '') {
+    newMain = cleanPath || '/'
+  } else {
+    if (cleanPath) {
+      newNamed[routerViewName] = cleanPath
+    } else {
+      delete newNamed[routerViewName]
+    }
+  }
+
+  // Rebuild hash: main always first
+  let newHash = newMain || '/'
+
+  for (const [name, value] of Object.entries(newNamed)) {
+    newHash += `|${name}=${value}`
+  }
+
+  location.hash = newHash
+}
 export const normalizePath = (path) => {
   return (
     path
@@ -155,4 +217,11 @@ export const matchHash = (
 
   // @ts-ignore - Remove me when we have a better way to handle this
   return matchingRoute
+}
+
+export const sameRouteObject = (route1, route2) => {
+  // this is too simple a check
+  if (route1.path !== route2.path) return false
+
+  return true
 }
