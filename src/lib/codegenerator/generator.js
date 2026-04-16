@@ -116,7 +116,27 @@ export default function (templateObject = { children: [] }, devMode = false) {
 }
 
 // This is used to get only variable from expression
-const extractVariables = function (value) {
+const extractVariables = function (value, isContentKey = false) {
+  if (isContentKey) {
+    // Strip string literals (single and double quoted) so that $variables
+    // embedded in plain text (e.g. "'this.$notifications.add()'") are not
+    // mistakenly extracted as component variable references.
+    const stripped = value.replace(/'[^']*'|"[^"]*"/g, '')
+
+    // A $variable is a real component reference only if:
+    // 1. The value starts with a bare $variable (e.g. "$notification.add(ms,)")
+    // 2. The stripped text contains string concatenation (e.g. "'Count: ' + $notifications.count")
+    // Plain text with embedded $variables (e.g. "Custom plugin with $reactive state")
+    // should not trigger verification.
+    const isBareDollarVar = /^\s*\$\$?\w+/.test(stripped)
+    const hasConcatExpression = /\+/.test(stripped)
+
+    if (!isBareDollarVar && !hasConcatExpression) {
+      return false
+    }
+    value = stripped
+  }
+
   const regEx = /\$\$?\w+(\.\w+)?/g
   const matches = value.match(regEx)
   if (matches !== null) {
@@ -127,8 +147,8 @@ const extractVariables = function (value) {
   }
 }
 
-const verifyVariables = function (value, renderCode, type = 'dynamic') {
-  const variablesToBeVerified = extractVariables(value)
+const verifyVariables = function (value, renderCode, isContentKey = false, type = 'dynamic') {
+  const variablesToBeVerified = extractVariables(value, isContentKey)
   if (variablesToBeVerified !== false) {
     for (let i = 0; i < variablesToBeVerified.length; i++) {
       let variable = variablesToBeVerified[i]
@@ -222,7 +242,7 @@ const generateElementCode = function (
       }
       // value.includes('.') === false &&
       if (isDev === true && options.component !== 'scope.' && value.includes('$')) {
-        verifyVariables(value, renderCode, 'reactive')
+        verifyVariables(value, renderCode, key === ':content', 'reactive')
       }
       renderCode.push(
         `elementConfigs[${counter}]['${key.substring(1)}'] = ${interpolate(
@@ -232,7 +252,7 @@ const generateElementCode = function (
       )
     } else {
       if (isDev === true && options.component !== 'scope.' && value.includes('$')) {
-        verifyVariables(value, renderCode)
+        verifyVariables(value, renderCode, key === 'content')
       }
       renderCode.push(
         `elementConfigs[${counter}]['${key}'] = ${cast(value, key, options.component)}`
