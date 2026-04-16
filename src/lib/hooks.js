@@ -59,5 +59,5 @@ export const registerHooks = (hooks = {}, identifier) => {
 }
 
 export const hasHook = (hook, identifier) => {
-  return !!(cbs[identifier] && cbs[identifier][hook])
+  return cbs[identifier] !== undefined && hook in cbs[identifier]
 }

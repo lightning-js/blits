@@ -529,15 +529,8 @@ const propsTransformer = {
     }
   },
   set holder(v) {
-    const identifier =
-      this.element && this.element.component
-        ? this.element.component[symbols.identifier]
-        : undefined
-    if (identifier !== undefined) {
-      this.props['interactive'] = hasHook('hover', identifier) || hasHook('unhover', identifier)
-    } else {
-      this.props['interactive'] = v
-    }
+    const identifier = this.element.component[symbols.identifier]
+    this.props['interactive'] = hasHook('hover', identifier) || hasHook('unhover', identifier)
   },
 }
 
