@@ -220,7 +220,10 @@ export const matchHash = (
 }
 
 export const sameRouteObject = (route1, route2) => {
-  // this is too simple a check
+  if (route1 === null) return false
+  if (route2 === null) return false
+
+  // this is too simple a check for now
   if (route1.path !== route2.path) return false
 
   return true

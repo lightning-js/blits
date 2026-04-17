@@ -36,10 +36,7 @@ export default () =>
       state() {
         return {
           activeView: null,
-          previousRoute: null,
-          currentRoute: null,
           history: [],
-          hashchangeHandler: null,
         }
       },
       watch: {
