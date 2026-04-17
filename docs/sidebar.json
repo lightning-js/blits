@@ -142,15 +142,15 @@
       },
       {
         "text": "WebGl Shaders",
-        "link": "/built-in/webgl-shadertypes"
+        "link": "/shaders/webgl-shadertypes"
       },
       {
-        "text": "Canvase Shaders",
-        "link": "/built-in/webgl-shadertypes"
+        "text": "Canvas Shaders",
+        "link": "/shaders/canvas-shadertypes"
       },
       {
         "text": "v2 Conversion Guide",
-        "link": "/built-in/v2-conversion-guide"
+        "link": "/shaders/v2-conversion-guide"
       }
     ]
   },

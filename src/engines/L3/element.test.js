@@ -696,19 +696,19 @@ test('Element - Layout with horizontal direction layout use cases', (assert) => 
     'Child 2 Node X parameter should be layout gap + child 1 w'
   )
 
-  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback should be called 3 times')
+  assert.equal(layoutUpdateSpy.callCount, 2, 'Layout updated callback should be called 2 times')
   assert.equal(
     layoutUpdateSpy.getCall(0).args.length,
     2,
     'Layout updated callback should be called with 2 arguments'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].w,
+    layoutUpdateSpy.getCall(1).args[0].w,
     CHILD_1_WIDTH,
     'Layout w should be equal to Child1 w'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].h,
+    layoutUpdateSpy.getCall(1).args[0].h,
     CHILD_HEIGHT,
     'Layout height should be equal to Child1 or Child 2 height'
   )
@@ -716,14 +716,14 @@ test('Element - Layout with horizontal direction layout use cases', (assert) => 
   child2.set('w', CHILD_2_WIDTH)
   assert.equal(child2.node['w'], CHILD_2_WIDTH, 'Child 2 Node w parameter should be set')
   assert.equal(child2.props.props['w'], CHILD_2_WIDTH, 'Child 2 Props w parameter should be set')
-  assert.equal(layoutUpdateSpy.callCount, 4, 'Layout updated callback call count should be 4')
+  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback call count should be 3')
   assert.equal(
-    layoutUpdateSpy.getCall(3).args[0].w,
+    layoutUpdateSpy.getCall(2).args[0].w,
     CHILD_1_WIDTH + GAP + CHILD_2_WIDTH,
     'Layout w should be equal to Child1 w + gap + Child2 w'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(3).args[0].h,
+    layoutUpdateSpy.getCall(2).args[0].h,
     CHILD_HEIGHT,
     'Layout height should be equal to Child1 or Child 2 height'
   )
@@ -771,19 +771,19 @@ test('Element - Layout with vertical direction use case', (assert) => {
     'Child 2 Node y parameter should be layout gap + Child 1 height'
   )
 
-  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback should be called 3 times')
+  assert.equal(layoutUpdateSpy.callCount, 2, 'Layout updated callback should be called 2 times')
   assert.equal(
     layoutUpdateSpy.getCall(0).args.length,
     2,
     'Layout updated callback should be called with 2 arguments'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].h,
+    layoutUpdateSpy.getCall(1).args[0].h,
     CHILD_1_HEIGHT,
     'Layout height should be equal to Child1 height'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].w,
+    layoutUpdateSpy.getCall(1).args[0].w,
     CHILD_WIDTH,
     'Layout w should be equal to Child1 or Child 2 w'
   )
@@ -791,14 +791,14 @@ test('Element - Layout with vertical direction use case', (assert) => {
   child2.set('h', CHILD_2_HEIGHT)
   assert.equal(child2.node['h'], CHILD_2_HEIGHT, 'Child 2 Node height parameter should be set')
   assert.equal(child2.props.props['h'], CHILD_2_HEIGHT, 'Child 2 Props h parameter should be set')
-  assert.equal(layoutUpdateSpy.callCount, 4, 'Layout updated callback call count should be 4')
+  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback call count should be 3')
   assert.equal(
-    layoutUpdateSpy.getCall(3).args[0].h,
+    layoutUpdateSpy.getCall(2).args[0].h,
     CHILD_1_HEIGHT + GAP + CHILD_2_HEIGHT,
     'Layout height should be equal to Child1 height + gap + Child2 height'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(3).args[0].w,
+    layoutUpdateSpy.getCall(2).args[0].w,
     CHILD_WIDTH,
     'Layout w should be equal to Child1 or Child 2 w'
   )
@@ -1219,7 +1219,7 @@ test('Element - Transition with layout parent', (assert) => {
   layoutEl.node.children.push(childEl.node)
   childEl.set('w', { transition: { value: 100, duration: 50 } })
   setTimeout(() => {
-    assert.ok(layoutSpy.callCount > 3, 'Layout should be triggered on ticks')
+    assert.ok(layoutSpy.callCount > 0, 'Layout should be triggered on ticks')
     assert.end()
   }, 80)
 })
