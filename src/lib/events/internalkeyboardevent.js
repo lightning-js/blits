@@ -1,4 +1,4 @@
-import symbols from '../symbols'
+import symbols from '../symbols.js'
 
 /**
  * Internal keyboard event class that extends the native KeyboardEvent.

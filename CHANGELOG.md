@@ -1,5 +1,25 @@
 # Changelog
 
+## v2.1.3
+
+_16 apr 2026_
+
+- Bumped renderer to 3.0.2
+
+
+## v2.1.2
+
+_10 apr 2026_
+
+- Bumped renderer to 3.0.1
+- Removed `@updated`-calls for Layout when dimensions haven't changed
+
+## v2.1.1
+
+_9 apr 2026_
+
+- Fixed import file extension issue
+
 ## v2.1.0
 
 _9 apr 2026_

@@ -30,7 +30,7 @@
   - [Hooks](/router/hooks.md)
   - [Transitions](/router/transitions.md)
 - Shaders
-  - [Importing Shaders](/shaders/importing-shader.md)
+  - [Importing Shaders](/shaders/importing-shaders.md)
   - [WebGl Shaders](/shaders/webgl-shadertypes.md)
   - [Canvas Shaders](/shaders/canvas-shadertypes.md)
   - [v2 Conversion Guide](/shaders/v2-conversion-guide.md)
@@ -42,4 +42,4 @@
   - [Storage](/plugins/storage.md)
   - [Custom Plugins](/plugins/custom_plugins.md)
 - Performance
-  - [Lazy loading]('/performance/lazy-loading.md')
+  - [Lazy loading](/performance/lazy-loading.md)
