@@ -39,7 +39,7 @@ Hover applies only to **components**, not to individual `Element` nodes. A compo
 export default Blits.Component('Card', {
   template: `
     <Element
-      :color="$$isHovered ? 0x4488ff : 0x222222"
+      :color="$$isHovered ? '#4488ff' : '#222222'"
     />
   `,
   state() {
