@@ -310,7 +310,7 @@ export const navigate = async function () {
         keepAlive === true &&
         route.options.inHistory === true
       ) {
-        const historyItem = this.history[history.length - 1]
+        const historyItem = this.history[this.history.length - 1]
         if (historyItem !== undefined) {
           historyItem.view = oldView
           historyItem.focus = previousFocus
