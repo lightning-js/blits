@@ -224,7 +224,7 @@ export const sameRouteObject = (route1, route2) => {
   if (route2 === null) return false
 
   // this is too simple a check for now
-  if (route1.path !== route2.path) return false
+  if (route1.hash !== route2.hash) return false
 
   return true
 }
