@@ -4,8 +4,6 @@ The Blits router supports hooks that allow you to execute code at specific point
 
 Hooks are defined per route in the optional `hooks` key within the Route configuration object.
 
-> Currently, the Blits router only supports the before hook, with additional hooks planned for future releases.
-
 ## Before hook
 
 The before hook is executed before the navigation occurs. It can be used for checks, such as verifying user authentication for a specific route, for pre-fetching data, or for executing logic like sending stats beacons.
@@ -36,9 +34,9 @@ The before hook can optionally return a value, which will influence the behaviou
 - when a `string` is returned, the router will interpret this as a _new route path to redirect to_
 - when an `object` is returned, the router will interpret this as a route object, allowing to _modify (or completely replace) the route object_ being navigated to
 
-Returning an `object` is a simple, yet powerful, mechanism to add advanced runtime configuration to your routes. A common scenario is to overwrite certain parts of the route object provided in the `to`-argument, such as the route options (such as `inHistory` or `stayAlive`) or define conditional page transitions.
+Returning an `object` is a simple, yet powerful, mechanism to add advanced runtime configuration to your routes. A common scenario is to overwrite certain parts of the route object provided in the `to`-argument, such as the route options (such as `inHistory` or `keepAlive`) or define conditional page transitions.
 
-It's also possible to add custom data to the route object in the `key` object. Custom data should be an object literal. When the new page loads, the keys in the `data` object are injected into the Component as `props`.
+It's also possible to add custom data to the route object in the `data` object. Custom data should be an object literal. When the new page loads, the keys in the `data` object are injected into the Component as `props`.
 
 ```js
 export default Blits.Application({
@@ -110,11 +108,11 @@ The `beforeEach`-hooks functions the same as the `before`-hook. It receives the 
 
 The `init`-hook is a router hook that will be invoked once when defined when the router is being instantiated. It can be used to do some onetime setup, required before starting the routing.
 
-The `init`-hook can be an asynchronous function. In this case the router will await the init function to resolve before comencing the first navigation.
+The `init`-hook can be an asynchronous function. In this case the router will await the init function to resolve before commencing the first navigation.
 
 ### `error()`
 
-The `error`-hook is a router hook that will be invoked when an error has occured. For example when routing to a non-existing route. It will receive an error message and the developer is free to implement any error handling functionality in this hook. This can be showing an Error popup, or navigating to a predefined 404 Not found route using the `this.$router.to()` method.
+The `error`-hook is a router hook that will be invoked when an error has occurred. For example when routing to a non-existing route. It will receive an error message and the developer is free to implement any error handling functionality in this hook. This can be showing an Error popup, or navigating to a predefined 404 Not found route using the `this.$router.to()` method.
 
 
 ```js

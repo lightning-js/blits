@@ -190,7 +190,7 @@ Blits.Component('MyComponent', {
       this.$theme.current('dark')
     },
     down() {
-      this.$theme.current('default')
+      this.$theme.current('base')
     },
     space() {
       this.$theme.variant('highcontrast')

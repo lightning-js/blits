@@ -38,11 +38,11 @@ export default Blits.Component('RangedRail', {
   },
   input: {
     right() {
-      this.focus = Math.min(this.focus + 1, items.length)
+      this.focused = Math.min(this.focused + 1, this.items.length)
       this.range++
     },
     left() {
-      this.focus = Math.max(this.focus - 1, 0)
+      this.focused = Math.max(this.focused - 1, 0)
       this.range--
     }
   }
@@ -90,14 +90,14 @@ export default Blits.Component('LazyRail', {
   },
   input: {
     right() {
-      this.focus = Math.min(this.focus + 1, items.length)
+      this.focused = Math.min(this.focused + 1, this.items.length)
       // push the range update to the next tick to spread out the work
       // and ease the CPU a bit
-      this.$setTimeout(() => this.range = this.focus)
+      this.$setTimeout(() => this.range = this.focused)
 
     },
     left() {
-      this.focus = Math.max(this.focus - 1, 0)
+      this.focused = Math.max(this.focused - 1, 0)
       // we don't decrement the range when scrolling back to keep components alive
       // this.range--
     }

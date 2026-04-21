@@ -9,6 +9,7 @@
   - [Supported element attributes](/essentials/element_attributes.md)
   - [Displaying images](/essentials/displaying_images.md)
   - [Displaying text](/essentials/displaying_text.md)
+  - [Application settings](/essentials/settings.md)
 - Components
   - [State](/components/component_state.md)
   - [Props](/components/props.md)

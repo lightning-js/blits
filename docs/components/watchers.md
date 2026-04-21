@@ -50,7 +50,7 @@ You can also define watchers for nested component states using dot notation to s
     }
   },
   watch: {
-    'size.h'(h: number) {
+    'size.h'(h) {
       // Execute some logic when the 'size.h' value changes
     },
   }
