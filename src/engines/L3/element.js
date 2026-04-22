@@ -495,6 +495,9 @@ const propsTransformer = {
     this.props['textAlign'] = v
   },
   set content(v) {
+    // temporary workaround - the renderer doesn't support changing text to an empty string
+    // issue filed here: https://github.com/lightning-js/renderer/issues/773
+    if (v === '') v = ' '
     this.props['text'] = '' + v
   },
   set placement(v) {
