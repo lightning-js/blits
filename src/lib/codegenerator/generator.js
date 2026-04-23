@@ -225,7 +225,6 @@ const generateElementCode = function (
     const value = templateObject[key]
 
     if (isReactiveKey(key)) {
-      if (options.holder && key === ':color') return
       if (options.holder) {
         this.effectsCode.push(`
         if(typeof skips === 'undefined' || (typeof skips[${counter}] === 'undefined' ||
