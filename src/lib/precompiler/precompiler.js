@@ -55,7 +55,7 @@ export default (source, filePath, mode) => {
           // Insert the code in the component using the 'code' key, replacing the template key
           const replacement = `/* eslint-disable no-unused-vars */ \ncode: { render: ${code.render.toString()}, effects: [${code.effects.map(
             (fn) => fn.toString()
-          )}], context: {}}`
+          )}], context: {}, usesHoverState: ${code.usesHoverState}}`
 
           // MagicString tracks all changes automatically, no offset needed
           s.overwrite(templateStartIndex, templateEndIndex, replacement)

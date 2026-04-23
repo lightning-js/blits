@@ -23,7 +23,6 @@ import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 import shaders from '../../lib/shaders/shaders.js'
-import { hasHook } from '../../lib/hooks.js'
 
 const holderComponentMap = new WeakMap()
 
@@ -529,8 +528,7 @@ const propsTransformer = {
     }
   },
   set holder(v) {
-    const identifier = this.element.component[symbols.identifier]
-    this.props['interactive'] = hasHook('hover', identifier) || hasHook('unhover', identifier)
+    this.props['interactive'] = v
   },
 }
 

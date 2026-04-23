@@ -165,6 +165,7 @@ const Application = (config) => {
 
       if (node === null) {
         currentComponent = undefined
+        currentNode = null
         Hover.clear()
         return
       }
