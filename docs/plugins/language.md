@@ -148,7 +148,7 @@ Blits.Component('MyComponent', {
   template: `
     <Element>
       <Text :content="$$language.translate('hello')" />
-      <Text y="100" :content="$$language.get()" />
+      <Text y="100" :content="$$language.translate('world')" />
     </Element>
   `,
   hooks: {
@@ -167,7 +167,7 @@ The second `$`-sign is needed, since the Language plugin itself is prefixed with
 
 ### Dynamic replacements
 
-The `tranlate()`-method also supports dynamic replacements. This allows you to specify variables inside your translation string, and replace them with dynamic values passed into the `translate()`-method.
+The `translate()`-method also supports dynamic replacements. This allows you to specify variables inside your translation string, and replace them with dynamic values passed into the `translate()`-method.
 
 Replacements are marked in the translation value using _handlebars_, like so:
 

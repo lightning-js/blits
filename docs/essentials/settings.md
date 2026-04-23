@@ -76,7 +76,7 @@ Example font object:
 
 | Setting         | Type      | Description |
 |----------------|-----------|-------------|
-| `effects`      | `ShaderEffect[]` | Effects for DynamicShader |
+| ~~`effects`~~  | `ShaderEffect[]` | Effects for DynamicShader. **Removed in Blits v2.** Use the `shaders` setting instead. |
 | `shaders`      | `Shader[]` | Custom shaders |
 
 ## Inspector & Debugging

@@ -24,7 +24,7 @@ Each route in this array, is an Object literal that includes the following key p
 - `component` - the Blits component to render for the route. This can be a direct reference, but also a promise or a dynamic import that resolves to a Blits component
 - `hooks` (optional) - hooks such as `before` can be defined to execute code before navigating to the route
 - `options` (optional) - additional options defining route behaviour, such as `keepAlive` and `inHistory`
-- `transitions` (optional) - used to define custom transitions between pages
+- `transition` (optional) - used to define custom transitions between pages
 - `meta` (optional) - an object with arbitrary data associated with a route (like `auth: true/false`, a route ID or route description). Not reactive or passed as props to a component. Available in the `before` and `beforeEach` router hooks.
 
 ### Route options

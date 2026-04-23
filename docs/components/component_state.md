@@ -53,7 +53,7 @@ The example below gives a full example of defining and using a component's state
 export default Blits.Component('MyComponent', {
   template: `
     <Element :show="$active">
-      <Element :x="$style.x" w="100" :h="$style.dimensions.h">
+      <Element :x="$style.positions.x" w="100" :h="$style.dimensions.h">
         <Element w="20" :h="$style.dimensions.h / 2" :color="$color" />
       </Element>
     </Element>
@@ -72,7 +72,7 @@ export default Blits.Component('MyComponent', {
       },
       color: 'tomato'
     }
-  }
+  },
   hooks: {
     ready() {
       this.active = true

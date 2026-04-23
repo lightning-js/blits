@@ -51,7 +51,7 @@ export default {
       if (event === null || event === undefined || event instanceof KeyboardEvent === false)
         return false
 
-      const key = keyMap[event.key] || keyMap[event.keyCode] || event.key || event.keyCode
+      const key = keyMap[event.keyCode] || event.keyCode
 
       const componentWithInputEvent = getComponentWithInputEvent(this, key)
       if (componentWithInputEvent === null) return false
@@ -65,8 +65,8 @@ export default {
         cb = inputEvents.any.call(componentWithInputEvent, event)
       }
 
-      if (cb !== undefined && event.code) {
-        keyUpCallbacks.set(event.code, cb)
+      if (cb !== undefined && event.keyCode) {
+        keyUpCallbacks.set(event.keyCode, cb)
       }
 
       return true

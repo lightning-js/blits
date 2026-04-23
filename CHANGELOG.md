@@ -1,5 +1,37 @@
 # Changelog
 
+## v2.1.3
+
+_16 apr 2026_
+
+- Bumped renderer to 3.0.2
+
+
+## v2.1.2
+
+_10 apr 2026_
+
+- Bumped renderer to 3.0.1
+- Removed `@updated`-calls for Layout when dimensions haven't changed
+
+## v2.1.1
+
+_9 apr 2026_
+
+- Fixed import file extension issue
+
+## v2.1.0
+
+_9 apr 2026_
+
+- Fixed left over `KeyboardEvent.code` references
+- Fixed issue with allowing $-prefix to be used as text content
+- Fixed issue with internal keyboard event not working on older browsers
+- Added tests to router hooks
+- Fixed issue with transitions not being skipped when duration is set to `0`
+- Added `this.$nextTick` utility helper
+- Fixed issue with transitioning colours in `border`-attribute
+
 ## v2.0.1
 
 _23 mar 2026_
