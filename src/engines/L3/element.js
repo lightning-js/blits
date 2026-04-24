@@ -629,6 +629,7 @@ const Element = {
    * @param {Object} data - Framework inspector metadata to merge
    */
   setInspectorMetadata(data) {
+    if (this.eol === true) return
     // Early return if inspector not enabled (performance optimization)
     if (inspectorEnabled !== true) {
       return
@@ -666,6 +667,7 @@ const Element = {
    * @returns {void}
    */
   set(prop, value) {
+    if (this.eol === true) return
     if (value === undefined) return
     // @ts-ignore
     if (this.props.raw[prop] === value) return
@@ -701,6 +703,8 @@ const Element = {
     }
   },
   animate(prop, value, transition) {
+    if (this.eol === true) return
+
     // Clear any existing debounce timeout for this property
     if (this.debounceTimeouts[prop] !== undefined) {
       clearTimeout(this.debounceTimeouts[prop])
@@ -812,6 +816,9 @@ const Element = {
     f.start()
   },
   destroy() {
+    if (this.eol === true) return
+    this.eol = true
+
     if (this.node === null) return
 
     Log.debug('Deleting Node', this.nodeId)
@@ -903,6 +910,7 @@ export default (config, component) => {
     inspectorEnabled = Settings.get('inspector', false)
   }
   return Object.assign(Object.create(Element), {
+    eol: false,
     props: Object.assign(Object.create(propsTransformer), { props: {} }),
     scheduledTransitions: {},
     debounceTimeouts: {},
