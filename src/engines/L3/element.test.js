@@ -23,7 +23,6 @@ import { initLog } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import sinon from 'sinon'
 import shaders from '../../lib/shaders/shaders.js' // Changed from './shaderLoader.js'
-import { registerHooks } from '../../lib/hooks.js'
 
 initLog()
 
@@ -1257,44 +1256,28 @@ test('Element - Set maxheight property', (assert) => {
   assert.end()
 })
 
-test('Element - holder true sets interactive to true when component has hover hook', (assert) => {
+test('Element - holder sets interactive to the passed value (true)', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
-  const component = { [symbols.identifier]: 'test-hover-1' }
-  registerHooks({ hover: () => {} }, component[symbols.identifier])
+  const component = {}
   const el = element({ parent: { node: { w: 1920, h: 1080 } } }, component)
   el.populate({ parent: { node: new EventEmitter() }, holder: true })
   assert.equal(
     el.props.props['interactive'],
     true,
-    'interactive should be true when component has hover hook'
+    'interactive should be true when holder value is true'
   )
   assert.end()
 })
 
-test('Element - holder true sets interactive to true when component has unhover hook', (assert) => {
+test('Element - holder sets interactive to the passed value (false)', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
-  const component = { [symbols.identifier]: 'test-unhover-1' }
-  registerHooks({ unhover: () => {} }, component[symbols.identifier])
+  const component = {}
   const el = element({ parent: { node: { w: 1920, h: 1080 } } }, component)
-  el.populate({ parent: { node: new EventEmitter() }, holder: true })
-  assert.equal(
-    el.props.props['interactive'],
-    true,
-    'interactive should be true when component has unhover hook'
-  )
-  assert.end()
-})
-
-test('Element - holder true sets interactive to false when component has no hover/unhover hooks', (assert) => {
-  assert.capture(renderer, 'createNode', () => new EventEmitter())
-  const component = { [symbols.identifier]: 'test-no-hooks-1' }
-  registerHooks({}, component[symbols.identifier])
-  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, component)
-  el.populate({ parent: { node: new EventEmitter() }, holder: true })
+  el.populate({ parent: { node: new EventEmitter() }, holder: false })
   assert.equal(
     el.props.props['interactive'],
     false,
-    'interactive should be false when component has no hover/unhover hooks'
+    'interactive should be false when holder value is false'
   )
   assert.end()
 })

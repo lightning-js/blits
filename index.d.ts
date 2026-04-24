@@ -905,7 +905,9 @@ declare module '@lightningjs/blits' {
     }
   }
 
-  type ComponentFactory = () => void
+  type ComponentFactory = (() => void) & {
+    needsInteractive?: boolean
+  }
 
   // Launch Related
 

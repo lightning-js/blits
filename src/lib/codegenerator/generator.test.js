@@ -1542,7 +1542,7 @@ test('Generate code for a template with custom components', (assert) => {
 
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[1]['holder'] = true
+    elementConfigs[1]['holder'] = cmps[1].needsInteractive
     skips[1] = []
     if (typeof cmps[1] !== 'undefined' && cmps[1][Symbol.for('config')].props !== undefined) {
       let props = cmps[1][Symbol.for('config')].props
@@ -1591,7 +1591,7 @@ test('Generate code for a template with custom components', (assert) => {
 
     elementConfigs[3] = {}
     elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[3]['holder'] = true
+    elementConfigs[3]['holder'] = cmps[3].needsInteractive
     skips[3] = []
     if (typeof cmps[3] !== 'undefined' && cmps[3][Symbol.for('config')].props !== undefined) {
       let props = cmps[3][Symbol.for('config')].props
@@ -1730,7 +1730,7 @@ test('Generate code for a template with an unregistered custom component', (asse
     parent = elms[0]
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[1]['holder'] = true
+    elementConfigs[1]['holder'] = cmps[1].needsInteractive
     skips[1] = []
     if (typeof cmps[1] !== 'undefined' && cmps[1][Symbol.for('config')].props !== undefined) {
       let props = cmps[1][Symbol.for('config')].props
@@ -1775,7 +1775,7 @@ test('Generate code for a template with an unregistered custom component', (asse
     parent = elms[0]
     elementConfigs[3] = {}
     elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[3]['holder'] = true
+    elementConfigs[3]['holder'] = cmps[3].needsInteractive
     skips[3] = []
     if (typeof cmps[3] !== 'undefined' && cmps[3][Symbol.for('config')].props !== undefined) {
       let props = cmps[3][Symbol.for('config')].props
@@ -1913,7 +1913,7 @@ test('Generate code for a template with custom components with arguments', (asse
     parent = elms[0]
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[1]['holder'] = true
+    elementConfigs[1]['holder'] = cmps[1].needsInteractive
     elementConfigs[1]['x'] = 10
     skips[1] = []
     if(typeof cmps[1] !== 'undefined' && cmps[1][Symbol.for('config')].props !== undefined) {
@@ -1960,7 +1960,7 @@ test('Generate code for a template with custom components with arguments', (asse
     parent = elms[0]
     elementConfigs[3] = {}
     elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[3]['holder'] = true
+    elementConfigs[3]['holder'] = cmps[3].needsInteractive
     elementConfigs[3]['x'] = 100
     elementConfigs[3]['img'] = component.img
     skips[3] = []
@@ -2107,7 +2107,7 @@ test('Generate code for a template with custom components with argument value as
 
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
 
-    elementConfigs[1]['holder'] = true
+    elementConfigs[1]['holder'] = cmps[1].needsInteractive
     elementConfigs[1]['x'] = 1000
     elementConfigs[1]['y'] = 100
     elementConfigs[1]['h'] = parent.node.h * (45 / 100)
@@ -2262,7 +2262,7 @@ test('Generate code for a template with custom components with reactive props', 
     parent = elms[0]
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[1]['holder'] = true
+    elementConfigs[1]['holder'] = cmps[1].needsInteractive
     elementConfigs[1]['x'] = 10
     elementConfigs[1]['img'] = component.image
     skips[1] = []
@@ -2316,7 +2316,7 @@ test('Generate code for a template with custom components with reactive props', 
     parent = elms[0]
     elementConfigs[3] = {}
     elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[3]['holder'] = true
+    elementConfigs[3]['holder'] = cmps[3].needsInteractive
     elementConfigs[3]['x'] = 100
     elementConfigs[3]['img'] = component.image
     skips[3] = []
@@ -2592,7 +2592,7 @@ test('Generate code for a template with slot content', (assert) => {
 
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[1]['holder'] = true
+    elementConfigs[1]['holder'] = cmps[1].needsInteractive
     elementConfigs[1]['w'] = 1920
     elementConfigs[1]['h'] = 1080
     skips[1] = []
@@ -2781,7 +2781,7 @@ test('Generate code for a template with slot content, using a named slot', (asse
 
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[1]['holder'] = true
+    elementConfigs[1]['holder'] = cmps[1].needsInteractive
     elementConfigs[1]['w'] = 1920
     elementConfigs[1]['h'] = 1080
     skips[1] = []
@@ -4411,7 +4411,7 @@ test('Generate code for a template with a simple for-loop on a Component with a 
       if(elms[1][scope.key] === undefined) {
           elms[1][scope.key] = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
       }
-      elementConfigs[1]['holder'] = true
+      elementConfigs[1]['holder'] = cmps[1].needsInteractive
           skips[1] = []
           if(typeof cmps[1] !== 'undefined' && cmps[1][Symbol.for('config')].props !== undefined) {
             // attributes that are a prop should be removed from element config (even if it's a know element prop)
