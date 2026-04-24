@@ -99,17 +99,14 @@ const layoutFn = function (config) {
 
   let offset = padding.start
 
-  const children = this.node.children
-  const childrenLength = children.length
   const elementChildren = this.children
-
+  const n = elementChildren.length
   let otherDimension = 0
   const gap = config.gap || 0
-  for (let i = 0; i < childrenLength; i++) {
-    if (elementChildren[i] !== undefined && elementChildren[i].props.raw.show === false) {
-      continue
-    }
-    const node = children[i]
+  for (let i = 0; i < n; i++) {
+    const el = elementChildren[i]
+    if (el === undefined || el.props.raw.show === false) continue
+    const node = el.node
     node[position] = offset
     node[oppositePosition] = padding.oppositeStart
     // todo: temporary text check, due to 1px width of empty text node
@@ -134,8 +131,10 @@ const layoutFn = function (config) {
   }[config['align-items'] || 'start']
 
   if (align !== 0) {
-    for (let i = 0; i < childrenLength; i++) {
-      const node = children[i]
+    for (let i = 0; i < n; i++) {
+      const el = elementChildren[i]
+      if (el === undefined) continue
+      const node = el.node
       node[oppositePosition] = otherDimension * align
       node[oppositeMount] = align
     }
