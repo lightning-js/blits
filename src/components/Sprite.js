@@ -22,7 +22,7 @@ import symbols from '../lib/symbols.js'
 export default () =>
   Component('Sprite', {
     template: `
-      <Element w="100%" h="100%" :texture="$texture" :color="$color" :rounded="$rounded" :border="$border" :shadow="$shadow" />
+      <Element w="$w" h="$w" :texture="$texture" :color="$color" :rounded="$rounded" :border="$border" :shadow="$shadow" />
     `,
     props: {
       image: undefined,
@@ -34,6 +34,8 @@ export default () =>
       shadow: undefined,
       '@loaded': undefined,
       '@error': undefined,
+      w: 0,
+      h: 0,
     },
     state() {
       return {
@@ -46,7 +48,8 @@ export default () =>
       ready() {
         const loaded = this['@loaded']
         if (loaded && typeof loaded === 'function') {
-          const cb = (payload) => loaded({ w: payload?.w, h: payload?.h }, this[symbols.wrapper])
+          const cb = (payload) =>
+            loaded({ w: payload?.width, h: payload?.height }, this[symbols.wrapper])
           this._loadedCb = cb
           if (this.spriteTexture !== undefined && this.spriteTexture !== null) {
             this.spriteTexture.on('loaded', cb)
@@ -131,8 +134,8 @@ export default () =>
             texture: this.spriteTexture,
             x: options.x,
             y: options.y,
-            w: options.w,
-            h: options.h,
+            width: options.w,
+            height: options.h,
           })
         }
 
