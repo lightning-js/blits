@@ -24,7 +24,7 @@ import { Log } from '../../lib/log.js'
 import { SCREEN_RESOLUTIONS, RENDER_QUALITIES } from '../../constants.js'
 import colors from '../../lib/colors/colors.js'
 import fontLoader from './fontLoader.js'
-import shaderLoader from './shaderLoader.js'
+// import shaderLoader from './shaderLoader.js'
 
 /** @type {RendererMain|{}} */
 export let renderer = {}
@@ -117,7 +117,7 @@ export default (App, target, settings = {}) => {
     }
   }
 
-  shaderLoader()
+  // shaderLoader()
   fontLoader()
   // Defer app initialization until after the current call stack is cleared,
   // allowing the renderer to finish setting up before the app starts creating components
