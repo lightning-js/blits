@@ -165,6 +165,15 @@ const isObjectString = (str) => {
 }
 
 /**
+ * Checks if a string is an array string (starts and ends with square brackets).
+ * @param {string} str - The string to check.
+ * @returns {boolean} True if the string is an array string, false otherwise.
+ */
+const isArrayString = (str) => {
+  return typeof str === 'string' && str.startsWith('[') && str.endsWith(']')
+}
+
+/**
  * Parses a string into an object, converting single quotes to double and adding quotes to keys.
  * @param {string} str - The string to parse.
  * @returns {object} The parsed object.
@@ -216,6 +225,64 @@ const colorMap = {
   bottom: 'colorBottom',
   left: 'colorLeft',
   right: 'colorRight',
+}
+
+const parseRoundedEffectProps = (v) => {
+  if (isNaN(v) === false) {
+    return { radius: v }
+  }
+
+  if (Array.isArray(v) === true) {
+    return { radius: v }
+  }
+
+  if (isArrayString(v) === true) {
+    return { radius: JSON.parse(v) }
+  }
+
+  if (typeof v === 'object' || isObjectString(v) === true) {
+    return typeof v === 'string' ? parseToObject(v) : { ...v }
+  }
+
+  return undefined
+}
+
+const parseBorderEffectProps = (v) => {
+  if (isNaN(v) === false) {
+    return { width: v }
+  }
+
+  if (Array.isArray(v) === true) {
+    return { width: v }
+  }
+
+  if (isArrayString(v) === true) {
+    return { width: JSON.parse(v) }
+  }
+
+  if (typeof v === 'object' || isObjectString(v) === true) {
+    return typeof v === 'string' ? parseToObject(v) : { ...v }
+  }
+
+  return undefined
+}
+
+const applyLegacyEffectsFromBuiltInAttributes = (ctx) => {
+  const effects = []
+  const roundedProps = parseRoundedEffectProps(ctx.raw['rounded'])
+  const borderProps = parseBorderEffectProps(ctx.raw['border'])
+
+  if (roundedProps !== undefined) {
+    effects.push({ type: 'radius', props: roundedProps })
+  }
+
+  if (borderProps !== undefined) {
+    effects.push({ type: 'border', props: borderProps })
+  }
+
+  if (effects.length > 0) {
+    Object.getOwnPropertyDescriptor(propsTransformer, 'effects').set.call(ctx, effects)
+  }
 }
 
 /**
@@ -414,19 +481,30 @@ const propsTransformer = {
     }
   },
   set effects(v) {
+    if (Array.isArray(v) === false) {
+      return
+    }
+
     for (let i = 0; i < v.length; i++) {
       if (v[i].props && v[i].props.color) {
         v[i].props.color = colors.normalize(v[i].props.color)
       }
     }
-    if (this.element.node === undefined) {
-      this.props['shader'] = renderer.createShader('DynamicShader', {
-        effects: v.map((effect) => {
-          return renderer.createEffect(effect.type, effect.props)
-        }),
-      })
-    }
+    const target = this.element.node !== undefined ? this.element.node : this.props
+    target['shader'] = renderer.createShader('DynamicShader', {
+      effects: v.map((effect) => {
+        return renderer.createEffect(effect.type, effect.props)
+      }),
+    })
   },
+
+  set rounded(v) {
+    applyLegacyEffectsFromBuiltInAttributes(this)
+  },
+  set border(v) {
+    applyLegacyEffectsFromBuiltInAttributes(this)
+  },
+
   set clipping(v) {
     this.props['clipping'] = v
   },
