@@ -707,6 +707,7 @@ declare module '@lightningjs/blits' {
      * Watchers for changes to state variables, props or computed properties
      */
     watch?: W & ComponentContext<P, S, M, C>
+
   }
 
   export interface RouterHooks {
@@ -924,7 +925,9 @@ declare module '@lightningjs/blits' {
     }
   }
 
-  type ComponentFactory = () => void
+  type ComponentFactory = (() => void) & {
+    needsInteractive?: boolean
+  }
 
   // Launch Related
 
@@ -1373,7 +1376,7 @@ declare module '@lightningjs/blits' {
       M extends Methods,
       C extends Computed,
       W extends Watch>(name: string, config: ComponentConfig<P, S, M, C, W>) : ComponentFactory
-    /**
+   /**
      * Blits Launch
      */
     Launch(App: ComponentFactory, target: HTMLElement | String, settings?: Settings) : void

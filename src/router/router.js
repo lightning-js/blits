@@ -42,7 +42,7 @@ import Settings from '../settings.js'
  * @property {Object} hooks - The hooks of the route
  * @property {Object} transition - The transition of the route
  * @property {Object} announce - The announce of the route
- * @property {(options: Object, parentEl: BlitsElement, parentComponent: BlitsComponent, rootComponent?: BlitsComponent) => BlitsComponent} component - The component factory of the route
+ * @property {BlitsComponentFactory} component - The component factory of the route (or a lazy import function)
  *
  * @typedef {Object} Hash
  * @property {string} path - The path of the hash
@@ -427,8 +427,11 @@ export const navigate = async function () {
 
       if (!view) {
         // create a holder element for the new view
+        // for lazy imports needsInteractive is undefined, default to true
+        const needsInteractive =
+          route.component.needsInteractive !== undefined ? route.component.needsInteractive : true
         holder = stage.element({ parent: this[symbols.children][0] })
-        holder.populate({})
+        holder.populate({ holder: needsInteractive })
         holder.set('w', '100%')
         holder.set('h', '100%')
 
