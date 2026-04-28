@@ -32,7 +32,7 @@ export default (source, filePath, mode) => {
     const s = new MagicString(source)
 
     // Find component definition start positions for scoping JS-layer checks
-    const componentStarts = [...source.matchAll(/(?:Blits\.)?(?:Component|Application)\s*\(/g)]
+    const componentStarts = [...source.matchAll(/Blits\.(Component|Application)\s*\(/g)]
       .map((m) => m.index)
       .sort((a, b) => a - b)
 
@@ -69,9 +69,11 @@ export default (source, filePath, mode) => {
           const componentScope = source.slice(scopeStart, scopeEnd)
 
           // Derive usesHoverState from both template ($$isHovered) and JS layer (this.$isHovered)
-          const usesHoverState =
-            code.usesHoverState ||
-            componentScope.replace(templateContent, '').includes('this.$isHovered')
+          // Strip comments before checking to avoid false positives from commented-out code
+          const strippedScope = componentScope
+            .replace(/\/\/[^\n]*/g, '')
+            .replace(/\/\*[\s\S]*?\*\//g, '')
+          const usesHoverState = code.usesHoverState || strippedScope.includes('this.$isHovered')
 
           // Insert the code in the component using the 'code' key, replacing the template key
           const replacement = `/* eslint-disable no-unused-vars */ \ncode: { render: ${code.render.toString()}, effects: [${code.effects.map(
