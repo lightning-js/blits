@@ -36,6 +36,11 @@ if (!renderer.createTextNode) {
   renderer.createTextNode = () => new EventEmitter()
 }
 
+// Mock renderer.createEffect if it doesn't exist
+if (!renderer.createEffect) {
+  renderer.createEffect = (type, props) => ({ type, props })
+}
+
 let elementRef
 
 test('Type', (assert) => {
