@@ -232,7 +232,12 @@ const parseBorderEffectProps = (v) => {
   }
 
   if (typeof v === 'object' || isObjectString(v) === true) {
-    return typeof v === 'string' ? parseToObject(v) : { ...v }
+    const props = typeof v === 'string' ? parseToObject(v) : { ...v }
+    if (props.w !== undefined) {
+      props.width = props.w
+      delete props.w
+    }
+    return props
   }
 
   return undefined
