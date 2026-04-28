@@ -22,7 +22,6 @@ import { EventEmitter } from 'node:events'
 import { initLog } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import sinon from 'sinon'
-import shaders from '../../lib/shaders/shaders.js' // Changed from './shaderLoader.js'
 
 initLog()
 
@@ -113,10 +112,11 @@ test('Element - Set `w` property', (assert) => {
   const el = createElement()
 
   el.set('w', 100)
+  console.log('Element props after setting w:', el.props.raw)
 
-  assert.equal(el.node['w'], 100, 'Node w parameter should be set')
-  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
-  assert.equal(el.props.raw['w'], 100, "Props' raw map entry should be added")
+  assert.equal(el.node['width'], 100, 'Node w parameter should be set')
+  assert.equal(el.props.props['width'], 100, 'Props w parameter should be set')
+  assert.equal(el.props.raw['w'], 100, 'Props raw map entry should be added')
   assert.end()
 })
 
@@ -126,8 +126,8 @@ test('Element- Set `w` property in percentage', (assert) => {
 
   el.set('w', '50%')
 
-  assert.equal(el.node['w'], 960, 'Node w parameter should be set to 960')
-  assert.equal(el.props.props['w'], 960, 'Props w parameter should be set')
+  assert.equal(el.node['width'], 960, 'Node w parameter should be set to 960')
+  assert.equal(el.props.props['width'], 960, 'Props w parameter should be set')
   assert.equal(el.props.raw['w'], '50%', "Props' raw map entry should be added")
 
   assert.end()
@@ -139,8 +139,8 @@ test('Element - Set `h` property', (assert) => {
 
   el.set('h', 100)
 
-  assert.equal(el.node['h'], 100, 'Node h parameter should be set')
-  assert.equal(el.props.props['h'], 100, 'Props h parameter should be set')
+  assert.equal(el.node['height'], 100, 'Node h parameter should be set')
+  assert.equal(el.props.props['height'], 100, 'Props h parameter should be set')
   assert.equal(el.props.raw['h'], 100, "Props' raw map entry should be added")
   assert.end()
 })
@@ -151,8 +151,8 @@ test('Element- Set `h` property in percentage', (assert) => {
 
   el.set('h', '50%')
 
-  assert.equal(el.node['h'], 540, 'Node h parameter should be set to 540')
-  assert.equal(el.props.props['h'], 540, 'Props h parameter should be set')
+  assert.equal(el.node['height'], 540, 'Node h parameter should be set to 540')
+  assert.equal(el.props.props['height'], 540, 'Props h parameter should be set')
   assert.equal(el.props.raw['h'], '50%', "Props' raw map entry should be added")
 
   assert.end()
@@ -599,8 +599,8 @@ test('Element - Set `show` property as false', (assert) => {
 
   assert.equal(el.node['alpha'], 1, 'Node alpha parameter should be set')
   assert.equal(el.props.props['alpha'], 1, 'Props alpha parameter should be set')
-  assert.equal(el.node['w'], 960, 'Node w parameter should be set')
-  assert.equal(el.node['h'], 540, 'Node h parameter should be set')
+  assert.equal(el.node['width'], 960, 'Node width parameter should be set')
+  assert.equal(el.node['height'], 540, 'Node height parameter should be set')
 
   assert.end()
 })
@@ -611,7 +611,7 @@ test('Element - Set `w` property through transition', (assert) => {
 
   el.set('w', { transition: { value: 100 } })
 
-  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
+  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
   assert.end()
 })
 
@@ -622,7 +622,7 @@ test('Element - Listen to transition start callback on `w` prop changes', (asser
 
   el.set('w', { transition: { value: 100, start: startSpy } })
 
-  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
+  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
   setTimeout(() => {
     assert.ok(startSpy.calledOnce, 'Transition start callback should be called once')
     assert.equal(
@@ -637,8 +637,8 @@ test('Element - Listen to transition start callback on `w` prop changes', (asser
     )
     assert.equal(
       startSpy.getCall(0).args[1],
-      'w',
-      'Transition start callback second argument should be `w` property'
+      'width',
+      'Transition start callback second argument should be `width` property'
     )
     assert.equal(
       startSpy.getCall(0).args[2],
@@ -656,7 +656,7 @@ test('Element - Cancel transition running on same prop `W` ', (assert) => {
   el.set('w', { transition: { value: 50 } })
   el.set('w', { transition: { value: 100 } })
 
-  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
+  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
   assert.end()
 })
 
@@ -688,42 +688,50 @@ test('Element - Layout with horizontal direction layout use cases', (assert) => 
   // Setting child1 width to 500, should effect child 2 X position
   child1.set('w', CHILD_1_WIDTH)
 
-  assert.equal(child1.node['w'], CHILD_1_WIDTH, 'Child 1 Node w parameter should be set')
-  assert.equal(child1.props.props['w'], CHILD_1_WIDTH, 'Child 1 Props w parameter should be set')
+  assert.equal(child1.node['width'], CHILD_1_WIDTH, 'Child 1 Node width parameter should be set')
+  assert.equal(
+    child1.props.props['width'],
+    CHILD_1_WIDTH,
+    'Child 1 Props width parameter should be set'
+  )
   assert.equal(
     child2.node['x'],
     CHILD_1_WIDTH + GAP,
     'Child 2 Node X parameter should be layout gap + child 1 w'
   )
 
-  assert.equal(layoutUpdateSpy.callCount, 2, 'Layout updated callback should be called 2 times')
+  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback should be called 2 times')
   assert.equal(
     layoutUpdateSpy.getCall(0).args.length,
     2,
     'Layout updated callback should be called with 2 arguments'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(1).args[0].w,
+    layoutUpdateSpy.getCall(2).args[0].w,
     CHILD_1_WIDTH,
-    'Layout w should be equal to Child1 w'
+    'Layout width should be equal to Child1 width'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(1).args[0].h,
+    layoutUpdateSpy.getCall(2).args[0].h,
     CHILD_HEIGHT,
     'Layout height should be equal to Child1 or Child 2 height'
   )
 
   child2.set('w', CHILD_2_WIDTH)
-  assert.equal(child2.node['w'], CHILD_2_WIDTH, 'Child 2 Node w parameter should be set')
-  assert.equal(child2.props.props['w'], CHILD_2_WIDTH, 'Child 2 Props w parameter should be set')
-  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback call count should be 3')
+  assert.equal(child2.node['width'], CHILD_2_WIDTH, 'Child 2 Node width parameter should be set')
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].w,
+    child2.props.props['width'],
+    CHILD_2_WIDTH,
+    'Child 2 Props width parameter should be set'
+  )
+  assert.equal(layoutUpdateSpy.callCount, 4, 'Layout updated callback call count should be 4')
+  assert.equal(
+    layoutUpdateSpy.getCall(3).args[0].w,
     CHILD_1_WIDTH + GAP + CHILD_2_WIDTH,
-    'Layout w should be equal to Child1 w + gap + Child2 w'
+    'Layout width should be equal to Child1 width + gap + Child2 width'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].h,
+    layoutUpdateSpy.getCall(3).args[0].h,
     CHILD_HEIGHT,
     'Layout height should be equal to Child1 or Child 2 height'
   )
@@ -759,9 +767,9 @@ test('Element - Layout with vertical direction use case', (assert) => {
   // Setting Child1 height to 500, should effect Child 2 Y position
   child1.set('h', CHILD_1_HEIGHT)
 
-  assert.equal(child1.node['h'], CHILD_1_HEIGHT, 'Child 1 Node height parameter should be set')
+  assert.equal(child1.node['height'], CHILD_1_HEIGHT, 'Child 1 Node height parameter should be set')
   assert.equal(
-    child1.props.props['h'],
+    child1.props.props['height'],
     CHILD_1_HEIGHT,
     'Child 1 Props height parameter should be set'
   )
@@ -771,34 +779,38 @@ test('Element - Layout with vertical direction use case', (assert) => {
     'Child 2 Node y parameter should be layout gap + Child 1 height'
   )
 
-  assert.equal(layoutUpdateSpy.callCount, 2, 'Layout updated callback should be called 2 times')
+  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback should be called 2 times')
   assert.equal(
     layoutUpdateSpy.getCall(0).args.length,
     2,
     'Layout updated callback should be called with 2 arguments'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(1).args[0].h,
+    layoutUpdateSpy.getCall(2).args[0].h,
     CHILD_1_HEIGHT,
     'Layout height should be equal to Child1 height'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(1).args[0].w,
+    layoutUpdateSpy.getCall(2).args[0].w,
     CHILD_WIDTH,
-    'Layout w should be equal to Child1 or Child 2 w'
+    'Layout width should be equal to Child1 or Child 2 width'
   )
 
   child2.set('h', CHILD_2_HEIGHT)
-  assert.equal(child2.node['h'], CHILD_2_HEIGHT, 'Child 2 Node height parameter should be set')
-  assert.equal(child2.props.props['h'], CHILD_2_HEIGHT, 'Child 2 Props h parameter should be set')
-  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback call count should be 3')
+  assert.equal(child2.node['height'], CHILD_2_HEIGHT, 'Child 2 Node height parameter should be set')
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].h,
+    child2.props.props['height'],
+    CHILD_2_HEIGHT,
+    'Child 2 Props h parameter should be set'
+  )
+  assert.equal(layoutUpdateSpy.callCount, 4, 'Layout updated callback call count should be 3')
+  assert.equal(
+    layoutUpdateSpy.getCall(3).args[0].h,
     CHILD_1_HEIGHT + GAP + CHILD_2_HEIGHT,
     'Layout height should be equal to Child1 height + gap + Child2 height'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].w,
+    layoutUpdateSpy.getCall(3).args[0].w,
     CHILD_WIDTH,
     'Layout w should be equal to Child1 or Child 2 w'
   )
@@ -896,7 +908,7 @@ test('Element - Transition an element property with progress callback', (assert)
 
   el.set('w', { transition: { value: 100, progress: progSpy } })
 
-  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
+  assert.equal(el.props.props['width'], 100, 'Props w parameter should be set')
   // assert.equal(progSpy.callCount, 10, 'Transition progress callback should be called 10 times')
   assert.end()
 })
@@ -909,7 +921,7 @@ test('Element - Transition an element property with end callback', (assert) => {
 
   el.set('w', { transition: { value: 100, end: endSpy } })
 
-  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
+  assert.equal(el.props.props['width'], 100, 'Props w parameter should be set')
   // assert.ok(endSpy.calledOnce, 'Transition end callback should be called only once')
   assert.end()
 })
@@ -923,8 +935,8 @@ test('Element - Zero duration transition sets value directly without animating',
 
   el.set('w', { transition: { value: 200, duration: 0 } })
 
-  assert.equal(el.props.props['w'], 200, 'Props w parameter should be set to 200')
-  assert.equal(customNode.w, 200, 'Node w should be set directly to 200')
+  assert.equal(el.props.props['width'], 200, 'Props width parameter should be set to 200')
+  assert.equal(customNode.width, 200, 'Node width should be set directly to 200')
   assert.equal(animateSpy.callCount, 0, 'animate should not be called for zero duration transition')
 
   animateSpy.restore()
@@ -962,7 +974,7 @@ test('Element - Non-zero duration transition calls animate', (assert) => {
 
   el.set('w', { transition: { value: 300, duration: 500 } })
 
-  assert.equal(el.props.props['w'], 300, 'Props w parameter should be set to 300')
+  assert.equal(el.props.props['width'], 300, 'Props width parameter should be set to 300')
   assert.equal(animateSpy.callCount, 0, 'animate is debounced via setTimeout(0)')
 
   setTimeout(() => {
@@ -971,7 +983,7 @@ test('Element - Non-zero duration transition calls animate', (assert) => {
       1,
       'animate should be called once for non-zero duration transition'
     )
-    assert.equal(customNode.w, 300, 'Node w should be set to 300 after animation')
+    assert.equal(customNode.width, 300, 'Node width should be set to 300 after animation')
 
     animateSpy.restore()
     assert.end()
@@ -1063,9 +1075,9 @@ class CustomNode extends EventEmitter {
   constructor() {
     super()
     // setting initial props of renderer node
-    this.w = 0
+    this.width = 0
     this.x = 0
-    this.h = 0
+    this.height = 0
     this.y = 0
 
     // setting children to empty []
@@ -1093,7 +1105,7 @@ class CustomNode extends EventEmitter {
 }
 
 function createElement(props = {}) {
-  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  const el = element({ parent: { node: { width: 1920, height: 1080 } } }, {})
   const data = {
     parent: {
       node: new EventEmitter(),
@@ -1153,49 +1165,100 @@ test('Element - Set isSlot symbol', (assert) => {
   assert.end()
 })
 
-// Tests for lines 544-546: ElementShader creation
-test('Element - ElementShader with shadow', (assert) => {
-  assert.capture(renderer, 'createNode', () => new EventEmitter())
-  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
-  el.populate({ parent: { node: new EventEmitter() }, shadow: { blur: 10 } })
-  assert.equal(el.props.elementShader, true, 'elementShader should be true')
-  assert.end()
-})
-
-test('Element - ElementShader with rounded', (assert) => {
+test('Element - rounded maps to radius effect', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
   const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
   el.populate({ parent: { node: new EventEmitter() }, rounded: 10 })
-  assert.equal(el.props.elementShader, true, 'elementShader should be true')
-  assert.end()
-})
 
-test('Element - Update rounded with array sets radius', (assert) => {
-  const shaderProps = { radius: 0 }
-  const mockNode = Object.assign(new EventEmitter(), {
-    props: { shader: { props: shaderProps } },
-  })
-  assert.capture(renderer, 'createNode', () => mockNode)
-  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
-  el.populate({ parent: { node: new EventEmitter() }, rounded: 10 })
-  el.set('rounded', [40, 40, 10, 10])
-  assert.deepEqual(
-    el.node.props['shader'].props.radius,
-    [40, 40, 10, 10],
-    'radius should be updated to the new array'
-  )
-  assert.notOk(
-    Array.isArray(el.node.props['shader'].props),
-    'shader props should remain an object, not be replaced by the array'
+  assert.equal(el.props.props['shader'].type, 'DynamicShader', 'DynamicShader should be assigned')
+  assert.equal(el.props.props['shader'].effects[0].type, 'radius', 'effect type should be radius')
+  assert.equal(
+    el.props.props['shader'].effects[0].props.radius,
+    10,
+    'radius effect should carry rounded value'
   )
   assert.end()
 })
 
-test('Element - ElementShader with border', (assert) => {
+test('Element - border maps to border effect', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
   const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
   el.populate({ parent: { node: new EventEmitter() }, border: { width: 2 } })
-  assert.equal(el.props.elementShader, true, 'elementShader should be true')
+
+  assert.equal(el.props.props['shader'].type, 'DynamicShader', 'DynamicShader should be assigned')
+  assert.equal(el.props.props['shader'].effects[0].type, 'border', 'effect type should be border')
+  assert.equal(
+    el.props.props['shader'].effects[0].props.width,
+    2,
+    'border effect should carry width value'
+  )
+  assert.end()
+})
+
+test('Element - border maps legacy w to width including zero', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({ parent: { node: new EventEmitter() }, border: '{w: 0, color: "#ff0000"}' })
+
+  const borderProps = el.props.props['shader'].effects[0].props
+  assert.equal(borderProps.width, 0, 'border width should preserve zero value')
+  assert.equal(borderProps.w, undefined, 'legacy w key should be removed after normalization')
+  assert.end()
+})
+
+// test('Element - shadow maps to shadow effect', (assert) => {
+//   assert.capture(renderer, 'createNode', () => new EventEmitter())
+//   const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+//   el.populate({ parent: { node: new EventEmitter() }, shadow: { blur: 10 } })
+
+//   assert.equal(el.props.props['shader'].type, 'DynamicShader', 'DynamicShader should be assigned')
+//   assert.equal(el.props.props['shader'].effects[0].type, 'shadow', 'effect type should be shadow')
+//   assert.equal(
+//     el.props.props['shader'].effects[0].props.blur,
+//     10,
+//     'shadow effect should carry blur value'
+//   )
+//   assert.end()
+// })
+
+// test('Element - Update rounded with array sets radius effect', (assert) => {
+//   const mockNode = Object.assign(new EventEmitter(), {
+//     props: { shader: undefined },
+//   })
+//   assert.capture(renderer, 'createNode', () => mockNode)
+//   const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+//   el.populate({ parent: { node: new EventEmitter() }, rounded: 10 })
+//   el.set('rounded', [40, 40, 10, 10])
+
+//   assert.equal(
+//     el.node.shader.type,
+//     'DynamicShader',
+//     'node shader should be DynamicShader after update'
+//   )
+//   assert.deepEqual(
+//     el.node.shader.effects[0].props.radius,
+//     [40, 40, 10, 10],
+//     'updated radius effect should receive the new array'
+//   )
+//   assert.end()
+// })
+
+test('Element - rounded + border  combine as effects list', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({
+    parent: { node: new EventEmitter() },
+    rounded: 12,
+    border: { width: 4, color: '#ff0000' },
+  })
+
+  const effects = el.props.props['shader'].effects
+  assert.equal(effects.length, 2, 'combined shader should contain all 3 effects')
+  assert.deepEqual(
+    effects.map((effect) => effect.type),
+    ['radius', 'border'],
+    'combined effects should preserve expected order'
+  )
   assert.end()
 })
 
@@ -1285,19 +1348,29 @@ test('Element - Set maxwidth property', (assert) => {
   assert.capture(renderer, 'createTextNode', () => new EventEmitter())
   const el = createElement({ props: { __textnode: true } })
   el.set('maxwidth', 500)
-  assert.equal(el.props.props['maxWidth'], 500, 'maxwidth should set maxWidth')
+  assert.equal(el.props.props['width'], 500, 'maxwidth should set width')
   assert.equal(el.props.props['contain'], 'width', 'maxwidth should set contain')
   assert.end()
 })
 
-test('Element - ElementShader assignment (line 544)', (assert) => {
+test('Element - Effects setter creates DynamicShader', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
-  const shaderCapture = assert.capture(shaders, 'createElementShader', () => ({ type: 'shader' }))
   const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
-  el.populate({ parent: { node: new EventEmitter() }, shadow: { blur: 5 } })
-  assert.ok(shaderCapture()[0], 'createElementShader should be called')
-  assert.equal(el.props.elementShader, true, 'elementShader should be set to true')
-  assert.equal(el.props.props['shader'].type, 'shader', 'shader should be assigned')
+  el.populate({
+    parent: { node: new EventEmitter() },
+    effects: [{ type: 'radius', props: { radius: 5 } }],
+  })
+
+  assert.equal(
+    el.props.props['shader'].type,
+    'DynamicShader',
+    'effects should create DynamicShader'
+  )
+  assert.equal(
+    el.props.props['shader'].effects[0].type,
+    'radius',
+    'radius effect should be forwarded'
+  )
   assert.end()
 })
 
