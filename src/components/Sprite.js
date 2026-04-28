@@ -22,7 +22,7 @@ import symbols from '../lib/symbols.js'
 export default () =>
   Component('Sprite', {
     template: `
-      <Element w="100%" h="100%" :texture="$texture" :color="$color" effects="$effects" />
+      <Element w="100%" h="100%" :texture="$texture" :color="$color" :rounded="$rounded" :border="$border" :shadow="$shadow" />
     `,
     props: {
       image: undefined,
@@ -34,6 +34,8 @@ export default () =>
       shadow: undefined,
       '@loaded': undefined,
       '@error': undefined,
+      w: 0,
+      h: 0,
     },
     state() {
       return {
