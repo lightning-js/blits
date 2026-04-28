@@ -16,6 +16,13 @@
  */
 
 import { renderer } from './launch.js'
+import {
+  parseToObject,
+  isObjectString,
+  isArrayString,
+  isTransition,
+  isZeroDurationTransition,
+} from '../../lib/utils.js'
 import colors from '../../lib/colors/colors.js'
 
 import { Log } from '../../lib/log.js'
@@ -144,42 +151,6 @@ const layoutFn = function (config) {
   if (this.config.parent && this.config.parent.props.__layout === true) {
     this.config.parent.triggerLayout(this.config.parent.props)
   }
-}
-
-/**
- * Checks if a value is a transition object.
- * @param {any} value - The value to check.
- * @returns {boolean} True if the value is a transition object, false otherwise.
- */
-const isTransition = (value) => {
-  return value !== null && typeof value === 'object' && 'transition' in value === true
-}
-
-/**
- * Checks if a string is an object string (starts and ends with curly braces).
- * @param {string} str - The string to check.
- * @returns {boolean} True if the string is an object string, false otherwise.
- */
-const isObjectString = (str) => {
-  return typeof str === 'string' && str.startsWith('{') && str.endsWith('}')
-}
-
-/**
- * Checks if a string is an array string (starts and ends with square brackets).
- * @param {string} str - The string to check.
- * @returns {boolean} True if the string is an array string, false otherwise.
- */
-const isArrayString = (str) => {
-  return typeof str === 'string' && str.startsWith('[') && str.endsWith(']')
-}
-
-/**
- * Parses a string into an object, converting single quotes to double and adding quotes to keys.
- * @param {string} str - The string to parse.
- * @returns {object} The parsed object.
- */
-const parseToObject = (str) => {
-  return JSON.parse(str.replace(/'/g, '"').replace(/([{,]\s*)([\w-_]+)(\s*:)/g, '$1"$2"$3'))
 }
 
 /**
@@ -517,21 +488,31 @@ const propsTransformer = {
   set size(v) {
     this.props['fontSize'] = v
   },
-  set wordwrap(v) {
-    Log.warn('The wordwrap attribute is deprecated, use maxwidth instead')
-    this.props['width'] = v
-    this.props['contain'] = 'width'
-  },
   set maxwidth(v) {
     this.props['width'] = v
+    if (this.manualTextContain === true) {
+      return
+    }
+    if (this.props['contain'] === 'height') {
+      this.props['contain'] = 'both'
+      return
+    }
     this.props['contain'] = 'width'
   },
   set maxheight(v) {
     this.props['height'] = v
-    this.props['contain'] = 'both'
+    if (this.manualTextContain === true) {
+      return
+    }
+    if (this.props['contain'] === 'width') {
+      this.props['contain'] = 'both'
+      return
+    }
+    this.props['contain'] = 'height'
   },
   set contain(v) {
     this.props['contain'] = v
+    this.manualTextContain = true
   },
   set maxlines(v) {
     this.props['maxLines'] = v
@@ -723,7 +704,7 @@ const Element = {
     const propsKeys = Object.keys(this.props.props)
 
     if (propsKeys.length === 1) {
-      if (isTransition(value) === true) {
+      if (isTransition(value) === true && isZeroDurationTransition(value) === false) {
         return this.animate(propsKeys[0], this.props.props[propsKeys[0]], value.transition)
       }
       // set the prop to the value on the node
@@ -731,7 +712,7 @@ const Element = {
     } else {
       for (let i = 0; i < propsKeys.length; i++) {
         // todo: fix code duplication
-        if (isTransition(value) === true) {
+        if (isTransition(value) === true && isZeroDurationTransition(value) === false) {
           this.animate(propsKeys[i], this.props.props[propsKeys[i]], value.transition)
         } else {
           // set the prop to the value on the node
