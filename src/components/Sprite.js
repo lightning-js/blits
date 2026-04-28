@@ -22,7 +22,7 @@ import symbols from '../lib/symbols.js'
 export default () =>
   Component('Sprite', {
     template: `
-      <Element w="$w" h="$w" :texture="$texture" :color="$color" :rounded="$rounded" :border="$border" :shadow="$shadow" />
+      <Element w="100%" h="100%" :texture="$texture" :color="$color" :rounded="$rounded" :border="$border" :shadow="$shadow" />
     `,
     props: {
       image: undefined,
