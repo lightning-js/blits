@@ -107,26 +107,24 @@ const layoutFn = function (config) {
     node[position] = offset
     node[oppositePosition] = padding.oppositeStart
     // todo: temporary text check, due to 1px width of empty text node
+    const nw = nodeDim(node, 'width')
+    const nh = nodeDim(node, 'height')
     if (dimension === 'width') {
-      offset += node.width + (node.width !== ('text' in node ? 1 : 0) ? gap : 0)
+      offset += nw + (nw !== ('text' in node ? 1 : 0) ? gap : 0)
     } else {
-      offset +=
-        'text' in node
-          ? node.width > 1
-            ? node.height + gap
-            : 0
-          : node.height !== 0
-            ? node.height + gap
-            : 0
+      offset += 'text' in node ? (nw > 1 ? nh + gap : 0) : nh !== 0 ? nh + gap : 0
     }
     otherDimension = Math.max(
       otherDimension,
-      node[oppositeDimension] + padding.oppositeStart + padding.oppositeEnd
+      nodeDim(node, oppositeDimension) + padding.oppositeStart + padding.oppositeEnd
     )
   }
-  // adjust the size of the layout container
-  this.node[dimension] = offset - gap + padding.end
+  // adjust the size of the layout container (set both formats for v2/v3 renderer compatibility)
+  const dimensionValue = offset - gap + padding.end
+  this.node[dimension] = dimensionValue
+  this.node[dimension === 'width' ? 'w' : 'h'] = dimensionValue
   this.node[oppositeDimension] = otherDimension
+  this.node[oppositeDimension === 'width' ? 'w' : 'h'] = otherDimension
 
   const align = {
     start: 0,
@@ -144,7 +142,7 @@ const layoutFn = function (config) {
 
   // emit an updated event
   if (config['@updated'] !== undefined) {
-    config['@updated']({ w: this.node.width, h: this.node.height }, this)
+    config['@updated']({ w: nodeDim(this.node, 'width'), h: nodeDim(this.node, 'height') }, this)
   }
 
   // trigger layout on parent if parent is a layout
@@ -166,7 +164,7 @@ const parsePercentage = function (v, base) {
   } else if (v.indexOf('%') === v.length - 1) {
     return (
       (this.element.config.parent &&
-        (this.element.config.parent.node[base] || 0) * (parseFloat(v) / 100)) ||
+        (nodeDim(this.element.config.parent.node, base) || 0) * (parseFloat(v) / 100)) ||
       0
     )
   }
@@ -189,6 +187,36 @@ const unpackTransition = (v) => {
     }
   }
   return v
+}
+
+/**
+ * Reads a dimension value from a renderer node
+ * @param {object} node - The renderer node.
+ * @param {'width'|'height'|'w'|'h'} prop - The dimension property name.
+ * @returns {number} The dimension value on node.
+ */
+const dimMap = { width: 'w', w: 'width', height: 'h', h: 'height' }
+const nodeDim = (node, prop) => {
+  const v = node[prop]
+  if (v !== undefined) return v
+  return node[dimMap[prop]]
+}
+
+/**
+ * Set of dimension prop names to skip when setting on the renderer node.
+ * Detected once after the first node is created.
+ * v3 renderer (node.w exists) => skip ['width', 'height']
+ * v2 renderer (node.w is undefined) => skip ['w', 'h']
+ * @type {Set<string>|null}
+ */
+let skipDimProps = null
+const detectSkipDimProps = (node) => {
+  // v3: skip width/height, v2: skip w/h, and for v2 also skip maxWidth/maxHeight
+  if (node.w !== undefined) {
+    return new Set(['width', 'height'])
+  } else {
+    return new Set(['w', 'h', 'maxWidth', 'maxHeight'])
+  }
 }
 
 const colorMap = {
@@ -287,26 +315,30 @@ const propsTransformer = {
     this.props['rotation'] = v * (Math.PI / 180)
   },
   set w(v) {
-    this.props['width'] = parsePercentage.call(this, v, 'width')
+    const parsed = parsePercentage.call(this, v, 'width')
+    this.props['width'] = parsed
+    this.props['w'] = parsed
     if (
       this.___wrapper === true &&
       this.element.component.eol !== true &&
       this.element.component[symbols.holder] !== undefined
     ) {
-      this.element.component[symbols.holder].set('w', this.props['width'])
+      this.element.component[symbols.holder].set('w', parsed)
     }
   },
   set width(v) {
     this.w = v
   },
   set h(v) {
-    this.props['height'] = parsePercentage.call(this, v, 'height')
+    const parsed = parsePercentage.call(this, v, 'height')
+    this.props['height'] = parsed
+    this.props['h'] = parsed
     if (
       this.___wrapper === true &&
       this.element.component.eol !== true &&
       this.element.component[symbols.holder] !== undefined
     ) {
-      this.element.component[symbols.holder].set('h', this.props['height'])
+      this.element.component[symbols.holder].set('h', parsed)
     }
   },
   set height(v) {
@@ -475,9 +507,11 @@ const propsTransformer = {
   },
 
   set rounded(v) {
+    this.props['rounded'] = v
     applyLegacyEffectsFromBuiltInAttributes(this)
   },
   set border(v) {
+    this.props['border'] = v
     applyLegacyEffectsFromBuiltInAttributes(this)
   },
 
@@ -494,7 +528,11 @@ const propsTransformer = {
     this.props['fontSize'] = v
   },
   set maxwidth(v) {
+    // v3: explicit maxWidth prop
+    this.props['maxWidth'] = v
+    // v2: width + contain
     this.props['width'] = v
+
     if (this.manualTextContain === true) {
       return
     }
@@ -505,7 +543,11 @@ const propsTransformer = {
     this.props['contain'] = 'width'
   },
   set maxheight(v) {
+    // v3: explicit maxHeight prop
+    this.props['maxHeight'] = v
+    // v2: height + contain
     this.props['height'] = v
+
     if (this.manualTextContain === true) {
       return
     }
@@ -626,6 +668,10 @@ const Element = {
       ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
       : renderer.createNode(this.props.props)
 
+    if (skipDimProps === null) {
+      skipDimProps = detectSkipDimProps(this.node)
+    }
+
     if (this.props['holder'] === true) {
       holderComponentMap.set(this.node, this.component)
     }
@@ -706,7 +752,8 @@ const Element = {
     // @ts-ignore
     this.props[prop] = unpackTransition(value)
 
-    const propsKeys = Object.keys(this.props.props)
+    // Filter out dimension props not supported by current renderer
+    const propsKeys = Object.keys(this.props.props).filter((k) => !skipDimProps.has(k))
 
     if (propsKeys.length === 1) {
       if (isTransition(value) === true && isZeroDurationTransition(value) === false) {
@@ -716,7 +763,6 @@ const Element = {
       this.node[propsKeys[0]] = this.props.props[propsKeys[0]]
     } else {
       for (let i = 0; i < propsKeys.length; i++) {
-        // todo: fix code duplication
         if (isTransition(value) === true && isZeroDurationTransition(value) === false) {
           this.animate(propsKeys[i], this.props.props[propsKeys[i]], value.transition)
         } else {
