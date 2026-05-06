@@ -48,8 +48,11 @@ export default () =>
       ready() {
         const loaded = this['@loaded']
         if (loaded && typeof loaded === 'function') {
-          const cb = (payload) =>
-            loaded({ w: payload?.width, h: payload?.height }, this[symbols.wrapper])
+          const cb = (payload) => {
+            const w = payload?.w !== undefined ? payload.w : payload?.width
+            const h = payload?.h !== undefined ? payload.h : payload?.height
+            loaded({ w, h }, this[symbols.wrapper])
+          }
           this._loadedCb = cb
           if (this.spriteTexture !== undefined && this.spriteTexture !== null) {
             this.spriteTexture.on('loaded', cb)
@@ -130,12 +133,16 @@ export default () =>
 
         // Create SubTexture only if frame data exists
         if (options !== null && options !== undefined) {
+          const frameW = options.w !== undefined ? options.w : options.width
+          const frameH = options.h !== undefined ? options.h : options.height
           return renderer.createTexture('SubTexture', {
             texture: this.spriteTexture,
             x: options.x,
             y: options.y,
-            width: options.w,
-            height: options.h,
+            width: frameW,
+            height: frameH,
+            w: frameW,
+            h: frameH,
           })
         }
 

@@ -16,7 +16,9 @@
  */
 
 import { RendererMain } from '@lightningjs/renderer'
+import * as LightningRenderer from '@lightningjs/renderer'
 import { WebGlCoreRenderer, SdfTextRenderer } from '@lightningjs/renderer/webgl'
+import * as RendererWebgl from '@lightningjs/renderer/webgl'
 import { CanvasCoreRenderer, CanvasTextRenderer } from '@lightningjs/renderer/canvas'
 import { Inspector } from '@lightningjs/renderer/inspector'
 
@@ -117,8 +119,8 @@ export default (App, target, settings = {}) => {
     }
   }
 
-  shaderLoader()
-  fontLoader()
+  shaderLoader(RendererWebgl)
+  fontLoader(LightningRenderer)
   // Defer app initialization until after the current call stack is cleared,
   // allowing the renderer to finish setting up before the app starts creating components
   Promise.resolve().then(initApp)

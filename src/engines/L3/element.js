@@ -28,6 +28,7 @@ import colors from '../../lib/colors/colors.js'
 import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
+import shaders from '../../lib/shaders/shaders.js'
 
 const holderComponentMap = new WeakMap()
 
@@ -272,6 +273,7 @@ const parseBorderEffectProps = (v) => {
 }
 
 const applyLegacyEffectsFromBuiltInAttributes = (ctx) => {
+  // v2 only: use DynamicShader + createEffect
   const effects = []
   const roundedProps = parseRoundedEffectProps(ctx.raw['rounded'])
   const borderProps = parseBorderEffectProps(ctx.raw['border'])
@@ -279,11 +281,9 @@ const applyLegacyEffectsFromBuiltInAttributes = (ctx) => {
   if (roundedProps !== undefined) {
     effects.push({ type: 'radius', props: roundedProps })
   }
-
   if (borderProps !== undefined) {
     effects.push({ type: 'border', props: borderProps })
   }
-
   if (effects.length > 0) {
     Object.getOwnPropertyDescriptor(propsTransformer, 'effects').set.call(ctx, effects)
   }
@@ -499,20 +499,80 @@ const propsTransformer = {
       }
     }
     const target = this.element.node !== undefined ? this.element.node : this.props
-    target['shader'] = renderer.createShader('DynamicShader', {
-      effects: v.map((effect) => {
-        return renderer.createEffect(effect.type, effect.props)
-      }),
-    })
+
+    if (typeof renderer.createEffect === 'function') {
+      // v2: DynamicShader with effects
+      target['shader'] = renderer.createShader('DynamicShader', {
+        effects: v.map((effect) => {
+          return renderer.createEffect(effect.type, effect.props)
+        }),
+      })
+    } else {
+      // v3: apply first effect as shader directly (v3 doesn't have DynamicShader/createEffect)
+      if (v.length === 1) {
+        target['shader'] = renderer.createShader(v[0].type, v[0].props)
+      } else if (v.length > 1) {
+        // For multiple effects on v3, apply as combined shader if possible
+        target['shader'] = renderer.createShader(v[0].type, v[0].props)
+      }
+    }
   },
 
   set rounded(v) {
     this.props['rounded'] = v
-    applyLegacyEffectsFromBuiltInAttributes(this)
+    if (typeof renderer.createEffect === 'function') {
+      // v2: use DynamicShader effects approach
+      applyLegacyEffectsFromBuiltInAttributes(this)
+    } else {
+      if (this.element.node !== undefined && this.elementShader === true) {
+        if (
+          Array.isArray(v) === false &&
+          (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v))))
+        ) {
+          this.element.node.props['shader'].props = v
+        } else {
+          if (isArrayString(v) === true) {
+            v = JSON.parse(v)
+          }
+          this.element.node.props['shader'].props.radius = v
+        }
+      }
+    }
   },
   set border(v) {
     this.props['border'] = v
-    applyLegacyEffectsFromBuiltInAttributes(this)
+    if (typeof renderer.createEffect === 'function') {
+      // v2: use DynamicShader effects approach
+      applyLegacyEffectsFromBuiltInAttributes(this)
+    } else {
+      if (
+        this.element.node !== undefined &&
+        this.elementShader === true &&
+        (typeof v === 'object' || isObjectString(v) === true)
+      ) {
+        v = shaders.parseProps(v)
+        const shader = this.element.node.props['shader']
+        let prefix = shader.shaderKey.startsWith('rounded') ? 'border-' : ''
+        for (const key in v) {
+          this.element.node.props['shader'].props[prefix + key] = v[key]
+        }
+      }
+    }
+  },
+  set shadow(v) {
+    this.props['shadow'] = v
+    if (
+      this.element.node !== undefined &&
+      this.elementShader === true &&
+      (typeof v === 'object' || isObjectString(v) === true)
+    ) {
+      v = shaders.parseProps(v)
+      const shader = this.element.node.props['shader']
+      let prefix = shader.shaderKey.startsWith('rounded') ? 'shadow-' : ''
+      for (const key in v) {
+        this.element.node.props['shader'].props[prefix + key] = v[key]
+      }
+    }
   },
 
   set clipping(v) {
@@ -650,6 +710,17 @@ const Element = {
 
     const propKeys = Object.keys(props)
     const length = propKeys.length
+
+    if (
+      typeof renderer.createEffect !== 'function' &&
+      props['shader'] === undefined &&
+      (props['rounded'] !== undefined ||
+        props['border'] !== undefined ||
+        props['shadow'] !== undefined)
+    ) {
+      this.props.elementShader = true
+      this.props.props['shader'] = shaders.createElementShader(props)
+    }
 
     for (let i = 0; i < length; i++) {
       const key = propKeys[i]
