@@ -29,6 +29,7 @@ import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 import shaders from '../../lib/shaders/shaders.js'
+import { resolveSpriteTexture } from './spriteTexture.js'
 
 const holderComponentMap = new WeakMap()
 
@@ -289,6 +290,24 @@ const propsTransformer = {
       this.props['color'] = 0x00000000
     } else if (this.raw['color'] === undefined) {
       this.props['color'] = 0xffffffff
+    }
+  },
+  set image(v) {
+    this.raw['image'] = v
+    if (this.element[symbols.isSprite] === true && this.element.node) {
+      this.element._syncNativeSprite()
+    }
+  },
+  set map(v) {
+    this.raw['map'] = v
+    if (this.element[symbols.isSprite] === true && this.element.node) {
+      this.element._syncNativeSprite()
+    }
+  },
+  set frame(v) {
+    this.raw['frame'] = v
+    if (this.element[symbols.isSprite] === true && this.element.node) {
+      this.element._syncNativeSprite()
     }
   },
   set fit(v) {
@@ -557,6 +576,16 @@ const Element = {
       this[symbols.isSlot] = true
     }
 
+    if (props[symbols.isSprite] === true) {
+      this[symbols.isSprite] = true
+      this._spriteState = {
+        spriteTexture: null,
+        currentSrc: null,
+        _loadedCb: null,
+        _failedCb: null,
+      }
+    }
+
     this.props.element = this
 
     this.props['parent'] = props['parent'] || this.config.parent
@@ -600,16 +629,20 @@ const Element = {
       holderComponentMap.set(this.node, this.component)
     }
 
-    if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
-      this.node.on('loaded', (el, { type, dimensions }) => {
-        props['@loaded']({ w: dimensions.w, h: dimensions.h, type }, this)
-      })
-    }
+    if (this[symbols.isSprite] === true) {
+      this._syncNativeSprite()
+    } else {
+      if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
+        this.node.on('loaded', (el, { type, dimensions }) => {
+          props['@loaded']({ w: dimensions.w, h: dimensions.h, type }, this)
+        })
+      }
 
-    if (props['@error'] !== undefined && typeof props['@error'] === 'function') {
-      this.node.on('failed', (el, error) => {
-        props['@error'](error, this)
-      })
+      if (props['@error'] !== undefined && typeof props['@error'] === 'function') {
+        this.node.on('failed', (el, error) => {
+          props['@error'](error, this)
+        })
+      }
     }
 
     if (props.__layout === true) {
@@ -656,6 +689,40 @@ const Element = {
     if (this.node !== undefined && this.node !== null) {
       this.node.data = { ...this.props.props['data'] }
     }
+  },
+  /**
+   * @this {import('../../component').BlitsElement}
+   */
+  _syncNativeSprite() {
+    if (this[symbols.isSprite] !== true || !this.node) return
+    const st = this._spriteState
+    if (st === undefined) return
+    const raw = this.props.raw
+    const prevL = st._loadedCb
+    const prevF = st._failedCb
+    st._loadedCb =
+      raw['@loaded'] && typeof raw['@loaded'] === 'function'
+        ? (payload) => {
+            const d = payload?.dimensions
+            const w = payload?.w ?? payload?.width ?? d?.width ?? d?.w
+            const h = payload?.h ?? payload?.height ?? d?.height ?? d?.h
+            raw['@loaded']({ w, h }, this)
+          }
+        : null
+    st._failedCb =
+      raw['@error'] && typeof raw['@error'] === 'function'
+        ? (payload) => raw['@error'](payload, this)
+        : null
+    if (st.spriteTexture) {
+      if (prevL) st.spriteTexture.off('loaded', prevL)
+      if (prevF) st.spriteTexture.off('failed', prevF)
+    }
+    const texture = resolveSpriteTexture(this, renderer, st)
+    if (st.spriteTexture) {
+      if (st._loadedCb) st.spriteTexture.on('loaded', st._loadedCb)
+      if (st._failedCb) st.spriteTexture.on('failed', st._failedCb)
+    }
+    this.set('texture', texture)
   },
   /**
    * Set an individual property on the node
@@ -822,6 +889,12 @@ const Element = {
     if (this.node === null) return
 
     Log.debug('Deleting Node', this.nodeId)
+
+    if (this[symbols.isSprite] === true && this._spriteState && this._spriteState.spriteTexture) {
+      const st = this._spriteState
+      if (st._loadedCb) st.spriteTexture.off('loaded', st._loadedCb)
+      if (st._failedCb) st.spriteTexture.off('failed', st._failedCb)
+    }
 
     // Clear all pending debounce timeouts
     const debounceProps = Object.keys(this.debounceTimeouts)
