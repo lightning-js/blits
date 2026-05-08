@@ -89,7 +89,7 @@ For example if you have a tile with `radius` and an image and a `linearGradient`
 You can also nest `shader` attributes:
 
 ```xml
-<Element shader="{type: 'holePunch', ...props" rtt="true">
+<Element shader="{type: 'holePunch', ...props}" rtt="true">
   <Element src="./image.jpg" shader="{type: 'LinearGradient', ...props}"/>
 </Element>
 ```

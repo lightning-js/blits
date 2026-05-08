@@ -59,26 +59,28 @@ If the currently focused component does not handle a key press, Blits will trave
 
 When a component handles a key press by having a corresponding function specified, said component receives focus, and the event handling chain stops by default. However, if you want the input event to propagate up the hierarchy further, you have three options:
 
-1. **Change focus only (no bubbling)**: Use `this.parent.$focus()` without the event parameter. This only changes focus to the parent and does not bubble the event.
-2. **Change focus and bubble the event**: Use `this.parent.$focus(e)` with the event parameter. This changes focus to the parent AND bubbles the event to the parent's input handler.
-3. **Handle input without changing focus**: Use `this.parent.$input(e)`. This handles the input event on the parent WITHOUT changing focus. You can also use `this.$select('ref').$input(e)` to handle input on any component selected by ref.
+1. **Change focus only (no bubbling)**: Use `this.$parent.$focus()` without the event parameter. This only changes focus to the parent and does not bubble the event.
+2. **Change focus and bubble the event**: Use `this.$parent.$focus(e)` with the event parameter. This changes focus to the parent AND bubbles the event to the parent's input handler.
+3. **Handle input without changing focus**: Use `this.$parent.$input(e)`. This handles the input event on the parent WITHOUT changing focus. You can also use `this.$select('ref').$input(e)` to handle input on any component selected by ref.
 
-**Note**: Both `this.parent.$focus(e)` and `this.parent.$input(e)` process events on the parent. The difference is that `$focus()` changes focus, while `$input()` only handles the input event.
+**Note**: Both `this.$parent.$focus(e)` and `this.$parent.$input(e)` process events on the parent. The difference is that `$focus()` changes focus, while `$input()` only handles the input event.
+
+> **v2**: `this.parent` was renamed to `this.$parent` in Blits v2.
 
 ```javascript
 {
   input: {
     enter() {
       // Give focus to the parent (without bubbling the event)
-      this.parent.$focus();
+      this.$parent.$focus();
     },
     back(e) {
       // Give focus to the parent and let the user input event bubble
-      this.parent.$focus(e);
+      this.$parent.$focus(e);
     },
     escape(e) {
       // Handle input on parent but keep focus on current component
-      this.parent.$input(e);
+      this.$parent.$input(e);
     },
   }
 }
@@ -138,7 +140,7 @@ Blits.Component('MyComponent', {
       this.leftHold = false
     }
   }
-}
+})
 ```
 
 ## Custom Keycode mapping
