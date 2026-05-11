@@ -140,7 +140,10 @@ export const navigate = async function () {
     previousRoute,
     currentPath
   )
-  if (beforeEachResult === false) return
+  if (beforeEachResult === false) {
+    preventHashChangeNavigation = false
+    return
+  }
 
   // execute before route hook
   const beforeResult = await executeBeforeHook(
@@ -151,7 +154,10 @@ export const navigate = async function () {
     previousRoute,
     currentPath
   )
-  if (beforeResult === false) return
+  if (beforeResult === false) {
+    preventHashChangeNavigation = false
+    return
+  }
 
   // add the previous route (technically still the current route at this point)
   // into the history stack when inHistory is true and we're not navigating back
@@ -282,7 +288,7 @@ export const navigate = async function () {
   // apply out out transition on previous view if available, unless
   // we're reusing the prvious page component
   // FIX: truthy guard — previousRoute can be `false` (see history-push comment above).
-  if (previousRoute && reuse === false) {
+  if (previousRoute && reuse === false && this[symbols.children].length > 2) {
     // only animate when there is a previous route
     shouldAnimate = true
     let oldView = this[symbols.children].splice(1, 1).pop()
