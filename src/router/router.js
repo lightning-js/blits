@@ -299,9 +299,9 @@ export const navigate = async function () {
       // cache the page when it's as 'keepAlive' instead of destroying
       if (
         navigatingBack === false &&
-        previousRoute.options &&
         keepAlive === true &&
-        route.options.inHistory === true
+        previousRoute.options &&
+        previousRoute.options.inHistory === true
       ) {
         const historyItem = history[history.length - 1]
         if (historyItem !== undefined) {
