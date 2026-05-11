@@ -70,8 +70,22 @@ jobs:
             const failed = failMatch ? failMatch[1] : '0';
             results.summary = `passed: ${passMatch[1]}  failed: ${failed}  of ${testsMatch[1]} tests`;
             results.testsFailed = failMatch ? parseInt(failMatch[1]) > 0 : false;
-            const failedLines = testOutput.match(/^not ok .*$/gm) || [];
-            fs.writeFileSync('./failing-tests.txt', failedLines.join('\n'));
+            const failedBlocks = [];
+            let inBlock = false, currentBlock = [];
+            for (const line of testOutput.split('\n')) {
+              if (/^not ok /.test(line)) {
+                inBlock = true; currentBlock = [line];
+              } else if (inBlock) {
+                if (/^  \.\.\.$/.test(line)) {
+                  currentBlock.push(line);
+                  failedBlocks.push(currentBlock.join('\n'));
+                  inBlock = false; currentBlock = [];
+                } else {
+                  currentBlock.push(line);
+                }
+              }
+            }
+            fs.writeFileSync('./failing-tests.txt', failedBlocks.join('\n\n'));
           } else if (results.testsFailed) {
             results.summary = 'Tests failed. No summary found in output.';
             results.error = testOutput;
