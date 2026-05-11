@@ -70,6 +70,8 @@ jobs:
             const failed = failMatch ? failMatch[1] : '0';
             results.summary = `passed: ${passMatch[1]}  failed: ${failed}  of ${testsMatch[1]} tests`;
             results.testsFailed = failMatch ? parseInt(failMatch[1]) > 0 : false;
+            const failedLines = testOutput.match(/^not ok .*$/gm) || [];
+            fs.writeFileSync('./failing-tests.txt', failedLines.join('\n'));
           } else if (results.testsFailed) {
             results.summary = 'Tests failed. No summary found in output.';
             results.error = testOutput;
@@ -115,6 +117,7 @@ jobs:
           ./timestamp.txt
           ./summary.txt
           ./failed.txt
+          ./failing-tests.txt
           ./pr_number.txt
           ./pr_repo.txt
           ./pr_branch.txt
