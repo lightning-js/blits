@@ -88,6 +88,13 @@ jobs:
                               + `**Run at:** ${process.env.TIMESTAMP}\n\n`
                               + `**Summary:**\n${process.env.SUMMARY}`;
 
+              if (fs.existsSync('extracted/failing-tests.txt')) {
+                const failingTests = fs.readFileSync('extracted/failing-tests.txt', 'utf8').trim();
+                if (failingTests) {
+                  commentBody += '\n\n**Failed tests:**\n```\n' + failingTests + '\n```';
+                }
+              }
+
               if (fs.existsSync('raw_error.txt')) {
                 commentBody += '\n\n**Error Output:**\n```\n'
                              + fs.readFileSync('raw_error.txt', 'utf8')
