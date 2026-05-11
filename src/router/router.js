@@ -121,7 +121,7 @@ export const navigate = async function () {
     Log.error(`Route ${hash.hash} not found`)
     const routerHooks = this[symbols.parent][symbols.routerHooks]
     if (routerHooks && typeof routerHooks.error === 'function') {
-      routerHooks.error.call(this[symbols.parent], `Route ${hash} not found`)
+      routerHooks.error.call(this[symbols.parent], `Route ${hash.hash} not found`)
     }
     return
   }
