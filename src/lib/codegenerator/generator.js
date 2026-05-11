@@ -87,6 +87,8 @@ export default function (templateObject = { children: [] }, devMode = false) {
     }, skips}
   `)
 
+  const renderCodeString = ctx.renderCode.join('\n')
+
   return {
     render: new Function(
       'parent',
@@ -96,7 +98,7 @@ export default function (templateObject = { children: [] }, devMode = false) {
       'effect',
       'getRaw',
       'Log',
-      ctx.renderCode.join('\n')
+      renderCodeString
     ),
     effects: ctx.effectsCode.map(
       (code) =>
@@ -112,6 +114,7 @@ export default function (templateObject = { children: [] }, devMode = false) {
         )
     ),
     context: ctx.context,
+    usesHoverState: renderCodeString.includes('.$isHovered'),
   }
 }
 
@@ -207,7 +210,7 @@ const generateElementCode = function (
   }
 
   if (options.holder) {
-    renderCode.push(`elementConfigs[${counter}]['holder'] = true`)
+    renderCode.push(`elementConfigs[${counter}]['holder'] = cmps[${counter}].needsInteractive`)
   }
 
   Object.keys(templateObject).forEach((key) => {

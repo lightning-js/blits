@@ -31,6 +31,11 @@ export default (source, filePath, mode) => {
     // Use MagicString to track changes
     const s = new MagicString(source)
 
+    // Find component definition start positions for scoping JS-layer checks
+    const componentStarts = [...source.matchAll(/Blits\.(Component|Application)\s*\(/g)]
+      .map((m) => m.index)
+      .sort((a, b) => a - b)
+
     for (const template of templates) {
       if (template[2]) {
         const templateContent = template[2]
@@ -52,10 +57,28 @@ export default (source, filePath, mode) => {
           // Generate the code
           const code = generator.call({ components: {} }, parsed, mode === 'development')
 
+          // Determine the component scope containing this template
+          let scopeStart = 0
+          let scopeEnd = source.length
+          for (let i = 0; i < componentStarts.length; i++) {
+            if (componentStarts[i] <= templateStartIndex) {
+              scopeStart = componentStarts[i]
+              scopeEnd = i + 1 < componentStarts.length ? componentStarts[i + 1] : source.length
+            }
+          }
+          const componentScope = source.slice(scopeStart, scopeEnd)
+
+          // Derive usesHoverState from both template ($$isHovered) and JS layer (this.$isHovered)
+          // Strip comments before checking to avoid false positives from commented-out code
+          const strippedScope = componentScope
+            .replace(/\/\/[^\n]*/g, '')
+            .replace(/\/\*[\s\S]*?\*\//g, '')
+          const usesHoverState = code.usesHoverState || strippedScope.includes('this.$isHovered')
+
           // Insert the code in the component using the 'code' key, replacing the template key
           const replacement = `/* eslint-disable no-unused-vars */ \ncode: { render: ${code.render.toString()}, effects: [${code.effects.map(
             (fn) => fn.toString()
-          )}], context: {}}`
+          )}], context: {}, usesHoverState: ${usesHoverState}}`
 
           // MagicString tracks all changes automatically, no offset needed
           s.overwrite(templateStartIndex, templateEndIndex, replacement)

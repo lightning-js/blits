@@ -503,6 +503,16 @@ const Component = (name = required('name'), config = required('config')) => {
   // To determine whether dynamic component is actual Blits component or not
   factory[symbols.isComponent] = true
 
+  // Getter to determine if the component needs interactive hover support
+  Object.defineProperty(factory, 'needsInteractive', {
+    get() {
+      return (
+        (config.hooks && !!(config.hooks.hover || config.hooks.unhover)) ||
+        !!(config.code && config.code.usesHoverState)
+      )
+    },
+  })
+
   return factory
 }
 
