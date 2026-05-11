@@ -49,7 +49,7 @@ jobs:
           const results = {
             timestamp,
             summary: '',
-            testsFailed: '${{ steps.run-tests.outcome }}' === 'failure',
+            testsFailed: false,
             error: null
           };
 
@@ -69,6 +69,7 @@ jobs:
           if (testsMatch && passMatch) {
             const failed = failMatch ? failMatch[1] : '0';
             results.summary = `passed: ${passMatch[1]}  failed: ${failed}  of ${testsMatch[1]} tests`;
+            results.testsFailed = failMatch ? parseInt(failMatch[1]) > 0 : false;
           } else if (results.testsFailed) {
             results.summary = 'Tests failed. No summary found in output.';
             results.error = testOutput;
@@ -120,7 +121,7 @@ jobs:
       continue-on-error: true
 
     - name: Upload Error Log
-      if: steps.run-tests.outcome == 'failure'
+      if: fromJSON(steps.analyze-results.outputs.result).testsFailed == true
       uses: actions/upload-artifact@v4
       with:
         name: error-log
@@ -129,5 +130,5 @@ jobs:
 
     # Fail the workflow if tests failed
     - name: Check Test Status
-      if: steps.run-tests.outcome == 'failure'
+      if: fromJSON(steps.analyze-results.outputs.result).testsFailed == true
       run: exit 1
