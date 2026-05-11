@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Download Lint Results
         id: download
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           result-encoding: string
           script: |
@@ -87,7 +87,7 @@ jobs:
 
       - name: Post Lint Results as PR Comment
         if: steps.extract.outputs.HAS_ERRORS == 'true'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             try {

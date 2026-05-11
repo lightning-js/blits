@@ -39,7 +39,7 @@ jobs:
 
     - name: Analyze Test Results
       id: analyze-results
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         result-encoding: json
         script: |
@@ -129,6 +129,7 @@ jobs:
       with:
         name: error-log
         path: ./error.txt
+        if-no-files-found: ignore
       continue-on-error: true
 
     # Fail the workflow if tests failed
