@@ -58,6 +58,11 @@ jobs:
             cp extracted/error.txt raw_error.txt
           fi
 
+          # Copy failing tests file if it exists
+          if [ -f extracted/failing-tests.txt ]; then
+            cp extracted/failing-tests.txt raw_failing_tests.txt
+          fi
+
       - name: Post Test Results as PR Comment
         uses: actions/github-script@v6
         with:
@@ -88,8 +93,8 @@ jobs:
                               + `**Run at:** ${process.env.TIMESTAMP}\n\n`
                               + `**Summary:**\n${process.env.SUMMARY}`;
 
-              if (fs.existsSync('extracted/failing-tests.txt')) {
-                const failingTests = fs.readFileSync('extracted/failing-tests.txt', 'utf8').trim();
+              if (fs.existsSync('raw_failing_tests.txt')) {
+                const failingTests = fs.readFileSync('raw_failing_tests.txt', 'utf8').trim();
                 if (failingTests) {
                   commentBody += '\n\n**Failed tests:**\n```\n' + failingTests + '\n```';
                 }
