@@ -33,7 +33,9 @@ jobs:
     - name: Run Tests
       id: run-tests
       continue-on-error: true
-      run: npm run test:run 2>&1 | tee test-report.txt
+      run: |
+        set -o pipefail
+        npm run test:run 2>&1 | tee test-report.txt
 
     - name: Analyze Test Results
       id: analyze-results
