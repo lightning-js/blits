@@ -32,7 +32,7 @@ Blits.Launch(App, 'app', {
 Within the application we can call the storage plugin methods as below
 
 ```
-this.$storage.get(key, value)
+this.$storage.get(key)
 ```
 
 ## TypeScript Support

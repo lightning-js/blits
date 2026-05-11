@@ -25,7 +25,7 @@ The Text-tag accepts the following attributes:
 - `color` - the color to display for the text, defaults to `white` and can be any of the supported Blits color formats (HTML, hexadecimal or rgb(a))
 - `letterspacing` - letterspacing in pixels, defaults to `0`
 - `align` - the alignment of the text, can be `left`, `right`, or `center`, defaults to `left`. Centering text and aligning text to the right requires the `maxwidth` attribute to be set as well.
-- `maxwidth` - the max length of a line of text in pixels, words surpassing this length will be broken and wrapped onto the next line. This attribute is required when aligning center or right. Previously this attribute was `wordwrap`, which has now been deprecated in favour of `maxwidth`.
+- `maxwidth` - the max length of a line of text in pixels, words surpassing this length will be broken and wrapped onto the next line. This attribute is required when aligning center or right. Previously this attribute was `wordwrap`, which has been fully removed in Blits v2 (in v1, `wordwrap` still works).
 - `maxlines` - maximum number of lines that will be displayed
 - `maxheight` - maximum height of a text block, lines that don't fit within this height will not be displayed
 - `lineheight` - the spacing between lines in pixels
@@ -65,6 +65,7 @@ export default Blits.Component('MyComponent', {
       this.y = dimensions.h + 8
     }
   }
+})
 ```
 
 ## Text overflow

@@ -123,7 +123,7 @@ export const ColorBurn = {
 
     void main() {
       vec4 color = texture2D(u_texture, v_textureCoords);
-      gl_FragColor = 1.0 - (1.0 - texture) / u_color;
+      gl_FragColor = 1.0 - (1.0 - color) / u_color;
     }
   `
 }
