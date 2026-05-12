@@ -49,7 +49,7 @@ The transition is defined by a _Transition_ object, consisting of:
 - `prop` - the property to apply the transition on
 - `value` - the value to transition to
 - `duration` (optional) - the duration of the transition in milliseconds (defaults to `300ms`)
-- `easing` (optional) - the easing function applied to the transition (defaults to `ease-in`)
+- `easing` (optional) - the easing function applied to the transition (defaults to `ease`)
 
 ```js
 const pageTransition = {
@@ -105,7 +105,7 @@ Similar to the `in`-transition, the `out`-transition is defined by a _Transition
 - `prop` - the property to apply the transition on
 - `value` - the value to transition to
 - `duration` (optional) - the duration of the transition in milliseconds (defaults to `300ms`)
-- `easing` (optional) - the easing function applied to the transition (defaults to `ease-in`)
+- `easing` (optional) - the easing function applied to the transition (defaults to `ease`)
 
 And in order to transition multiple properties at the same time during the _out_ transition, an Array of transition objects can be supplied.
 

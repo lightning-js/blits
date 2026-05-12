@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Download Test Results
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
@@ -58,8 +58,13 @@ jobs:
             cp extracted/error.txt raw_error.txt
           fi
 
+          # Copy failing tests file if it exists
+          if [ -f extracted/failing-tests.txt ]; then
+            cp extracted/failing-tests.txt raw_failing_tests.txt
+          fi
+
       - name: Post Test Results as PR Comment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
@@ -87,6 +92,13 @@ jobs:
               let commentBody = `#### Test Results: ${status}\n`
                               + `**Run at:** ${process.env.TIMESTAMP}\n\n`
                               + `**Summary:**\n${process.env.SUMMARY}`;
+
+              if (fs.existsSync('raw_failing_tests.txt')) {
+                const failingTests = fs.readFileSync('raw_failing_tests.txt', 'utf8').trim();
+                if (failingTests) {
+                  commentBody += '\n\n**Failed tests:**\n```\n' + failingTests + '\n```';
+                }
+              }
 
               if (fs.existsSync('raw_error.txt')) {
                 commentBody += '\n\n**Error Output:**\n```\n'

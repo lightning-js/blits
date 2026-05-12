@@ -432,6 +432,10 @@ const Component = (name = required('name'), config = required('config')) => {
    */
   const factory = (options = {}, parentEl, parentComponent, rootComponent) => {
     if (Base[symbols['launched']] === false) {
+      // create a context with shared properties so this.$reactive (etc.)
+      // is available during plugin initialization
+      const pluginContext = Object.defineProperties({}, shared)
+
       // Register user defined plugins once on the Base object (after launch)
       const pluginKeys = Object.keys(plugins)
       const pluginKeysLength = pluginKeys.length
@@ -449,8 +453,8 @@ const Component = (name = required('name'), config = required('config')) => {
         const plugin = plugins[pluginName]
 
         pluginInstances[prefixedPluginName] = {
-          // instantiate the plugin, passing in provided options
-          value: Object.defineProperties(plugin.plugin(plugin.options), shared),
+          // instantiate the plugin with shared context, then apply shared to the result
+          value: Object.defineProperties(plugin.plugin.call(pluginContext, plugin.options), shared),
           writable: false,
           enumerable: true,
           configurable: true,

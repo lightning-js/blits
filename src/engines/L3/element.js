@@ -16,7 +16,13 @@
  */
 
 import { renderer } from './launch.js'
-import { parseToObject, isObjectString, isArrayString, isTransition } from '../../lib/utils.js'
+import {
+  parseToObject,
+  isObjectString,
+  isArrayString,
+  isTransition,
+  isZeroDurationTransition,
+} from '../../lib/utils.js'
 import colors from '../../lib/colors/colors.js'
 
 import { Log } from '../../lib/log.js'
@@ -79,7 +85,11 @@ const createPaddingObject = (padding, direction) => {
  * @param {object} config - The layout configuration object.
  * @this {import('../../component.js').BlitsElement}
  */
+
 const layoutFn = function (config) {
+  const w = this.node.w
+  const h = this.node.h
+
   const position = config.direction === 'vertical' ? 'y' : 'x'
   const oppositePosition = config.direction === 'vertical' ? 'x' : 'y'
   const oppositeMount = config.direction === 'vertical' ? 'mountX' : 'mountY'
@@ -92,6 +102,7 @@ const layoutFn = function (config) {
   const children = this.node.children
   const childrenLength = children.length
   const elementChildren = this.children
+
   let otherDimension = 0
   const gap = config.gap || 0
   for (let i = 0; i < childrenLength; i++) {
@@ -131,7 +142,7 @@ const layoutFn = function (config) {
   }
 
   // emit an updated event
-  if (config['@updated'] !== undefined) {
+  if ((config['@updated'] !== undefined) & (this.node.w !== w || this.node.h !== h)) {
     config['@updated']({ w: this.node.w, h: this.node.h }, this)
   }
 
@@ -377,14 +388,17 @@ const propsTransformer = {
   },
   set border(v) {
     this.props['border'] = v
+
     if (
       this.element.node !== undefined &&
       this.elementShader === true &&
       (typeof v === 'object' || isObjectString(v) === true)
     ) {
       v = shaders.parseProps(v)
+      const shader = this.element.node.props['shader']
+      let prefix = shader.shaderKey.startsWith('rounded') ? 'border-' : ''
       for (const key in v) {
-        this.element.node.props['shader'].props[`border-${key}`] = v[key]
+        this.element.node.props['shader'].props[prefix + key] = v[key]
       }
     }
   },
@@ -396,8 +410,10 @@ const propsTransformer = {
       (typeof v === 'object' || isObjectString(v) === true)
     ) {
       v = shaders.parseProps(v)
+      const shader = this.element.node.props['shader']
+      let prefix = shader.shaderKey.startsWith('rounded') ? 'shadow-' : ''
       for (const key in v) {
-        this.element.node.props['shader'].props[`shadow-${key}`] = v[key]
+        this.element.node.props['shader'].props[prefix + key] = v[key]
       }
     }
   },
@@ -613,6 +629,7 @@ const Element = {
    * @param {Object} data - Framework inspector metadata to merge
    */
   setInspectorMetadata(data) {
+    if (this.eol === true) return
     // Early return if inspector not enabled (performance optimization)
     if (inspectorEnabled !== true) {
       return
@@ -650,6 +667,7 @@ const Element = {
    * @returns {void}
    */
   set(prop, value) {
+    if (this.eol === true) return
     if (value === undefined) return
     // @ts-ignore
     if (this.props.raw[prop] === value) return
@@ -663,7 +681,7 @@ const Element = {
     const propsKeys = Object.keys(this.props.props)
 
     if (propsKeys.length === 1) {
-      if (isTransition(value) === true) {
+      if (isTransition(value) === true && isZeroDurationTransition(value) === false) {
         return this.animate(propsKeys[0], this.props.props[propsKeys[0]], value.transition)
       }
       // set the prop to the value on the node
@@ -671,7 +689,7 @@ const Element = {
     } else {
       for (let i = 0; i < propsKeys.length; i++) {
         // todo: fix code duplication
-        if (isTransition(value) === true) {
+        if (isTransition(value) === true && isZeroDurationTransition(value) === false) {
           this.animate(propsKeys[i], this.props.props[propsKeys[i]], value.transition)
         } else {
           // set the prop to the value on the node
@@ -685,6 +703,8 @@ const Element = {
     }
   },
   animate(prop, value, transition) {
+    if (this.eol === true) return
+
     // Clear any existing debounce timeout for this property
     if (this.debounceTimeouts[prop] !== undefined) {
       clearTimeout(this.debounceTimeouts[prop])
@@ -796,6 +816,9 @@ const Element = {
     f.start()
   },
   destroy() {
+    if (this.eol === true) return
+    this.eol = true
+
     if (this.node === null) return
 
     Log.debug('Deleting Node', this.nodeId)
@@ -887,6 +910,7 @@ export default (config, component) => {
     inspectorEnabled = Settings.get('inspector', false)
   }
   return Object.assign(Object.create(Element), {
+    eol: false,
     props: Object.assign(Object.create(propsTransformer), { props: {} }),
     scheduledTransitions: {},
     debounceTimeouts: {},

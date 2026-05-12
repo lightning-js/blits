@@ -35,7 +35,7 @@ Blits.Component('MyComponent', {
       this.$announcer.speak('MyComponent just got focus')
     }
   },
-  keys: {
+  input: {
     right() {
       if(this.focused === this.items.length - 1) {
         this.$announcer.speak('End of row reached')
@@ -124,7 +124,7 @@ Blits.Application({
 })
 ```
 
-#### Clearing and interupting
+#### Clearing and interrupting
 
 Since each message added into the queue may take a bit of time to actually be announced, it's possible that the user has navigated elsewhere in the mean time, making the queued up messages not relevant.
 
@@ -170,8 +170,8 @@ By default the announcer is disabled. This means that whenever you call `this.$a
 
 In order to enable utterances being spoken out, you can set the Blits launch setting `announcer` to `true` in the index.js.
 
-Alternatively the announcer can be enabled or disabled run time by using one of the following methods on the Announcer pluging:
+Alternatively the announcer can be enabled or disabled run time by using one of the following methods on the Announcer plugin:
 
 - `this.$announcer.enable()` - activates the announcer
 - `this.$announcer.disable()` - deactivates the announcer
-- `this.$announcer.disable(true/false)` - turns the announcer on or off
+- `this.$announcer.toggle(true/false)` - turns the announcer on or off

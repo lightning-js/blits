@@ -696,19 +696,19 @@ test('Element - Layout with horizontal direction layout use cases', (assert) => 
     'Child 2 Node X parameter should be layout gap + child 1 w'
   )
 
-  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback should be called 3 times')
+  assert.equal(layoutUpdateSpy.callCount, 2, 'Layout updated callback should be called 2 times')
   assert.equal(
     layoutUpdateSpy.getCall(0).args.length,
     2,
     'Layout updated callback should be called with 2 arguments'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].w,
+    layoutUpdateSpy.getCall(1).args[0].w,
     CHILD_1_WIDTH,
     'Layout w should be equal to Child1 w'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].h,
+    layoutUpdateSpy.getCall(1).args[0].h,
     CHILD_HEIGHT,
     'Layout height should be equal to Child1 or Child 2 height'
   )
@@ -716,14 +716,14 @@ test('Element - Layout with horizontal direction layout use cases', (assert) => 
   child2.set('w', CHILD_2_WIDTH)
   assert.equal(child2.node['w'], CHILD_2_WIDTH, 'Child 2 Node w parameter should be set')
   assert.equal(child2.props.props['w'], CHILD_2_WIDTH, 'Child 2 Props w parameter should be set')
-  assert.equal(layoutUpdateSpy.callCount, 4, 'Layout updated callback call count should be 4')
+  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback call count should be 3')
   assert.equal(
-    layoutUpdateSpy.getCall(3).args[0].w,
+    layoutUpdateSpy.getCall(2).args[0].w,
     CHILD_1_WIDTH + GAP + CHILD_2_WIDTH,
     'Layout w should be equal to Child1 w + gap + Child2 w'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(3).args[0].h,
+    layoutUpdateSpy.getCall(2).args[0].h,
     CHILD_HEIGHT,
     'Layout height should be equal to Child1 or Child 2 height'
   )
@@ -771,19 +771,19 @@ test('Element - Layout with vertical direction use case', (assert) => {
     'Child 2 Node y parameter should be layout gap + Child 1 height'
   )
 
-  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback should be called 3 times')
+  assert.equal(layoutUpdateSpy.callCount, 2, 'Layout updated callback should be called 2 times')
   assert.equal(
     layoutUpdateSpy.getCall(0).args.length,
     2,
     'Layout updated callback should be called with 2 arguments'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].h,
+    layoutUpdateSpy.getCall(1).args[0].h,
     CHILD_1_HEIGHT,
     'Layout height should be equal to Child1 height'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].w,
+    layoutUpdateSpy.getCall(1).args[0].w,
     CHILD_WIDTH,
     'Layout w should be equal to Child1 or Child 2 w'
   )
@@ -791,14 +791,14 @@ test('Element - Layout with vertical direction use case', (assert) => {
   child2.set('h', CHILD_2_HEIGHT)
   assert.equal(child2.node['h'], CHILD_2_HEIGHT, 'Child 2 Node height parameter should be set')
   assert.equal(child2.props.props['h'], CHILD_2_HEIGHT, 'Child 2 Props h parameter should be set')
-  assert.equal(layoutUpdateSpy.callCount, 4, 'Layout updated callback call count should be 4')
+  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback call count should be 3')
   assert.equal(
-    layoutUpdateSpy.getCall(3).args[0].h,
+    layoutUpdateSpy.getCall(2).args[0].h,
     CHILD_1_HEIGHT + GAP + CHILD_2_HEIGHT,
     'Layout height should be equal to Child1 height + gap + Child2 height'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(3).args[0].w,
+    layoutUpdateSpy.getCall(2).args[0].w,
     CHILD_WIDTH,
     'Layout w should be equal to Child1 or Child 2 w'
   )
@@ -912,6 +912,70 @@ test('Element - Transition an element property with end callback', (assert) => {
   assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
   // assert.ok(endSpy.calledOnce, 'Transition end callback should be called only once')
   assert.end()
+})
+
+test('Element - Zero duration transition sets value directly without animating', (assert) => {
+  const customNode = new CustomNode()
+  assert.capture(renderer, 'createNode', () => customNode)
+  const el = createElement()
+
+  const animateSpy = sinon.spy(customNode, 'animate')
+
+  el.set('w', { transition: { value: 200, duration: 0 } })
+
+  assert.equal(el.props.props['w'], 200, 'Props w parameter should be set to 200')
+  assert.equal(customNode.w, 200, 'Node w should be set directly to 200')
+  assert.equal(animateSpy.callCount, 0, 'animate should not be called for zero duration transition')
+
+  animateSpy.restore()
+  assert.end()
+})
+
+test('Element - Zero duration transition on multiple properties sets values directly', (assert) => {
+  const customNode = new CustomNode()
+  assert.capture(renderer, 'createNode', () => customNode)
+  const el = createElement()
+
+  const animateSpy = sinon.spy(customNode, 'animate')
+
+  el.set('x', { transition: { value: 50, duration: 0 } })
+  el.set('y', { transition: { value: 75, duration: 0 } })
+
+  assert.equal(customNode.x, 50, 'Node x should be set directly to 50')
+  assert.equal(customNode.y, 75, 'Node y should be set directly to 75')
+  assert.equal(
+    animateSpy.callCount,
+    0,
+    'animate should not be called for any zero duration transition'
+  )
+
+  animateSpy.restore()
+  assert.end()
+})
+
+test('Element - Non-zero duration transition calls animate', (assert) => {
+  const customNode = new CustomNode()
+  assert.capture(renderer, 'createNode', () => customNode)
+  const el = createElement()
+
+  const animateSpy = sinon.spy(customNode, 'animate')
+
+  el.set('w', { transition: { value: 300, duration: 500 } })
+
+  assert.equal(el.props.props['w'], 300, 'Props w parameter should be set to 300')
+  assert.equal(animateSpy.callCount, 0, 'animate is debounced via setTimeout(0)')
+
+  setTimeout(() => {
+    assert.equal(
+      animateSpy.callCount,
+      1,
+      'animate should be called once for non-zero duration transition'
+    )
+    assert.equal(customNode.w, 300, 'Node w should be set to 300 after animation')
+
+    animateSpy.restore()
+    assert.end()
+  }, 1000)
 })
 
 test('Element - Destroy created Element node', (assert) => {
@@ -1155,7 +1219,7 @@ test('Element - Transition with layout parent', (assert) => {
   layoutEl.node.children.push(childEl.node)
   childEl.set('w', { transition: { value: 100, duration: 50 } })
   setTimeout(() => {
-    assert.ok(layoutSpy.callCount > 3, 'Layout should be triggered on ticks')
+    assert.ok(layoutSpy.callCount > 0, 'Layout should be triggered on ticks')
     assert.end()
   }, 80)
 })

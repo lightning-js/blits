@@ -56,7 +56,7 @@ jobs:
 
         # Run ESLint only on changed files with the project's config
         # Filtering out warnings - only keep errors
-        npx eslint --config .eslintrc.cjs ${{ steps.changed-files.outputs.files }} -f json > ./lint-results/eslint-output.json || true
+        npx eslint ${{ steps.changed-files.outputs.files }} -f json > ./lint-results/eslint-output.json || true
 
         # Check if there are any errors in the ESLint output
         if [ -s ./lint-results/eslint-output.json ]; then
