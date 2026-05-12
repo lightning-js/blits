@@ -140,7 +140,10 @@ export const navigate = async function () {
     previousRoute,
     currentPath
   )
-  if (beforeEachResult === false) return
+  if (beforeEachResult === false) {
+    preventHashChangeNavigation = false
+    return
+  }
 
   // execute before route hook
   const beforeResult = await executeBeforeHook(
@@ -151,7 +154,10 @@ export const navigate = async function () {
     previousRoute,
     currentPath
   )
-  if (beforeResult === false) return
+  if (beforeResult === false) {
+    preventHashChangeNavigation = false
+    return
+  }
 
   // add the previous route (technically still the current route at this point)
   // into the history stack when inHistory is true and we're not navigating back
