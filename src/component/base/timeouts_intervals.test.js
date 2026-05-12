@@ -476,3 +476,67 @@ test('$debounce method with zero delay', (assert) => {
     assert.end()
   }, 10)
 })
+
+test('$nextTick method', (assert) => {
+  const component = createComponent()
+  let called = false
+
+  const result = timeoutsIntervals.$nextTick.value.call(component, () => {
+    called = true
+  })
+
+  assert.ok(result !== undefined, 'Should return a timeout ID')
+  assert.equal(component[symbols.timeouts].length, 1, 'Should add timeout to array')
+
+  setTimeout(() => {
+    assert.ok(called, 'Callback should execute on next tick')
+    assert.end()
+  }, 50)
+})
+
+test('$nextTick method when eol is true', (assert) => {
+  const component = createComponent(true)
+
+  const result = timeoutsIntervals.$nextTick.value.call(component, () => {})
+
+  assert.equal(result, undefined, 'Should return undefined when eol is true')
+  assert.equal(component[symbols.timeouts].length, 0, 'Should not add timeout when eol is true')
+  assert.end()
+})
+
+test('$nextTick method with parameters', (assert) => {
+  const component = createComponent()
+  let receivedParams = null
+
+  timeoutsIntervals.$nextTick.value.call(
+    component,
+    (param1, param2) => {
+      receivedParams = [param1, param2]
+    },
+    'value1',
+    'value2'
+  )
+
+  setTimeout(() => {
+    assert.deepEqual(receivedParams, ['value1', 'value2'], 'Should pass parameters correctly')
+    assert.end()
+  }, 50)
+})
+
+test('$nextTick method is cleaned up by $clearTimeouts', (assert) => {
+  const component = createComponent()
+  let called = false
+
+  timeoutsIntervals.$nextTick.value.call(component, () => {
+    called = true
+  })
+
+  assert.equal(component[symbols.timeouts].length, 1, 'Should track the timeout')
+  timeoutsIntervals.$clearTimeouts.value.call(component)
+  assert.equal(component[symbols.timeouts].length, 0, 'Should be cleared by $clearTimeouts')
+
+  setTimeout(() => {
+    assert.false(called, 'Callback should not execute after clearTimeouts')
+    assert.end()
+  }, 50)
+})

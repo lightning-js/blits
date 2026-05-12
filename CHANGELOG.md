@@ -1,5 +1,51 @@
 # Changelog
 
+## v2.2.0
+
+_11 may 2026_
+
+- Exposed built-in reactivity to be used in custom Blits plugins
+- Cleaned up unused key names from default key mapping
+- Improved documentation
+- Fixed reactive color not working for components
+- Added EOL guard for Blits elements to prevent potential race conditions
+- Updated MSDF generator version in boilerplate
+- Fixed / improved GH workflow for automated tests
+- Upgraded renderer to 3.0.3
+
+
+## v2.1.3
+
+_16 apr 2026_
+
+- Bumped renderer to 3.0.2
+
+
+## v2.1.2
+
+_10 apr 2026_
+
+- Bumped renderer to 3.0.1
+- Removed `@updated`-calls for Layout when dimensions haven't changed
+
+## v2.1.1
+
+_9 apr 2026_
+
+- Fixed import file extension issue
+
+## v2.1.0
+
+_9 apr 2026_
+
+- Fixed left over `KeyboardEvent.code` references
+- Fixed issue with allowing $-prefix to be used as text content
+- Fixed issue with internal keyboard event not working on older browsers
+- Added tests to router hooks
+- Fixed issue with transitions not being skipped when duration is set to `0`
+- Added `this.$nextTick` utility helper
+- Fixed issue with transitioning colours in `border`-attribute
+
 ## v2.0.1
 
 _23 mar 2026_
@@ -7,7 +53,7 @@ _23 mar 2026_
 - Fixed issue with height dimension of router view
 - Fixed issue with array or rounded corners not being reactive
 - Fixed issue with font not being mapped correctly when using `png` in the font config
-- Removed obselete key config
+- Removed obsolete key config
 - Fixed reactivity guard in computed props to handle deep nested references more safely
 
 ## v2.0.0
