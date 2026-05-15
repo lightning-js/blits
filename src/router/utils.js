@@ -93,7 +93,7 @@ export const normalizePath = (path) => {
 export const isObject = (v) => typeof v === 'object' && v !== null
 
 /**
- * Check if a value is a function
+ * Check if a value is a string
  * @param {any} v
  * @returns {boolean} True if v is a string
  */

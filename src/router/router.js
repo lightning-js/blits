@@ -122,7 +122,7 @@ export const navigate = async function () {
     Log.error(`Route ${hash.hash} not found`)
     const routerHooks = this[symbols.parent][symbols.routerHooks]
     if (routerHooks && typeof routerHooks.error === 'function') {
-      routerHooks.error.call(this[symbols.parent], `Route ${hash} not found`)
+      routerHooks.error.call(this[symbols.parent], `Route ${hash.hash} not found`)
     }
     return
   }
@@ -147,7 +147,10 @@ export const navigate = async function () {
     this.previousRoute,
     currentPath
   )
-  if (beforeEachResult === false) return
+  if (beforeEachResult === false) {
+    preventHashChangeNavigation = false
+    return
+  }
 
   // execute before route hook
   const beforeResult = await executeBeforeHook(
@@ -158,7 +161,10 @@ export const navigate = async function () {
     this.previousRoute,
     currentPath
   )
-  if (beforeResult === false) return
+  if (beforeResult === false) {
+    preventHashChangeNavigation = false
+    return
+  }
 
   // add the previous route (technically still the current route at this point)
   // into the history stack when inHistory is true and we're not navigating back
@@ -306,9 +312,10 @@ export const navigate = async function () {
       // cache the page when it's as 'keepAlive' instead of destroying
       if (
         navigatingBack === false &&
-        this.previousRoute.options &&
         keepAlive === true &&
-        route.options.inHistory === true
+        this.previousRoute.options &&
+        this.previousRoute.options &&
+        this.previousRoute.options.inHistory === true
       ) {
         const historyItem = this.history[this.history.length - 1]
         if (historyItem !== undefined) {
