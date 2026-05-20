@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.3.0
+
+_20 may 2026_
+
+- Refactored router functionality
+- Replaced `window` reference with `self` reference in announcer
+
 ## v2.2.0
 
 _11 may 2026_
