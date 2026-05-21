@@ -675,14 +675,7 @@ test('Element - Layout with horizontal direction layout use cases', (assert) => 
   // Creating two elements which will be children to parentEl
   const child1 = element({ parent: layoutEl }, {})
   const child2 = element({ parent: layoutEl }, {})
-
-  // To bind layout function to each children
-  child1.populate({})
-  child2.populate({})
-
-  // Adding children element nodes to layout Element node
-  layoutEl.node.children.push(child1.node)
-  layoutEl.node.children.push(child2.node)
+  registerLayoutChildren(layoutEl, child1, child2)
 
   // Initial width, x, y, height of each element is, 0
   // Setting child1 width to 500, should effect child 2 X position
@@ -746,14 +739,7 @@ test('Element - Layout with vertical direction use case', (assert) => {
   // Creating two elements which will be children to parentEl
   const child1 = element({ parent: layoutEl }, {})
   const child2 = element({ parent: layoutEl }, {})
-
-  // To bind layout function to each children
-  child1.populate({})
-  child2.populate({})
-
-  // Adding children element nodes to layout Element node
-  layoutEl.node.children.push(child1.node)
-  layoutEl.node.children.push(child2.node)
+  registerLayoutChildren(layoutEl, child1, child2)
 
   // Initial w, x, y, height of each element is, 0
   // Setting Child1 height to 500, should effect Child 2 Y position
@@ -1111,35 +1097,28 @@ function createElement(props = {}) {
 }
 
 function createLayoutElement(direction, gap, layoutUpdateSpy) {
-  let layoutElNode
-
-  // creating component object to fake children
   const comp = {
-    [symbols.getChildren]: () => {
-      return [
-        {
-          props: { raw: { show: true } },
-          parent: layoutElNode,
-        },
-        {
-          props: { raw: { show: true } },
-          parent: layoutElNode,
-        },
-      ]
+    __layoutChildElements: [],
+    [symbols.getChildren]() {
+      return this.__layoutChildElements
     },
   }
-
-  // element to break chain of parent element layoutFn trigger
   const grandParent = element({ parent: new EventEmitter(), props: {} }, {})
-
-  // Layout Element
   const layoutEl = element({ parent: grandParent }, comp)
-
-  // Populating layout element with configuration
   layoutEl.populate({ __layout: true, direction: direction, gap: gap, '@updated': layoutUpdateSpy })
-  layoutElNode = layoutEl.node
-
   return layoutEl
+}
+
+/** Registers layout test children: getChildren list, populate, mock renderer parent link. */
+function registerLayoutChildren(layoutEl, ...kids) {
+  const list = layoutEl.component.__layoutChildElements
+  for (let i = 0; i < kids.length; i++) {
+    const k = kids[i]
+    list.push(k)
+    k.populate({ parent: layoutEl })
+    layoutEl.node.children.push(k.node)
+    k.node.parent = layoutEl.node
+  }
 }
 
 // Test for lines 522-524: isSlot symbol handling
@@ -1215,8 +1194,7 @@ test('Element - Transition with layout parent', (assert) => {
   const layoutSpy = sinon.spy()
   const layoutEl = createLayoutElement('horizontal', 10, layoutSpy)
   const childEl = element({ parent: layoutEl }, {})
-  childEl.populate({ parent: layoutEl })
-  layoutEl.node.children.push(childEl.node)
+  registerLayoutChildren(layoutEl, childEl)
   childEl.set('w', { transition: { value: 100, duration: 50 } })
   setTimeout(() => {
     assert.ok(layoutSpy.callCount > 0, 'Layout should be triggered on ticks')
