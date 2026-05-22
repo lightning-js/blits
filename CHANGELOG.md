@@ -1,5 +1,26 @@
 # Changelog
 
+## v2.3.0
+
+_20 may 2026_
+
+- Refactored router functionality
+- Replaced `window` reference with `self` reference in announcer
+
+## v2.2.0
+
+_11 may 2026_
+
+- Exposed built-in reactivity to be used in custom Blits plugins
+- Cleaned up unused key names from default key mapping
+- Improved documentation
+- Fixed reactive color not working for components
+- Added EOL guard for Blits elements to prevent potential race conditions
+- Updated MSDF generator version in boilerplate
+- Fixed / improved GH workflow for automated tests
+- Upgraded renderer to 3.0.3
+
+
 ## v2.1.3
 
 _16 apr 2026_

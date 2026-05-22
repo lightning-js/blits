@@ -17,7 +17,8 @@
 
 import test from 'tape'
 import { initLog } from '../lib/log.js'
-import { matchHash, getHash, to, navigate, back, state } from './router.js'
+import { to, navigate, back, state } from './router.js'
+import { matchHash, getHash } from './utils.js'
 import { stage } from '../launch.js'
 import Component from '../component.js'
 import symbols from '../lib/symbols.js'
@@ -925,7 +926,7 @@ test('keepAlive override does not bleed into the destination route options', asy
 
   // Verify destination route (/srcB) does NOT have keepAlive in its options —
   // the override only applies to the route being left
-  const destRoute = matchHash({ path: '/srcB' }, routesList)
+  const destRoute = matchHash({ path: '/srcB' }, routesList, {})
   assert.equal(
     destRoute.options.keepAlive,
     false,
@@ -1670,7 +1671,7 @@ test('keepAlive caches view and restores same instance on back', async (assert) 
 test('reuseComponent reuses the same view instance when returning to the route', async (assert) => {
   const originalElement = stage.element
 
-  stage.element = ({ parent }) => ({
+  const mockElement = () => ({
     populate() {},
     set(prop, value) {
       if (value && value.transition && typeof value.transition.end === 'function') {
@@ -1678,13 +1679,19 @@ test('reuseComponent reuses the same view instance when returning to the route',
       }
     },
     destroy() {},
-    parent,
   })
+
+  stage.element = ({ parent }) => ({ ...mockElement(), parent })
 
   const SharedRc = Component('RcReuseShared', {
     template: '<Element />',
     code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
   })
+
+  // Seed children with a dummy view at index 1.
+  // When navigate() inherits a truthy currentRoute from previous tests,
+  // splice(1,1) removes this dummy instead of the newly pushed view.
+  const dummyView = { [symbols.holder]: mockElement(), destroy() {} }
 
   const host = {
     [symbols.parent]: {
@@ -1701,7 +1708,7 @@ test('reuseComponent reuses the same view instance when returning to the route',
         },
       ],
     },
-    [symbols.children]: [{}],
+    [symbols.children]: [{}, dummyView],
     [symbols.props]: {},
   }
 
