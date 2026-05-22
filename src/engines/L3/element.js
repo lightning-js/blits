@@ -33,6 +33,10 @@ import { resolveSpriteTexture } from './spriteTexture.js'
 
 const holderComponentMap = new WeakMap()
 
+/** @param {any} frame */
+const spriteFrameKey = (frame) =>
+  typeof frame === 'object' && frame !== null ? JSON.stringify(frame) : frame
+
 /**
  * Creates a padding object from a value and direction.
  * @param {number|object|string|undefined} padding - The padding value.
@@ -295,19 +299,19 @@ const propsTransformer = {
   set image(v) {
     this.raw['image'] = v
     if (this.element[symbols.isSprite] === true && this.element.node) {
-      this.element._syncNativeSprite()
+      this.element._scheduleNativeSpriteSync()
     }
   },
   set map(v) {
     this.raw['map'] = v
     if (this.element[symbols.isSprite] === true && this.element.node) {
-      this.element._syncNativeSprite()
+      this.element._scheduleNativeSpriteSync()
     }
   },
   set frame(v) {
     this.raw['frame'] = v
     if (this.element[symbols.isSprite] === true && this.element.node) {
-      this.element._syncNativeSprite()
+      this.element._scheduleNativeSpriteSync()
     }
   },
   set fit(v) {
@@ -567,6 +571,7 @@ export const elementAttributes = Object.keys(propsTransformer)
 const Element = {
   /**
    * Populates the element with data
+   * @this {import('../../component.js').BlitsElement}
    * @param {import('../../component.js').BlitsElementProps} props
    */
   populate(props) {
@@ -583,6 +588,11 @@ const Element = {
         currentSrc: null,
         _loadedCb: null,
         _failedCb: null,
+        _syncScheduled: false,
+        lastTexture: null,
+        lastImage: null,
+        lastMap: null,
+        lastFrameKey: undefined,
       }
     }
 
@@ -691,13 +701,55 @@ const Element = {
     }
   },
   /**
-   * @this {import('../../component').BlitsElement}
+   * @this {import('../../component.js').BlitsElement}
+   */
+  _scheduleNativeSpriteSync() {
+    if (this[symbols.isSprite] !== true || !this.node || this.eol === true) return
+    const st = this._spriteState
+    if (st === undefined) return
+    if (st._syncScheduled === true) return
+    st._syncScheduled = true
+    queueMicrotask(() => {
+      st._syncScheduled = false
+      if (this.eol === true || !this.node) return
+      this._syncNativeSprite()
+    })
+  },
+  /**
+   * @this {import('../../component.js').BlitsElement}
    */
   _syncNativeSprite() {
     if (this[symbols.isSprite] !== true || !this.node) return
     const st = this._spriteState
     if (st === undefined) return
+
     const raw = this.props.raw
+    const image = raw['image']
+    const map = raw['map']
+    const frameKey = spriteFrameKey(raw['frame'])
+
+    if (
+      st.lastTexture != null &&
+      image === st.lastImage &&
+      map === st.lastMap &&
+      frameKey === st.lastFrameKey
+    ) {
+      return
+    }
+
+    const imageChanged = image !== st.lastImage
+    st.lastImage = image
+    st.lastMap = map
+    st.lastFrameKey = frameKey
+
+    const texture = resolveSpriteTexture(this, renderer, st)
+    if (texture === st.lastTexture) return
+
+    st.lastTexture = texture
+    this.set('texture', texture)
+
+    if (imageChanged !== true) return
+
     const prevL = st._loadedCb
     const prevF = st._failedCb
     st._loadedCb =
@@ -716,13 +768,9 @@ const Element = {
     if (st.spriteTexture) {
       if (prevL) st.spriteTexture.off('loaded', prevL)
       if (prevF) st.spriteTexture.off('failed', prevF)
-    }
-    const texture = resolveSpriteTexture(this, renderer, st)
-    if (st.spriteTexture) {
       if (st._loadedCb) st.spriteTexture.on('loaded', st._loadedCb)
       if (st._failedCb) st.spriteTexture.on('failed', st._failedCb)
     }
-    this.set('texture', texture)
   },
   /**
    * Set an individual property on the node

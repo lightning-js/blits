@@ -160,6 +160,37 @@ test('resolveSpriteTexture - creates SubTexture from direct map and manual frame
   assert.end()
 })
 
+test('resolveSpriteTexture - reuses cached SubTexture for same frame', (assert) => {
+  const imgTex = {}
+  let subTexCalls = 0
+  const original = testRenderer.createTexture
+  try {
+    testRenderer.createTexture = (type) => {
+      if (type === 'ImageTexture') return imgTex
+      if (type === 'SubTexture') {
+        subTexCalls++
+        return { id: subTexCalls }
+      }
+      return null
+    }
+
+    const raw = {
+      image: 'sheet.png',
+      map: { frames: { f1: { x: 1, y: 2, w: 3, h: 4 } } },
+      frame: 'f1',
+    }
+    const state = { spriteTexture: null, currentSrc: null }
+    const first = resolveSpriteTexture(el(raw), testRenderer, state)
+    const second = resolveSpriteTexture(el(raw), testRenderer, state)
+
+    assert.equal(first, second)
+    assert.equal(subTexCalls, 1)
+  } finally {
+    testRenderer.createTexture = original
+  }
+  assert.end()
+})
+
 test('resolveSpriteTexture - returns base texture when frame cannot be resolved', (assert) => {
   const baseTex = {}
   let subTexCalls = 0

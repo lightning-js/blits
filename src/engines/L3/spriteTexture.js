@@ -1,8 +1,8 @@
 /**
  * Resolves a sprite sheet frame from map + frame (template Sprite element path on L3).
- * @param {import('../../component').BlitsElement} element
+ * @param {import('../../component.js').BlitsElement} element
  * @param {object} r - renderer
- * @param {{ spriteTexture: any, currentSrc: any }} state - mutated
+ * @param {any} state - mutated sprite cache (see L3 element _spriteState)
  * @returns {any|null} texture for the node
  */
 export function resolveSpriteTexture(element, r, state) {
@@ -23,9 +23,16 @@ export function resolveSpriteTexture(element, r, state) {
       src: image,
     })
     state.currentSrc = image
+    state.subTextures = null
+    state.currentMap = null
   }
 
   const map = element.props.raw['map']
+
+  if (state.currentMap !== map) {
+    state.currentMap = map
+    state.subTextures = null
+  }
   const frame = element.props.raw['frame']
 
   let options = null
@@ -42,13 +49,23 @@ export function resolveSpriteTexture(element, r, state) {
   }
 
   if (options != null) {
-    return r.createTexture('SubTexture', {
+    const key = typeof frame === 'object' ? JSON.stringify(frame) : String(frame)
+    if (!state.subTextures) {
+      state.subTextures = new Map()
+    }
+    const cached = state.subTextures.get(key)
+    if (cached !== undefined) {
+      return cached
+    }
+    const subTexture = r.createTexture('SubTexture', {
       texture: state.spriteTexture,
       x: options.x,
       y: options.y,
       w: options.w,
       h: options.h,
     })
+    state.subTextures.set(key, subTexture)
+    return subTexture
   }
   return state.spriteTexture
 }

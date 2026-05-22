@@ -92,10 +92,14 @@ export const componentMap = new WeakMap()
  * @typedef {Object} BlitsElement
  * @property {BlitsComponent} component - Reference to the owning Blits component.
  * @property {BlitsElementConfig} config - Configuration object for the element.
+ * @property {boolean} eol - Indicates when the element is end-of-life (destroyed).
  * @property {number} counter - Unique counter used for shader workarounds. FIXME?
  * @property {string[]} effectNames - Names of active shader effects.
  * @property {any} node - The underlying renderer node (e.g., WebGL node or text node).
  * @property {BlitsElementProps} props - Proxy-like object containing transformed props.
+ * @property {Object<string, any>} scheduledTransitions - Tracks transitions by property name.
+ * @property {Object<string, ReturnType<typeof setTimeout>>} debounceTimeouts - Pending animation debounce timers.
+ * @property {any} [_spriteState] - Native Sprite texture cache (L3 only).
  * @property {any[]} children - WVB I cant see this populated? Filtered list of children owned by this element. FIXME?
  * @property {any} parent - WVB Shortcut to the parent CoreNode?
  * @property {number} nodeId - ID of the CoreNode, if available.
@@ -105,6 +109,9 @@ export const componentMap = new WeakMap()
  * @property {function(string, any, Object):void} animate - Animates a property with transition options.
  * @property {function():void} destroy - Destroys the underlying node and cancels transitions.
  * @property {function(any): any} triggerLayout - Triggers a layout update for the element.
+ * @property {function(Object):void} setInspectorMetadata - Merges inspector metadata onto the node.
+ * @property {function():void} _scheduleNativeSpriteSync - Queues a coalesced native Sprite texture sync.
+ * @property {function():void} _syncNativeSprite - Resolves and applies the native Sprite texture.
  *
  * @typedef {Object} BlitsLifecycle
  * @property {BlitsComponent} component - The Blits comonent instance this lifecycle belongs to.
