@@ -250,7 +250,7 @@ test('Component - Instance should initialize children', (assert) => {
   assert.equal(args[0], parent, 'Render should be called with parent parameter')
   assert.equal(args[1], foo, 'Render should be called with Foo component instance')
   assert.equal(args[2], config, 'Render should be called with config parameter')
-  assert.ok(args[3].Sprite, 'Render should be called with global components object')
+  assert.ok(args[3].Circle, 'Render should be called with global components object')
   assert.end()
 })
 
@@ -370,7 +370,7 @@ test('Component - Instance should execute all side effects', (assert) => {
   assert.equals(calls.args[0], foo, 'Effect should be invoked with foo component instance')
   assert.equals(calls.args[1], children, 'Effect should be invoked with component`s children')
   assert.equals(calls.args[2], config, 'Effect should be invoked with config object')
-  assert.ok(calls.args[3].Sprite, 'Effect should be invoked with global components object')
+  assert.ok(calls.args[3].Circle, 'Effect should be invoked with global components object')
   assert.equals(calls.args[4], root, 'Effect should be invoked with root component')
   assert.ok(typeof calls.args[6] === 'function', 'Effect should be invoked with effect function')
   assert.end()
