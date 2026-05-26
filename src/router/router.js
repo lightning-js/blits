@@ -313,7 +313,7 @@ export const navigate = async function () {
       if (
         navigatingBack === false &&
         keepAlive === true &&
-        this.previousRoute.options &&
+        this.previousRoute &&
         this.previousRoute.options &&
         this.previousRoute.options.inHistory === true
       ) {
