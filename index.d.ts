@@ -329,7 +329,7 @@ declare module '@lightningjs/blits' {
      *
      * @param {string}
     */
-    to(location: string, data?: RouteData, options?: RouteOptions): void;
+    to(location: string, data?: RouteData, options?: RouteOptions, routerViewname?: string): void;
 
     /**
      * Navigate to the previous location
