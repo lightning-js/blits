@@ -122,17 +122,25 @@ const defaultOptions = {
 }
 
 export const makeRouteObject = (route, overrides, overrideOptions, navigationData) => {
-  // FIX: exclude keepAlive from the destination route options. Unlike other
-  // overrides, keepAlive applies to the route being LEFT, not the destination.
-  // It is consumed by removeView() instead.
-  const { keepAlive: _keepAlive, ...destOverrides } = overrideOptions // eslint-disable-line no-unused-vars
+  const options = { ...defaultOptions, ...route.options }
+
+  // keepAlive applies to the route being left, so do not merge it into the destination.
+  if (isObject(overrideOptions)) {
+    const keys = Object.keys(overrideOptions)
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i]
+      if (key !== 'keepAlive') {
+        options[key] = overrideOptions[key]
+      }
+    }
+  }
 
   const cleanRoute = {
     hash: overrides.hash,
     path: route.path,
     component: route.component,
     transition: 'transition' in route ? route.transition : fadeInFadeOutTransition,
-    options: { ...defaultOptions, ...route.options, ...destOverrides },
+    options,
     announce: route.announce || false,
     hooks: route.hooks || {},
     data: { ...route.data, ...navigationData, ...overrides.queryParams },

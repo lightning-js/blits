@@ -534,6 +534,41 @@ test('keepAlive override from to() does NOT merge into destination route options
   assert.end()
 })
 
+test('matchHash accepts non-object override options', (assert) => {
+  const falseResult = matchHash({ path: '/page1/subpage1' }, routes, false)
+  const nullResult = matchHash({ path: '/page1/subpage1' }, routes, null)
+
+  assert.equal(
+    falseResult.path,
+    '/page1/subpage1',
+    'The result object should contain a path key with path hash'
+  )
+
+  assert.deepEqual(
+    falseResult.options,
+    {
+      inHistory: true,
+      keepAlive: false,
+      passFocus: true,
+      reuseComponent: false,
+    },
+    'The result object should contain the default options object'
+  )
+
+  assert.deepEqual(
+    nullResult.options,
+    {
+      inHistory: true,
+      keepAlive: false,
+      passFocus: true,
+      reuseComponent: false,
+    },
+    'The result object should contain the default options object when override options are null'
+  )
+
+  assert.end()
+})
+
 test('Get Hash from URL when navigating using to() method', (assert) => {
   const hash = '#/movies/action/avengers'
 

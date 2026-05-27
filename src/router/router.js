@@ -304,8 +304,9 @@ export const navigate = async function () {
 
       // Resolve effective keepAlive: runtime override from $router.to() takes precedence
       // over the static route config option
+      const hasOverrideOptions = overrideOptions && typeof overrideOptions === 'object'
       const keepAlive =
-        overrideOptions.keepAlive !== undefined
+        hasOverrideOptions && overrideOptions.keepAlive !== undefined
           ? overrideOptions.keepAlive
           : this.previousRoute.options && this.previousRoute.options.keepAlive
 
