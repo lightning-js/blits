@@ -711,20 +711,6 @@ declare module '@lightningjs/blits' {
      * Router Configuration
      */
     router?: RouterConfig<P, S, M, C>
-    /**
-     * Routes definition
-     *
-     * @example
-     *
-     * ```js
-     * routes: [
-     *  { path: '/', component: Home },
-     *  { path: '/details', component: Details },
-     *  { path: '/account', component: Account },
-     * ]
-     * ```
-     */
-    routes?: Route[]
   }
 
   export interface RouterHooks {
