@@ -90,6 +90,7 @@ async function rendererVersion() {
  * @property {boolean} [announcer] - Whether or not the announcer should be activated on initialization
  * @property {boolean} [enableMouse] - Enable mouse support (hover and click-to-focus). Defaults to false.
  * @property {number} [maxFPS] - Maximum FPS
+ * @property {EventTarget} [eventTarget] - Event target to listen on and dipatch events to
  */
 
 /**
