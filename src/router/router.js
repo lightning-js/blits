@@ -106,6 +106,8 @@ export const navigate = async function () {
   if (!this[symbols.parent][symbols.routes] || this[symbols.parent][symbols.routes].length === 0)
     return
 
+  if (this.history === undefined) this.history = []
+
   state.navigating = true
 
   Announcer.stop()
@@ -139,7 +141,8 @@ export const navigate = async function () {
   const currentPath = this.currentRoute.path
 
   // execute before each hook
-  const beforeEachResult = await executeBeforeHook(
+  const beforeEachResult = await executeBeforeHook.call(
+    this,
     this[symbols.parent][symbols.routerHooks],
     'beforeEach',
     this[symbols.parent],
@@ -149,11 +152,13 @@ export const navigate = async function () {
   )
   if (beforeEachResult === false) {
     preventHashChangeNavigation = false
+    state.navigating = false
     return
   }
 
   // execute before route hook
-  const beforeResult = await executeBeforeHook(
+  const beforeResult = await executeBeforeHook.call(
+    this,
     route.hooks,
     'before',
     this[symbols.parent],
@@ -163,6 +168,7 @@ export const navigate = async function () {
   )
   if (beforeResult === false) {
     preventHashChangeNavigation = false
+    state.navigating = false
     return
   }
 
@@ -423,12 +429,14 @@ const executeBeforeHook = async function (
       return false
     }
     // If the resolved result is false, cancel navigation
-    if (result === false && this.history.length > 0) {
-      preventHashChangeNavigation = true
-      currentRoute = previousRoute
-      window.history.back()
-      navigatingBack = false
-      state.navigating = false
+    if (result === false) {
+      if (this.history.length > 0) {
+        preventHashChangeNavigation = true
+        currentRoute = previousRoute
+        window.history.back()
+        navigatingBack = false
+        state.navigating = false
+      }
       return false
     }
   }
