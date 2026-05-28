@@ -38,8 +38,15 @@ export const setHash = (path, routerViewName = '') => {
   let newMain = '/'
   const newNamed = {}
 
-  // Parse existing hash
-  for (const part of parts) {
+  // Parse existing hash. The first segment is always the main route; only
+  // subsequent pipe-separated segments can be named router views.
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i]
+    if (i === 0) {
+      newMain = part
+      continue
+    }
+
     const eqIndex = part.indexOf('=')
 
     // named route: sidebar=/search
