@@ -81,6 +81,7 @@ export default {
   },
   input(key, event) {
     if (state.navigating === true) return
+    if (focusedComponent === null) return
 
     const componentWithInputEvent = getComponentWithInputEvent(focusedComponent, key)
 
