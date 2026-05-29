@@ -18,7 +18,7 @@
 import test from 'tape'
 import { initLog } from '../lib/log.js'
 import { to, navigate, back, state } from './router.js'
-import { matchHash, getHash } from './utils.js'
+import { matchHash, getHash, setHash } from './utils.js'
 import { stage } from '../launch.js'
 import Component from '../component.js'
 import symbols from '../lib/symbols.js'
@@ -468,6 +468,27 @@ test('Get the hash from the URL and handle query params', (assert) => {
   assert.end()
 })
 
+test('Default route query params do not corrupt named router view hashes', (assert) => {
+  location.hash = '#/guide?bookmark=TVGUIDE-ALLCHANNELS|fv=/leagues/5893531656824466130'
+
+  setHash('/details?bookmark=TVGUIDE-ALLCHANNELS')
+
+  assert.equal(
+    location.hash,
+    '#/details?bookmark=TVGUIDE-ALLCHANNELS|fv=/leagues/5893531656824466130',
+    'Default navigation should preserve named router view hash when default route has query params'
+  )
+
+  assert.equal(
+    getHash(location.hash, 'fv').path,
+    '/leagues/5893531656824466130',
+    'Named router view hash should still resolve to its original path'
+  )
+
+  location.hash = '#/'
+  assert.end()
+})
+
 test('Get route object from Match hash when navigating using to() method', (assert) => {
   const hash = '/page1/subpage1'
 
@@ -529,6 +550,41 @@ test('keepAlive override from to() does NOT merge into destination route options
     result.options.keepAlive,
     false,
     'keepAlive override should not be merged into destination route options'
+  )
+
+  assert.end()
+})
+
+test('matchHash accepts non-object override options', (assert) => {
+  const falseResult = matchHash({ path: '/page1/subpage1' }, routes, false)
+  const nullResult = matchHash({ path: '/page1/subpage1' }, routes, null)
+
+  assert.equal(
+    falseResult.path,
+    '/page1/subpage1',
+    'The result object should contain a path key with path hash'
+  )
+
+  assert.deepEqual(
+    falseResult.options,
+    {
+      inHistory: true,
+      keepAlive: false,
+      passFocus: true,
+      reuseComponent: false,
+    },
+    'The result object should contain the default options object'
+  )
+
+  assert.deepEqual(
+    nullResult.options,
+    {
+      inHistory: true,
+      keepAlive: false,
+      passFocus: true,
+      reuseComponent: false,
+    },
+    'The result object should contain the default options object when override options are null'
   )
 
   assert.end()

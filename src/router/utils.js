@@ -4,16 +4,85 @@ import { default as fadeInFadeOutTransition } from './transitions/fadeInOut.js'
  * Get the current hash
  * @returns {Hash}
  */
-export const getHash = (hash) => {
+export const getHash = (hash, routerViewName = '') => {
   if (!hash) hash = '/'
-  const hashParts = hash.replace(/^#/, '').split('?')
+
+  // split router views
+  const [main, ...named] = hash.split('|')
+
+  if (routerViewName !== '') {
+    const match = named.find((name) => name.startsWith(routerViewName + '='))
+    if (match !== undefined) {
+      hash = match.slice(routerViewName.length + 1)
+    } else {
+      hash = '/'
+    }
+  } else {
+    hash = main
+  }
+
+  const [path = '', query = ''] = hash.replace(/^#/, '').split('?')
   return {
-    path: hashParts[0],
-    queryParams: new URLSearchParams(hashParts[1]),
+    path: path,
+    queryParams: new URLSearchParams(query),
     hash: hash,
   }
 }
 
+export const setHash = (path, routerViewName = '') => {
+  const cleanPath = (path || '').replace(/^#/, '')
+  const raw = (location.hash || '').replace(/^#/, '')
+
+  const parts = raw ? raw.split('|').filter(Boolean) : []
+
+  let newMain = '/'
+  const newNamed = {}
+
+  // Parse existing hash. The first segment is always the main route; only
+  // subsequent pipe-separated segments can be named router views.
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i]
+    if (i === 0) {
+      newMain = part
+      continue
+    }
+
+    const eqIndex = part.indexOf('=')
+
+    // named route: sidebar=/search
+    if (eqIndex > 0) {
+      const name = part.slice(0, eqIndex)
+      const value = part.slice(eqIndex + 1)
+      if (value) newNamed[name] = value
+      continue
+    }
+
+    // unnamed/main route
+    if (part) {
+      newMain = part
+    }
+  }
+
+  // Update target router view
+  if (routerViewName === '') {
+    newMain = cleanPath || '/'
+  } else {
+    if (cleanPath) {
+      newNamed[routerViewName] = cleanPath
+    } else {
+      delete newNamed[routerViewName]
+    }
+  }
+
+  // Rebuild hash: main always first
+  let newHash = newMain || '/'
+
+  for (const [name, value] of Object.entries(newNamed)) {
+    newHash += `|${name}=${value}`
+  }
+
+  location.hash = newHash
+}
 export const normalizePath = (path) => {
   return (
     path
@@ -60,17 +129,25 @@ const defaultOptions = {
 }
 
 export const makeRouteObject = (route, overrides, overrideOptions, navigationData) => {
-  // FIX: exclude keepAlive from the destination route options. Unlike other
-  // overrides, keepAlive applies to the route being LEFT, not the destination.
-  // It is consumed by removeView() instead.
-  const { keepAlive: _keepAlive, ...destOverrides } = overrideOptions // eslint-disable-line no-unused-vars
+  const options = { ...defaultOptions, ...route.options }
+
+  // keepAlive applies to the route being left, so do not merge it into the destination.
+  if (isObject(overrideOptions)) {
+    const keys = Object.keys(overrideOptions)
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i]
+      if (key !== 'keepAlive') {
+        options[key] = overrideOptions[key]
+      }
+    }
+  }
 
   const cleanRoute = {
     hash: overrides.hash,
     path: route.path,
     component: route.component,
     transition: 'transition' in route ? route.transition : fadeInFadeOutTransition,
-    options: { ...defaultOptions, ...route.options, ...destOverrides },
+    options,
     announce: route.announce || false,
     hooks: route.hooks || {},
     data: { ...route.data, ...navigationData, ...overrides.queryParams },
@@ -155,4 +232,14 @@ export const matchHash = (
 
   // @ts-ignore - Remove me when we have a better way to handle this
   return matchingRoute
+}
+
+export const sameRouteObject = (route1, route2) => {
+  if (route1 === null) return false
+  if (route2 === null) return false
+
+  // this is too simple a check for now
+  if (route1.hash !== route2.hash) return false
+
+  return true
 }
