@@ -16,7 +16,11 @@
  */
 
 import Component from '../component.js'
-import Router, { state as routerState } from '../router/router.js'
+import Router, {
+  registerRouterView,
+  state as routerState,
+  unregisterRouterView,
+} from '../router/router.js'
 import symbols from '../lib/symbols.js'
 import Focus from '../focus/focus.js'
 
@@ -48,6 +52,8 @@ export default () =>
       },
       hooks: {
         async ready() {
+          registerRouterView(this)
+
           const parent = this[symbols.parent]
           if (parent && parent[symbols.routerHooks] && parent[symbols.routerHooks].init) {
             await parent[symbols.routerHooks].init.apply(parent)
@@ -61,6 +67,7 @@ export default () =>
           window.addEventListener('hashchange', this.hashchangeHandler)
         },
         destroy() {
+          unregisterRouterView(this)
           window.removeEventListener('hashchange', this.hashchangeHandler, false)
         },
         focus() {

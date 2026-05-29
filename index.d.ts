@@ -329,7 +329,14 @@ declare module '@lightningjs/blits' {
      *
      * @param {string}
     */
-    to(location: string, data?: RouteData, options?: RouteOptions, routerViewname?: string): void;
+    to(location: string, data?: RouteData, options?: RouteOptions): boolean;
+
+    /**
+     * Get a router scoped to a named RouterView
+     *
+     * @param {string}
+    */
+    get(name: string): Router;
 
     /**
      * Navigate to the previous location
