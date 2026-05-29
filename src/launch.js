@@ -19,6 +19,7 @@ import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import engine from './engine.js'
 import blitsPackageInfo from '../package.json' with { type: 'json' }
+import { configurePlatform } from './platform.js'
 
 /**
  * @typedef {Object} Font
@@ -90,6 +91,7 @@ async function rendererVersion() {
  * @property {boolean} [announcer] - Whether or not the announcer should be activated on initialization
  * @property {boolean} [enableMouse] - Enable mouse support (hover and click-to-focus). Defaults to false.
  * @property {number} [maxFPS] - Maximum FPS
+ * @property {object|function} [platform] - Platform references and hooks for non-browser environments
  */
 
 /**
@@ -109,6 +111,8 @@ async function rendererVersion() {
  * @returns {void}
  */
 export default (App, target, settings) => {
+  settings = { ...settings, platform: configurePlatform(settings?.platform) }
+
   Settings.set(settings)
 
   initLog()

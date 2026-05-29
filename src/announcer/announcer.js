@@ -17,6 +17,7 @@
 
 import { Log } from '../lib/log.js'
 import speechSynthesis from './speechSynthesis.js'
+import { platform } from '../platform.js'
 
 let active = false
 let count = 0
@@ -27,7 +28,7 @@ let debounce = null
 
 // Global default utterance options
 let globalDefaultOptions = {
-  enableUtteranceKeepAlive: !/android/i.test((self.navigator || {}).userAgent || ''),
+  enableUtteranceKeepAlive: !/android/i.test((platform.navigator || {}).userAgent || ''),
 }
 
 const noopAnnouncement = {
