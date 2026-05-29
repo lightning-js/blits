@@ -25,6 +25,7 @@ import { SCREEN_RESOLUTIONS, RENDER_QUALITIES } from '../../constants.js'
 import colors from '../../lib/colors/colors.js'
 import fontLoader from './fontLoader.js'
 import shaderLoader from './shaderLoader.js'
+import { platform } from '../../platform.js'
 
 /** @type {RendererMain|{}} */
 export let renderer = {}
@@ -73,6 +74,14 @@ const textureMemorySettings = (settings) => {
  *
  */
 export default (App, target, settings = {}) => {
+  const rendererPlatform = settings.platform || platform
+  const windowHeight =
+    rendererPlatform.window !== undefined ? rendererPlatform.window.innerHeight : undefined
+  const hardwareConcurrency =
+    rendererPlatform.navigator !== undefined
+      ? rendererPlatform.navigator.hardwareConcurrency
+      : undefined
+
   renderer = new RendererMain(
     {
       ...{
@@ -84,12 +93,10 @@ export default (App, target, settings = {}) => {
         deviceLogicalPixelRatio:
           settings.pixelRatio ||
           SCREEN_RESOLUTIONS[settings.screenResolution] ||
-          SCREEN_RESOLUTIONS[window.innerHeight] ||
+          SCREEN_RESOLUTIONS[windowHeight] ||
           1,
         numImageWorkers:
-          'webWorkersLimit' in settings
-            ? settings.webWorkersLimit
-            : window.navigator.hardwareConcurrency || 2,
+          'webWorkersLimit' in settings ? settings.webWorkersLimit : hardwareConcurrency || 2,
         clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
         inspector: settings.inspector === true ? Inspector : undefined,
         boundsMargin: settings.viewportMargin || 0,
@@ -100,7 +107,7 @@ export default (App, target, settings = {}) => {
         textureMemory: textureMemorySettings(settings),
         createImageBitmapSupport: 'auto',
         targetFPS: 'maxFPS' in settings ? settings.maxFPS : 0,
-        platform: 'platform' in settings ? settings.platform : null,
+        platform: rendererPlatform,
       },
       ...(settings.advanced || {}),
     },

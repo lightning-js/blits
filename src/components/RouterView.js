@@ -19,6 +19,7 @@ import Component from '../component.js'
 import Router, { state as routerState } from '../router/router.js'
 import symbols from '../lib/symbols.js'
 import Focus from '../focus/focus.js'
+import { platform } from '../platform.js'
 
 /** @typedef {{ $input?: (event: any) => boolean, $focus?: (event: any) => void }} RouterViewParent */
 
@@ -58,10 +59,17 @@ export default () =>
             Router.navigate.apply(this)
           }
 
-          window.addEventListener('hashchange', this.hashchangeHandler)
+          const window = platform.window
+          if (window !== undefined) {
+            this.hashchangeWindow = window
+            window.addEventListener('hashchange', this.hashchangeHandler)
+          }
         },
         destroy() {
-          window.removeEventListener('hashchange', this.hashchangeHandler, false)
+          if (this.hashchangeWindow !== undefined) {
+            this.hashchangeWindow.removeEventListener('hashchange', this.hashchangeHandler, false)
+            this.hashchangeWindow = undefined
+          }
         },
         focus() {
           if (this.activeView && Focus.get() === this) {

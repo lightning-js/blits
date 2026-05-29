@@ -997,6 +997,38 @@ declare module '@lightningjs/blits' {
   type ReactivityModes = 'Proxy' | 'defineProperty'
   type RenderModes = 'webgl' | 'canvas'
 
+  interface Platform {
+    /**
+     * Reference to the environment's window-like object.
+     */
+    window?: Window | any,
+    /**
+     * Reference to the environment's document-like object.
+     */
+    document?: Document | any,
+    /**
+     * Reference to the environment's self/global-like object.
+     */
+    self?: Window | WorkerGlobalScope | any,
+    /**
+     * Reference to the environment's navigator-like object.
+     */
+    navigator?: Navigator | any,
+    /**
+     * KeyboardEvent constructor used for event creation and type checks.
+     */
+    KeyboardEvent?: typeof KeyboardEvent | any,
+    /**
+     * SpeechSynthesisUtterance constructor used by the announcer.
+     */
+    SpeechSynthesisUtterance?: typeof SpeechSynthesisUtterance | any,
+    /**
+     * Speech synthesis API implementation used by the announcer.
+     */
+    speechSynthesis?: SpeechSynthesis | any,
+    [key: string]: any,
+  }
+
     /**
    * Settings
    *
@@ -1312,11 +1344,13 @@ declare module '@lightningjs/blits' {
      */
     maxFPS?: number,
     /**
-     * Custom platform layer to be used by the App (experimental)
+     * Custom platform layer to be used by the App.
      *
-     * Defaults to `null` which will be resolved internally to WebPlatform
+     * Allows replacing browser references such as `window`, `document`, `navigator`,
+     * keyboard event constructors, and speech APIs.
+     * A callback receives Blits' browser defaults and should return the platform overrides.
      */
-    platform?: any
+    platform?: Partial<Platform> | ((defaults: Platform) => Partial<Platform>)
 
   }
 
