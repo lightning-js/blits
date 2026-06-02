@@ -41,6 +41,8 @@ export default {
     return focusedComponent
   },
   set(component, event) {
+    if (component === undefined || component.eol === true) return
+
     clearTimeout(setFocusTimeout)
 
     // early return if already focused
@@ -75,7 +77,7 @@ export default {
 
     // and finally set focus to the leaf component
     setFocusTimeout = setTimeout(
-      () => setFocus(component, event),
+      () => component.eol !== true && setFocus(component, event),
       this.hold === true ? Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS) : 0
     )
   },
