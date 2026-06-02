@@ -77,6 +77,8 @@ export const state = reactive(
  */
 
 const history = []
+const routerViews = new Set()
+let singleRouterView = null
 
 let overrideOptions = {}
 let navigationData = {}
@@ -488,20 +490,51 @@ const executeTransition = async (transition, element, animate) => {
   }
 }
 
-export const to = (path, data = {}, options = {}, routerViewName = '') => {
+export const to = (path, data = {}, options = {}) => {
   navigationData = data
   overrideOptions = options
 
-  setHash(path, routerViewName)
+  setHash(path)
+}
+
+export const toRouterView = (routerView, path, data = {}, options = {}) => {
+  navigationData = data
+  overrideOptions = options
+
+  setHash(path, routerView.name)
+}
+
+export const registerRouterView = (routerView) => {
+  routerViews.add(routerView)
+  singleRouterView = routerViews.size === 1 ? routerView : null
+}
+
+export const unregisterRouterView = (routerView) => {
+  routerViews.delete(routerView)
+  singleRouterView = routerViews.size === 1 ? routerViews.values().next().value : null
+}
+
+export const getRegisteredRouterView = (name) => {
+  for (const routerView of routerViews) {
+    if (routerView.name === name) return routerView
+  }
+  return null
+}
+
+export const getRegisteredRouterViewsCount = () => routerViews.size
+
+export const getSingleRegisteredRouterView = () => {
+  return singleRouterView
 }
 
 export const back = function () {
+  if (this.history === undefined) return
   const route = this.history.pop()
   if (route && this.currentRoute !== route) {
     // set indicator that we are navigating back (to prevent adding page to history stack)
     navigatingBack = true
     navigatingBackTo = route
-    to(route.hash, route.data, route.options, this.name)
+    toRouterView(this, route.hash, route.data, route.options)
     return true
   }
 
@@ -537,7 +570,7 @@ export const back = function () {
     )
 
     if (route && backtrack) {
-      to(route.path, route.data, route.options, this.name)
+      toRouterView(this, route.path, route.data, route.options)
       return true
     }
   }

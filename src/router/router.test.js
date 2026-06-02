@@ -721,6 +721,235 @@ test('Router.back() pops history and navigates to previous route', async (assert
   stage.element = originalElement
 })
 
+test('this.$router.back() uses the owning RouterView history', async (assert) => {
+  const originalElement = stage.element
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('RouterBackComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/router-back-first',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/router-back-second',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/router-back-first')
+  await navigate.call(host)
+  to('/router-back-second')
+  await navigate.call(host)
+
+  const activeView = host[symbols.children][host[symbols.children].length - 1]
+
+  assert.equal(activeView.$router.back(), true, '$router.back() should navigate from a routed view')
+  assert.ok(
+    window.location.hash.includes('router-back-first'),
+    '$router.back() should use the RouterView history'
+  )
+
+  stage.element = originalElement
+})
+
+test('this.$router.back() from app component uses child RouterView history', async (assert) => {
+  const originalElement = stage.element
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('AppRouterBackComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const AppComponent = Component('AppRouterBackRoot', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const app = AppComponent({}, {}, null)
+  app[symbols.routes] = [
+    {
+      path: '/app-router-back-first',
+      component: TestComponent,
+      options: { inHistory: true, passFocus: false },
+    },
+    {
+      path: '/app-router-back-second',
+      component: TestComponent,
+      options: { inHistory: true, passFocus: false },
+    },
+  ]
+
+  const routerView = {
+    [symbols.parent]: app,
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    history: [],
+    name: '',
+  }
+  app[symbols.children].push(routerView)
+  registerRouterView(routerView)
+
+  try {
+    assert.equal(
+      app.$router.to('/app-router-back-first'),
+      true,
+      '$router.to() should navigate from the app component'
+    )
+    await navigate.call(routerView)
+    assert.equal(
+      state.path,
+      '/app-router-back-first',
+      '$router.to() should use the child RouterView'
+    )
+
+    assert.equal(app.$router.to('/app-router-back-second'), true, '$router.to() should return true')
+    await navigate.call(routerView)
+
+    assert.equal(app.$router.back(), true, '$router.back() should navigate from the app component')
+    assert.ok(
+      window.location.hash.includes('app-router-back-first'),
+      '$router.back() should use the child RouterView history'
+    )
+  } finally {
+    unregisterRouterView(routerView)
+    stage.element = originalElement
+  }
+})
+
+test('this.$router.get(name) targets a named RouterView', async (assert) => {
+  const originalElement = stage.element
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const MainComponent = Component('NamedMainComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const ModalComponent = Component('NamedModalComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const AppComponent = Component('NamedRouterRoot', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const app = AppComponent({}, {}, null)
+  app[symbols.routes] = [
+    {
+      path: '/main-first',
+      component: MainComponent,
+      options: { inHistory: true, passFocus: false },
+    },
+    {
+      path: '/main-second',
+      component: MainComponent,
+      options: { inHistory: true, passFocus: false },
+    },
+    {
+      path: '/modal-first',
+      component: ModalComponent,
+      options: { inHistory: true, passFocus: false },
+    },
+    {
+      path: '/modal-second',
+      component: ModalComponent,
+      options: { inHistory: true, passFocus: false },
+    },
+  ]
+
+  const mainRouterView = {
+    [symbols.parent]: app,
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    history: [],
+    name: '',
+  }
+  const modalRouterView = {
+    [symbols.parent]: app,
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    history: [],
+    name: 'modal',
+  }
+  app[symbols.children].push(mainRouterView, modalRouterView)
+  registerRouterView(mainRouterView)
+  registerRouterView(modalRouterView)
+
+  try {
+    assert.equal(app.$router.get('modal').to('/modal-first'), true, 'Named to should return true')
+    await navigate.call(modalRouterView)
+    assert.equal(
+      modalRouterView.currentRoute.path,
+      '/modal-first',
+      'Named to should navigate the named RouterView'
+    )
+
+    assert.equal(app.$router.to('/main-first'), true, 'Default to should return true')
+    await navigate.call(mainRouterView)
+    assert.equal(
+      mainRouterView.currentRoute.path,
+      '/main-first',
+      'Default to should navigate the local/default RouterView'
+    )
+
+    app.$router.get('modal').to('/modal-second')
+    await navigate.call(modalRouterView)
+    assert.equal(app.$router.get('modal').back(), true, 'Named back should return true')
+    assert.ok(
+      window.location.hash.includes('modal=/modal-first'),
+      'Named back should target only the named RouterView'
+    )
+  } finally {
+    unregisterRouterView(mainRouterView)
+    unregisterRouterView(modalRouterView)
+    location.hash = '#/'
+    stage.element = originalElement
+  }
+})
+
 test('Transition out with end callback is invoked on navigate away', async (assert) => {
   const originalElement = stage.element
 

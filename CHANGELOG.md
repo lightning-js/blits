@@ -8,7 +8,7 @@ _02 jun 2026_
 
 ## v2.4.0
 
-_29 may 2026_
+_1 june 2026_
 
 - Improved correct registration of reactivity in computed props
 - Added named router views to enable multiple nested router views
