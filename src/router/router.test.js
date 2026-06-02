@@ -17,7 +17,7 @@
 
 import test from 'tape'
 import { initLog } from '../lib/log.js'
-import { back, navigate, state, to } from './router.js'
+import { back, navigate, registerRouterView, state, to, unregisterRouterView } from './router.js'
 import { matchHash, getHash, setHash } from './utils.js'
 import { stage } from '../launch.js'
 import Component from '../component.js'

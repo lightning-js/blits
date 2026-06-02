@@ -490,11 +490,11 @@ const executeTransition = async (transition, element, animate) => {
   }
 }
 
-export const to = (path, data = {}, options = {}) => {
+export const to = (path, data = {}, options = {}, routerViewName = '') => {
   navigationData = data
   overrideOptions = options
 
-  setHash(path)
+  setHash(path, routerViewName)
 }
 
 export const toRouterView = (routerView, path, data = {}, options = {}) => {
