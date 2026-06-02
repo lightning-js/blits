@@ -1092,6 +1092,153 @@ test('BeforeEach hook route object redirect', async (assert) => {
   stage.element = originalElement
 })
 
+test('Cold redirect does not leave a phantom previous route', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set() {},
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('ColdRedirectComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/cold-original',
+          component: TestComponent,
+          hooks: {
+            before() {
+              return '/cold-redirected'
+            },
+          },
+        },
+        { path: '/cold-redirected', component: TestComponent, options: { passFocus: false } },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    name: '',
+  }
+
+  to('/cold-original')
+  await navigate.call(host)
+  assert.equal(
+    host.currentRoute,
+    undefined,
+    'Redirect should restore the previous RouterView route'
+  )
+
+  await navigate.call(host)
+  assert.equal(host.currentRoute.path, '/cold-redirected', 'Redirected route should become current')
+  assert.equal(host[symbols.children].length, 2, 'Redirected view should remain attached')
+  assert.notEqual(host.activeView.eol, true, 'Redirected view should not be destroyed')
+
+  location.hash = '#/'
+  stage.element = originalElement
+})
+
+test('Named RouterView redirect retains named hash context', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set() {},
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('NamedRedirectComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/named-original',
+          component: TestComponent,
+          hooks: {
+            before() {
+              return { path: '/named-redirected' }
+            },
+          },
+        },
+        { path: '/named-redirected', component: TestComponent, options: { passFocus: false } },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    name: 'modal',
+  }
+
+  location.hash = '#/'
+  to('/named-original', {}, {}, host.name)
+  await navigate.call(host)
+
+  assert.equal(
+    getHash(location.hash, 'modal').path,
+    '/named-redirected',
+    'Redirect should update the named RouterView hash segment'
+  )
+  assert.equal(getHash(location.hash).path, '/', 'Redirect should not replace the main route')
+
+  await navigate.call(host)
+  assert.equal(host.currentRoute.path, '/named-redirected', 'Named redirected route should render')
+  assert.equal(host[symbols.children].length, 2, 'Named redirected view should remain attached')
+
+  location.hash = '#/'
+  stage.element = originalElement
+})
+
+test('Rejected hook with empty history cancels navigation', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set() {},
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('RejectedHookComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [{ path: '/rejected-hook', component: TestComponent }],
+      [symbols.routerHooks]: {
+        beforeEach() {
+          throw new Error('Rejected hook')
+        },
+      },
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    name: '',
+  }
+
+  to('/rejected-hook')
+  await navigate.call(host)
+
+  assert.equal(
+    host.currentRoute,
+    undefined,
+    'Rejected navigation should restore the previous route'
+  )
+  assert.equal(host[symbols.children].length, 1, 'Rejected navigation should not render a view')
+  assert.equal(state.navigating, false, 'Rejected navigation should clear navigating state')
+
+  location.hash = '#/'
+  stage.element = originalElement
+})
+
 test('Route meta data is accessible in route object', (assert) => {
   const route = { path: '/test', meta: { auth: true, role: 'admin' } }
   assert.deepEqual(
@@ -1793,6 +1940,11 @@ test('beforeEach returning false leaves state.path on previous route', async (as
     '/guard-each-1',
     'Navigation should be cancelled when beforeEach returns false'
   )
+  assert.equal(
+    host.currentRoute.path,
+    '/guard-each-1',
+    'RouterView should restore its previous route'
+  )
 
   stage.element = originalElement
 })
@@ -1875,6 +2027,11 @@ test('route before returning false leaves state.path on previous route', async (
     state.path,
     '/guard-before-1',
     'Navigation should be cancelled when route before returns false'
+  )
+  assert.equal(
+    host.currentRoute.path,
+    '/guard-before-1',
+    'RouterView should restore its previous route'
   )
 
   stage.element = originalElement

@@ -408,33 +408,32 @@ const executeBeforeHook = async function (
     try {
       result = await hooks[hookName].call(parent, route, previousRoute)
       if (isString(result)) {
-        currentRoute = previousRoute
-        to(result)
+        this.currentRoute = previousRoute
+        to(result, {}, {}, this.name)
         return false
       }
     } catch (error) {
       Log.error(`Error or Rejected Promise in "${hookName}" Hook`, error)
+      this.currentRoute = previousRoute
       if (this.history.length > 0) {
         preventHashChangeNavigation = true
-        currentRoute = previousRoute
-        /// hmmmm
         window.history.back()
         navigatingBack = false
         state.navigating = false
-        return false
       }
+      return false
     }
     // If the resolved result is an object, redirect if the path in the object was changed
     if (isObject(result) === true && result.path !== currentPath) {
-      currentRoute = previousRoute
-      to(result.path, result.data, result.options)
+      this.currentRoute = previousRoute
+      to(result.path, result.data, result.options, this.name)
       return false
     }
     // If the resolved result is false, cancel navigation
     if (result === false) {
+      this.currentRoute = previousRoute
       if (this.history.length > 0) {
         preventHashChangeNavigation = true
-        currentRoute = previousRoute
         window.history.back()
         navigatingBack = false
         state.navigating = false
@@ -491,11 +490,11 @@ const executeTransition = async (transition, element, animate) => {
   }
 }
 
-export const to = (path, data = {}, options = {}) => {
+export const to = (path, data = {}, options = {}, routerViewName = '') => {
   navigationData = data
   overrideOptions = options
 
-  setHash(path)
+  setHash(path, routerViewName)
 }
 
 export const toRouterView = (routerView, path, data = {}, options = {}) => {

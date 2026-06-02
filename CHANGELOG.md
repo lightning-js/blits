@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.4.1
+
+_02 jun 2026_
+
+- Fixed router issue with initial redirect
+
 ## v2.4.0
 
 _1 june 2026_
