@@ -1226,14 +1226,26 @@ declare module '@lightningjs/blits' {
     /**
      * Selects the platform abstraction layer used by the Lightning renderer.
      *
-     * - `web` (default) - Modern browsers with full `createImageBitmap` support
-     * - `next` - PWAs / Service Worker environments using the Fetch API for image loading
-     * - `chrome50` - Older Chromium / WPEWebKit 2017 with basic `createImageBitmap` support
-     * - `legacy` - QtWebKit and other legacy engines with limited browser APIs
+     * Accepts either:
+     * - A string alias for one of the bundled implementations:
+     *   - `web` (default) - Modern browsers with full `createImageBitmap` support
+     *   - `next` - PWAs / Service Worker environments using the Fetch API for image loading
+     *   - `chrome50` - Older Chromium / WPEWebKit 2017 with basic `createImageBitmap` support
+     *   - `legacy` - QtWebKit and other legacy engines with limited browser APIs
+     * - A `Platform` class reference imported from `@lightningjs/renderer/platforms`
+     *   (or a custom subclass) for full control over the platform implementation.
      *
      * When omitted, the renderer falls back to `WebPlatform`.
+     *
+     * @example
+     * ```js
+     * import { WebPlatformChrome50 } from '@lightningjs/renderer/platforms'
+     *
+     * Blits.Launch(App, 'app', { platform: WebPlatformChrome50 })
+     * Blits.Launch(App, 'app', { platform: 'chrome50' }) // equivalent
+     * ```
      */
-    platform?: Platforms,
+    platform?: Platforms | (new (...args: any[]) => any),
 
     /**
      * The time, in milliseconds, after which Blits considers a key press a _hold_ key press

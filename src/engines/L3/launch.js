@@ -113,7 +113,10 @@ export default (App, target, settings = {}) => {
         textureMemory: textureMemorySettings(settings),
         createImageBitmapSupport: 'auto',
         targetFPS: 'maxFPS' in settings ? settings.maxFPS : 0,
-        platform: PLATFORMS[settings.platform] || WebPlatform,
+        platform:
+          typeof settings.platform === 'function'
+            ? settings.platform
+            : PLATFORMS[settings.platform] || WebPlatform,
       },
       ...(settings.advanced || {}),
     },

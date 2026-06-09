@@ -71,11 +71,13 @@ Example font object:
 |----------------|-----------|-------------|
 | `renderMode`   | `'webgl' \| 'canvas'` | Renderer mode (default: 'webgl') |
 | `canvas`       | `HTMLCanvasElement` | Custom canvas to render to |
-| `platform`     | `'web' \| 'next' \| 'chrome50' \| 'legacy'` | Platform abstraction layer used by the Lightning renderer (default: `'web'`) |
+| `platform`     | `'web' \| 'next' \| 'chrome50' \| 'legacy' \| Platform` | Platform abstraction layer used by the Lightning renderer (default: `'web'`) |
 
 ### Platform
 
 The `platform` setting selects which platform abstraction the underlying Lightning renderer uses to talk to the browser (image loading, canvas creation, etc.). Most Apps should leave this unset and use the default `web` platform; the alternatives exist for environments where the modern browser APIs aren't fully available.
+
+You can pass either a **string alias** (recommended) or a **`Platform` class reference** imported directly from `@lightningjs/renderer/platforms` for full control (including custom subclasses).
 
 | Value      | Browser engine |
 |------------|-------------|
@@ -84,12 +86,23 @@ The `platform` setting selects which platform abstraction the underlying Lightni
 | `chrome50` | Chrome 50+ |
 | `legacy`   | Chrome 40+ |
 
-Example:
+Example using a string alias:
 ```js
 Blits.Launch(App, 'app', {
   w: 1920,
   h: 1080,
   platform: 'legacy',
+})
+```
+
+Example passing a class reference:
+```js
+import { WebPlatformChrome50 } from '@lightningjs/renderer/platforms'
+
+Blits.Launch(App, 'app', {
+  w: 1920,
+  h: 1080,
+  platform: WebPlatformChrome50,
 })
 ```
 
