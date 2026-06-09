@@ -83,6 +83,7 @@ async function rendererVersion() {
  * @property {number} [gpuMemoryLimit] - Threshold after which textures are freed (deprecated)
  * @property {object} [gpuMemory] - Configures the gpu memory settings
  * @property {"webgl"|"canvas"} [renderMode] - Defines which mode the renderer should operate in
+ * @property {"web"|"next"|"chrome50"|"legacy"} [platform] - Platform abstraction layer used by the renderer
  * @property {number} [holdTimeout] - Time after which a key press is considered a hold
  * @property {HTMLCanvasElement} [canvas] - Custom canvas object used to render the App
  * @property {number} [textureProcessingTimeLimit] - Max time renderer can process textures in a frame
