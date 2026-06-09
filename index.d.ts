@@ -1003,6 +1003,7 @@ declare module '@lightningjs/blits' {
 
   type ReactivityModes = 'Proxy' | 'defineProperty'
   type RenderModes = 'webgl' | 'canvas'
+  type Platforms = 'web' | 'next' | 'chrome50' | 'legacy'
 
     /**
    * Settings
@@ -1221,6 +1222,18 @@ declare module '@lightningjs/blits' {
      * Defaults to `webgl`
      */
     renderMode?: RenderModes,
+
+    /**
+     * Selects the platform abstraction layer used by the Lightning renderer.
+     *
+     * - `web` (default) - Modern browsers with full `createImageBitmap` support
+     * - `next` - PWAs / Service Worker environments using the Fetch API for image loading
+     * - `chrome50` - Older Chromium / WPEWebKit 2017 with basic `createImageBitmap` support
+     * - `legacy` - QtWebKit and other legacy engines with limited browser APIs
+     *
+     * When omitted, the renderer falls back to `WebPlatform`.
+     */
+    platform?: Platforms,
 
     /**
      * The time, in milliseconds, after which Blits considers a key press a _hold_ key press
