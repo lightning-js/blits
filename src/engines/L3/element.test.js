@@ -1462,3 +1462,23 @@ test('Element - frame-only change does not rebind image load listeners', (assert
     assert.end()
   })
 })
+
+test('Element - destroy clears native sprite state', (assert) => {
+  assert.capture(testRenderer, 'createTexture', (type) => ({
+    type,
+    off: () => {},
+    on: () => {},
+  }))
+  assert.capture(testRenderer, 'createNode', () =>
+    Object.assign(new EventEmitter(), { destroy() {} })
+  )
+  const el = createNativeSpriteElement({
+    image: 'a.png',
+    map: { frames: { 0: { x: 0, y: 0, w: 10, h: 10 } } },
+    frame: 0,
+    '@loaded': () => {},
+  })
+  el.destroy()
+  assert.equal(el._spriteState, null, 'sprite state should be cleared on destroy')
+  assert.end()
+})

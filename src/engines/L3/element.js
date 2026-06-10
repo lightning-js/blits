@@ -938,10 +938,14 @@ const Element = {
 
     Log.debug('Deleting Node', this.nodeId)
 
-    if (this[symbols.isSprite] === true && this._spriteState && this._spriteState.spriteTexture) {
+    if (this[symbols.isSprite] === true && this._spriteState) {
       const st = this._spriteState
-      if (st._loadedCb) st.spriteTexture.off('loaded', st._loadedCb)
-      if (st._failedCb) st.spriteTexture.off('failed', st._failedCb)
+      if (st.spriteTexture) {
+        if (st._loadedCb) st.spriteTexture.off('loaded', st._loadedCb)
+        if (st._failedCb) st.spriteTexture.off('failed', st._failedCb)
+      }
+      if (st.subTextures) st.subTextures.clear()
+      this._spriteState = null
     }
 
     // Clear all pending debounce timeouts
