@@ -329,7 +329,7 @@ declare module '@lightningjs/blits' {
      *
      * @param {string}
     */
-    to(location: string, data?: RouteData, options?: RouteOptions): void;
+    to(location: string, data?: RouteData, options?: RouteOptions, routerViewname?: string): void;
 
     /**
      * Navigate to the previous location
@@ -707,6 +707,10 @@ declare module '@lightningjs/blits' {
      * Watchers for changes to state variables, props or computed properties
      */
     watch?: W & ComponentContext<P, S, M, C>
+    /**
+     * Router Configuration
+     */
+    router?: RouterConfig<P, S, M, C>
   }
 
   export interface RouterHooks {
@@ -759,7 +763,7 @@ declare module '@lightningjs/blits' {
 
   export type ApplicationConfig<P extends Props, S, M, C, W> = Omit<
     ComponentConfig<P, S, M, C, W>,
-    'hooks' | 'methods' | 'input' | 'computed' | 'watch' | 'state'
+    'hooks' | 'methods' | 'input' | 'computed' | 'watch' | 'state' | 'router' | 'routes'
   > & {
     hooks?: Hooks & ApplicationContext<P, S, M, C>
     methods?: M & ApplicationContext<P, S, M, C>
