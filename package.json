@@ -5,6 +5,10 @@
   "bin": "bin/index.js",
   "exports": {
     ".": "./index.js",
+    "./platforms": {
+      "types": "./src/platforms.d.ts",
+      "default": "./src/platforms.js"
+    },
     "./vite": "./vite/index.js",
     "./transitions": "./src/router/transitions/index.js",
     "./precompiler": "./src/lib/precompiler/precompiler.js",
@@ -75,7 +79,7 @@
     "tape": "^5.5.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "^3.0.3",
+    "@lightningjs/renderer": "^3.0.6",
     "magic-string": "^0.30.21"
   },
   "repository": {
