@@ -27,6 +27,8 @@ let focusedComponent = null
 let focusChain = []
 let setFocusTimeout
 
+const _eventTarget = Settings.get('eventTarget', document)
+
 export const keyUpCallbacks = new Map()
 
 export default {
@@ -138,6 +140,6 @@ const setFocus = (component, event) => {
 
   if (event instanceof KeyboardEvent) {
     const internalEvent = new InternalKeyboardEvent('keydown', event)
-    document.dispatchEvent(internalEvent)
+    _eventTarget.dispatchEvent(internalEvent)
   }
 }

@@ -43,18 +43,23 @@ const Application = (config) => {
   let lastInputTime = 0
   let lastInputKey = null
   let mouseListenersAdded = false
+  const eventTarget = Settings.get('eventTarget', document)
+  const _window = (typeof window === 'object') ? window : undefined
+
 
   config.hooks[symbols.destroy] = function () {
     // Cancel pending key-hold timeout and reset hold state so focus is not left in hold mode after teardown
     clearTimeout(holdTimeout)
     Focus.hold = false
-    document.removeEventListener('keydown', keyDownHandler)
-    document.removeEventListener('keyup', keyUpHandler)
+    eventTarget.removeEventListener('keydown', keyDownHandler)
+    eventTarget.removeEventListener('keyup', keyUpHandler)
     if (mouseListenersAdded) {
-      document.removeEventListener('mousemove', mouseMoveHandler)
-      document.removeEventListener('click', mouseClickHandler)
-      window.removeEventListener('resize', updateCanvasRect)
-      window.removeEventListener('scroll', updateCanvasRect)
+      eventTarget.removeEventListener('mousemove', mouseMoveHandler)
+      eventTarget.removeEventListener('click', mouseClickHandler)
+      if (_window) {
+        _window.removeEventListener('resize', updateCanvasRect)
+        _window.removeEventListener('scroll', updateCanvasRect)
+      }
       Hover.clear()
     }
   }
@@ -195,15 +200,17 @@ const Application = (config) => {
       currentComponent.$input(e)
     }
 
-    document.addEventListener('keydown', keyDownHandler)
-    document.addEventListener('keyup', keyUpHandler)
+    eventTarget.addEventListener('keydown', keyDownHandler)
+    eventTarget.addEventListener('keyup', keyUpHandler)
     if (mouseEnabled === true) {
       updateCanvasRect()
-      document.addEventListener('mousemove', mouseMoveHandler)
-      document.addEventListener('click', mouseClickHandler)
-      window.addEventListener('resize', updateCanvasRect)
-      window.addEventListener('scroll', updateCanvasRect)
-      mouseListenersAdded = true
+      eventTarget.addEventListener('mousemove', mouseMoveHandler)
+      eventTarget.addEventListener('click', mouseClickHandler)
+      if (_window) {
+        _window.addEventListener('resize', updateCanvasRect)
+        _window.addEventListener('scroll', updateCanvasRect)
+        mouseListenersAdded = true
+      }
     }
 
     // next tick
