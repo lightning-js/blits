@@ -19,6 +19,12 @@ import { RendererMain } from '@lightningjs/renderer'
 import { WebGlCoreRenderer, SdfTextRenderer } from '@lightningjs/renderer/webgl'
 import { CanvasCoreRenderer, CanvasTextRenderer } from '@lightningjs/renderer/canvas'
 import { Inspector } from '@lightningjs/renderer/inspector'
+import {
+  WebPlatform,
+  WebPlatformNext,
+  WebPlatformChrome50,
+  WebPlatformLegacy,
+} from '@lightningjs/renderer/platforms'
 
 import { Log } from '../../lib/log.js'
 import { SCREEN_RESOLUTIONS, RENDER_QUALITIES } from '../../constants.js'
@@ -41,6 +47,13 @@ const textRenderEngines = (settings) => {
 
   if (renderMode === 'webgl') return [SdfTextRenderer, CanvasTextRenderer]
   if (renderMode === 'canvas') return [CanvasTextRenderer]
+}
+
+const PLATFORMS = {
+  web: WebPlatform,
+  next: WebPlatformNext,
+  chrome50: WebPlatformChrome50,
+  legacy: WebPlatformLegacy,
 }
 
 const textureMemorySettings = (settings) => {
@@ -100,7 +113,10 @@ export default (App, target, settings = {}) => {
         textureMemory: textureMemorySettings(settings),
         createImageBitmapSupport: 'auto',
         targetFPS: 'maxFPS' in settings ? settings.maxFPS : 0,
-        platform: 'platform' in settings ? settings.platform : null,
+        platform:
+          typeof settings.platform === 'function'
+            ? settings.platform
+            : PLATFORMS[settings.platform] || WebPlatform,
       },
       ...(settings.advanced || {}),
     },
