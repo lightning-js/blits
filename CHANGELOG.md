@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.5.0
+
+_11 jun 2026_
+
+- Improved performance of Sprites
+- Fixed correct typing of computed props
+- Bumped renderer to 3.0.6
+- Added re-export of platforms from renderer
+
 ## v2.4.1
 
 _02 jun 2026_

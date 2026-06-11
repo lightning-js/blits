@@ -39,6 +39,23 @@ if (!renderer.createTextNode) {
 
 let elementRef
 
+const testRenderer = /** @type {any} */ (renderer)
+const testComponent = /** @type {any} */ ({})
+
+/**
+ * @param {Record<string, any>} props
+ * @returns {import('../../component.js').BlitsElement}
+ */
+function createNativeSpriteElement(props) {
+  const el = element({ parent: { node: { w: 1920, h: 1080 }, props: {} } }, testComponent)
+  el.populate({
+    parent: { node: new EventEmitter() },
+    [symbols.isSprite]: true,
+    ...props,
+  })
+  return el
+}
+
 test('Type', (assert) => {
   assert.ok(element instanceof Function, 'Element should be a factory function')
   assert.end()
@@ -1317,5 +1334,151 @@ test('Element - Set maxheight property', (assert) => {
   const el = createElement({ props: { __textnode: true } })
   el.set('maxheight', 300)
   assert.equal(el.props.props['contain'], 'height', 'maxheight should set contain to height')
+  assert.end()
+})
+
+test('Element - skips native sprite sync when image, map, and frame are unchanged', (assert) => {
+  let createTextureCalls = 0
+  assert.capture(testRenderer, 'createTexture', (type) => {
+    createTextureCalls++
+    return { type, off: () => {}, on: () => {} }
+  })
+  assert.capture(testRenderer, 'createNode', () => Object.assign(new EventEmitter(), {}))
+  const map = { frames: { 0: { x: 0, y: 0, w: 10, h: 10 } } }
+  const el = createNativeSpriteElement({ image: 'a.png', map, frame: 0 })
+  createTextureCalls = 0
+  el._syncNativeSprite()
+  el._syncNativeSprite()
+  assert.equal(
+    createTextureCalls,
+    0,
+    'texture work should be skipped when sprite inputs are unchanged'
+  )
+  assert.end()
+})
+
+test('Element - does not schedule sprite sync when setting the same frame', (assert) => {
+  assert.capture(testRenderer, 'createTexture', (type) => ({
+    type,
+    off: () => {},
+    on: () => {},
+  }))
+  assert.capture(testRenderer, 'createNode', () => Object.assign(new EventEmitter(), {}))
+  const map = { frames: { 0: { x: 0, y: 0, w: 10, h: 10 } } }
+  const el = createNativeSpriteElement({ image: 'a.png', map, frame: 0 })
+  let scheduleCalls = 0
+  const origSchedule = el._scheduleNativeSpriteSync
+  el._scheduleNativeSpriteSync = function () {
+    scheduleCalls++
+    return origSchedule.call(this)
+  }
+  el.set('frame', 0)
+  assert.equal(scheduleCalls, 0, 'same frame value should not schedule a sync')
+  assert.end()
+})
+
+test('Element - coalesces native sprite syncs in one tick', (assert) => {
+  assert.capture(testRenderer, 'createTexture', (type) => ({
+    type,
+    off: () => {},
+    on: () => {},
+  }))
+  assert.capture(testRenderer, 'createNode', () => Object.assign(new EventEmitter(), {}))
+  const map = {
+    frames: { 0: { x: 0, y: 0, w: 10, h: 10 }, 1: { x: 1, y: 0, w: 10, h: 10 } },
+  }
+  const el = createNativeSpriteElement({ image: 'a.png', map, frame: 0 })
+  let syncCalls = 0
+  const origSync = el._syncNativeSprite
+  el._syncNativeSprite = function () {
+    syncCalls++
+    return origSync.call(this)
+  }
+  syncCalls = 0
+  el.set('frame', 1)
+  el.set('image', 'b.png')
+  el.set('frame', 0)
+  queueMicrotask(() => {
+    assert.equal(syncCalls, 1, 'multiple sprite prop sets in one tick should sync once')
+    assert.end()
+  })
+})
+
+test('Element - repeat native sprite sync does not call set(texture) again', (assert) => {
+  assert.capture(testRenderer, 'createTexture', (type) => ({
+    type,
+    off: () => {},
+    on: () => {},
+  }))
+  assert.capture(testRenderer, 'createNode', () => Object.assign(new EventEmitter(), {}))
+  const map = { frames: { 0: { x: 0, y: 0, w: 10, h: 10 } } }
+  const el = createNativeSpriteElement({ image: 'a.png', map, frame: 0 })
+  let setTextureCalls = 0
+  const origSet = el.set
+  el.set = function (prop, value) {
+    if (prop === 'texture') setTextureCalls++
+    return origSet.call(this, prop, value)
+  }
+  setTextureCalls = 0
+  el._syncNativeSprite()
+  assert.equal(setTextureCalls, 0, 'unchanged sprite state should not set texture on node again')
+  assert.end()
+})
+
+test('Element - frame-only change does not rebind image load listeners', (assert) => {
+  const imgTex = {
+    onCalls: 0,
+    offCalls: 0,
+    on() {
+      this.onCalls++
+    },
+    off() {
+      this.offCalls++
+    },
+  }
+  let subId = 0
+  assert.capture(testRenderer, 'createTexture', (type) => {
+    if (type === 'ImageTexture') return imgTex
+    if (type === 'SubTexture') return { id: ++subId }
+    return {}
+  })
+  assert.capture(testRenderer, 'createNode', () => Object.assign(new EventEmitter(), {}))
+  const map = {
+    frames: { 0: { x: 0, y: 0, w: 10, h: 10 }, 1: { x: 1, y: 0, w: 10, h: 10 } },
+  }
+  const el = createNativeSpriteElement({
+    image: 'a.png',
+    map,
+    frame: 0,
+    '@loaded': () => {},
+  })
+  assert.ok(imgTex.onCalls > 0, 'listeners should bind on initial image sync')
+  imgTex.onCalls = 0
+  imgTex.offCalls = 0
+  el.set('frame', 1)
+  queueMicrotask(() => {
+    assert.equal(imgTex.onCalls, 0, 'frame-only change should not call on() again')
+    assert.equal(imgTex.offCalls, 0, 'frame-only change should not call off()')
+    assert.end()
+  })
+})
+
+test('Element - destroy clears native sprite state', (assert) => {
+  assert.capture(testRenderer, 'createTexture', (type) => ({
+    type,
+    off: () => {},
+    on: () => {},
+  }))
+  assert.capture(testRenderer, 'createNode', () =>
+    Object.assign(new EventEmitter(), { destroy() {} })
+  )
+  const el = createNativeSpriteElement({
+    image: 'a.png',
+    map: { frames: { 0: { x: 0, y: 0, w: 10, h: 10 } } },
+    frame: 0,
+    '@loaded': () => {},
+  })
+  el.destroy()
+  assert.equal(el._spriteState, null, 'sprite state should be cleared on destroy')
   assert.end()
 })
