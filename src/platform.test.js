@@ -19,29 +19,55 @@ import test from 'tape'
 import { configurePlatform, platform as activePlatform } from './platform.js'
 
 test('Platform - configurePlatform merges custom references with browser defaults', (assert) => {
-  const customDocument = {}
-  const platform = configurePlatform({
-    document: customDocument,
+  const customInput = {}
+  const platform = configurePlatform(() => ({
+    input: customInput,
     customCapability: true,
-  })
+  }))
 
-  assert.equal(platform.document, customDocument, 'custom document reference is used')
-  assert.equal(platform.window, window, 'browser default window is preserved')
+  assert.equal(platform.input, customInput, 'custom input reference is used')
+  assert.equal(platform.viewport, window, 'browser default viewport is preserved')
   assert.equal(platform.customCapability, true, 'custom platform fields are preserved')
   assert.equal(activePlatform, platform, 'configured platform becomes the active platform')
 
-  configurePlatform()
+  configurePlatform(() => ({}))
   assert.end()
 })
 test('Platform - configurePlatform accepts a callback with browser defaults', (assert) => {
   const platform = configurePlatform((defaults) => ({
-    window: defaults.window,
+    viewport: defaults.viewport,
     callbackPlatform: true,
   }))
 
-  assert.equal(platform.window, window, 'callback receives browser defaults')
+  assert.equal(platform.viewport, window, 'callback receives browser defaults')
   assert.equal(platform.callbackPlatform, true, 'callback result is merged into platform')
 
-  configurePlatform()
+  configurePlatform(() => ({}))
+  assert.end()
+})
+
+test('Platform - custom KeyboardEvent constructor is used for keyboard helpers', (assert) => {
+  class CustomKeyboardEvent {
+    constructor(type, init = {}) {
+      this.type = type
+      Object.assign(this, init)
+    }
+  }
+
+  const platform = configurePlatform(() => ({
+    KeyboardEvent: CustomKeyboardEvent,
+  }))
+  const event = platform.createKeyboardEvent('keydown', { keyCode: 13 })
+
+  assert.ok(event instanceof CustomKeyboardEvent, 'created event uses custom constructor')
+  assert.equal(event.keyCode, 13, 'created event receives init data')
+  assert.equal(platform.isKeyboardEvent(event), true, 'custom event passes keyboard event check')
+  assert.equal(
+    platform.isKeyboardEvent(new KeyboardEvent('keydown')),
+    false,
+    'browser event is rejected'
+  )
+
+  configurePlatform(() => ({}))
   assert.end()
 })

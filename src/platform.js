@@ -17,48 +17,101 @@
 
 const globalScope = globalThis
 
-const getGlobal = (key) => (key in globalScope ? globalScope[key] : undefined)
+const createKeyboardEventFactory = (KeyboardEventConstructor) => {
+  if (KeyboardEventConstructor === undefined) return undefined
+
+  return (type, init = {}) => {
+    const event = new KeyboardEventConstructor(type, init)
+    if ('keyCode' in init && event.keyCode !== init.keyCode) {
+      Object.defineProperty(event, 'keyCode', {
+        get: () => init.keyCode,
+      })
+    }
+    return event
+  }
+}
 
 const browserPlatform = () => {
-  const windowRef = getGlobal('window')
-  const documentRef = getGlobal('document') || windowRef?.document
-  const selfRef = getGlobal('self') || windowRef || globalScope
-  const navigatorRef = getGlobal('navigator') || windowRef?.navigator || selfRef?.navigator
+  const windowRef = globalScope.window
+  const documentRef = globalScope.document || (windowRef && windowRef.document)
+  const selfRef = globalScope.self || windowRef || globalScope
+  const navigatorRef =
+    globalScope.navigator || (windowRef && windowRef.navigator) || (selfRef && selfRef.navigator)
+  const KeyboardEventConstructor =
+    globalScope.KeyboardEvent || (windowRef && windowRef.KeyboardEvent)
+  let localStorage
+
+  try {
+    localStorage = (windowRef && windowRef.localStorage) || globalScope.localStorage
+  } catch {
+    localStorage = undefined
+  }
+
+  const createKeyboardEvent = createKeyboardEventFactory(KeyboardEventConstructor)
 
   return {
-    window: windowRef,
-    document: documentRef,
-    self: selfRef,
-    navigator: navigatorRef,
-    KeyboardEvent: getGlobal('KeyboardEvent') || windowRef?.KeyboardEvent,
+    input: documentRef,
+    viewport: windowRef,
+    dispatchEvent:
+      documentRef && documentRef.dispatchEvent
+        ? documentRef.dispatchEvent.bind(documentRef)
+        : undefined,
+    localStorage,
+    getCookie: () => (documentRef && documentRef.cookie) || '',
+    setCookie: (value) => {
+      if (documentRef !== undefined) documentRef.cookie = value
+    },
+    historyBack: () => {
+      if (windowRef && windowRef.history && windowRef.history.back) windowRef.history.back()
+    },
+    screenHeight: windowRef && windowRef.innerHeight,
+    hardwareConcurrency: navigatorRef && navigatorRef.hardwareConcurrency,
+    userAgent: navigatorRef && navigatorRef.userAgent,
+    KeyboardEvent: KeyboardEventConstructor,
+    isKeyboardEvent:
+      KeyboardEventConstructor !== undefined
+        ? (event) => event instanceof KeyboardEventConstructor
+        : undefined,
+    createKeyboardEvent,
     SpeechSynthesisUtterance:
-      getGlobal('SpeechSynthesisUtterance') || windowRef?.SpeechSynthesisUtterance,
-    speechSynthesis: selfRef?.speechSynthesis || windowRef?.speechSynthesis,
+      globalScope.SpeechSynthesisUtterance || (windowRef && windowRef.SpeechSynthesisUtterance),
+    speechSynthesis:
+      (selfRef && selfRef.speechSynthesis) || (windowRef && windowRef.speechSynthesis),
+    now:
+      globalScope.performance && globalScope.performance.now !== undefined
+        ? globalScope.performance.now.bind(globalScope.performance)
+        : Date.now,
   }
 }
 
 export let platform = browserPlatform()
 
-export const configurePlatform = (customPlatform = {}) => {
+export const configurePlatform = (customPlatform) => {
   const basePlatform = browserPlatform()
-  const resolvedCustomPlatform =
-    typeof customPlatform === 'function' ? customPlatform(basePlatform) : customPlatform || {}
+  const resolvedCustomPlatform = customPlatform(basePlatform) || {}
 
   platform = {
     ...basePlatform,
     ...resolvedCustomPlatform,
   }
 
-  platform.document = platform.document || platform.window?.document
-  platform.navigator = platform.navigator || platform.window?.navigator || platform.self?.navigator
-  platform.KeyboardEvent =
-    platform.KeyboardEvent || platform.window?.KeyboardEvent || basePlatform.KeyboardEvent
+  platform.KeyboardEvent = platform.KeyboardEvent || basePlatform.KeyboardEvent
+  platform.isKeyboardEvent =
+    resolvedCustomPlatform.isKeyboardEvent ||
+    (platform.KeyboardEvent !== undefined
+      ? (event) => event instanceof platform.KeyboardEvent
+      : basePlatform.isKeyboardEvent)
+  platform.createKeyboardEvent =
+    resolvedCustomPlatform.createKeyboardEvent ||
+    createKeyboardEventFactory(platform.KeyboardEvent) ||
+    basePlatform.createKeyboardEvent
+  platform.getCookie = platform.getCookie || basePlatform.getCookie
+  platform.setCookie = platform.setCookie || basePlatform.setCookie
+  platform.historyBack = platform.historyBack || basePlatform.historyBack
   platform.SpeechSynthesisUtterance =
-    platform.SpeechSynthesisUtterance ||
-    platform.window?.SpeechSynthesisUtterance ||
-    basePlatform.SpeechSynthesisUtterance
-  platform.speechSynthesis =
-    platform.speechSynthesis || platform.self?.speechSynthesis || platform.window?.speechSynthesis
+    platform.SpeechSynthesisUtterance || basePlatform.SpeechSynthesisUtterance
+  platform.speechSynthesis = platform.speechSynthesis || basePlatform.speechSynthesis
+  platform.now = platform.now || basePlatform.now
 
   return platform
 }

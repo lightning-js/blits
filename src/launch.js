@@ -87,11 +87,12 @@ async function rendererVersion() {
  * @property {number} [holdTimeout] - Time after which a key press is considered a hold
  * @property {HTMLCanvasElement} [canvas] - Custom canvas object used to render the App
  * @property {number} [textureProcessingTimeLimit] - Max time renderer can process textures in a frame
+ * @property {import('@lightningjs/renderer').RendererMainSettings['platform']} [rendererPlatform] - Custom platform used by the renderer
  * @property {Partial<import('@lightningjs/renderer').RendererMainSettings>} [advanced] - Advanced renderer settings
  * @property {boolean} [announcer] - Whether or not the announcer should be activated on initialization
  * @property {boolean} [enableMouse] - Enable mouse support (hover and click-to-focus). Defaults to false.
  * @property {number} [maxFPS] - Maximum FPS
- * @property {object|function} [platform] - Platform references and hooks for non-browser environments
+ * @property {function} [platform] - Platform factory for non-browser environments
  */
 
 /**
@@ -111,11 +112,29 @@ async function rendererVersion() {
  * @returns {void}
  */
 export default (App, target, settings) => {
-  settings = { ...settings, platform: configurePlatform(settings?.platform) }
+  let warnLegacyRendererPlatform = false
+
+  if (settings !== undefined && 'platform' in settings) {
+    if (typeof settings.platform === 'function') {
+      settings.platform = configurePlatform(settings.platform)
+    } else {
+      if ('rendererPlatform' in settings === false) {
+        settings.rendererPlatform = settings.platform
+      }
+      delete settings.platform
+      warnLegacyRendererPlatform = true
+    }
+  }
 
   Settings.set(settings)
 
   initLog()
+
+  if (warnLegacyRendererPlatform === true) {
+    Log.warn(
+      'Passing a renderer platform via settings.platform is deprecated. Use settings.rendererPlatform instead.'
+    )
+  }
 
   rendererVersion().then((v) => {
     Log.info('Blits Version ', blitsPackageInfo.version)

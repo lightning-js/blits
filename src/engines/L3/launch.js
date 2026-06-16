@@ -74,13 +74,10 @@ const textureMemorySettings = (settings) => {
  *
  */
 export default (App, target, settings = {}) => {
-  const rendererPlatform = settings.platform || platform
-  const windowHeight =
-    rendererPlatform.window !== undefined ? rendererPlatform.window.innerHeight : undefined
-  const hardwareConcurrency =
-    rendererPlatform.navigator !== undefined
-      ? rendererPlatform.navigator.hardwareConcurrency
-      : undefined
+  const screenHeight = settings.platform ? settings.platform.screenHeight : platform.screenHeight
+  const hardwareConcurrency = settings.platform
+    ? settings.platform.hardwareConcurrency
+    : platform.hardwareConcurrency
 
   renderer = new RendererMain(
     {
@@ -93,7 +90,7 @@ export default (App, target, settings = {}) => {
         deviceLogicalPixelRatio:
           settings.pixelRatio ||
           SCREEN_RESOLUTIONS[settings.screenResolution] ||
-          SCREEN_RESOLUTIONS[windowHeight] ||
+          SCREEN_RESOLUTIONS[screenHeight] ||
           1,
         numImageWorkers:
           'webWorkersLimit' in settings ? settings.webWorkersLimit : hardwareConcurrency || 2,
@@ -107,7 +104,7 @@ export default (App, target, settings = {}) => {
         textureMemory: textureMemorySettings(settings),
         createImageBitmapSupport: 'auto',
         targetFPS: 'maxFPS' in settings ? settings.maxFPS : 0,
-        platform: rendererPlatform,
+        platform: settings.rendererPlatform || null,
       },
       ...(settings.advanced || {}),
     },

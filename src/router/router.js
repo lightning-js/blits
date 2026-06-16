@@ -416,7 +416,7 @@ const executeBeforeHook = async function (
       if (this.history.length > 0) {
         preventHashChangeNavigation = true
         currentRoute = previousRoute
-        platform.window.history.back()
+        platform.historyBack()
         navigatingBack = false
         state.navigating = false
         return false
@@ -433,7 +433,7 @@ const executeBeforeHook = async function (
       if (this.history.length > 0) {
         preventHashChangeNavigation = true
         currentRoute = previousRoute
-        platform.window.history.back()
+        platform.historyBack()
         navigatingBack = false
         state.navigating = false
       }

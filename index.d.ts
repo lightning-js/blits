@@ -999,25 +999,57 @@ declare module '@lightningjs/blits' {
 
   interface Platform {
     /**
-     * Reference to the environment's window-like object.
+     * Target used for keyboard and pointer input listeners.
      */
-    window?: Window | any,
+    input?: EventTarget | any,
     /**
-     * Reference to the environment's document-like object.
+     * Target used for viewport-level listeners such as resize, scroll, and hashchange.
      */
-    document?: Document | any,
+    viewport?: EventTarget | any,
     /**
-     * Reference to the environment's self/global-like object.
+     * Dispatch an event through the platform's event system.
      */
-    self?: Window | WorkerGlobalScope | any,
+    dispatchEvent?: (event: any) => boolean | void,
     /**
-     * Reference to the environment's navigator-like object.
+     * Persistent key/value storage API.
      */
-    navigator?: Navigator | any,
+    localStorage?: Storage | any,
+    /**
+     * Read the platform cookie string.
+     */
+    getCookie?: () => string,
+    /**
+     * Write a cookie string.
+     */
+    setCookie?: (value: string) => void,
+    /**
+     * Navigate back in the platform history, when available.
+     */
+    historyBack?: () => void,
+    /**
+     * Current viewport/screen height.
+     */
+    screenHeight?: number,
+    /**
+     * Available hardware concurrency.
+     */
+    hardwareConcurrency?: number,
+    /**
+     * User agent string for platform-specific defaults.
+     */
+    userAgent?: string,
     /**
      * KeyboardEvent constructor used for event creation and type checks.
      */
     KeyboardEvent?: typeof KeyboardEvent | any,
+    /**
+     * Check whether an object should be treated as a keyboard event.
+     */
+    isKeyboardEvent?: (event: any) => boolean,
+    /**
+     * Create a keyboard event for the current platform.
+     */
+    createKeyboardEvent?: (type: string, init?: KeyboardEventInit | any) => any,
     /**
      * SpeechSynthesisUtterance constructor used by the announcer.
      */
@@ -1026,6 +1058,10 @@ declare module '@lightningjs/blits' {
      * Speech synthesis API implementation used by the announcer.
      */
     speechSynthesis?: SpeechSynthesis | any,
+    /**
+     * Monotonic timestamp provider used for input throttling.
+     */
+    now?: () => number,
     [key: string]: any,
   }
 
@@ -1346,11 +1382,18 @@ declare module '@lightningjs/blits' {
     /**
      * Custom platform layer to be used by the App.
      *
-     * Allows replacing browser references such as `window`, `document`, `navigator`,
+     * Allows replacing platform capabilities such as input targets, storage,
      * keyboard event constructors, and speech APIs.
      * A callback receives Blits' browser defaults and should return the platform overrides.
      */
-    platform?: Partial<Platform> | ((defaults: Platform) => Partial<Platform>)
+    platform?: (defaults: Platform) => Partial<Platform>,
+    /**
+     * Custom platform layer to be used by the renderer.
+     *
+     * For renderer-specific platform implementations. Passing a renderer platform
+     * through `platform` is deprecated.
+     */
+    rendererPlatform?: RendererMainSettings['platform']
 
   }
 

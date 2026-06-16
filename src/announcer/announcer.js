@@ -28,7 +28,7 @@ let debounce = null
 
 // Global default utterance options
 let globalDefaultOptions = {
-  enableUtteranceKeepAlive: !/android/i.test((platform.navigator || {}).userAgent || ''),
+  enableUtteranceKeepAlive: !/android/i.test(platform.userAgent || ''),
 }
 
 const noopAnnouncement = {

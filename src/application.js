@@ -76,11 +76,7 @@ const Application = (config) => {
     const throttleMs = Settings.get('inputThrottle', 0)
 
     const mouseEnabled = Settings.get('enableMouse', false)
-    const { document, KeyboardEvent: KeyboardEventConstructor, window } = platform
-    const now =
-      typeof performance !== 'undefined' && typeof performance.now === 'function'
-        ? performance.now.bind(performance)
-        : Date.now
+    const { createKeyboardEvent, input, isKeyboardEvent, now = Date.now, viewport } = platform
 
     keyDownHandler = async (e) => {
       const currentTime = now()
@@ -110,7 +106,7 @@ const Application = (config) => {
       ) {
         e = await this[symbols.inputEvents].intercept.call(this, e)
         // only pass on the key press to focused component when keyboard event is returned
-        if (KeyboardEventConstructor && e instanceof KeyboardEventConstructor === false) return
+        if (isKeyboardEvent && isKeyboardEvent(e) === false) return
       }
 
       Focus.input(key, e)
@@ -190,9 +186,9 @@ const Application = (config) => {
     mouseClickHandler = () => {
       if (currentComponent === undefined || currentComponent.eol === true) return
 
-      if (KeyboardEventConstructor === undefined) return
+      if (createKeyboardEvent === undefined) return
 
-      const e = new KeyboardEventConstructor('keydown', {
+      const e = createKeyboardEvent('keydown', {
         key: 'Enter',
         code: 'Enter',
         keyCode: 13,
@@ -204,25 +200,25 @@ const Application = (config) => {
       currentComponent.$input(e)
     }
 
-    if (document !== undefined) {
-      document.addEventListener('keydown', keyDownHandler)
-      document.addEventListener('keyup', keyUpHandler)
+    if (input !== undefined) {
+      input.addEventListener('keydown', keyDownHandler)
+      input.addEventListener('keyup', keyUpHandler)
       inputCleanup = () => {
-        document.removeEventListener('keydown', keyDownHandler)
-        document.removeEventListener('keyup', keyUpHandler)
+        input.removeEventListener('keydown', keyDownHandler)
+        input.removeEventListener('keyup', keyUpHandler)
       }
     }
-    if (mouseEnabled === true && document !== undefined && window !== undefined) {
+    if (mouseEnabled === true && input !== undefined && viewport !== undefined) {
       updateCanvasRect()
-      document.addEventListener('mousemove', mouseMoveHandler)
-      document.addEventListener('click', mouseClickHandler)
-      window.addEventListener('resize', updateCanvasRect)
-      window.addEventListener('scroll', updateCanvasRect)
+      input.addEventListener('mousemove', mouseMoveHandler)
+      input.addEventListener('click', mouseClickHandler)
+      viewport.addEventListener('resize', updateCanvasRect)
+      viewport.addEventListener('scroll', updateCanvasRect)
       mouseCleanup = () => {
-        document.removeEventListener('mousemove', mouseMoveHandler)
-        document.removeEventListener('click', mouseClickHandler)
-        window.removeEventListener('resize', updateCanvasRect)
-        window.removeEventListener('scroll', updateCanvasRect)
+        input.removeEventListener('mousemove', mouseMoveHandler)
+        input.removeEventListener('click', mouseClickHandler)
+        viewport.removeEventListener('resize', updateCanvasRect)
+        viewport.removeEventListener('scroll', updateCanvasRect)
       }
     }
 

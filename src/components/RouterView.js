@@ -59,16 +59,16 @@ export default () =>
             Router.navigate.apply(this)
           }
 
-          const window = platform.window
-          if (window !== undefined) {
-            this.hashchangeWindow = window
-            window.addEventListener('hashchange', this.hashchangeHandler)
+          const viewport = platform.viewport
+          if (viewport !== undefined) {
+            this.hashchangeViewport = viewport
+            viewport.addEventListener('hashchange', this.hashchangeHandler)
           }
         },
         destroy() {
-          if (this.hashchangeWindow !== undefined) {
-            this.hashchangeWindow.removeEventListener('hashchange', this.hashchangeHandler, false)
-            this.hashchangeWindow = undefined
+          if (this.hashchangeViewport !== undefined) {
+            this.hashchangeViewport.removeEventListener('hashchange', this.hashchangeHandler, false)
+            this.hashchangeViewport = undefined
           }
         },
         focus() {

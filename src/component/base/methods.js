@@ -49,11 +49,10 @@ export default {
      * @returns {boolean} - Returns true if this component or a parent component handled the event, false otherwise
      */
     value: function (event) {
-      const KeyboardEventConstructor = platform.KeyboardEvent
       if (
         event === null ||
         event === undefined ||
-        (KeyboardEventConstructor && event instanceof KeyboardEventConstructor === false)
+        (platform.isKeyboardEvent && platform.isKeyboardEvent(event) === false)
       )
         return false
 
