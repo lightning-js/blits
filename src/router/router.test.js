@@ -17,7 +17,8 @@
 
 import test from 'tape'
 import { initLog } from '../lib/log.js'
-import { matchHash, getHash, to, navigate, back, state } from './router.js'
+import { back, navigate, registerRouterView, state, to, unregisterRouterView } from './router.js'
+import { matchHash, getHash, setHash } from './utils.js'
 import { stage } from '../launch.js'
 import Component from '../component.js'
 import symbols from '../lib/symbols.js'
@@ -467,6 +468,27 @@ test('Get the hash from the URL and handle query params', (assert) => {
   assert.end()
 })
 
+test('Default route query params do not corrupt named router view hashes', (assert) => {
+  location.hash = '#/guide?bookmark=TVGUIDE-ALLCHANNELS|fv=/leagues/5893531656824466130'
+
+  setHash('/details?bookmark=TVGUIDE-ALLCHANNELS')
+
+  assert.equal(
+    location.hash,
+    '#/details?bookmark=TVGUIDE-ALLCHANNELS|fv=/leagues/5893531656824466130',
+    'Default navigation should preserve named router view hash when default route has query params'
+  )
+
+  assert.equal(
+    getHash(location.hash, 'fv').path,
+    '/leagues/5893531656824466130',
+    'Named router view hash should still resolve to its original path'
+  )
+
+  location.hash = '#/'
+  assert.end()
+})
+
 test('Get route object from Match hash when navigating using to() method', (assert) => {
   const hash = '/page1/subpage1'
 
@@ -528,6 +550,41 @@ test('keepAlive override from to() does NOT merge into destination route options
     result.options.keepAlive,
     false,
     'keepAlive override should not be merged into destination route options'
+  )
+
+  assert.end()
+})
+
+test('matchHash accepts non-object override options', (assert) => {
+  const falseResult = matchHash({ path: '/page1/subpage1' }, routes, false)
+  const nullResult = matchHash({ path: '/page1/subpage1' }, routes, null)
+
+  assert.equal(
+    falseResult.path,
+    '/page1/subpage1',
+    'The result object should contain a path key with path hash'
+  )
+
+  assert.deepEqual(
+    falseResult.options,
+    {
+      inHistory: true,
+      keepAlive: false,
+      passFocus: true,
+      reuseComponent: false,
+    },
+    'The result object should contain the default options object'
+  )
+
+  assert.deepEqual(
+    nullResult.options,
+    {
+      inHistory: true,
+      keepAlive: false,
+      passFocus: true,
+      reuseComponent: false,
+    },
+    'The result object should contain the default options object when override options are null'
   )
 
   assert.end()
@@ -662,6 +719,235 @@ test('Router.back() pops history and navigates to previous route', async (assert
   assert.ok(window.location.hash.includes('first'), 'Should set hash to previous route')
 
   stage.element = originalElement
+})
+
+test('this.$router.back() uses the owning RouterView history', async (assert) => {
+  const originalElement = stage.element
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('RouterBackComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/router-back-first',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/router-back-second',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/router-back-first')
+  await navigate.call(host)
+  to('/router-back-second')
+  await navigate.call(host)
+
+  const activeView = host[symbols.children][host[symbols.children].length - 1]
+
+  assert.equal(activeView.$router.back(), true, '$router.back() should navigate from a routed view')
+  assert.ok(
+    window.location.hash.includes('router-back-first'),
+    '$router.back() should use the RouterView history'
+  )
+
+  stage.element = originalElement
+})
+
+test('this.$router.back() from app component uses child RouterView history', async (assert) => {
+  const originalElement = stage.element
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('AppRouterBackComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const AppComponent = Component('AppRouterBackRoot', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const app = AppComponent({}, {}, null)
+  app[symbols.routes] = [
+    {
+      path: '/app-router-back-first',
+      component: TestComponent,
+      options: { inHistory: true, passFocus: false },
+    },
+    {
+      path: '/app-router-back-second',
+      component: TestComponent,
+      options: { inHistory: true, passFocus: false },
+    },
+  ]
+
+  const routerView = {
+    [symbols.parent]: app,
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    history: [],
+    name: '',
+  }
+  app[symbols.children].push(routerView)
+  registerRouterView(routerView)
+
+  try {
+    assert.equal(
+      app.$router.to('/app-router-back-first'),
+      true,
+      '$router.to() should navigate from the app component'
+    )
+    await navigate.call(routerView)
+    assert.equal(
+      state.path,
+      '/app-router-back-first',
+      '$router.to() should use the child RouterView'
+    )
+
+    assert.equal(app.$router.to('/app-router-back-second'), true, '$router.to() should return true')
+    await navigate.call(routerView)
+
+    assert.equal(app.$router.back(), true, '$router.back() should navigate from the app component')
+    assert.ok(
+      window.location.hash.includes('app-router-back-first'),
+      '$router.back() should use the child RouterView history'
+    )
+  } finally {
+    unregisterRouterView(routerView)
+    stage.element = originalElement
+  }
+})
+
+test('this.$router.get(name) targets a named RouterView', async (assert) => {
+  const originalElement = stage.element
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const MainComponent = Component('NamedMainComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const ModalComponent = Component('NamedModalComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const AppComponent = Component('NamedRouterRoot', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const app = AppComponent({}, {}, null)
+  app[symbols.routes] = [
+    {
+      path: '/main-first',
+      component: MainComponent,
+      options: { inHistory: true, passFocus: false },
+    },
+    {
+      path: '/main-second',
+      component: MainComponent,
+      options: { inHistory: true, passFocus: false },
+    },
+    {
+      path: '/modal-first',
+      component: ModalComponent,
+      options: { inHistory: true, passFocus: false },
+    },
+    {
+      path: '/modal-second',
+      component: ModalComponent,
+      options: { inHistory: true, passFocus: false },
+    },
+  ]
+
+  const mainRouterView = {
+    [symbols.parent]: app,
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    history: [],
+    name: '',
+  }
+  const modalRouterView = {
+    [symbols.parent]: app,
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    history: [],
+    name: 'modal',
+  }
+  app[symbols.children].push(mainRouterView, modalRouterView)
+  registerRouterView(mainRouterView)
+  registerRouterView(modalRouterView)
+
+  try {
+    assert.equal(app.$router.get('modal').to('/modal-first'), true, 'Named to should return true')
+    await navigate.call(modalRouterView)
+    assert.equal(
+      modalRouterView.currentRoute.path,
+      '/modal-first',
+      'Named to should navigate the named RouterView'
+    )
+
+    assert.equal(app.$router.to('/main-first'), true, 'Default to should return true')
+    await navigate.call(mainRouterView)
+    assert.equal(
+      mainRouterView.currentRoute.path,
+      '/main-first',
+      'Default to should navigate the local/default RouterView'
+    )
+
+    app.$router.get('modal').to('/modal-second')
+    await navigate.call(modalRouterView)
+    assert.equal(app.$router.get('modal').back(), true, 'Named back should return true')
+    assert.ok(
+      window.location.hash.includes('modal=/modal-first'),
+      'Named back should target only the named RouterView'
+    )
+  } finally {
+    unregisterRouterView(mainRouterView)
+    unregisterRouterView(modalRouterView)
+    location.hash = '#/'
+    stage.element = originalElement
+  }
 })
 
 test('Transition out with end callback is invoked on navigate away', async (assert) => {
@@ -806,6 +1092,153 @@ test('BeforeEach hook route object redirect', async (assert) => {
   stage.element = originalElement
 })
 
+test('Cold redirect does not leave a phantom previous route', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set() {},
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('ColdRedirectComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/cold-original',
+          component: TestComponent,
+          hooks: {
+            before() {
+              return '/cold-redirected'
+            },
+          },
+        },
+        { path: '/cold-redirected', component: TestComponent, options: { passFocus: false } },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    name: '',
+  }
+
+  to('/cold-original')
+  await navigate.call(host)
+  assert.equal(
+    host.currentRoute,
+    undefined,
+    'Redirect should restore the previous RouterView route'
+  )
+
+  await navigate.call(host)
+  assert.equal(host.currentRoute.path, '/cold-redirected', 'Redirected route should become current')
+  assert.equal(host[symbols.children].length, 2, 'Redirected view should remain attached')
+  assert.notEqual(host.activeView.eol, true, 'Redirected view should not be destroyed')
+
+  location.hash = '#/'
+  stage.element = originalElement
+})
+
+test('Named RouterView redirect retains named hash context', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set() {},
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('NamedRedirectComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/named-original',
+          component: TestComponent,
+          hooks: {
+            before() {
+              return { path: '/named-redirected' }
+            },
+          },
+        },
+        { path: '/named-redirected', component: TestComponent, options: { passFocus: false } },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    name: 'modal',
+  }
+
+  location.hash = '#/'
+  to('/named-original', {}, {}, host.name)
+  await navigate.call(host)
+
+  assert.equal(
+    getHash(location.hash, 'modal').path,
+    '/named-redirected',
+    'Redirect should update the named RouterView hash segment'
+  )
+  assert.equal(getHash(location.hash).path, '/', 'Redirect should not replace the main route')
+
+  await navigate.call(host)
+  assert.equal(host.currentRoute.path, '/named-redirected', 'Named redirected route should render')
+  assert.equal(host[symbols.children].length, 2, 'Named redirected view should remain attached')
+
+  location.hash = '#/'
+  stage.element = originalElement
+})
+
+test('Rejected hook with empty history cancels navigation', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set() {},
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('RejectedHookComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [{ path: '/rejected-hook', component: TestComponent }],
+      [symbols.routerHooks]: {
+        beforeEach() {
+          throw new Error('Rejected hook')
+        },
+      },
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    name: '',
+  }
+
+  to('/rejected-hook')
+  await navigate.call(host)
+
+  assert.equal(
+    host.currentRoute,
+    undefined,
+    'Rejected navigation should restore the previous route'
+  )
+  assert.equal(host[symbols.children].length, 1, 'Rejected navigation should not render a view')
+  assert.equal(state.navigating, false, 'Rejected navigation should clear navigating state')
+
+  location.hash = '#/'
+  stage.element = originalElement
+})
+
 test('Route meta data is accessible in route object', (assert) => {
   const route = { path: '/test', meta: { auth: true, role: 'admin' } }
   assert.deepEqual(
@@ -925,7 +1358,7 @@ test('keepAlive override does not bleed into the destination route options', asy
 
   // Verify destination route (/srcB) does NOT have keepAlive in its options —
   // the override only applies to the route being left
-  const destRoute = matchHash({ path: '/srcB' }, routesList)
+  const destRoute = matchHash({ path: '/srcB' }, routesList, {})
   assert.equal(
     destRoute.options.keepAlive,
     false,
@@ -1507,6 +1940,11 @@ test('beforeEach returning false leaves state.path on previous route', async (as
     '/guard-each-1',
     'Navigation should be cancelled when beforeEach returns false'
   )
+  assert.equal(
+    host.currentRoute.path,
+    '/guard-each-1',
+    'RouterView should restore its previous route'
+  )
 
   stage.element = originalElement
 })
@@ -1590,6 +2028,11 @@ test('route before returning false leaves state.path on previous route', async (
     '/guard-before-1',
     'Navigation should be cancelled when route before returns false'
   )
+  assert.equal(
+    host.currentRoute.path,
+    '/guard-before-1',
+    'RouterView should restore its previous route'
+  )
 
   stage.element = originalElement
 })
@@ -1670,7 +2113,7 @@ test('keepAlive caches view and restores same instance on back', async (assert) 
 test('reuseComponent reuses the same view instance when returning to the route', async (assert) => {
   const originalElement = stage.element
 
-  stage.element = ({ parent }) => ({
+  const mockElement = () => ({
     populate() {},
     set(prop, value) {
       if (value && value.transition && typeof value.transition.end === 'function') {
@@ -1678,13 +2121,19 @@ test('reuseComponent reuses the same view instance when returning to the route',
       }
     },
     destroy() {},
-    parent,
   })
+
+  stage.element = ({ parent }) => ({ ...mockElement(), parent })
 
   const SharedRc = Component('RcReuseShared', {
     template: '<Element />',
     code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
   })
+
+  // Seed children with a dummy view at index 1.
+  // When navigate() inherits a truthy currentRoute from previous tests,
+  // splice(1,1) removes this dummy instead of the newly pushed view.
+  const dummyView = { [symbols.holder]: mockElement(), destroy() {} }
 
   const host = {
     [symbols.parent]: {
@@ -1701,7 +2150,7 @@ test('reuseComponent reuses the same view instance when returning to the route',
         },
       ],
     },
-    [symbols.children]: [{}],
+    [symbols.children]: [{}, dummyView],
     [symbols.props]: {},
   }
 

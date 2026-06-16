@@ -17,7 +17,7 @@
 
 import { Log } from '../lib/log.js'
 
-const syn = window.speechSynthesis
+const syn = self.speechSynthesis
 
 const utterances = new Map() // id -> { utterance, timer, ignoreResume }
 

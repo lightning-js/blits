@@ -61,6 +61,7 @@
  * @property {symbol} components
  * @property {symbol} config
  * @property {symbol} isSlot
+ * @property {symbol} isSprite
  * @property {symbol} props
  * @property {symbol} parent
  * @property {symbol} slots
@@ -68,6 +69,7 @@
  * @property {symbol} isComponent
  * @property {symbol} effects
  * @property {symbol} removeGlobalEffects
+ * @property {symbol} tagContent
  */
 
 /**
@@ -126,6 +128,8 @@ export default {
   config: Symbol.for('config'),
   // Symbol 'isSlot' utilized within generated code
   isSlot: Symbol.for('isSlot'),
+  // Symbol 'isSprite' utilized within generated code (native Sprite on L3 element)
+  isSprite: Symbol.for('isSprite'),
   // Symbol 'props' utilized within generated code
   props: Symbol.for('props'),
   // Symbol 'slots' utilized within generated code

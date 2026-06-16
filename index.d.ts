@@ -329,7 +329,14 @@ declare module '@lightningjs/blits' {
      *
      * @param {string}
     */
-    to(location: string, data?: RouteData, options?: RouteOptions): void;
+    to(location: string, data?: RouteData, options?: RouteOptions): boolean;
+
+    /**
+     * Get a router scoped to a named RouterView
+     *
+     * @param {string}
+    */
+    get(name: string): Router;
 
     /**
      * Navigate to the previous location
@@ -616,24 +623,36 @@ declare module '@lightningjs/blits' {
     [K in keyof T]: InferProp<T[K]>
   }
 
+  type Computed<T extends Record<string, () => any>> = {
+    [K in keyof T]: Readonly<ReturnType<T[K]>>
+  }
+
   export type ComponentContext<
     P extends Record<string, any>,
     S,
     M,
-    C
-  > = ThisType<Readonly<InferProps<P>> & S & M & Readonly<C> & ChildComponentBase>
+    C extends Record<string, () => any>,
+  > = ThisType<
+    Readonly<InferProps<P>> & S & M & Computed<C> & ChildComponentBase
+  >
 
   export type ApplicationContext<
     P extends Record<string, any>,
     S,
     M,
-    C
-  > = ThisType<Readonly<InferProps<P>> & S & M & Readonly<C> & ApplicationBase>
+    C,
+  > = ThisType<Readonly<InferProps<P>> & S & M & Computed<C> & ApplicationBase>
 
-  export interface ComponentConfig<P extends Props = {}, S, M, C, W> {
+  export interface ComponentConfig<
+    P extends Props = {},
+    S,
+    M,
+    C extends Record<string, () => any>,
+    W,
+  > {
     components?: {
-        [key: string]: ComponentFactory,
-    },
+      [key: string]: ComponentFactory
+    }
     /**
      * XML-based template string of the Component
      *
@@ -707,6 +726,10 @@ declare module '@lightningjs/blits' {
      * Watchers for changes to state variables, props or computed properties
      */
     watch?: W & ComponentContext<P, S, M, C>
+    /**
+     * Router Configuration
+     */
+    router?: RouterConfig<P, S, M, C>
   }
 
   export interface RouterHooks {
@@ -759,7 +782,7 @@ declare module '@lightningjs/blits' {
 
   export type ApplicationConfig<P extends Props, S, M, C, W> = Omit<
     ComponentConfig<P, S, M, C, W>,
-    'hooks' | 'methods' | 'input' | 'computed' | 'watch' | 'state'
+    'hooks' | 'methods' | 'input' | 'computed' | 'watch' | 'state' | 'router' | 'routes'
   > & {
     hooks?: Hooks & ApplicationContext<P, S, M, C>
     methods?: M & ApplicationContext<P, S, M, C>
@@ -1329,7 +1352,7 @@ declare module '@lightningjs/blits' {
   }
 
   interface Computed {
-    [key: string]: any
+    [key: string]: () => any
   }
 
 

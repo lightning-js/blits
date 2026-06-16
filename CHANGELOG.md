@@ -1,5 +1,48 @@
 # Changelog
 
+## 2.5.0
+
+_11 jun 2026_
+
+- Improved performance of Sprites
+- Fixed correct typing of computed props
+- Bumped renderer to 3.0.6
+- Added re-export of platforms from renderer
+
+## v2.4.1
+
+_02 jun 2026_
+
+- Fixed router issue with initial redirect
+
+## v2.4.0
+
+_1 june 2026_
+
+- Improved correct registration of reactivity in computed props
+- Added named router views to enable multiple nested router views
+
+## v2.3.0
+
+_20 may 2026_
+
+- Refactored router functionality
+- Replaced `window` reference with `self` reference in announcer
+
+## v2.2.0
+
+_11 may 2026_
+
+- Exposed built-in reactivity to be used in custom Blits plugins
+- Cleaned up unused key names from default key mapping
+- Improved documentation
+- Fixed reactive color not working for components
+- Added EOL guard for Blits elements to prevent potential race conditions
+- Updated MSDF generator version in boilerplate
+- Fixed / improved GH workflow for automated tests
+- Upgraded renderer to 3.0.3
+
+
 ## v2.1.3
 
 _16 apr 2026_

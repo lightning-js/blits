@@ -206,6 +206,10 @@ const generateElementCode = function (
     renderCode.push(`elementConfigs[${counter}][Symbol.for('isSlot')] = true`)
   }
 
+  if (templateObject[Symbol.for('componentType')] === 'Sprite') {
+    renderCode.push(`elementConfigs[${counter}][Symbol.for('isSprite')] = true`)
+  }
+
   if (options.holder) {
     renderCode.push(`elementConfigs[${counter}]['holder'] = true`)
   }
@@ -225,7 +229,6 @@ const generateElementCode = function (
     const value = templateObject[key]
 
     if (isReactiveKey(key)) {
-      if (options.holder && key === ':color') return
       if (options.holder) {
         this.effectsCode.push(`
         if(typeof skips === 'undefined' || (typeof skips[${counter}] === 'undefined' ||
@@ -612,10 +615,15 @@ const generateForLoopCode = function (templateObject, parent) {
   if (
     templateObject[Symbol.for('componentType')] === 'Element' ||
     templateObject[Symbol.for('componentType')] === 'Slot' ||
-    templateObject[Symbol.for('componentType')] === 'Text'
+    templateObject[Symbol.for('componentType')] === 'Text' ||
+    templateObject[Symbol.for('componentType')] === 'Sprite' ||
+    templateObject[Symbol.for('componentType')] === 'Layout'
   ) {
     if (templateObject[Symbol.for('componentType')] === 'Text') {
       templateObject.__textnode = 'true'
+    }
+    if (templateObject[Symbol.for('componentType')] === 'Layout') {
+      templateObject.__layout = 'true'
     }
     generateElementCode.call(ctx, templateObject, parent, {
       key: 'scope.key',
@@ -789,7 +797,8 @@ const generateCode = function (templateObject, parent = false, options = {}) {
           childTemplateObject[Symbol.for('componentType')] === 'Element' ||
           childTemplateObject[Symbol.for('componentType')] === 'Slot' ||
           childTemplateObject[Symbol.for('componentType')] === 'Text' ||
-          childTemplateObject[Symbol.for('componentType')] === 'Layout'
+          childTemplateObject[Symbol.for('componentType')] === 'Layout' ||
+          childTemplateObject[Symbol.for('componentType')] === 'Sprite'
         ) {
           if (childTemplateObject[Symbol.for('componentType')] === 'Text') {
             childTemplateObject.__textnode = 'true'

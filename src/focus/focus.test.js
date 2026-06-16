@@ -214,6 +214,48 @@ test('Unfocus partial focus chain', (assert) => {
   })
 })
 
+test('Ignore focus requests for destroyed components', (assert) => {
+  const focusedComponent = Focus.get()
+  const destroyedComponent = {
+    eol: true,
+    [symbols.lifecycle]: {
+      state: 'destroy',
+    },
+  }
+
+  Focus.set(destroyedComponent)
+
+  assert.equal(Focus.get(), focusedComponent, 'Destroyed component should not receive focus')
+  assert.end()
+})
+
+test('Ignore delayed focus callback when component is destroyed', (assert) => {
+  const focusedComponent = Focus.get()
+  const component = {
+    eol: false,
+    [symbols.lifecycle]: {
+      state: 'init',
+    },
+  }
+
+  Focus.set(component)
+  component.eol = true
+
+  setTimeout(() => {
+    assert.equal(
+      Focus.get(),
+      focusedComponent,
+      'Destroyed component should not receive delayed focus'
+    )
+    assert.equal(
+      component[symbols.lifecycle].state,
+      'init',
+      'Destroyed component lifecycle should not be changed by delayed focus'
+    )
+    assert.end()
+  })
+})
+
 // @todo
 // this test case needs some changes to the codebase in order to work
 // these changes will help testablity in general

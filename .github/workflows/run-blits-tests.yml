@@ -33,11 +33,13 @@ jobs:
     - name: Run Tests
       id: run-tests
       continue-on-error: true
-      run: npm run test:run 2>&1 | tee test-report.txt
+      run: |
+        set -o pipefail
+        npm run test:run 2>&1 | tee test-report.txt
 
     - name: Analyze Test Results
       id: analyze-results
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         result-encoding: json
         script: |
@@ -47,7 +49,7 @@ jobs:
           const results = {
             timestamp,
             summary: '',
-            testsFailed: '${{ steps.run-tests.outcome }}' === 'failure',
+            testsFailed: false,
             error: null
           };
 
@@ -67,6 +69,23 @@ jobs:
           if (testsMatch && passMatch) {
             const failed = failMatch ? failMatch[1] : '0';
             results.summary = `passed: ${passMatch[1]}  failed: ${failed}  of ${testsMatch[1]} tests`;
+            results.testsFailed = failMatch ? parseInt(failMatch[1]) > 0 : false;
+            const failedBlocks = [];
+            let inBlock = false, currentBlock = [];
+            for (const line of testOutput.split('\n')) {
+              if (/^not ok /.test(line)) {
+                inBlock = true; currentBlock = [line];
+              } else if (inBlock) {
+                if (/^  \.\.\.$/.test(line)) {
+                  currentBlock.push(line);
+                  failedBlocks.push(currentBlock.join('\n'));
+                  inBlock = false; currentBlock = [];
+                } else {
+                  currentBlock.push(line);
+                }
+              }
+            }
+            fs.writeFileSync('./failing-tests.txt', failedBlocks.join('\n\n'));
           } else if (results.testsFailed) {
             results.summary = 'Tests failed. No summary found in output.';
             results.error = testOutput;
@@ -112,20 +131,22 @@ jobs:
           ./timestamp.txt
           ./summary.txt
           ./failed.txt
+          ./failing-tests.txt
           ./pr_number.txt
           ./pr_repo.txt
           ./pr_branch.txt
       continue-on-error: true
 
     - name: Upload Error Log
-      if: steps.run-tests.outcome == 'failure'
+      if: fromJSON(steps.analyze-results.outputs.result).testsFailed == true
       uses: actions/upload-artifact@v4
       with:
         name: error-log
         path: ./error.txt
+        if-no-files-found: ignore
       continue-on-error: true
 
     # Fail the workflow if tests failed
     - name: Check Test Status
-      if: steps.run-tests.outcome == 'failure'
+      if: fromJSON(steps.analyze-results.outputs.result).testsFailed == true
       run: exit 1

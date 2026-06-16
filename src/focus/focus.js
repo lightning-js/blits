@@ -41,6 +41,8 @@ export default {
     return focusedComponent
   },
   set(component, event) {
+    if (component === undefined || component.eol === true) return
+
     clearTimeout(setFocusTimeout)
 
     // early return if already focused
@@ -75,12 +77,13 @@ export default {
 
     // and finally set focus to the leaf component
     setFocusTimeout = setTimeout(
-      () => setFocus(component, event),
+      () => component.eol !== true && setFocus(component, event),
       this.hold === true ? Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS) : 0
     )
   },
   input(key, event) {
     if (state.navigating === true) return
+    if (focusedComponent === null) return
 
     const componentWithInputEvent = getComponentWithInputEvent(focusedComponent, key)
 

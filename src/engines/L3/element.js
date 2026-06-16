@@ -29,8 +29,13 @@ import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 import shaders from '../../lib/shaders/shaders.js'
+import { resolveSpriteTexture } from './spriteTexture.js'
 
 const holderComponentMap = new WeakMap()
+
+/** @param {any} frame */
+const spriteFrameKey = (frame) =>
+  typeof frame === 'object' && frame !== null ? JSON.stringify(frame) : frame
 
 /**
  * Creates a padding object from a value and direction.
@@ -290,6 +295,24 @@ const propsTransformer = {
       this.props['color'] = 0xffffffff
     }
   },
+  set image(v) {
+    this.raw['image'] = v
+    if (this.element[symbols.isSprite] === true && this.element.node) {
+      this.element._scheduleNativeSpriteSync()
+    }
+  },
+  set map(v) {
+    this.raw['map'] = v
+    if (this.element[symbols.isSprite] === true && this.element.node) {
+      this.element._scheduleNativeSpriteSync()
+    }
+  },
+  set frame(v) {
+    this.raw['frame'] = v
+    if (this.element[symbols.isSprite] === true && this.element.node) {
+      this.element._scheduleNativeSpriteSync()
+    }
+  },
   set fit(v) {
     const resizeMode = {}
 
@@ -547,6 +570,7 @@ export const elementAttributes = Object.keys(propsTransformer)
 const Element = {
   /**
    * Populates the element with data
+   * @this {import('../../component.js').BlitsElement}
    * @param {import('../../component.js').BlitsElementProps} props
    */
   populate(props) {
@@ -554,6 +578,21 @@ const Element = {
 
     if (props[symbols.isSlot] === true) {
       this[symbols.isSlot] = true
+    }
+
+    if (props[symbols.isSprite] === true) {
+      this[symbols.isSprite] = true
+      this._spriteState = {
+        spriteTexture: null,
+        currentSrc: null,
+        _loadedCb: null,
+        _failedCb: null,
+        _syncScheduled: false,
+        lastTexture: null,
+        lastImage: null,
+        lastMap: null,
+        lastFrameKey: undefined,
+      }
     }
 
     this.props.element = this
@@ -599,16 +638,20 @@ const Element = {
       holderComponentMap.set(this.node, this.component)
     }
 
-    if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
-      this.node.on('loaded', (el, { type, dimensions }) => {
-        props['@loaded']({ w: dimensions.w, h: dimensions.h, type }, this)
-      })
-    }
+    if (this[symbols.isSprite] === true) {
+      this._syncNativeSprite()
+    } else {
+      if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
+        this.node.on('loaded', (el, { type, dimensions }) => {
+          props['@loaded']({ w: dimensions.w, h: dimensions.h, type }, this)
+        })
+      }
 
-    if (props['@error'] !== undefined && typeof props['@error'] === 'function') {
-      this.node.on('failed', (el, error) => {
-        props['@error'](error, this)
-      })
+      if (props['@error'] !== undefined && typeof props['@error'] === 'function') {
+        this.node.on('failed', (el, error) => {
+          props['@error'](error, this)
+        })
+      }
     }
 
     if (props.__layout === true) {
@@ -628,6 +671,7 @@ const Element = {
    * @param {Object} data - Framework inspector metadata to merge
    */
   setInspectorMetadata(data) {
+    if (this.eol === true) return
     // Early return if inspector not enabled (performance optimization)
     if (inspectorEnabled !== true) {
       return
@@ -656,6 +700,78 @@ const Element = {
     }
   },
   /**
+   * @this {import('../../component.js').BlitsElement}
+   */
+  _scheduleNativeSpriteSync() {
+    if (this[symbols.isSprite] !== true || !this.node || this.eol === true) return
+    const st = this._spriteState
+    if (st === undefined) return
+    if (st._syncScheduled === true) return
+    st._syncScheduled = true
+    queueMicrotask(() => {
+      st._syncScheduled = false
+      if (this.eol === true || !this.node) return
+      this._syncNativeSprite()
+    })
+  },
+  /**
+   * @this {import('../../component.js').BlitsElement}
+   */
+  _syncNativeSprite() {
+    if (this[symbols.isSprite] !== true || !this.node) return
+    const st = this._spriteState
+    if (st === undefined) return
+
+    const raw = this.props.raw
+    const image = raw['image']
+    const map = raw['map']
+    const frameKey = spriteFrameKey(raw['frame'])
+
+    if (
+      st.lastTexture != null &&
+      image === st.lastImage &&
+      map === st.lastMap &&
+      frameKey === st.lastFrameKey
+    ) {
+      return
+    }
+
+    const imageChanged = image !== st.lastImage
+    st.lastImage = image
+    st.lastMap = map
+    st.lastFrameKey = frameKey
+
+    const texture = resolveSpriteTexture(this, renderer, st)
+    if (texture === st.lastTexture) return
+
+    st.lastTexture = texture
+    this.set('texture', texture)
+
+    if (imageChanged !== true) return
+
+    const prevL = st._loadedCb
+    const prevF = st._failedCb
+    st._loadedCb =
+      raw['@loaded'] && typeof raw['@loaded'] === 'function'
+        ? (payload) => {
+            const d = payload?.dimensions
+            const w = payload?.w ?? payload?.width ?? d?.width ?? d?.w
+            const h = payload?.h ?? payload?.height ?? d?.height ?? d?.h
+            raw['@loaded']({ w, h }, this)
+          }
+        : null
+    st._failedCb =
+      raw['@error'] && typeof raw['@error'] === 'function'
+        ? (payload) => raw['@error'](payload, this)
+        : null
+    if (st.spriteTexture) {
+      if (prevL) st.spriteTexture.off('loaded', prevL)
+      if (prevF) st.spriteTexture.off('failed', prevF)
+      if (st._loadedCb) st.spriteTexture.on('loaded', st._loadedCb)
+      if (st._failedCb) st.spriteTexture.on('failed', st._failedCb)
+    }
+  },
+  /**
    * Set an individual property on the node
    *
    * @this {import('../../component').BlitsElement} this
@@ -665,6 +781,7 @@ const Element = {
    * @returns {void}
    */
   set(prop, value) {
+    if (this.eol === true) return
     if (value === undefined) return
     // @ts-ignore
     if (this.props.raw[prop] === value) return
@@ -700,6 +817,8 @@ const Element = {
     }
   },
   animate(prop, value, transition) {
+    if (this.eol === true) return
+
     // Clear any existing debounce timeout for this property
     if (this.debounceTimeouts[prop] !== undefined) {
       clearTimeout(this.debounceTimeouts[prop])
@@ -811,9 +930,22 @@ const Element = {
     f.start()
   },
   destroy() {
+    if (this.eol === true) return
+    this.eol = true
+
     if (this.node === null) return
 
     Log.debug('Deleting Node', this.nodeId)
+
+    if (this[symbols.isSprite] === true && this._spriteState) {
+      const st = this._spriteState
+      if (st.spriteTexture) {
+        if (st._loadedCb) st.spriteTexture.off('loaded', st._loadedCb)
+        if (st._failedCb) st.spriteTexture.off('failed', st._failedCb)
+      }
+      if (st.subTextures) st.subTextures.clear()
+      this._spriteState = null
+    }
 
     // Clear all pending debounce timeouts
     const debounceProps = Object.keys(this.debounceTimeouts)
@@ -902,6 +1034,7 @@ export default (config, component) => {
     inspectorEnabled = Settings.get('inspector', false)
   }
   return Object.assign(Object.create(Element), {
+    eol: false,
     props: Object.assign(Object.create(propsTransformer), { props: {} }),
     scheduledTransitions: {},
     debounceTimeouts: {},
