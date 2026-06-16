@@ -1,8 +1,23 @@
 # Changelog
 
+## 2.5.0
+
+_11 jun 2026_
+
+- Improved performance of Sprites
+- Fixed correct typing of computed props
+- Bumped renderer to 3.0.6
+- Added re-export of platforms from renderer
+
+## v2.4.1
+
+_02 jun 2026_
+
+- Fixed router issue with initial redirect
+
 ## v2.4.0
 
-_29 may 2026_
+_1 june 2026_
 
 - Improved correct registration of reactivity in computed props
 - Added named router views to enable multiple nested router views

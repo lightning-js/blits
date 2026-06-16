@@ -85,6 +85,30 @@ export default Blits.Application({
 })
 ```
 
+### Named router views
+
+In some cases you may want to have multiple `<RouterView />` components in your App. For example, when you want to open a modal on top of the main routed Page.
+
+By assigning a `name` to a `<RouterView />`, you can retrieve a Router instance scoped to that Router view using the `this.$router.get()`-method.
+
+```js
+export default Blits.Application({
+  template: `
+    <Element>
+      <RouterView />
+      <RouterView name="modal" />
+    </Element>
+  `,
+  // ...
+})
+```
+
+```js
+this.$router.get('modal').to('/modal/details')
+```
+
+The scoped Router instance has the same methods and properties as `this.$router`. This means you can also use `this.$router.get('modal').back()` to navigate back down the history stack of the named Router view, or use `this.$router.get('modal').currentRoute` to retrieve its current route.
+
 ## Navigation
 
 Each component in a routed Blits app has a `this.$router` object that provides access to the Router instance. It can be used to programmatically navigate to pages, by calling the `to()` method on it.
@@ -152,6 +176,7 @@ In the example above, the `backtrack` option is set to `true` for the `/examples
 The Router API provides several useful methods and properties for managing routes and navigation:
 
 - `this.$router.to()` - navigating to a different location (as discussed above)
+- `this.$router.get()` - retrieve a Router instance scoped to a named Router view
 - `this.$router.back()` - programmatically navigate back down the history stack
 - `this.$router.currentRoute` - retrieve the current route
 - `this.$router.routes` - retrieve the list of all routes

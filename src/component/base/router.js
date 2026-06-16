@@ -16,31 +16,145 @@
  */
 
 import symbols from '../../lib/symbols.js'
-import { to, currentRoute, back, state } from '../../router/router.js'
+import {
+  back,
+  currentRoute,
+  getRegisteredRouterView,
+  getSingleRegisteredRouterView,
+  state,
+  toRouterView,
+} from '../../router/router.js'
+
+const routerCache = new WeakMap()
+
+const isRouterView = (component, routerViewName = '') => {
+  if (component === undefined || component === null) return false
+  return (
+    Array.isArray(component.history) && (routerViewName === '' || component.name === routerViewName)
+  )
+}
+
+const getRouterViewInChildren = (component, routerViewName = '') => {
+  if (component === undefined || component === null) return null
+
+  const children = component[symbols.children]
+  if (Array.isArray(children) === false) return null
+
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i]
+    if (isRouterView(child, routerViewName)) return child
+
+    const nestedRouterView = getRouterViewInChildren(child, routerViewName)
+    if (nestedRouterView !== null) return nestedRouterView
+  }
+
+  return null
+}
+
+const getRouterView = (component, routerViewName = '') => {
+  let current = component
+  while (current !== undefined && current !== null) {
+    if (isRouterView(current, routerViewName)) {
+      return current
+    }
+    current = current[symbols.parent]
+  }
+  return getRouterViewInChildren(component, routerViewName)
+}
+
+const resolveRouterView = (component, routerViewName) => {
+  if (routerViewName !== undefined) {
+    const registeredRouterView = getRegisteredRouterView(routerViewName)
+    if (registeredRouterView !== null) return registeredRouterView
+
+    return getRouterView(component, routerViewName)
+  }
+
+  const singleRouterView = getSingleRegisteredRouterView()
+  if (singleRouterView !== null) return singleRouterView
+
+  return getRouterView(component)
+}
+
+const getRoutes = (component, routerViewName) => {
+  const routerView = resolveRouterView(component, routerViewName)
+  if (
+    routerView !== null &&
+    routerView[symbols.parent] !== undefined &&
+    routerView[symbols.parent][symbols.routes] !== undefined
+  ) {
+    return routerView[symbols.parent][symbols.routes]
+  }
+
+  if (component[symbols.routes] !== undefined) return component[symbols.routes]
+
+  if (
+    component[symbols.parent] !== undefined &&
+    component[symbols.parent][symbols.routes] !== undefined
+  ) {
+    return component[symbols.parent][symbols.routes]
+  }
+
+  return undefined
+}
+
+const getRouterFromCache = (component, routerViewName) => {
+  let routers = routerCache.get(component)
+  if (routers === undefined) {
+    routers = new Map()
+    routerCache.set(component, routers)
+  }
+
+  const cacheKey = routerViewName === undefined ? '' : routerViewName
+  const router = routers.get(cacheKey)
+  if (router !== undefined) return router
+
+  const newRouter = createRouter(component, routerViewName)
+  routers.set(cacheKey, newRouter)
+  return newRouter
+}
+
+const createRouter = (component, routerViewName) => {
+  return {
+    to(path, data = {}, options = {}) {
+      const routerView = resolveRouterView(component, routerViewName)
+      if (routerView === null) return false
+
+      toRouterView(routerView, path, data, options)
+      return true
+    },
+    back() {
+      const routerView = resolveRouterView(component, routerViewName)
+      return routerView === null ? false : back.call(routerView)
+    },
+    get(name) {
+      return getRouterFromCache(component, name)
+    },
+    get backNavigation() {
+      return state.backNavigation !== false
+    },
+    set backNavigation(enabled) {
+      state.backNavigation = enabled !== false
+    },
+    get currentRoute() {
+      const routerView = resolveRouterView(component, routerViewName)
+      return routerView === null ? currentRoute : routerView.currentRoute
+    },
+    get routes() {
+      return getRoutes(component, routerViewName)
+    },
+    get navigating() {
+      return state.navigating
+    },
+    state,
+  }
+}
 
 export default {
   $router: {
-    value: {
-      to,
-      back,
-      get backNavigation() {
-        return state.backNavigation !== false
-      },
-      set backNavigation(enabled) {
-        state.backNavigation = enabled !== false
-      },
-      get currentRoute() {
-        return currentRoute
-      },
-      get routes() {
-        return this[symbols.routes]
-      },
-      get navigating() {
-        return state.navigating
-      },
-      state,
+    get() {
+      return getRouterFromCache(this)
     },
-    writable: false,
     enumerable: true,
     configurable: false,
   },
