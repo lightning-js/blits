@@ -209,7 +209,7 @@ test('Single-level ref guard has no && chain', (assert) => {
   assert.end()
 })
 
-test('Does not process non-method computed syntaxes', (assert) => {
+test('Guards long-form function() alongside method shorthand, skips arrow', (assert) => {
   const input = `
     import Blits from '@lightningjs/blits'
     export default Blits.Component('C', {
@@ -226,8 +226,8 @@ test('Does not process non-method computed syntaxes', (assert) => {
   const out = result !== null ? result.code : input
   assert.equal(
     countOccurrences(out, 'auto-generated reactivity guard'),
-    1,
-    'only processes method shorthand'
+    2,
+    'guards both shorthand method and long-form function()'
   )
   assert.end()
 })
@@ -255,7 +255,7 @@ test('Guards $appState chain with method call in computed (regression)', (assert
   assert.end()
 })
 
-test('Skips non-method members and continues processing after them', (assert) => {
+test('Skips arrow member, guards long-form function() and method shorthand around it', (assert) => {
   const input = `
     import Blits from '@lightningjs/blits'
     export default Blits.Component('C', {
@@ -270,7 +270,51 @@ test('Skips non-method members and continues processing after them', (assert) =>
   const result = processComputedProps(input)
   const out = result !== null ? result.code : input
   assert.ok(out.includes('this.z;'), 'guards method shorthand after non-method members')
-  assert.equal(countOccurrences(out, 'auto-generated reactivity guard'), 1, 'only one guard')
+  assert.ok(out.includes('this.y;'), 'guards long-form function() member')
+  assert.equal(countOccurrences(out, 'auto-generated reactivity guard'), 2, 'two guards')
+  assert.end()
+})
+
+test('Guards deep this.* chain in long-form function() computed prop', (assert) => {
+  const input = `
+    import Blits from '@lightningjs/blits'
+    export default Blits.Component('C', {
+      computed: {
+        deepFunction: function () {
+          return this.deep.nested.value
+        },
+      }
+    })
+  `
+
+  const result = processComputedProps(input)
+  assert.ok(result, 'injects guards')
+  const out = result.code
+  assert.ok(
+    out.includes('this.deep && this.deep.nested && this.deep.nested.value;'),
+    'guards full chain with &&'
+  )
+  assert.end()
+})
+
+test('Matches long-form function() with extra whitespace/newlines before the body', (assert) => {
+  const input = `
+    import Blits from '@lightningjs/blits'
+    export default Blits.Component('C', {
+      computed: {
+        spaced:    function  (  )
+
+        {
+          return this.value
+        },
+      }
+    })
+  `
+
+  const result = processComputedProps(input)
+  assert.ok(result, 'injects guards')
+  const out = result.code
+  assert.ok(out.includes('this.value;'), 'guards this.value despite extra whitespace/newlines')
   assert.end()
 })
 
