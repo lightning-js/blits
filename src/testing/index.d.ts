@@ -20,14 +20,16 @@ import type { ComponentFactory, Settings } from '@lightningjs/blits'
 export interface SnapshotNode {
   type: string
   attributes: Record<string, any>
-  children: SnapshotNode[]
+  children: Array<SnapshotNode | ComponentSnapshotNode>
 }
 
-export interface ComponentSnapshotNode extends SnapshotNode {
+export interface ComponentSnapshotNode {
   type: 'Component'
   name: string
+  attributes: Record<string, any>
   props: Record<string, any>
   state: Record<string, any>
+  tree: SnapshotNode | null
 }
 
 export interface RenderComponentOptions {

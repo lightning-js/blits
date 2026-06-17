@@ -54,24 +54,22 @@ test('renderComponent snapshots a component with initial props', (assert) => {
       state: {
         loaded: true,
       },
-      children: [
-        {
-          type: 'Element',
-          attributes: {
-            w: 320,
-            h: 80,
-          },
-          children: [
-            {
-              type: 'Text',
-              attributes: {
-                content: 'Play',
-              },
-              children: [],
-            },
-          ],
+      tree: {
+        type: 'Element',
+        attributes: {
+          w: 320,
+          h: 80,
         },
-      ],
+        children: [
+          {
+            type: 'Text',
+            attributes: {
+              content: 'Play',
+            },
+            children: [],
+          },
+        ],
+      },
     },
     'Snapshot should contain component props, state, and evaluated template attributes'
   )
@@ -123,23 +121,21 @@ test('renderComponent setProps updates reactive attributes in snapshots', (asser
       state: {
         count: 1,
       },
-      children: [
-        {
-          type: 'Element',
-          attributes: {
-            x: 40,
-          },
-          children: [
-            {
-              type: 'Text',
-              attributes: {
-                content: 'Pause',
-              },
-              children: [],
-            },
-          ],
+      tree: {
+        type: 'Element',
+        attributes: {
+          x: 40,
         },
-      ],
+        children: [
+          {
+            type: 'Text',
+            attributes: {
+              content: 'Pause',
+            },
+            children: [],
+          },
+        ],
+      },
     },
     'Snapshot should reflect prop-driven reactive template updates'
   )
@@ -206,44 +202,40 @@ test('renderComponent snapshots nested component attributes and props separately
       state: {
         selectedIndex: 0,
       },
-      children: [
-        {
-          type: 'Element',
-          attributes: {},
-          children: [
-            {
-              type: 'Component',
-              name: 'Card',
-              attributes: {
-                x: 100,
-                y: 20,
-              },
-              props: {
-                title: 'Dune',
-                kind: 'poster',
-              },
-              state: {
-                imageLoaded: false,
-              },
+      tree: {
+        type: 'Element',
+        attributes: {},
+        children: [
+          {
+            type: 'Component',
+            name: 'Card',
+            attributes: {
+              x: 100,
+              y: 20,
+            },
+            props: {
+              title: 'Dune',
+              kind: 'poster',
+            },
+            state: {
+              imageLoaded: false,
+            },
+            tree: {
+              type: 'Element',
+              attributes: {},
               children: [
                 {
-                  type: 'Element',
-                  attributes: {},
-                  children: [
-                    {
-                      type: 'Text',
-                      attributes: {
-                        content: 'Dune',
-                      },
-                      children: [],
-                    },
-                  ],
+                  type: 'Text',
+                  attributes: {
+                    content: 'Dune',
+                  },
+                  children: [],
                 },
               ],
             },
-          ],
-        },
-      ],
+          },
+        ],
+      },
     },
     'Nested component snapshots should include state and separate holder attributes from props'
   )
@@ -254,11 +246,11 @@ test('renderComponent snapshots nested component attributes and props separately
   })
 
   const snapshot = fixture.snapshot()
-  const cardSnapshot = snapshot.children[0].children[0]
+  const cardSnapshot = snapshot.tree.children[0]
   assert.equal(cardSnapshot.attributes.x, 140, 'Holder attributes should update')
   assert.equal(cardSnapshot.props.title, 'Blade Runner', 'Child component props should update')
   assert.equal(
-    cardSnapshot.children[0].children[0].attributes.content,
+    cardSnapshot.tree.children[0].attributes.content,
     'Blade Runner',
     'Child component output should update from changed props'
   )

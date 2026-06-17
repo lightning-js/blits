@@ -112,7 +112,6 @@ const elementSnapshot = (element, holderMap) => {
 const componentSnapshot = (component, holderMap) => {
   const holder = component[symbols.holder]
   const wrapper = component[symbols.wrapper]
-  const children = wrapper ? [elementSnapshot(wrapper, holderMap)] : []
 
   return {
     type: 'Component',
@@ -120,7 +119,7 @@ const componentSnapshot = (component, holderMap) => {
     attributes: holder ? attributesSnapshot(holder.attributes) : {},
     props: propsSnapshot(component),
     state: stateSnapshot(component),
-    children,
+    tree: wrapper ? elementSnapshot(wrapper, holderMap) : null,
   }
 }
 
