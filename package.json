@@ -32,6 +32,10 @@
       "types": "./src/plugins/storage/storage.d.ts",
       "default": "./src/plugins/storage/storage.js"
     },
+    "./testing": {
+      "types": "./src/testing/index.d.ts",
+      "default": "./src/testing/index.js"
+    },
     "./symbols": "./src/lib/symbols.js",
     "./blitsFileConverter": "./src/lib/blitsfileconverter/blitsfileconverter.js",
     "./components": "./src/components/FPScounter.js"
