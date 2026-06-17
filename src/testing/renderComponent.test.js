@@ -29,6 +29,11 @@ test('renderComponent snapshots a component with initial props', (assert) => {
     props: {
       label: '',
     },
+    state() {
+      return {
+        loaded: true,
+      }
+    },
   })
 
   const fixture = renderComponent(Button, {
@@ -40,22 +45,35 @@ test('renderComponent snapshots a component with initial props', (assert) => {
   assert.deepEqual(
     fixture.snapshot(),
     {
-      type: 'Element',
-      attributes: {
-        w: 320,
-        h: 80,
+      type: 'Component',
+      name: 'Button',
+      attributes: {},
+      props: {
+        label: 'Play',
+      },
+      state: {
+        loaded: true,
       },
       children: [
         {
-          type: 'Text',
+          type: 'Element',
           attributes: {
-            content: 'Play',
+            w: 320,
+            h: 80,
           },
-          children: [],
+          children: [
+            {
+              type: 'Text',
+              attributes: {
+                content: 'Play',
+              },
+              children: [],
+            },
+          ],
         },
       ],
     },
-    'Snapshot should contain the evaluated template attributes'
+    'Snapshot should contain component props, state, and evaluated template attributes'
   )
 
   fixture.destroy()
@@ -72,6 +90,11 @@ test('renderComponent setProps updates reactive attributes in snapshots', (asser
     props: {
       label: '',
       x: 0,
+    },
+    state() {
+      return {
+        count: 1,
+      }
     },
   })
 
@@ -90,17 +113,31 @@ test('renderComponent setProps updates reactive attributes in snapshots', (asser
   assert.deepEqual(
     fixture.snapshot(),
     {
-      type: 'Element',
-      attributes: {
+      type: 'Component',
+      name: 'ReactiveButton',
+      attributes: {},
+      props: {
+        label: 'Pause',
         x: 40,
+      },
+      state: {
+        count: 1,
       },
       children: [
         {
-          type: 'Text',
+          type: 'Element',
           attributes: {
-            content: 'Pause',
+            x: 40,
           },
-          children: [],
+          children: [
+            {
+              type: 'Text',
+              attributes: {
+                content: 'Pause',
+              },
+              children: [],
+            },
+          ],
         },
       ],
     },
@@ -122,6 +159,11 @@ test('renderComponent snapshots nested component attributes and props separately
       title: '',
       kind: '',
     },
+    state() {
+      return {
+        imageLoaded: false,
+      }
+    },
   })
 
   const Shelf = Component('Shelf', {
@@ -133,6 +175,11 @@ test('renderComponent snapshots nested component attributes and props separately
     props: {
       cardX: 0,
       title: '',
+    },
+    state() {
+      return {
+        selectedIndex: 0,
+      }
     },
     components: {
       Card,
@@ -149,31 +196,48 @@ test('renderComponent snapshots nested component attributes and props separately
   assert.deepEqual(
     fixture.snapshot(),
     {
-      type: 'Element',
+      type: 'Component',
+      name: 'Shelf',
       attributes: {},
+      props: {
+        cardX: 100,
+        title: 'Dune',
+      },
+      state: {
+        selectedIndex: 0,
+      },
       children: [
         {
-          type: 'Component',
-          name: 'Card',
-          attributes: {
-            x: 100,
-            y: 20,
-          },
-          props: {
-            title: 'Dune',
-            kind: 'poster',
-          },
+          type: 'Element',
+          attributes: {},
           children: [
             {
-              type: 'Element',
-              attributes: {},
+              type: 'Component',
+              name: 'Card',
+              attributes: {
+                x: 100,
+                y: 20,
+              },
+              props: {
+                title: 'Dune',
+                kind: 'poster',
+              },
+              state: {
+                imageLoaded: false,
+              },
               children: [
                 {
-                  type: 'Text',
-                  attributes: {
-                    content: 'Dune',
-                  },
-                  children: [],
+                  type: 'Element',
+                  attributes: {},
+                  children: [
+                    {
+                      type: 'Text',
+                      attributes: {
+                        content: 'Dune',
+                      },
+                      children: [],
+                    },
+                  ],
                 },
               ],
             },
@@ -181,7 +245,7 @@ test('renderComponent snapshots nested component attributes and props separately
         },
       ],
     },
-    'Nested component snapshots should separate holder attributes from component props'
+    'Nested component snapshots should include state and separate holder attributes from props'
   )
 
   fixture.setProps({
@@ -190,17 +254,16 @@ test('renderComponent snapshots nested component attributes and props separately
   })
 
   const snapshot = fixture.snapshot()
-  assert.equal(snapshot.children[0].attributes.x, 140, 'Holder attributes should update')
+  const cardSnapshot = snapshot.children[0].children[0]
+  assert.equal(cardSnapshot.attributes.x, 140, 'Holder attributes should update')
+  assert.equal(cardSnapshot.props.title, 'Blade Runner', 'Child component props should update')
   assert.equal(
-    snapshot.children[0].props.title,
-    'Blade Runner',
-    'Child component props should update'
-  )
-  assert.equal(
-    snapshot.children[0].children[0].children[0].attributes.content,
+    cardSnapshot.children[0].children[0].attributes.content,
     'Blade Runner',
     'Child component output should update from changed props'
   )
+  assert.equal('$hasFocus' in snapshot.state, false, 'Built-in focus state should be omitted')
+  assert.equal('$isHovered' in snapshot.state, false, 'Built-in hover state should be omitted')
 
   fixture.destroy()
   assert.end()

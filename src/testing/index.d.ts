@@ -27,6 +27,7 @@ export interface ComponentSnapshotNode extends SnapshotNode {
   type: 'Component'
   name: string
   props: Record<string, any>
+  state: Record<string, any>
 }
 
 export interface RenderComponentOptions {

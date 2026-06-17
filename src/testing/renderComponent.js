@@ -44,7 +44,7 @@ const renderComponent = (Component, options = {}) => {
   const snapshot = () => {
     const holderMap = new WeakMap()
     collectComponents(component, holderMap)
-    return elementSnapshot(component[symbols.wrapper], holderMap)
+    return componentSnapshot(component, holderMap)
   }
 
   const setProps = (props = {}) => {
@@ -119,6 +119,7 @@ const componentSnapshot = (component, holderMap) => {
     name: componentName(component),
     attributes: holder ? attributesSnapshot(holder.attributes) : {},
     props: propsSnapshot(component),
+    state: stateSnapshot(component),
     children,
   }
 }
@@ -152,6 +153,21 @@ const propsSnapshot = (component) => {
     const key = propKeys[i]
     if (props[key] !== undefined) {
       out[key] = clone(props[key])
+    }
+  }
+  return out
+}
+
+const stateSnapshot = (component) => {
+  const state = component[symbols.state] || {}
+  const originalState = component[symbols.originalState] || {}
+  const stateKeys = Object.keys(originalState)
+  const out = {}
+  for (let i = 0; i < stateKeys.length; i++) {
+    const key = stateKeys[i]
+    if (key === '$hasFocus' || key === '$isHovered') continue
+    if (state[key] !== undefined) {
+      out[key] = clone(state[key])
     }
   }
   return out
