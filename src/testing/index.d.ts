@@ -26,6 +26,8 @@ export interface SnapshotNode {
 export interface ComponentSnapshotNode {
   type: 'Component'
   name: string
+  hasFocus: boolean
+  isHovered: boolean
   attributes: Record<string, any>
   props: Record<string, any>
   state: Record<string, any>
@@ -42,6 +44,8 @@ export interface RenderComponentFixture {
   root: any
   snapshot(): SnapshotNode | ComponentSnapshotNode
   setProps(props: Record<string, any>): void
+  focus(event?: KeyboardEvent): Promise<any>
+  unfocus(): any
   destroy(): void
 }
 

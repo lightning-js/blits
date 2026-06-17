@@ -34,6 +34,10 @@ const renderComponent = (Component, options = {}) => {
 
   const root = createElement()
   const parent = {
+    $componentId: 'BlitsTestComponent::Root',
+    [symbols.lifecycle]: {
+      set state(v) {},
+    },
     $focus() {},
     $input() {
       return false
@@ -54,6 +58,20 @@ const renderComponent = (Component, options = {}) => {
     }
   }
 
+  const focus = (event) => {
+    component.$focus(event)
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        setTimeout(() => resolve(component))
+      })
+    })
+  }
+
+  const unfocus = () => {
+    component.unfocus()
+    return component
+  }
+
   const destroy = () => {
     if (component.eol !== true) {
       component.destroy()
@@ -66,6 +84,8 @@ const renderComponent = (Component, options = {}) => {
     root,
     snapshot,
     setProps,
+    focus,
+    unfocus,
     destroy,
   }
 }
@@ -116,6 +136,8 @@ const componentSnapshot = (component, holderMap) => {
   return {
     type: 'Component',
     name: componentName(component),
+    hasFocus: component.$hasFocus === true,
+    isHovered: component.$isHovered === true,
     attributes: holder ? attributesSnapshot(holder.attributes) : {},
     props: propsSnapshot(component),
     state: stateSnapshot(component),

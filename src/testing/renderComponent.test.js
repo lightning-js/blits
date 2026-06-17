@@ -47,6 +47,8 @@ test('renderComponent snapshots a component with initial props', (assert) => {
     {
       type: 'Component',
       name: 'Button',
+      hasFocus: false,
+      isHovered: false,
       attributes: {},
       props: {
         label: 'Play',
@@ -113,6 +115,8 @@ test('renderComponent setProps updates reactive attributes in snapshots', (asser
     {
       type: 'Component',
       name: 'ReactiveButton',
+      hasFocus: false,
+      isHovered: false,
       attributes: {},
       props: {
         label: 'Pause',
@@ -194,6 +198,8 @@ test('renderComponent snapshots nested component attributes and props separately
     {
       type: 'Component',
       name: 'Shelf',
+      hasFocus: false,
+      isHovered: false,
       attributes: {},
       props: {
         cardX: 100,
@@ -209,6 +215,8 @@ test('renderComponent snapshots nested component attributes and props separately
           {
             type: 'Component',
             name: 'Card',
+            hasFocus: false,
+            isHovered: false,
             attributes: {
               x: 100,
               y: 20,
@@ -256,6 +264,33 @@ test('renderComponent snapshots nested component attributes and props separately
   )
   assert.equal('$hasFocus' in snapshot.state, false, 'Built-in focus state should be omitted')
   assert.equal('$isHovered' in snapshot.state, false, 'Built-in hover state should be omitted')
+
+  fixture.destroy()
+  assert.end()
+})
+
+test('renderComponent can focus and unfocus the mounted component', async (assert) => {
+  const Button = Component('FocusableButton', {
+    template: `
+      <Element>
+        <Text content="Button" />
+      </Element>
+    `,
+  })
+
+  const fixture = renderComponent(Button)
+
+  assert.equal(fixture.component.$hasFocus, false, 'Component should start unfocused')
+
+  await fixture.focus()
+
+  assert.equal(fixture.component.$hasFocus, true, 'Component should be focused')
+  assert.equal(fixture.snapshot().hasFocus, true, 'Snapshot should expose focus state')
+
+  fixture.unfocus()
+
+  assert.equal(fixture.component.$hasFocus, false, 'Component should be unfocused')
+  assert.equal(fixture.snapshot().hasFocus, false, 'Snapshot should expose unfocused state')
 
   fixture.destroy()
   assert.end()
