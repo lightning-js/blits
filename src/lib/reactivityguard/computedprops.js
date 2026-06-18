@@ -200,8 +200,12 @@ const processComputedBlock = (configObject) => {
         currentPos = skipNonCode(computedObj, currentPos)
         if (currentPos >= computedObj.length - 1) break
 
-        // Find the next function name (computed properties are `name() { ... }`)
-        const functionNameMatch = /^(\w+)\s*\(\)\s*/.exec(computedObj.substring(currentPos))
+        // Find the next function name (computed properties are `name() { ... }`
+        // or long-form `name: function() { ... }`)
+        const functionNameMatch = /^(\w+)\s*(?:\(\)|:\s*function\s*\([^)]*\))\s*/.exec(
+          computedObj.substring(currentPos)
+        )
+
         if (!functionNameMatch) {
           const nextPos = skipComputedMember(computedObj, currentPos)
           if (nextPos === -1) break

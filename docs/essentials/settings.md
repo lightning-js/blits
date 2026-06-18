@@ -71,6 +71,47 @@ Example font object:
 |----------------|-----------|-------------|
 | `renderMode`   | `'webgl' \| 'canvas'` | Renderer mode (default: 'webgl') |
 | `canvas`       | `HTMLCanvasElement` | Custom canvas to render to |
+| `rendererPlatform` | `object` | Custom platform configuration passed to the renderer |
+
+## Platform
+
+| Setting         | Type      | Description |
+|----------------|-----------|-------------|
+| `platform`     | `function` | Custom platform capabilities used by Blits |
+
+The `platform` setting can be used when Blits is not running in a regular browser environment, or when you want to provide custom platform specific implementations.
+
+The function receives the default browser platform as first argument, and should return the platform parts you want to override. All other platform functions will keep using the default browser implementation.
+
+```js
+Blits.Launch(App, 'app', {
+  platform: (defaults) => ({
+    screenHeight: screen.height,
+    input: {
+      addEventListener(type, listener, options) {
+        if (type === 'keydown') {
+          myInput.on('keydown', listener)
+          return
+        }
+
+        defaults.input.addEventListener(type, listener, options)
+      },
+      removeEventListener(type, listener, options) {
+        if (type === 'keydown') {
+          myInput.off('keydown', listener)
+          return
+        }
+
+        defaults.input.removeEventListener(type, listener, options)
+      },
+    },
+  }),
+})
+```
+
+Common platform properties that can be overwritten are `input`, `viewport`, `dispatchEvent`, `localStorage`, `getCookie`, `setCookie`, `historyBack`, `screenHeight`, `hardwareConcurrency`, `userAgent`, `KeyboardEvent`, `isKeyboardEvent`, `createKeyboardEvent`, `SpeechSynthesisUtterance`, `speechSynthesis`, and `now`.
+
+The `rendererPlatform` setting is separate from `platform`. It is only passed to the renderer, and should be used for renderer specific platform configuration.
 
 ## Effects & Shaders
 
@@ -118,5 +159,9 @@ Blits.Launch(App, 'app', {
   inspector: false,
   announcer: true,
   enableMouse: false, // set true for hover + click-to-focus on canvas
+  platform: (defaults) => ({
+    screenHeight: 720,
+    input: myInputTarget,
+  }),
 })
 ```

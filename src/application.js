@@ -23,6 +23,7 @@ import Settings from './settings.js'
 import symbols from './lib/symbols.js'
 import { DEFAULT_HOLD_TIMEOUT_MS, DEFAULT_KEYMAP } from './constants.js'
 import { renderer } from './launch.js'
+import { platform } from './platform.js'
 
 /**
  * Merged keyMap (default + custom settings).
@@ -43,22 +44,23 @@ const Application = (config) => {
   let mouseMoveHandler
   let mouseClickHandler
   let updateCanvasRect
+  let inputCleanup
+  let mouseCleanup
   let holdTimeout
   let lastInputTime = 0
   let lastInputKey = null
-  let mouseListenersAdded = false
 
   config.hooks[symbols.destroy] = function () {
     // Cancel pending key-hold timeout and reset hold state so focus is not left in hold mode after teardown
     clearTimeout(holdTimeout)
     Focus.hold = false
-    document.removeEventListener('keydown', keyDownHandler)
-    document.removeEventListener('keyup', keyUpHandler)
-    if (mouseListenersAdded) {
-      document.removeEventListener('mousemove', mouseMoveHandler)
-      document.removeEventListener('click', mouseClickHandler)
-      window.removeEventListener('resize', updateCanvasRect)
-      window.removeEventListener('scroll', updateCanvasRect)
+    if (typeof inputCleanup === 'function') {
+      inputCleanup()
+      inputCleanup = undefined
+    }
+    if (typeof mouseCleanup === 'function') {
+      mouseCleanup()
+      mouseCleanup = undefined
       Hover.clear()
     }
   }
@@ -78,9 +80,10 @@ const Application = (config) => {
     const throttleMs = Settings.get('inputThrottle', 0)
 
     const mouseEnabled = Settings.get('enableMouse', false)
+    const { createKeyboardEvent, input, isKeyboardEvent, now = Date.now, viewport } = platform
 
     keyDownHandler = async (e) => {
-      const currentTime = performance.now()
+      const currentTime = now()
 
       const key = keyMap[e.keyCode] || e.keyCode
       const sameKey = lastInputKey === key
@@ -107,7 +110,7 @@ const Application = (config) => {
       ) {
         e = await this[symbols.inputEvents].intercept.call(this, e)
         // only pass on the key press to focused component when keyboard event is returned
-        if (e instanceof KeyboardEvent === false) return
+        if (isKeyboardEvent && isKeyboardEvent(e) === false) return
       }
 
       Focus.input(key, e)
@@ -187,7 +190,9 @@ const Application = (config) => {
     mouseClickHandler = () => {
       if (currentComponent === undefined || currentComponent.eol === true) return
 
-      const e = new KeyboardEvent('keydown', {
+      if (createKeyboardEvent === undefined) return
+
+      const e = createKeyboardEvent('keydown', {
         key: 'Enter',
         code: 'Enter',
         keyCode: 13,
@@ -199,15 +204,26 @@ const Application = (config) => {
       currentComponent.$input(e)
     }
 
-    document.addEventListener('keydown', keyDownHandler)
-    document.addEventListener('keyup', keyUpHandler)
-    if (mouseEnabled === true) {
+    if (input !== undefined) {
+      input.addEventListener('keydown', keyDownHandler)
+      input.addEventListener('keyup', keyUpHandler)
+      inputCleanup = () => {
+        input.removeEventListener('keydown', keyDownHandler)
+        input.removeEventListener('keyup', keyUpHandler)
+      }
+    }
+    if (mouseEnabled === true && input !== undefined && viewport !== undefined) {
       updateCanvasRect()
-      document.addEventListener('mousemove', mouseMoveHandler)
-      document.addEventListener('click', mouseClickHandler)
-      window.addEventListener('resize', updateCanvasRect)
-      window.addEventListener('scroll', updateCanvasRect)
-      mouseListenersAdded = true
+      input.addEventListener('mousemove', mouseMoveHandler)
+      input.addEventListener('click', mouseClickHandler)
+      viewport.addEventListener('resize', updateCanvasRect)
+      viewport.addEventListener('scroll', updateCanvasRect)
+      mouseCleanup = () => {
+        input.removeEventListener('mousemove', mouseMoveHandler)
+        input.removeEventListener('click', mouseClickHandler)
+        viewport.removeEventListener('resize', updateCanvasRect)
+        viewport.removeEventListener('scroll', updateCanvasRect)
+      }
     }
 
     // next tick
