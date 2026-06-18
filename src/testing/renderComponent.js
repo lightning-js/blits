@@ -20,6 +20,8 @@ import { renderer, stage } from '../launch.js'
 import symbols from '../lib/symbols.js'
 import { initLog } from '../lib/log.js'
 import { getRaw } from '../lib/reactivity/reactive.js'
+import Focus from '../focus/focus.js'
+import { initKeyMap, keyMap } from '../application.js'
 
 let nodeId = 0
 
@@ -28,6 +30,7 @@ const renderComponent = (Component, options = {}) => {
 
   Settings.set(options.settings || {})
   initLog()
+  initKeyMap()
   mockRenderer()
   // Generated template code calls stage.element through `this.element`
   stage.element = createElement
@@ -59,6 +62,7 @@ const renderComponent = (Component, options = {}) => {
   }
 
   const focus = (event) => {
+    Focus.hold = false
     component.$focus(event)
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -70,6 +74,14 @@ const renderComponent = (Component, options = {}) => {
   const unfocus = () => {
     component.unfocus()
     return component
+  }
+
+  const input = (key, event = createKeyboardEvent(key)) => {
+    const focused = Focus.get()
+    if (focused === null || focused.eol === true || isInComponentTree(focused, component) === false)
+      return false
+    Focus.input(key, event)
+    return true
   }
 
   const destroy = () => {
@@ -86,6 +98,7 @@ const renderComponent = (Component, options = {}) => {
     setProps,
     focus,
     unfocus,
+    input,
     destroy,
   }
 }
@@ -285,6 +298,40 @@ const appendToParent = (element, parent) => {
   if (parent.node && parent.node.children) {
     parent.node.children.push(element.node)
   }
+}
+
+const createKeyboardEvent = (key) => {
+  const keyCode = keyCodeFromKey(key)
+  const event = new KeyboardEvent('keydown', {
+    key,
+    keyCode,
+    bubbles: true,
+    cancelable: true,
+    composed: true,
+  })
+
+  if (event.keyCode !== keyCode) {
+    Object.defineProperty(event, 'keyCode', { value: keyCode })
+  }
+
+  return event
+}
+
+const keyCodeFromKey = (key) => {
+  const keys = Object.keys(keyMap)
+  for (let i = 0; i < keys.length; i++) {
+    if (keyMap[keys[i]] === key) return Number(keys[i])
+  }
+  return 0
+}
+
+const isInComponentTree = (child, parent) => {
+  let current = child
+  while (current !== undefined && current !== null) {
+    if (current === parent) return true
+    current = current[symbols.parent]
+  }
+  return false
 }
 
 export default renderComponent

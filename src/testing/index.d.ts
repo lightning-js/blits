@@ -46,6 +46,7 @@ export interface RenderComponentFixture {
   setProps(props: Record<string, any>): void
   focus(event?: KeyboardEvent): Promise<any>
   unfocus(): any
+  input(key: string, event?: KeyboardEvent): boolean
   destroy(): void
 }
 

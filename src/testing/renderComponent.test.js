@@ -295,3 +295,74 @@ test('renderComponent can focus and unfocus the mounted component', async (asser
   fixture.destroy()
   assert.end()
 })
+
+test('renderComponent routes input through the focused component', async (assert) => {
+  const Button = Component('InputButton', {
+    template: `
+      <Element>
+        <Text :content="$count" />
+      </Element>
+    `,
+    state() {
+      return {
+        count: 0,
+        eventType: '',
+      }
+    },
+    input: {
+      enter(event) {
+        this.count++
+        this.eventType = event.type
+      },
+    },
+  })
+
+  const fixture = renderComponent(Button)
+
+  assert.equal(fixture.input('enter'), false, 'Input should not run before focus is set')
+  assert.equal(fixture.snapshot().state.count, 0, 'State should not update without focus')
+
+  await fixture.focus()
+
+  assert.equal(fixture.input('enter'), true, 'Input should run when the component is focused')
+  assert.equal(fixture.snapshot().state.count, 1, 'Input should update component state')
+  assert.equal(
+    fixture.snapshot().tree.children[0].attributes.content,
+    1,
+    'Input should update the rendered tree'
+  )
+  assert.equal(fixture.snapshot().state.eventType, 'keydown', 'Generated event should be passed in')
+
+  fixture.destroy()
+  assert.end()
+})
+
+test('renderComponent input accepts a custom keyboard event', async (assert) => {
+  const Button = Component('CustomEventButton', {
+    template: '<Element />',
+    state() {
+      return {
+        keyCode: 0,
+      }
+    },
+    input: {
+      enter(event) {
+        this.keyCode = event.keyCode
+      },
+    },
+  })
+
+  const fixture = renderComponent(Button)
+  const event = new KeyboardEvent('keydown', {
+    key: 'Enter',
+    keyCode: 13,
+  })
+
+  await fixture.focus()
+  fixture.input('enter', event)
+
+  assert.equal(fixture.snapshot().state.keyCode, 13, 'Custom event should be passed to handler')
+
+  fixture.destroy()
+  assert.end()
+})

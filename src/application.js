@@ -31,6 +31,10 @@ import { renderer } from './launch.js'
  */
 export let keyMap = {}
 
+export const initKeyMap = () => {
+  keyMap = { ...DEFAULT_KEYMAP, ...Settings.get('keymap', {}) }
+}
+
 const Application = (config) => {
   config.hooks = config.hooks || {}
 
@@ -68,7 +72,7 @@ const Application = (config) => {
       this.$announcer.configure(announcerOptions)
     }
     // Initialize merged keyMap once during application init
-    keyMap = { ...DEFAULT_KEYMAP, ...Settings.get('keymap', {}) }
+    initKeyMap()
 
     /** @type {number} Input throttle time in milliseconds (0 = disabled) */
     const throttleMs = Settings.get('inputThrottle', 0)
