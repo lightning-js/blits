@@ -23,6 +23,7 @@ import { Log } from '../../lib/log.js'
 import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
 import { renderer } from '../../launch.js'
 import { keyMap } from '../../application.js'
+import { platform } from '../../platform.js'
 
 export default {
   $focus: {
@@ -48,7 +49,11 @@ export default {
      * @returns {boolean} - Returns true if this component or a parent component handled the event, false otherwise
      */
     value: function (event) {
-      if (event === null || event === undefined || event instanceof KeyboardEvent === false)
+      if (
+        event === null ||
+        event === undefined ||
+        (platform.isKeyboardEvent && platform.isKeyboardEvent(event) === false)
+      )
         return false
 
       const key = keyMap[event.keyCode] || event.keyCode

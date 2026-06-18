@@ -1016,6 +1016,74 @@ declare module '@lightningjs/blits' {
   type ReactivityModes = 'Proxy' | 'defineProperty'
   type RenderModes = 'webgl' | 'canvas'
 
+  interface Platform {
+    /**
+     * Target used for keyboard and pointer input listeners.
+     */
+    input?: EventTarget | any,
+    /**
+     * Target used for viewport-level listeners such as resize, scroll, and hashchange.
+     */
+    viewport?: EventTarget | any,
+    /**
+     * Dispatch an event through the platform's event system.
+     */
+    dispatchEvent?: (event: any) => boolean | void,
+    /**
+     * Persistent key/value storage API.
+     */
+    localStorage?: Storage | any,
+    /**
+     * Read the platform cookie string.
+     */
+    getCookie?: () => string,
+    /**
+     * Write a cookie string.
+     */
+    setCookie?: (value: string) => void,
+    /**
+     * Navigate back in the platform history, when available.
+     */
+    historyBack?: () => void,
+    /**
+     * Current viewport/screen height.
+     */
+    screenHeight?: number,
+    /**
+     * Available hardware concurrency.
+     */
+    hardwareConcurrency?: number,
+    /**
+     * User agent string for platform-specific defaults.
+     */
+    userAgent?: string,
+    /**
+     * KeyboardEvent constructor used for event creation and type checks.
+     */
+    KeyboardEvent?: typeof KeyboardEvent | any,
+    /**
+     * Check whether an object should be treated as a keyboard event.
+     */
+    isKeyboardEvent?: (event: any) => boolean,
+    /**
+     * Create a keyboard event for the current platform.
+     */
+    createKeyboardEvent?: (type: string, init?: KeyboardEventInit | any) => any,
+    /**
+     * SpeechSynthesisUtterance constructor used by the announcer.
+     */
+    SpeechSynthesisUtterance?: typeof SpeechSynthesisUtterance | any,
+    /**
+     * Speech synthesis API implementation used by the announcer.
+     */
+    speechSynthesis?: SpeechSynthesis | any,
+    /**
+     * Monotonic timestamp provider used for input throttling.
+     */
+    now?: () => number,
+    [key: string]: any,
+  }
+
     /**
    * Settings
    *
@@ -1331,11 +1399,20 @@ declare module '@lightningjs/blits' {
      */
     maxFPS?: number,
     /**
-     * Custom platform layer to be used by the App (experimental)
+     * Custom platform layer to be used by the App.
      *
-     * Defaults to `null` which will be resolved internally to WebPlatform
+     * Allows replacing platform capabilities such as input targets, storage,
+     * keyboard event constructors, and speech APIs.
+     * A callback receives Blits' browser defaults and should return the platform overrides.
      */
-    platform?: any
+    platform?: (defaults: Platform) => Partial<Platform>,
+    /**
+     * Custom platform layer to be used by the renderer.
+     *
+     * For renderer-specific platform implementations. Passing a renderer platform
+     * through `platform` is deprecated.
+     */
+    rendererPlatform?: RendererMainSettings['platform']
 
   }
 

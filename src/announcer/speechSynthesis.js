@@ -16,8 +16,7 @@
  */
 
 import { Log } from '../lib/log.js'
-
-const syn = self.speechSynthesis
+import { platform } from '../platform.js'
 
 const utterances = new Map() // id -> { utterance, timer, ignoreResume }
 
@@ -36,6 +35,7 @@ const clear = (id) => {
 }
 
 const startKeepAlive = (id) => {
+  const syn = platform.speechSynthesis
   const state = utterances.get(id)
 
   // utterance status: utterance was removed (cancelled or finished)
@@ -85,6 +85,7 @@ const defaultUtteranceProps = {
 }
 
 const initialize = () => {
+  const syn = platform.speechSynthesis
   // syn api check: syn might not have getVoices method
   if (!syn || typeof syn.getVoices !== 'function') {
     initialized = false
@@ -98,6 +99,7 @@ const initialize = () => {
 
 const waitForSynthReady = (timeoutMs = 2000, checkIntervalMs = 100) => {
   return new Promise((resolve) => {
+    const syn = platform.speechSynthesis
     if (!syn) {
       Log.debug('SpeechSynthesis - syn unavailable')
       resolve()
@@ -135,6 +137,7 @@ const waitForSynthReady = (timeoutMs = 2000, checkIntervalMs = 100) => {
 }
 
 const speak = async (options) => {
+  const syn = platform.speechSynthesis
   // options check: missing required options
   if (!options || !options.message) {
     return Promise.reject({ error: 'Missing message' })
@@ -153,6 +156,11 @@ const speak = async (options) => {
 
   // Wait for engine to be ready
   await waitForSynthReady()
+
+  const SpeechSynthesisUtterance = platform.SpeechSynthesisUtterance
+  if (SpeechSynthesisUtterance === undefined) {
+    return Promise.reject({ error: 'unavailable' })
+  }
 
   const utterance = new SpeechSynthesisUtterance(options.message)
   utterance.lang = options.lang || defaultUtteranceProps.lang
@@ -208,6 +216,7 @@ const speak = async (options) => {
 
 export default {
   speak(options) {
+    const syn = platform.speechSynthesis
     if (syn !== undefined) {
       if (initialized === false) {
         initialize()
@@ -219,6 +228,7 @@ export default {
     }
   },
   cancel() {
+    const syn = platform.speechSynthesis
     if (syn !== undefined) {
       // timers: clear all timers before cancelling
       for (const id of utterances.keys()) {

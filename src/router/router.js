@@ -24,6 +24,7 @@ import { stage } from '../launch.js'
 import Focus from '../focus/focus.js'
 import Announcer from '../announcer/announcer.js'
 import Settings from '../settings.js'
+import { platform } from '../platform.js'
 
 /**
  * @typedef {import('../component.js').BlitsComponentFactory} BlitsComponentFactory - The component of the route
@@ -417,7 +418,8 @@ const executeBeforeHook = async function (
       this.currentRoute = previousRoute
       if (this.history.length > 0) {
         preventHashChangeNavigation = true
-        window.history.back()
+        platform.historyBack()
+
         navigatingBack = false
         state.navigating = false
       }
@@ -434,7 +436,7 @@ const executeBeforeHook = async function (
       this.currentRoute = previousRoute
       if (this.history.length > 0) {
         preventHashChangeNavigation = true
-        window.history.back()
+        platform.historyBack()
         navigatingBack = false
         state.navigating = false
       }

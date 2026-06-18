@@ -23,6 +23,7 @@ import Router, {
 } from '../router/router.js'
 import symbols from '../lib/symbols.js'
 import Focus from '../focus/focus.js'
+import { platform } from '../platform.js'
 
 /** @typedef {{ $input?: (event: any) => boolean, $focus?: (event: any) => void }} RouterViewParent */
 
@@ -64,11 +65,18 @@ export default () =>
             Router.navigate.apply(this)
           }
 
-          window.addEventListener('hashchange', this.hashchangeHandler)
+          const viewport = platform.viewport
+          if (viewport !== undefined) {
+            this.hashchangeViewport = viewport
+            viewport.addEventListener('hashchange', this.hashchangeHandler)
+          }
         },
         destroy() {
           unregisterRouterView(this)
-          window.removeEventListener('hashchange', this.hashchangeHandler, false)
+          if (this.hashchangeViewport !== undefined) {
+            this.hashchangeViewport.removeEventListener('hashchange', this.hashchangeHandler, false)
+            this.hashchangeViewport = undefined
+          }
         },
         focus() {
           if (this.activeView && Focus.get() === this) {
