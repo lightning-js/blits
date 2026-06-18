@@ -61,6 +61,13 @@ const renderComponent = (Component, options = {}) => {
     }
   }
 
+  const setState = (state = {}) => {
+    const keys = Object.keys(state)
+    for (let i = 0; i < keys.length; i++) {
+      component[symbols.state][keys[i]] = state[keys[i]]
+    }
+  }
+
   const focus = (event) => {
     Focus.hold = false
     component.$focus(event)
@@ -96,6 +103,7 @@ const renderComponent = (Component, options = {}) => {
     root,
     snapshot,
     setProps,
+    setState,
     focus,
     unfocus,
     input,

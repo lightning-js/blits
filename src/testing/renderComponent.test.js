@@ -148,6 +148,49 @@ test('renderComponent setProps updates reactive attributes in snapshots', (asser
   assert.end()
 })
 
+test('renderComponent setState updates state and reactive attributes in snapshots', (assert) => {
+  const Message = Component('StateMessage', {
+    template: `
+      <Element>
+        <Text :content="$message" :x="$x" />
+      </Element>
+    `,
+    state() {
+      return {
+        message: 'Loading',
+        x: 10,
+      }
+    },
+  })
+
+  const fixture = renderComponent(Message)
+
+  fixture.setState({
+    message: 'Ready',
+    x: 20,
+  })
+
+  assert.deepEqual(
+    fixture.snapshot().state,
+    {
+      message: 'Ready',
+      x: 20,
+    },
+    'Snapshot should contain the updated state'
+  )
+  assert.deepEqual(
+    fixture.snapshot().tree.children[0].attributes,
+    {
+      content: 'Ready',
+      x: 20,
+    },
+    'State updates should update the rendered tree'
+  )
+
+  fixture.destroy()
+  assert.end()
+})
+
 test('renderComponent snapshots nested component attributes and props separately', (assert) => {
   const Card = Component('Card', {
     template: `
