@@ -22,13 +22,17 @@ import { initLog } from '../lib/log.js'
 import { getRaw } from '../lib/reactivity/reactive.js'
 import Focus from '../focus/focus.js'
 import { initKeyMap, keyMap } from '../application.js'
+import { configurePlatform, platform } from '../platform.js'
+import nodePlatform from './nodePlatform.js'
 
 let nodeId = 0
 
 const renderComponent = (Component, options = {}) => {
   const originalElement = stage.element
+  const originalPlatform = platform
 
   Settings.set(options.settings || {})
+  configurePlatform(() => nodePlatform())
   initLog()
   initKeyMap()
   mockRenderer()
@@ -96,6 +100,7 @@ const renderComponent = (Component, options = {}) => {
       component.destroy()
     }
     stage.element = originalElement
+    configurePlatform(() => originalPlatform)
   }
 
   return {
@@ -106,6 +111,7 @@ const renderComponent = (Component, options = {}) => {
     setState,
     focus,
     unfocus,
+    createKeyboardEvent,
     input,
     destroy,
   }
@@ -308,21 +314,16 @@ const appendToParent = (element, parent) => {
   }
 }
 
-const createKeyboardEvent = (key) => {
-  const keyCode = keyCodeFromKey(key)
-  const event = new KeyboardEvent('keydown', {
+const createKeyboardEvent = (key, init = {}) => {
+  const keyCode = init.keyCode || keyCodeFromKey(key)
+  return platform.createKeyboardEvent('keydown', {
     key,
+    ...init,
     keyCode,
     bubbles: true,
     cancelable: true,
     composed: true,
   })
-
-  if (event.keyCode !== keyCode) {
-    Object.defineProperty(event, 'keyCode', { value: keyCode })
-  }
-
-  return event
 }
 
 const keyCodeFromKey = (key) => {

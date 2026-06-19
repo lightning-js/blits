@@ -396,7 +396,7 @@ test('renderComponent input accepts a custom keyboard event', async (assert) => 
   })
 
   const fixture = renderComponent(Button)
-  const event = new KeyboardEvent('keydown', {
+  const event = fixture.createKeyboardEvent('enter', {
     key: 'Enter',
     keyCode: 13,
   })
