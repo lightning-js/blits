@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.6.0
+
+_25 jun 2026_
+
+- Added platform layer for browser API abstraction (passed as a launch option)
+- Improved reactivity guard vite plugin
+- Added testing harness to support Blits component testing
+
 ## 2.5.0
 
 _11 jun 2026_
