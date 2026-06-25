@@ -30,6 +30,8 @@
   - [Basics](/router/basics.md)
   - [Hooks](/router/hooks.md)
   - [Transitions](/router/transitions.md)
+- Testing
+  - [Test harness](/testing/test-harness.md)
 - Shaders
   - [Importing Shaders](/shaders/importing-shaders.md)
   - [WebGl Shaders](/shaders/webgl-shadertypes.md)
