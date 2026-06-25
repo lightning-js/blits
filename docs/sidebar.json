@@ -134,6 +134,15 @@
     ]
   },
   {
+    "text": "Testing",
+    "items": [
+      {
+        "text": "Test harness",
+        "link": "/testing/test-harness"
+      }
+    ]
+  },
+  {
     "text": "Shader",
     "items": [
       {
