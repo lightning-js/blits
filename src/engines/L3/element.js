@@ -318,10 +318,8 @@ const propsTransformer = {
     const resizeMode = {}
 
     if (v === 'cover' || v === 'contain') {
-      this.props['textureOptions'] = {
-        ...this.props.props['textureOptions'],
-        resizeMode: { type: v },
-      }
+      const opts = this.props.props['textureOptions'] || (this.props.props['textureOptions'] = {})
+      opts['resizeMode'] = { type: v }
       return
     }
 
@@ -336,7 +334,8 @@ const propsTransformer = {
         resizeMode['clipX'] = 'x' in v.position === true ? v.position.x : null
         resizeMode['clipY'] = 'y' in v.position === true ? v.position.y : null
       }
-      this.props['textureOptions'] = { ...this.props.props['textureOptions'], resizeMode }
+      const opts = this.props.props['textureOptions'] || (this.props.props['textureOptions'] = {})
+      opts['resizeMode'] = resizeMode
     }
   },
   /**
@@ -356,10 +355,8 @@ const propsTransformer = {
    * @param {boolean} v
    */
   set preventCleanup(v) {
-    this.props['textureOptions'] = {
-      ...this.props.props['textureOptions'],
-      preventCleanup: v === true,
-    }
+    const opts = this.props.props['textureOptions'] || (this.props.props['textureOptions'] = {})
+    opts['preventCleanup'] = v === true
   },
   set rtt(v) {
     this.props['rtt'] = v
