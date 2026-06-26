@@ -318,7 +318,10 @@ const propsTransformer = {
     const resizeMode = {}
 
     if (v === 'cover' || v === 'contain') {
-      this.props['textureOptions'] = { resizeMode: { type: v } }
+      this.props['textureOptions'] = {
+        ...this.props.props['textureOptions'],
+        resizeMode: { type: v },
+      }
       return
     }
 
@@ -333,7 +336,29 @@ const propsTransformer = {
         resizeMode['clipX'] = 'x' in v.position === true ? v.position.x : null
         resizeMode['clipY'] = 'y' in v.position === true ? v.position.y : null
       }
-      this.props['textureOptions'] = { resizeMode }
+      this.props['textureOptions'] = { ...this.props.props['textureOptions'], resizeMode }
+    }
+  },
+  /**
+   * Prevents the texture from being cleaned up when it is no longer rendered.
+   *
+   * @remarks
+   * When set to `true`, the texture associated with this element will be kept
+   * in GPU memory indefinitely, even when the element is off-screen or under
+   * memory pressure. This is useful for textures that are frequently reused
+   * and should always be instantly available without any reload delay.
+   *
+   * Use with care: textures marked as persistent consume GPU memory permanently
+   * and are never freed by the automatic cleanup cycle.
+   *
+   * @defaultValue `false`
+   *
+   * @param {boolean} v
+   */
+  set preventCleanup(v) {
+    this.props['textureOptions'] = {
+      ...this.props.props['textureOptions'],
+      preventCleanup: v === true,
     }
   },
   set rtt(v) {

@@ -470,6 +470,22 @@
       "Element"
     ]
   },
+  "preventCleanup": {
+    "attrType": "regular",
+    "types": [
+      "enum"
+    ],
+    "values": [
+      "true",
+      "false"
+    ],
+    "defaultValue": "false",
+    "reactive": false,
+    "description": "Prevents the texture from being freed by the GPU memory cleanup cycle. Set to true for frequently reused textures that must always be instantly available without any reload delay. Use with care: persistent textures consume GPU memory permanently.",
+    "usedIn": [
+      "Element"
+    ]
+  },
   "rtt": {
     "attrType": "regular",
     "types": [

@@ -392,6 +392,97 @@ test('Element - Set `fit` property should not set not required keys', (assert) =
   assert.end()
 })
 
+test('Element - Set `preventCleanup` property to true', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('preventCleanup', true)
+
+  assert.ok(el.node['textureOptions'] instanceof Object, 'textureOptions should be an object')
+  assert.equal(
+    el.node['textureOptions']['preventCleanup'],
+    true,
+    'Node textureOptions.preventCleanup should be true'
+  )
+  assert.equal(
+    el.props.props['textureOptions']['preventCleanup'],
+    true,
+    'Props textureOptions.preventCleanup should be set to true'
+  )
+  assert.equal(el.props.raw['preventCleanup'], true, "Props' raw map entry should be added")
+  assert.end()
+})
+
+test('Element - Set `preventCleanup` property to false', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('preventCleanup', false)
+
+  assert.ok(el.node['textureOptions'] instanceof Object, 'textureOptions should be an object')
+  assert.equal(
+    el.node['textureOptions']['preventCleanup'],
+    false,
+    'Node textureOptions.preventCleanup should be false'
+  )
+  assert.equal(
+    el.props.props['textureOptions']['preventCleanup'],
+    false,
+    'Props textureOptions.preventCleanup should be set to false'
+  )
+  assert.end()
+})
+
+test('Element - Set `fit` and `preventCleanup` together preserves both in textureOptions', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('fit', 'cover')
+  el.set('preventCleanup', true)
+
+  assert.ok(el.node['textureOptions'] instanceof Object, 'textureOptions should be an object')
+  assert.ok(
+    el.node['textureOptions']['resizeMode'] instanceof Object,
+    'resizeMode should be preserved after setting preventCleanup'
+  )
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['type'],
+    'cover',
+    'Node resizeMode.type should still be "cover" after setting preventCleanup'
+  )
+  assert.equal(
+    el.node['textureOptions']['preventCleanup'],
+    true,
+    'Node textureOptions.preventCleanup should be true after setting fit'
+  )
+  assert.end()
+})
+
+test('Element - Set `preventCleanup` then `fit` preserves both in textureOptions', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('preventCleanup', true)
+  el.set('fit', 'contain')
+
+  assert.ok(el.node['textureOptions'] instanceof Object, 'textureOptions should be an object')
+  assert.equal(
+    el.node['textureOptions']['preventCleanup'],
+    true,
+    'Node textureOptions.preventCleanup should be preserved after setting fit'
+  )
+  assert.ok(
+    el.node['textureOptions']['resizeMode'] instanceof Object,
+    'resizeMode should be set after setting fit'
+  )
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['type'],
+    'contain',
+    'Node resizeMode.type should be "contain"'
+  )
+  assert.end()
+})
+
 test('Element - Set `placement` property with value `center`', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
   const el = createElement()
