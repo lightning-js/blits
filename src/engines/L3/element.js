@@ -203,7 +203,10 @@ const colorMap = {
 }
 
 const setTextureOption = (target, key, value) => {
-  const opts = target.props['textureOptions'] || target.element.node.textureOptions || {}
+  const opts =
+    target.props['textureOptions'] ||
+    (target.element.node && target.element.node.textureOptions) ||
+    {}
   opts[key] = value
   target.props['textureOptions'] = opts
 }
