@@ -202,6 +202,12 @@ const colorMap = {
   right: 'colorRight',
 }
 
+const setTextureOption = (target, key, value) => {
+  const opts = target.props['textureOptions'] || target.element.node.textureOptions || {}
+  opts[key] = value
+  target.props['textureOptions'] = opts
+}
+
 /**
  * Default text settings for text nodes (initialized on first use).
  * @type {object|null}
@@ -275,6 +281,9 @@ const propsTransformer = {
     if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
       this.props['src'] = v.src
       this.props['imageType'] = v.type
+      if ('keepAlive' in v) {
+        setTextureOption(this, 'preventCleanup', v.keepAlive === true)
+      }
     } else {
       this.props['src'] = v
     }
@@ -318,7 +327,7 @@ const propsTransformer = {
     const resizeMode = {}
 
     if (v === 'cover' || v === 'contain') {
-      this.props['textureOptions'] = { resizeMode: { type: v } }
+      setTextureOption(this, 'resizeMode', { type: v })
       return
     }
 
@@ -333,7 +342,7 @@ const propsTransformer = {
         resizeMode['clipX'] = 'x' in v.position === true ? v.position.x : null
         resizeMode['clipY'] = 'y' in v.position === true ? v.position.y : null
       }
-      this.props['textureOptions'] = { resizeMode }
+      setTextureOption(this, 'resizeMode', resizeMode)
     }
   },
   set rtt(v) {
