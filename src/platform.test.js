@@ -17,6 +17,7 @@
 
 import test from 'tape'
 import { configurePlatform, platform as activePlatform } from './platform.js'
+import nodePlatform from './testing/nodePlatform.js'
 
 test('Platform - configurePlatform merges custom references with browser defaults', (assert) => {
   const customInput = {}
@@ -44,6 +45,31 @@ test('Platform - configurePlatform accepts a callback with browser defaults', (a
 
   configurePlatform(() => ({}))
   assert.end()
+})
+
+test('Platform - default announcer driver is preserved', (assert) => {
+  const platform = configurePlatform(() => ({}))
+
+  assert.equal(typeof platform.announcer, 'object', 'default announcer driver is available')
+  assert.equal(typeof platform.announcer.speak, 'function', 'default announcer can speak')
+  assert.equal(typeof platform.announcer.cancel, 'function', 'default announcer can cancel')
+
+  configurePlatform(() => ({}))
+  assert.end()
+})
+
+test('Platform - node platform provides a noop announcer driver', (assert) => {
+  const platform = configurePlatform(() => nodePlatform())
+
+  assert.equal(typeof platform.announcer.speak, 'function', 'node announcer can speak')
+  assert.equal(typeof platform.announcer.cancel, 'function', 'node announcer can cancel')
+
+  platform.announcer.speak({ message: 'test', id: 1 }).then(() => {
+    assert.pass('node announcer speak resolves')
+    platform.announcer.cancel()
+    configurePlatform(() => ({}))
+    assert.end()
+  })
 })
 
 test('Platform - custom KeyboardEvent constructor is used for keyboard helpers', (assert) => {
