@@ -99,7 +99,7 @@ const addToQueue = (message, politeness, delay = false, options = {}) => {
     if (id === currentId) {
       cancelDriver()
       isProcessing = false
-      resolveFn('interupted')
+      resolveFn('interrupted')
     }
   }
 

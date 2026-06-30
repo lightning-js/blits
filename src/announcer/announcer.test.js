@@ -327,7 +327,7 @@ test('Announcer stop uses custom platform announcer driver cancel', (assert) => 
 
   const announcement = announcer.speak('custom driver stop')
   announcement.then((status) => {
-    assert.equal(status, 'interupted', 'announcement resolves as interrupted')
+    assert.equal(status, 'interrupted', 'announcement resolves as interrupted')
     assert.equal(cancelCount, 1, 'custom driver cancel is called')
 
     configurePlatform(() => ({}))
