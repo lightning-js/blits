@@ -129,6 +129,19 @@ Blits.Launch(App, 'app', {
 })
 ```
 
+For LG webOS apps, Blits provides a webOS announcer factory that calls the platform TTS service.
+
+```js
+import createAnnouncer from '@lightningjs/blits/platforms/webOS/announcer'
+
+Blits.Launch(App, 'app', {
+  announcer: true,
+  platform: () => ({
+    announcer: createAnnouncer(),
+  }),
+})
+```
+
 The `rendererPlatform` setting is separate from `platform`. It is only passed to the renderer, and should be used for renderer specific platform configuration.
 
 ## Effects & Shaders
