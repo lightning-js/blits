@@ -16,7 +16,6 @@
  */
 
 import { Log } from '../lib/log.js'
-import speechSynthesis from './speechSynthesis.js'
 import { platform } from '../platform.js'
 
 let active = false
@@ -29,6 +28,20 @@ let debounce = null
 // Global default utterance options
 let globalDefaultOptions = {
   enableUtteranceKeepAlive: !/android/i.test(platform.userAgent || ''),
+}
+
+const getDriver = () => {
+  const driver = platform.announcer
+  if (driver && typeof driver.speak === 'function') {
+    return driver
+  }
+}
+
+const cancelDriver = () => {
+  const driver = getDriver()
+  if (driver && typeof driver.cancel === 'function') {
+    driver.cancel()
+  }
 }
 
 const noopAnnouncement = {
@@ -84,9 +97,9 @@ const addToQueue = (message, politeness, delay = false, options = {}) => {
   // augment the promise with a stop function
   done.stop = () => {
     if (id === currentId) {
-      speechSynthesis.cancel()
+      cancelDriver()
       isProcessing = false
-      resolveFn('interupted')
+      resolveFn('interrupted')
     }
   }
 
@@ -133,7 +146,17 @@ const processQueue = async () => {
     debounce = setTimeout(() => {
       Log.debug(`Announcer - speaking: "${message}" (id: ${id})`)
 
-      speechSynthesis
+      const driver = getDriver()
+      if (driver === undefined) {
+        currentId = null
+        currentResolveFn = null
+        isProcessing = false
+        resolveFn('unavailable')
+        processQueue()
+        return
+      }
+
+      driver
         .speak({
           message,
           id,
@@ -180,8 +203,8 @@ const stop = () => {
   // Clear debounce timer if speech hasn't started yet
   clearDebounceTimer()
 
-  // Always cancel speech synthesis to ensure clean state
-  speechSynthesis.cancel()
+  // Always cancel the platform announcer to ensure clean state
+  cancelDriver()
 
   // Store resolve function before resetting state
   const resolveFn = currentResolveFn

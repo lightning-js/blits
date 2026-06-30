@@ -17,7 +17,7 @@
 
 import test from 'tape'
 
-// Mock speechSynthesis API before importing announcer (which imports speechSynthesis)
+// Mock Web Speech API for the default announcer driver
 const mockUtterance = class {
   constructor(text) {
     this.text = text
@@ -62,16 +62,15 @@ const mockSpeechSynthesis = {
   },
 }
 
-// Setup mocks before module loads (speechSynthesis.js captures window.speechSynthesis at import time)
 window.speechSynthesis = mockSpeechSynthesis
 window.SpeechSynthesisUtterance = mockUtterance
 globalThis.SpeechSynthesisUtterance = mockUtterance
 
-// Dynamic import to ensure mocks are set before module evaluation
 const announcerModule = await import('./announcer.js')
 const announcer = announcerModule.default
 
 import { initLog } from '../lib/log.js'
+import { configurePlatform } from '../platform.js'
 
 initLog()
 announcer.enable()
@@ -229,7 +228,7 @@ test('Announcer stop interrupts processing', (assert) => {
     // Due to timing, it may finish before stop is called
     assert.ok(
       status === 'interrupted' || status === 'unavailable' || status === 'finished',
-      'Stop interrupts (or unavailable if no speechSynthesis, or finished if completed)'
+      'Stop interrupts (or unavailable if Web Speech is missing, or finished if completed)'
     )
     assert.end()
   })
@@ -276,4 +275,66 @@ test('Announcer queue behavior', (assert) => {
     )
     assert.end()
   })
+})
+
+test('Announcer uses custom platform announcer driver', (assert) => {
+  announcer.stop()
+  announcer.clear()
+  announcer.enable()
+
+  const calls = []
+
+  configurePlatform((defaults) => ({
+    ...defaults,
+    announcer: {
+      speak(options) {
+        calls.push(options)
+        return Promise.resolve()
+      },
+      cancel() {},
+    },
+  }))
+
+  announcer.speak('custom driver message', 'off', { lang: 'nl-NL' }).then((status) => {
+    assert.equal(status, 'finished', 'custom driver announcement resolves')
+    assert.equal(calls.length, 1, 'custom driver speak is called once')
+    assert.equal(calls[0].message, 'custom driver message', 'custom driver receives message')
+    assert.equal(calls[0].lang, 'nl-NL', 'custom driver receives options')
+
+    configurePlatform(() => ({}))
+    assert.end()
+  })
+})
+
+test('Announcer stop uses custom platform announcer driver cancel', (assert) => {
+  announcer.stop()
+  announcer.clear()
+  announcer.enable()
+
+  let cancelCount = 0
+
+  configurePlatform((defaults) => ({
+    ...defaults,
+    announcer: {
+      speak() {
+        return new Promise(() => {})
+      },
+      cancel() {
+        cancelCount++
+      },
+    },
+  }))
+
+  const announcement = announcer.speak('custom driver stop')
+  announcement.then((status) => {
+    assert.equal(status, 'interrupted', 'announcement resolves as interrupted')
+    assert.equal(cancelCount, 1, 'custom driver cancel is called')
+
+    configurePlatform(() => ({}))
+    assert.end()
+  })
+
+  setTimeout(() => {
+    announcement.stop()
+  }, 400)
 })

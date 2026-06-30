@@ -66,6 +66,28 @@ declare module '@lightningjs/blits' {
     enableUtteranceKeepAlive?: boolean
   }
 
+  export interface AnnouncerDriverOptions extends AnnouncerUtteranceOptions {
+    /**
+     * Message to be spoken by the platform announcer driver.
+     */
+    message: string | number,
+    /**
+     * Internal announcement id used by the Blits announcer queue.
+     */
+    id: number,
+  }
+
+  export interface AnnouncerDriver {
+    /**
+     * Speak one queued announcement.
+     */
+    speak(options: AnnouncerDriverOptions): Promise<any>,
+    /**
+     * Stop the active platform announcement, when supported.
+     */
+    cancel(): void,
+  }
+
   export interface AnnouncerUtterance<T = any> extends Promise<T> {
     /**
      * Removes a specific message from the announcement queue,
@@ -1070,13 +1092,9 @@ declare module '@lightningjs/blits' {
      */
     createKeyboardEvent?: (type: string, init?: KeyboardEventInit | any) => any,
     /**
-     * SpeechSynthesisUtterance constructor used by the announcer.
+     * Platform-specific announcer driver used instead of the default Web Speech driver.
      */
-    SpeechSynthesisUtterance?: typeof SpeechSynthesisUtterance | any,
-    /**
-     * Speech synthesis API implementation used by the announcer.
-     */
-    speechSynthesis?: SpeechSynthesis | any,
+    announcer?: AnnouncerDriver,
     /**
      * Monotonic timestamp provider used for input throttling.
      */

@@ -95,19 +95,11 @@ const nodePlatform = () => {
     KeyboardEvent: TestKeyboardEvent,
     isKeyboardEvent: (event) => event instanceof TestKeyboardEvent,
     createKeyboardEvent: (type, init = {}) => new TestKeyboardEvent(type, init),
-    SpeechSynthesisUtterance: class TestSpeechSynthesisUtterance {
-      constructor(text = '') {
-        this.text = text
-      }
-    },
-    speechSynthesis: {
-      cancel() {},
-      getVoices() {
-        return []
+    announcer: {
+      speak() {
+        return Promise.resolve()
       },
-      pause() {},
-      resume() {},
-      speak() {},
+      cancel() {},
     },
     now: Date.now,
   }

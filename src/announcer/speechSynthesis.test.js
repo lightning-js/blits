@@ -62,13 +62,12 @@ const mockSpeechSynthesis = {
   },
 }
 
-// Setup mocks before module loads (speechSynthesis.js captures window.speechSynthesis at import time)
+// Setup Web Speech mocks for the default browser announcer driver
 window.speechSynthesis = mockSpeechSynthesis
 window.SpeechSynthesisUtterance = mockUtterance
 globalThis.SpeechSynthesisUtterance = mockUtterance
 const mockWindow = window
 
-// Dynamic import to ensure mocks are set before module evaluation
 const speechSynthesisModule = await import('./speechSynthesis.js')
 const speechSynthesis = speechSynthesisModule.default
 
@@ -277,14 +276,26 @@ test('speechSynthesis - multiple speak calls', (assert) => {
 test('speechSynthesis - handle unavailable API', (assert) => {
   assert.plan(1)
 
-  // Temporarily remove speechSynthesis
   const originalSyn = global.window.speechSynthesis
+  const originalGlobalSyn = globalThis.speechSynthesis
+
   global.window.speechSynthesis = undefined
+  globalThis.speechSynthesis = undefined
 
-  // Need to reimport to pick up the new window.speechSynthesis value
-  // For this test, we'll just verify the behavior conceptually
-  global.window.speechSynthesis = originalSyn
-
-  assert.pass('Should handle unavailable speechSynthesis API')
-  assert.end()
+  speechSynthesis
+    .speak({
+      id: 'test-10',
+      message: 'Unavailable test',
+    })
+    .then(() => {
+      assert.fail('Promise should reject when speechSynthesis is unavailable')
+    })
+    .catch((e) => {
+      assert.equal(e.error, 'unavailable', 'Should handle unavailable speechSynthesis API')
+    })
+    .finally(() => {
+      global.window.speechSynthesis = originalSyn
+      globalThis.speechSynthesis = originalGlobalSyn
+      assert.end()
+    })
 })
