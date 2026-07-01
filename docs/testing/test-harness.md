@@ -46,6 +46,23 @@ The snapshot contains:
 
 Nested Components are included in the `tree` as Component snapshots as well.
 
+## Finding Nodes by Inspector Data
+
+Use `findByData()` and `findAllByData()` to find nodes with matching `inspector-data`.
+
+```xml
+<Text content="Menu" inspector-data="{testId: 'menu-title'}" />
+<Element inspector-data="{role: 'menu-item'}" />
+```
+
+```js
+const title = fixture.findByData('testId', 'menu-title')
+const items = fixture.findAllByData('role', 'menu-item')
+```
+
+`findByData(key, value)` returns the first matching node or `null`.
+`findAllByData(key, value)` returns all matching nodes, or an empty array when nothing matches.
+
 ## Updating Props and State
 
 Props can be updated with `setProps()`.

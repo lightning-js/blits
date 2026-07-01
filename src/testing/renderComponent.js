@@ -17,12 +17,14 @@
 
 import Settings from '../settings.js'
 import { renderer, stage } from '../launch.js'
+import { setDevMode } from '../component.js'
 import symbols from '../lib/symbols.js'
 import { initLog } from '../lib/log.js'
 import { getRaw } from '../lib/reactivity/reactive.js'
 import Focus from '../focus/focus.js'
 import { initKeyMap, keyMap } from '../application.js'
 import { configurePlatform, platform } from '../platform.js'
+import { isObjectString, parseToObject } from '../lib/utils.js'
 import nodePlatform from './nodePlatform.js'
 
 let nodeId = 0
@@ -32,6 +34,7 @@ const renderComponent = (Component, options = {}) => {
   const originalPlatform = platform
 
   Settings.set(options.settings || {})
+  setDevMode(true)
   configurePlatform(() => nodePlatform())
   initLog()
   initKeyMap()
@@ -56,6 +59,20 @@ const renderComponent = (Component, options = {}) => {
     const holderMap = new WeakMap()
     collectComponents(component, holderMap)
     return componentSnapshot(component, holderMap)
+  }
+
+  const findAllByData = (key, value) => {
+    const matches = []
+    visitSnapshot(snapshot(), (node) => {
+      if (node.attributes && node.attributes.data && node.attributes.data[key] === value) {
+        matches.push(node)
+      }
+    })
+    return matches
+  }
+
+  const findByData = (key, value) => {
+    return findAllByData(key, value)[0] || null
   }
 
   const setProps = (props = {}) => {
@@ -107,6 +124,8 @@ const renderComponent = (Component, options = {}) => {
     component,
     root,
     snapshot,
+    findByData,
+    findAllByData,
     setProps,
     setState,
     focus,
@@ -289,10 +308,21 @@ const createElement = ({ parent } = {}) => {
       }
     },
     set(key, value) {
+      if (key === 'inspector-data') {
+        this.setInspectorMetadata(value)
+        return
+      }
       this.attributes[key] = value
       this.node[key] = value
     },
-    setInspectorMetadata() {},
+    setInspectorMetadata(data) {
+      if (isObjectString(data) === true) {
+        data = parseToObject(data)
+      }
+      if (data === null || typeof data !== 'object') return
+      this.attributes.data = { ...(this.attributes.data || {}), ...data }
+      this.node.data = { ...(this.node.data || {}), ...data }
+    },
     destroy() {
       this.eol = true
       this.children.length = 0
@@ -311,6 +341,19 @@ const appendToParent = (element, parent) => {
   parent.children.push(element)
   if (parent.node && parent.node.children) {
     parent.node.children.push(element.node)
+  }
+}
+
+const visitSnapshot = (node, visit) => {
+  if (node === undefined || node === null) return
+  visit(node)
+  if (node.type === 'Component') {
+    visitSnapshot(node.tree, visit)
+    return
+  }
+  const children = node.children || []
+  for (let i = 0; i < children.length; i++) {
+    visitSnapshot(children[i], visit)
   }
 }
 

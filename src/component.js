@@ -38,6 +38,11 @@ import { plugins } from './plugin.js'
 
 // object to store global components
 let globalComponents
+let devMode = false
+
+export const setDevMode = (enabled) => {
+  devMode = enabled === true
+}
 
 const required = (name) => {
   throw new Error(`Parameter ${name} is required`)
@@ -493,7 +498,7 @@ const Component = (name = required('name'), config = required('config')) => {
     // one time code generation (only if precompilation is turned off)
     if (config.code === undefined) {
       Log.debug(`Generating code for ${name} component`)
-      config.code = codegenerator.call(config, parser(config.template, name))
+      config.code = codegenerator.call(config, parser(config.template, name), devMode)
     }
 
     // create an instance of the component, using base as the prototype (which contains Base)
