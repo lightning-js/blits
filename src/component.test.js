@@ -30,6 +30,9 @@ initLog()
 if (renderer && !renderer.on) {
   renderer.on = () => {}
 }
+if (renderer && !renderer.off) {
+  renderer.off = () => {}
+}
 
 test('Type', (assert) => {
   const expected = 'function'
@@ -528,6 +531,54 @@ test('Component - Warn when method name matches prop name', (assert) => {
     logs[0].args.pop(),
     'foo already exists as a prop',
     'Should log prop/method name clash error message'
+  )
+  assert.end()
+})
+
+test('Component - Should unregister renderer hook listeners on destroy', (assert) => {
+  const offCapture = assert.capture(renderer, 'off', () => {})
+  const onCapture = assert.capture(renderer, 'on', () => {})
+  const config = {
+    code: {
+      render: () => {
+        return { elms: [{ node: { on: () => {} } }], cleanup: () => {} }
+      },
+      effects: [],
+    },
+    hooks: {
+      frameTick() {},
+      idle() {},
+    },
+  }
+
+  const holder = { destroy() {} }
+  const parent = { $focus() {} }
+  const foo = Component('Foo', config)({}, holder, parent, {})
+  const onCalls = onCapture()
+
+  foo.destroy()
+
+  const offCalls = offCapture()
+  const frameTickCb = onCalls.find((c) => c.args[0] === 'frameTick').args[1]
+  const idleCb = onCalls.find((c) => c.args[0] === 'idle').args[1]
+  const activeCb = onCalls.find((c) => c.args[0] === 'active').args[1]
+
+  assert.ok(
+    offCalls.some((c) => c.args[0] === 'frameTick' && c.args[1] === frameTickCb),
+    'frameTick listener should be removed on destroy'
+  )
+  assert.ok(
+    offCalls.some((c) => c.args[0] === 'idle' && c.args[1] === idleCb),
+    'idle listener should be removed on destroy'
+  )
+  assert.ok(
+    offCalls.some((c) => c.args[0] === 'active' && c.args[1] === activeCb),
+    'active listener should be removed on destroy'
+  )
+  assert.equal(
+    foo[symbols.rendererEventListeners],
+    null,
+    'rendererEventListeners should be cleared'
   )
   assert.end()
 })
