@@ -72,7 +72,14 @@ const renderComponent = (Component, options = {}) => {
   }
 
   const findByData = (key, value) => {
-    return findAllByData(key, value)[0] || null
+    let match = null
+    visitSnapshot(snapshot(), (node) => {
+      if (node.attributes && node.attributes.data && node.attributes.data[key] === value) {
+        match = node
+        return true
+      }
+    })
+    return match
   }
 
   const setProps = (props = {}) => {
@@ -345,16 +352,16 @@ const appendToParent = (element, parent) => {
 }
 
 const visitSnapshot = (node, visit) => {
-  if (node === undefined || node === null) return
-  visit(node)
+  if (node === undefined || node === null) return false
+  if (visit(node) === true) return true
   if (node.type === 'Component') {
-    visitSnapshot(node.tree, visit)
-    return
+    return visitSnapshot(node.tree, visit)
   }
   const children = node.children || []
   for (let i = 0; i < children.length; i++) {
-    visitSnapshot(children[i], visit)
+    if (visitSnapshot(children[i], visit) === true) return true
   }
+  return false
 }
 
 const createKeyboardEvent = (key, init = {}) => {
