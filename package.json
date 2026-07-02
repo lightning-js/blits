@@ -32,6 +32,10 @@
       "types": "./src/plugins/storage/storage.d.ts",
       "default": "./src/plugins/storage/storage.js"
     },
+    "./platforms/webOS/announcer": {
+      "types": "./src/platforms/webOS/announcer.d.ts",
+      "default": "./src/platforms/webOS/announcer.js"
+    },
     "./testing": {
       "types": "./src/testing/index.d.ts",
       "default": "./src/testing/index.js"
