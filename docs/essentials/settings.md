@@ -109,7 +109,38 @@ Blits.Launch(App, 'app', {
 })
 ```
 
-Common platform properties that can be overwritten are `input`, `viewport`, `dispatchEvent`, `localStorage`, `getCookie`, `setCookie`, `historyBack`, `screenHeight`, `hardwareConcurrency`, `userAgent`, `KeyboardEvent`, `isKeyboardEvent`, `createKeyboardEvent`, `SpeechSynthesisUtterance`, `speechSynthesis`, and `now`.
+Common platform properties that can be overwritten are `input`, `viewport`, `dispatchEvent`, `localStorage`, `getCookie`, `setCookie`, `historyBack`, `screenHeight`, `hardwareConcurrency`, `userAgent`, `KeyboardEvent`, `isKeyboardEvent`, `createKeyboardEvent`, `announcer`, and `now`.
+
+The `announcer` platform property can be used to provide a custom text-to-speech driver. When set, Blits keeps using the built-in announcer queue and calls the custom driver's `speak(options)` and `cancel()` methods instead of the default Web Speech implementation.
+
+```js
+Blits.Launch(App, 'app', {
+  announcer: true,
+  platform: (defaults) => ({
+    announcer: {
+      speak(options) {
+        return myPlatformSpeech.speak(options.message)
+      },
+      cancel() {
+        myPlatformSpeech.cancel()
+      },
+    },
+  }),
+})
+```
+
+For LG webOS apps, Blits provides a webOS announcer factory that calls the platform TTS service.
+
+```js
+import createAnnouncer from '@lightningjs/blits/platforms/webOS/announcer'
+
+Blits.Launch(App, 'app', {
+  announcer: true,
+  platform: () => ({
+    announcer: createAnnouncer(),
+  }),
+})
+```
 
 The `rendererPlatform` setting is separate from `platform`. It is only passed to the renderer, and should be used for renderer specific platform configuration.
 

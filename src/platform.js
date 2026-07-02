@@ -15,6 +15,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import speechSynthesis from './announcer/speechSynthesis.js'
+
 const globalScope = globalThis
 
 const createKeyboardEventFactory = (KeyboardEventConstructor) => {
@@ -73,10 +75,7 @@ const browserPlatform = () => {
         ? (event) => event instanceof KeyboardEventConstructor
         : undefined,
     createKeyboardEvent,
-    SpeechSynthesisUtterance:
-      globalScope.SpeechSynthesisUtterance || (windowRef && windowRef.SpeechSynthesisUtterance),
-    speechSynthesis:
-      (selfRef && selfRef.speechSynthesis) || (windowRef && windowRef.speechSynthesis),
+    announcer: speechSynthesis,
     now:
       globalScope.performance && globalScope.performance.now !== undefined
         ? globalScope.performance.now.bind(globalScope.performance)
@@ -108,9 +107,7 @@ export const configurePlatform = (customPlatform) => {
   platform.getCookie = platform.getCookie || basePlatform.getCookie
   platform.setCookie = platform.setCookie || basePlatform.setCookie
   platform.historyBack = platform.historyBack || basePlatform.historyBack
-  platform.SpeechSynthesisUtterance =
-    platform.SpeechSynthesisUtterance || basePlatform.SpeechSynthesisUtterance
-  platform.speechSynthesis = platform.speechSynthesis || basePlatform.speechSynthesis
+  platform.announcer = platform.announcer || basePlatform.announcer
   platform.now = platform.now || basePlatform.now
 
   return platform
