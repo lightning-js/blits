@@ -43,6 +43,8 @@ export interface RenderComponentFixture {
   component: any
   root: any
   snapshot(): SnapshotNode | ComponentSnapshotNode
+  findByData(key: string, value: any): SnapshotNode | ComponentSnapshotNode | null
+  findAllByData(key: string, value: any): Array<SnapshotNode | ComponentSnapshotNode>
   setProps(props: Record<string, any>): void
   setState(state: Record<string, any>): void
   focus(event?: KeyboardEvent): Promise<any>

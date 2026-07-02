@@ -191,6 +191,36 @@ test('renderComponent setState updates state and reactive attributes in snapshot
   assert.end()
 })
 
+test('renderComponent finds nodes by inspector data', (assert) => {
+  const Menu = Component('InspectableMenu', {
+    template: `
+      <Element inspector-data="{testId: 'menu', role: 'menu'}">
+        <Text content="Menu" inspector-data="{testId: 'menu-title'}" />
+        <Element inspector-data="{role: 'menu-item'}" />
+        <Element inspector-data="{role: 'menu-item'}" />
+      </Element>
+    `,
+  })
+
+  const fixture = renderComponent(Menu)
+
+  assert.equal(
+    fixture.findByData('testId', 'menu-title').attributes.content,
+    'Menu',
+    'findByData should return the first node with matching inspector data'
+  )
+  assert.equal(
+    fixture.findAllByData('role', 'menu-item').length,
+    2,
+    'findAllByData should return all matching nodes'
+  )
+  assert.equal(fixture.findByData('testId', 'missing'), null, 'findByData should return null')
+  assert.deepEqual(fixture.findAllByData('role', 'missing'), [], 'findAllByData should return []')
+
+  fixture.destroy()
+  assert.end()
+})
+
 test('renderComponent snapshots nested component attributes and props separately', (assert) => {
   const Card = Component('Card', {
     template: `
@@ -263,6 +293,9 @@ test('renderComponent snapshots nested component attributes and props separately
             attributes: {
               x: 100,
               y: 20,
+              data: {
+                'blits-componentType': 'Card',
+              },
             },
             props: {
               title: 'Dune',
