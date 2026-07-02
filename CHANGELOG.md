@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.7.0
+
+_2 jul 2026_
+
+- Added `keepAlive` option to `src`-object to prevent a texture from being cleaned up by the renderer
+- Abstracted announcer (and speechSynthesis) to be platform provided (with speechSynthesis as the built-in default)
+- Added dedicated findByData methods to testing harness to select specific nodes in the tree
+- Improved test cases around frameTick cleanup
+
 ## 2.6.0
 
 _25 jun 2026_
