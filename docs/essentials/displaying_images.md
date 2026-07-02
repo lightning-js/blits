@@ -19,6 +19,18 @@ It is recommended to give your Element a width (`w`) and a height (`h`) attribut
 
 For the best performance, it's important to keep your source images as small as possible. If you're displaying an image at `200px x 200px`, make sure the image is exactly that size or _smaller_. The latter option may lead to some quality loss, but can positively impact the overall performance of your App.
 
+## Advanced src Attribute
+
+Besides passing a string to the `src` attribute, you can also pass an object with extra options.
+
+```xml
+<Element :src="{src: 'assets/background', type: 'ktx', keepAlive: true}" w="1920" h="1080" />
+```
+
+The `type` option can be used to explicitly set the image type. This is useful when the type can not be derived from the url or filename, or when you want to use a compressed texture format like `ktx`.
+
+The `keepAlive` option prevents the texture generated from the source image from being cleaned up. Use this for images that are reused often and should stay available in memory.
+
 ## Colorization
 
 You also have the option to _colorize_ an image on the fly. Just add a `color` attribute to the Element with a `src` attribute. You can use a single color, or apply a gradient.

@@ -255,7 +255,7 @@ test('Element - Set `color` property', (assert) => {
 test('Element - Set `src` property', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
   const el = createElement()
-  const value = 'file://foo.html'
+  const value = 'assets/image.jpg'
 
   el.set('src', value)
 
@@ -263,6 +263,50 @@ test('Element - Set `src` property', (assert) => {
   assert.equal(el.props.props['src'], value, 'Props src parameter should be set')
   assert.equal(el.props.raw['src'], value, "Props' raw map entry should be added")
   assert.equal(el.props.props['color'], 0xffffffff, 'Props default color parameter should be set')
+  assert.end()
+})
+
+test('Element - Set `src` property with keepAlive option', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+  const value = { src: 'assets/image.jpg', type: 'regular', keepAlive: true }
+
+  el.set('src', value)
+
+  assert.equal(el.node['src'], value.src, 'Node src parameter should be set')
+  assert.equal(el.node['imageType'], value.type, 'Node imageType parameter should be set')
+  assert.ok(el.node['textureOptions'] instanceof Object, 'textureOptions should be an object')
+  assert.equal(
+    el.node['textureOptions']['preventCleanup'],
+    true,
+    'Node textureOptions.preventCleanup should be true'
+  )
+  assert.equal(
+    el.props.props['textureOptions']['preventCleanup'],
+    true,
+    'Props textureOptions.preventCleanup should be true'
+  )
+  assert.equal(el.props.raw['src'], value, "Props' raw map entry should be added")
+  assert.end()
+})
+
+test('Element - Update `src.keepAlive` reactively', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('src', { src: 'assets/image.jpg', keepAlive: true })
+  el.set('src', { src: 'assets/image.jpg', keepAlive: false })
+
+  assert.equal(
+    el.node['textureOptions']['preventCleanup'],
+    false,
+    'Node textureOptions.preventCleanup should be updated to false'
+  )
+  assert.equal(
+    el.props.props['textureOptions']['preventCleanup'],
+    false,
+    'Props textureOptions.preventCleanup should be updated to false'
+  )
   assert.end()
 })
 
@@ -388,6 +432,46 @@ test('Element - Set `fit` property should not set not required keys', (assert) =
     el.props.props['textureOptions']['resizeMode']['dummy2'],
     undefined,
     'Props resizeMode "dummy2" parameter should not be set'
+  )
+  assert.end()
+})
+
+test('Element - Set `src.keepAlive` then `fit` preserves both textureOptions', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('src', { src: 'assets/image.jpg', keepAlive: true })
+  el.set('fit', 'contain')
+
+  assert.equal(
+    el.node['textureOptions']['preventCleanup'],
+    true,
+    'Node textureOptions.preventCleanup should be preserved'
+  )
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['type'],
+    'contain',
+    'Node resizeMode.type should be set'
+  )
+  assert.end()
+})
+
+test('Element - Set `fit` then `src.keepAlive` preserves both textureOptions', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('fit', 'cover')
+  el.set('src', { src: 'assets/image.jpg', keepAlive: true })
+
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['type'],
+    'cover',
+    'Node resizeMode.type should be preserved'
+  )
+  assert.equal(
+    el.node['textureOptions']['preventCleanup'],
+    true,
+    'Node textureOptions.preventCleanup should be set'
   )
   assert.end()
 })
