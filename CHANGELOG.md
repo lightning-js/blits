@@ -5,6 +5,7 @@
 _16 jul 2026_
 
 - Bumped renderer to 3.1.3
+- Disabled caching of msdf fonts during dev
 
 ## 2.7.0
 
