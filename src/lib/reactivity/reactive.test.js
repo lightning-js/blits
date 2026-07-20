@@ -17,7 +17,7 @@
 
 import test from 'tape'
 import { reactive } from './reactive.js'
-import { effect, pauseTracking, resumeTracking } from './effect.js'
+import { effect, pauseTracking, removeGlobalEffects, resumeTracking } from './effect.js'
 import symbols from '../symbols.js'
 
 test('Type', (assert) => {
@@ -217,6 +217,30 @@ test('Reactive - Multiple effects Tracking & Triggering for same object', (asser
     22,
     'Both effects should run again after modifying a property and increment counter'
   )
+  assert.end()
+})
+
+test('Reactive - Removing a global effect tracked by multiple reactive targets', (assert) => {
+  const first = reactive({ value: 1 }, 'Proxy', true)
+  const second = reactive({ value: 2 }, 'Proxy', true)
+  const elms = [{ set() {} }]
+
+  const globalEffect = () => {
+    elms[0].set('value', first.value + second.value)
+  }
+
+  effect(globalEffect)
+  removeGlobalEffects([globalEffect])
+
+  // Simulate the component cleanup that removes the element captured by the effect.
+  elms.length = 0
+
+  assert.doesNotThrow(() => {
+    first.value = 2
+  }, 'Changing the first target should not run the removed effect')
+  assert.doesNotThrow(() => {
+    second.value = 3
+  }, 'Changing the second target should not run the removed effect')
   assert.end()
 })
 
