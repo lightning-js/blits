@@ -17,7 +17,7 @@
 
 import test from 'tape'
 import { reactive } from './reactive.js'
-import { effect, pauseTracking, resumeTracking } from './effect.js'
+import { effect, pauseTracking, removeEffects, resumeTracking } from './effect.js'
 import symbols from '../symbols.js'
 
 test('Type', (assert) => {
@@ -217,6 +217,95 @@ test('Reactive - Multiple effects Tracking & Triggering for same object', (asser
     22,
     'Both effects should run again after modifying a property and increment counter'
   )
+  assert.end()
+})
+
+test('Reactive - Removing a global effect tracked by multiple reactive targets', (assert) => {
+  const first = reactive({ value: 1 }, 'Proxy', true)
+  const second = reactive({ value: 2 }, 'Proxy', true)
+  const elms = [{ set() {} }]
+
+  const globalEffect = () => {
+    elms[0].set('value', first.value + second.value)
+  }
+
+  effect(globalEffect)
+  removeEffects([globalEffect])
+
+  // Simulate the component cleanup that removes the element captured by the effect.
+  elms.length = 0
+
+  assert.doesNotThrow(() => {
+    first.value = 2
+  }, 'Changing the first target should not run the removed effect')
+  assert.doesNotThrow(() => {
+    second.value = 3
+  }, 'Changing the second target should not run the removed effect')
+  assert.end()
+})
+
+test('Reactive - Removing an effect for a destroyed keyed loop item', (assert) => {
+  const item = reactive({ data: undefined })
+  const elms = {
+    item1: {
+      set() {},
+    },
+  }
+  const scope = {
+    key: 'item1',
+    item,
+  }
+
+  const loopEffect = () => {
+    elms[scope.key].set('data', scope.item.data)
+  }
+
+  effect(loopEffect)
+  removeEffects([loopEffect])
+
+  // Simulate removing an item from a keyed :for loop before its data arrives.
+  delete elms[scope.key]
+
+  assert.doesNotThrow(() => {
+    item.data = 'loaded asynchronously'
+  }, 'A late item update should not run the effect for its destroyed loop element')
+  assert.end()
+})
+
+test('Reactive - Removing effects for a destroyed nested loop subtree', (assert) => {
+  const parentItem = reactive({ title: 'Parent' })
+  const childItem = reactive({ title: 'Child' })
+  const grandchildItem = reactive({ data: undefined })
+  const scope = {
+    key: 'parent1-child1-grandchild1',
+  }
+  const elms = [
+    { [scope.key]: { set() {} } },
+    { [scope.key]: { set() {} } },
+    { [scope.key]: { set() {} } },
+  ]
+
+  const subtreeEffects = [
+    () => {
+      elms[0][scope.key].set('title', parentItem.title)
+    },
+    () => {
+      elms[1][scope.key].set('title', childItem.title)
+    },
+    () => {
+      elms[2][scope.key].set('data', grandchildItem.data)
+    },
+  ]
+
+  subtreeEffects.forEach((subtreeEffect) => effect(subtreeEffect))
+  removeEffects(subtreeEffects)
+
+  // Simulate removing a parent item and all three levels of its keyed loop subtree.
+  elms.forEach((elements) => delete elements[scope.key])
+
+  assert.doesNotThrow(() => {
+    grandchildItem.data = 'loaded asynchronously'
+  }, 'A late grandchild update should not run effects belonging to the destroyed subtree')
   assert.end()
 })
 

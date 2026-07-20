@@ -29,23 +29,26 @@ export const resumeTracking = () => {
 }
 
 const objectMap = new WeakMap()
-const globalEffectsMap = new Map()
+const effectTargetsMap = new WeakMap()
 
-export const removeGlobalEffects = (effectsToRemove) => {
-  if (globalEffectsMap.size === 0 || effectsToRemove.length === 0) return
-  const effectsToRemoveSet = new Set(effectsToRemove)
-  for (const [effect, target] of globalEffectsMap) {
-    if (!effectsToRemoveSet.has(effect)) continue
-    const effectsSet = objectMap.get(target)
-    if (effectsSet === undefined) continue
-    for (const set of effectsSet.values()) {
-      set.delete(effect)
-      globalEffectsMap.delete(effect)
+export const removeEffects = (effectsToRemove) => {
+  let i = effectsToRemove.length
+  while (i--) {
+    const effect = effectsToRemove[i]
+    const targets = effectTargetsMap.get(effect)
+    if (targets === undefined) continue
+    for (const target of targets) {
+      const effectsMap = objectMap.get(target)
+      if (effectsMap === undefined) continue
+      for (const effects of effectsMap.values()) {
+        effects.delete(effect)
+      }
     }
+    effectTargetsMap.delete(effect)
   }
 }
 
-export const track = (target, key, global = false) => {
+export const track = (target, key) => {
   if (currentEffect !== null) {
     if (paused) {
       return
@@ -67,7 +70,12 @@ export const track = (target, key, global = false) => {
     }
     effects.add(currentEffect)
 
-    if (global === true) globalEffectsMap.set(currentEffect, target)
+    let targets = effectTargetsMap.get(currentEffect)
+    if (targets === undefined) {
+      targets = new Set()
+      effectTargetsMap.set(currentEffect, targets)
+    }
+    targets.add(target)
   }
 }
 

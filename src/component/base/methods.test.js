@@ -33,9 +33,9 @@ test('Methods - Should contain all the defined methods', (assert) => {
   assert.equal(typeof component.unfocus, 'function', 'should have unfocus method')
   assert.equal(typeof component.destroy, 'function', 'should have destroy method')
   assert.equal(
-    typeof component[symbols.removeGlobalEffects],
+    typeof component[symbols.removeEffects],
     'function',
-    'should have removeGlobalEffects method'
+    'should have removeEffects method'
   )
   assert.equal(typeof component.$trigger, 'function', 'should have $trigger method')
   assert.equal(typeof component.$select, 'function', 'should have $select method')
@@ -212,13 +212,13 @@ test('Methods - Validate $select method with object of children structure', (ass
   assert.end()
 })
 
-test('Methods - Validate removeGlobalEffects method behavior', (assert) => {
+test('Methods - Validate removeEffects method behavior', (assert) => {
   const component = Object.defineProperties({}, { ...methods })
 
   const effects = []
   // todo: use effects based on global app state properties
-  component[symbols.removeGlobalEffects](effects)
-  assert.pass('removeGlobalEffects should execute without error')
+  component[symbols.removeEffects](effects)
+  assert.pass('removeEffects should execute without error')
   assert.end()
 })
 
