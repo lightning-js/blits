@@ -223,24 +223,21 @@ test('Reactive - Multiple effects Tracking & Triggering for same object', (asser
 test('Reactive - Removing a global effect tracked by multiple reactive targets', (assert) => {
   const first = reactive({ value: 1 }, 'Proxy', true)
   const second = reactive({ value: 2 }, 'Proxy', true)
-  const elms = [{ set() {} }]
+  let calls = 0
 
   const globalEffect = () => {
-    elms[0].set('value', first.value + second.value)
+    calls++
+    first.value
+    second.value
   }
 
   effect(globalEffect)
   removeGlobalEffects([globalEffect])
 
-  // Simulate the component cleanup that removes the element captured by the effect.
-  elms.length = 0
+  first.value = 2
+  second.value = 3
 
-  assert.doesNotThrow(() => {
-    first.value = 2
-  }, 'Changing the first target should not run the removed effect')
-  assert.doesNotThrow(() => {
-    second.value = 3
-  }, 'Changing the second target should not run the removed effect')
+  assert.equal(calls, 1, 'Changing tracked targets should not run the removed effect')
   assert.end()
 })
 

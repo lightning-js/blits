@@ -33,15 +33,12 @@ const globalEffectsMap = new Map()
 
 export const removeGlobalEffects = (effectsToRemove) => {
   if (globalEffectsMap.size === 0 || effectsToRemove.length === 0) return
-  const effectsToRemoveSet = new Set(effectsToRemove)
-  for (const [effect, targets] of globalEffectsMap) {
-    if (!effectsToRemoveSet.has(effect)) continue
-    for (const target of targets) {
-      const effectsSet = objectMap.get(target)
-      if (effectsSet === undefined) continue
-      for (const set of effectsSet.values()) {
-        set.delete(effect)
-      }
+  for (let i = 0; i < effectsToRemove.length; i++) {
+    const effect = effectsToRemove[i]
+    const dependencies = globalEffectsMap.get(effect)
+    if (dependencies === undefined) continue
+    for (let j = 0; j < dependencies.length; j++) {
+      dependencies[j].delete(effect)
     }
     globalEffectsMap.delete(effect)
   }
@@ -67,16 +64,15 @@ export const track = (target, key, global = false) => {
       effects = new Set()
       effectsMap.set(key, effects)
     }
-    effects.add(currentEffect)
-
     if (global === true) {
-      let targets = globalEffectsMap.get(currentEffect)
-      if (targets === undefined) {
-        targets = new Set()
-        globalEffectsMap.set(currentEffect, targets)
+      let dependencies = globalEffectsMap.get(currentEffect)
+      if (dependencies === undefined) {
+        dependencies = []
+        globalEffectsMap.set(currentEffect, dependencies)
       }
-      targets.add(target)
+      if (effects.has(currentEffect) === false) dependencies.push(effects)
     }
+    effects.add(currentEffect)
   }
 }
 
