@@ -182,17 +182,6 @@ export default {
     enumerable: false,
     configurable: false,
   },
-  [symbols.removeGlobalEffects]: {
-    /**
-     * @this {import('../../component').BlitsComponent}
-     */
-    value: function (effects = []) {
-      removeEffects(effects)
-    },
-    writable: false,
-    enumerable: false,
-    configurable: false,
-  },
   $select: {
     /**
      * @this {import('../../component').BlitsComponent}

@@ -69,7 +69,6 @@
  * @property {symbol} isComponent
  * @property {symbol} effects
  * @property {symbol} removeEffects
- * @property {symbol} removeGlobalEffects
  * @property {symbol} tagContent
  */
 
@@ -143,8 +142,6 @@ export default {
   effects: Symbol.for('effects'),
   // Symbol 'removeEffects' utilized within generated code
   removeEffects: Symbol.for('removeEffects'),
-  // Backwards compatibility for templates generated before removeEffects was introduced
-  removeGlobalEffects: Symbol.for('removeGlobalEffects'),
   // Symbol 'tagContent' utilized within generated code
   tagContent: Symbol.for('tagContent'),
 }
