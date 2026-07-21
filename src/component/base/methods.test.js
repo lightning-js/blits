@@ -37,6 +37,11 @@ test('Methods - Should contain all the defined methods', (assert) => {
     'function',
     'should have removeEffects method'
   )
+  assert.equal(
+    typeof component[symbols.removeGlobalEffects],
+    'function',
+    'should keep the removeGlobalEffects compatibility method'
+  )
   assert.equal(typeof component.$trigger, 'function', 'should have $trigger method')
   assert.equal(typeof component.$select, 'function', 'should have $select method')
   assert.end()

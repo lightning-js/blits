@@ -29,22 +29,17 @@ export const resumeTracking = () => {
 }
 
 const objectMap = new WeakMap()
-const effectTargetsMap = new WeakMap()
+const effectDependenciesMap = new WeakMap()
 
 export const removeEffects = (effectsToRemove) => {
-  let i = effectsToRemove.length
-  while (i--) {
+  for (let i = 0; i < effectsToRemove.length; i++) {
     const effect = effectsToRemove[i]
-    const targets = effectTargetsMap.get(effect)
-    if (targets === undefined) continue
-    for (const target of targets) {
-      const effectsMap = objectMap.get(target)
-      if (effectsMap === undefined) continue
-      for (const effects of effectsMap.values()) {
-        effects.delete(effect)
-      }
+    const dependencies = effectDependenciesMap.get(effect)
+    if (dependencies === undefined) continue
+    for (let j = 0; j < dependencies.length; j++) {
+      dependencies[j].delete(effect)
     }
-    effectTargetsMap.delete(effect)
+    effectDependenciesMap.delete(effect)
   }
 }
 
@@ -68,14 +63,15 @@ export const track = (target, key) => {
       effects = new Set()
       effectsMap.set(key, effects)
     }
-    effects.add(currentEffect)
-
-    let targets = effectTargetsMap.get(currentEffect)
-    if (targets === undefined) {
-      targets = new Set()
-      effectTargetsMap.set(currentEffect, targets)
+    if (effects.has(currentEffect) === false) {
+      let dependencies = effectDependenciesMap.get(currentEffect)
+      if (dependencies === undefined) {
+        dependencies = []
+        effectDependenciesMap.set(currentEffect, dependencies)
+      }
+      dependencies.push(effects)
+      effects.add(currentEffect)
     }
-    targets.add(target)
   }
 }
 
