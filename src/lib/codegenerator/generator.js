@@ -559,6 +559,7 @@ const generateForLoopCode = function (templateObject, parent) {
           keys.add('' +  ${interpolate(key, '') || 'l'})
         }
       }
+
   `)
 
   // keep track of the index in the render code so we can inject
@@ -570,9 +571,9 @@ const generateForLoopCode = function (templateObject, parent) {
       created.length = 0
       const length = rawCollection.length
 
-      component !== null && component[Symbol.for('removeGlobalEffects')](effects[${forStartCounter}])
+      component !== null && component[Symbol.for('removeEffects')](effects[${forStartCounter}])
 
-     const effectsToRemove = new Set(effects[${forStartCounter}].slice(0))
+      const effectsToRemove = new Set(effects[${forStartCounter}])
       if (effectsToRemove.size > 0) {
         const componentEffects = component?.[Symbol.for('effects')] || []
         let writeIndex = 0
