@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.8.1
+
+_22 jul 2026_
+
+- Fixed cleanup of reactive effects with multiple dependencies
+- Fixed stale reactive effects when removing items from (nested) loops
+
 ## 2.8.0
 
 _16 jul 2026_
