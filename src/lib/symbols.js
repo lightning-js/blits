@@ -68,7 +68,7 @@
  * @property {symbol} componentType
  * @property {symbol} isComponent
  * @property {symbol} effects
- * @property {symbol} removeGlobalEffects
+ * @property {symbol} removeEffects
  * @property {symbol} tagContent
  */
 
@@ -140,8 +140,8 @@ export default {
   isComponent: Symbol.for('isComponent'),
   // Symbol 'effects' utilized within generated code
   effects: Symbol.for('effects'),
-  // Symbol 'removeGlobalEffects' utilized within generated code
-  removeGlobalEffects: Symbol.for('removeGlobalEffects'),
-  // Symbol 'removeGlobalEffects' utilized within generated code
+  // Symbol 'removeEffects' utilized within generated code
+  removeEffects: Symbol.for('removeEffects'),
+  // Symbol 'tagContent' utilized within generated code
   tagContent: Symbol.for('tagContent'),
 }

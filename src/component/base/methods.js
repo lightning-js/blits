@@ -20,7 +20,7 @@ import { default as Focus, keyUpCallbacks, getComponentWithInputEvent } from '..
 import eventListeners from '../../lib/eventListeners.js'
 import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
-import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
+import { removeEffects } from '../../lib/reactivity/effect.js'
 import { renderer } from '../../launch.js'
 import { keyMap } from '../../application.js'
 import { platform } from '../../platform.js'
@@ -130,7 +130,7 @@ export default {
 
       deleteChildren(this[symbols.children])
       this[symbols.children].length = 0
-      removeGlobalEffects(this[symbols.effects])
+      removeEffects(this[symbols.effects])
 
       this[symbols.state] = {}
 
@@ -171,12 +171,12 @@ export default {
     enumerable: true,
     configurable: false,
   },
-  [symbols.removeGlobalEffects]: {
+  [symbols.removeEffects]: {
     /**
      * @this {import('../../component').BlitsComponent}
      */
     value: function (effects = []) {
-      removeGlobalEffects(effects)
+      removeEffects(effects)
     },
     writable: false,
     enumerable: false,

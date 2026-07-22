@@ -3517,9 +3517,9 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
       created.length = 0
       const length = rawCollection.length
 
-      component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
+      component !== null && component[Symbol.for('removeEffects')](effects[1])
 
-      const effectsToRemove = new Set(effects[1].slice(0))
+      const effectsToRemove = new Set(effects[1])
       if (effectsToRemove.size > 0) {
         const componentEffects = component?.[Symbol.for('effects')] || []
         let writeIndex = 0
@@ -3690,8 +3690,8 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
       }
       created.length = 0
       const length = rawCollection.length
-      component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
-      const effectsToRemove = new Set(effects[1].slice(0))
+      component !== null && component[Symbol.for('removeEffects')](effects[1])
+      const effectsToRemove = new Set(effects[1])
       if (effectsToRemove.size > 0) {
         const componentEffects = component?.[Symbol.for('effects')] || []
         let writeIndex = 0
@@ -3848,8 +3848,8 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
       }
       created.length = 0
       const length = rawCollection.length
-      component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
-      const effectsToRemove = new Set(effects[1].slice(0))
+      component !== null && component[Symbol.for('removeEffects')](effects[1])
+      const effectsToRemove = new Set(effects[1])
       if (effectsToRemove.size > 0) {
         const componentEffects = component?.[Symbol.for('effects')] || []
         let writeIndex = 0
@@ -4018,9 +4018,9 @@ test('Generate code for a template with a simple for-loop on an Element with a c
       created.length = 0
       const length = rawCollection.length
 
-      component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
+      component !== null && component[Symbol.for('removeEffects')](effects[1])
 
-      const effectsToRemove = new Set(effects[1].slice(0))
+      const effectsToRemove = new Set(effects[1])
       if (effectsToRemove.size > 0) {
         const componentEffects = component?.[Symbol.for('effects')] || []
         let writeIndex = 0
@@ -4203,9 +4203,9 @@ test('Generate code for a template with a simple for-loop on an Element with a k
       created.length = 0
       const length = rawCollection.length
 
-      component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
+      component !== null && component[Symbol.for('removeEffects')](effects[1])
 
-      const effectsToRemove = new Set(effects[1].slice(0))
+      const effectsToRemove = new Set(effects[1])
       if (effectsToRemove.size > 0) {
         const componentEffects = component?.[Symbol.for('effects')] || []
         let writeIndex = 0
@@ -4381,8 +4381,8 @@ test('Generate code for a template with a simple for-loop on a Component with a 
           }
             created.length = 0
             const length = rawCollection.length
-            component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
-            const effectsToRemove = new Set(effects[1].slice(0))
+            component !== null && component[Symbol.for('removeEffects')](effects[1])
+            const effectsToRemove = new Set(effects[1])
             if (effectsToRemove.size > 0) {
               const componentEffects = component?.[Symbol.for('effects')] || []
               let writeIndex = 0
@@ -4588,9 +4588,9 @@ test('Generate code for a template with a simple for-loop on an Element with an 
       created.length = 0
       const length = rawCollection.length
 
-      component !== null && component[Symbol.for('removeGlobalEffects')](effects[1])
+      component !== null && component[Symbol.for('removeEffects')](effects[1])
 
-      const effectsToRemove = new Set(effects[1].slice(0))
+      const effectsToRemove = new Set(effects[1])
       if (effectsToRemove.size > 0) {
         const componentEffects = component?.[Symbol.for('effects')] || []
         let writeIndex = 0

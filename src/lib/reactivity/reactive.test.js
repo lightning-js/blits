@@ -17,7 +17,7 @@
 
 import test from 'tape'
 import { reactive } from './reactive.js'
-import { effect, pauseTracking, removeGlobalEffects, resumeTracking } from './effect.js'
+import { effect, pauseTracking, removeEffects, resumeTracking } from './effect.js'
 import symbols from '../symbols.js'
 
 test('Type', (assert) => {
@@ -220,9 +220,9 @@ test('Reactive - Multiple effects Tracking & Triggering for same object', (asser
   assert.end()
 })
 
-test('Reactive - Removing a global effect tracked by multiple reactive targets', (assert) => {
-  const first = reactive({ value: 1 }, 'Proxy', true)
-  const second = reactive({ value: 2 }, 'Proxy', true)
+test('Reactive - Removing an effect tracked by multiple reactive targets', (assert) => {
+  const first = reactive({ value: 1 }, 'Proxy')
+  const second = reactive({ value: 2 }, 'Proxy')
   let calls = 0
 
   const globalEffect = () => {
@@ -232,7 +232,7 @@ test('Reactive - Removing a global effect tracked by multiple reactive targets',
   }
 
   effect(globalEffect)
-  removeGlobalEffects([globalEffect])
+  removeEffects([globalEffect])
 
   first.value = 2
   second.value = 3
@@ -241,8 +241,8 @@ test('Reactive - Removing a global effect tracked by multiple reactive targets',
   assert.end()
 })
 
-test('Reactive - Removing a global effect tracked by multiple keys on one target', (assert) => {
-  const data = reactive({ first: 1, second: 2 }, 'Proxy', true)
+test('Reactive - Removing an effect tracked by multiple keys on one target', (assert) => {
+  const data = reactive({ first: 1, second: 2 }, 'Proxy')
   let calls = 0
 
   const globalEffect = () => {
@@ -252,7 +252,7 @@ test('Reactive - Removing a global effect tracked by multiple keys on one target
   }
 
   effect(globalEffect)
-  removeGlobalEffects([globalEffect])
+  removeEffects([globalEffect])
 
   data.first = 2
   data.second = 3
@@ -261,8 +261,8 @@ test('Reactive - Removing a global effect tracked by multiple keys on one target
   assert.end()
 })
 
-test('Reactive - Tracking the same global dependency more than once', (assert) => {
-  const data = reactive({ value: 1 }, 'Proxy', true)
+test('Reactive - Tracking the same dependency more than once', (assert) => {
+  const data = reactive({ value: 1 }, 'Proxy')
   let calls = 0
 
   const globalEffect = () => {
@@ -272,15 +272,15 @@ test('Reactive - Tracking the same global dependency more than once', (assert) =
   }
 
   effect(globalEffect)
-  removeGlobalEffects([globalEffect])
+  removeEffects([globalEffect])
   data.value = 2
 
   assert.equal(calls, 1, 'A duplicated dependency should be removed correctly')
   assert.end()
 })
 
-test('Reactive - Removing only the requested global effect', (assert) => {
-  const data = reactive({ value: 1 }, 'Proxy', true)
+test('Reactive - Removing only the requested effect', (assert) => {
+  const data = reactive({ value: 1 }, 'Proxy')
   let removedCalls = 0
   let retainedCalls = 0
 
@@ -295,18 +295,18 @@ test('Reactive - Removing only the requested global effect', (assert) => {
 
   effect(removedEffect)
   effect(retainedEffect)
-  removeGlobalEffects([removedEffect])
+  removeEffects([removedEffect])
   data.value = 2
 
   assert.equal(removedCalls, 1, 'The removed effect should not run')
   assert.equal(retainedCalls, 2, 'An effect not selected for removal should still run')
 
-  removeGlobalEffects([retainedEffect])
+  removeEffects([retainedEffect])
   assert.end()
 })
 
-test('Reactive - Removing a global effect in defineProperty mode', (assert) => {
-  const data = reactive({ first: 1, second: 2 }, 'defineProperty', true)
+test('Reactive - Removing an effect in defineProperty mode', (assert) => {
+  const data = reactive({ first: 1, second: 2 }, 'defineProperty')
   let calls = 0
 
   const globalEffect = () => {
@@ -316,12 +316,60 @@ test('Reactive - Removing a global effect in defineProperty mode', (assert) => {
   }
 
   effect(globalEffect)
-  removeGlobalEffects([globalEffect])
+  removeEffects([globalEffect])
 
   data.first = 2
   data.second = 3
 
   assert.equal(calls, 1, 'Changing tracked keys should not run the removed effect')
+  assert.end()
+})
+
+test('Reactive - Removing an effect for a destroyed keyed loop item', (assert) => {
+  const item = reactive({ data: undefined })
+  let calls = 0
+
+  const loopEffect = () => {
+    calls++
+    item.data
+  }
+
+  effect(loopEffect)
+  removeEffects([loopEffect])
+  item.data = 'loaded asynchronously'
+
+  assert.equal(calls, 1, 'A late item update should not run the removed loop effect')
+  assert.end()
+})
+
+test('Reactive - Removing effects for a destroyed nested loop subtree', (assert) => {
+  const parentItem = reactive({ title: 'Parent' })
+  const childItem = reactive({ title: 'Child' })
+  const grandchildItem = reactive({ data: undefined })
+  const calls = [0, 0, 0]
+  const subtreeEffects = [
+    () => {
+      calls[0]++
+      parentItem.title
+    },
+    () => {
+      calls[1]++
+      childItem.title
+    },
+    () => {
+      calls[2]++
+      grandchildItem.data
+    },
+  ]
+
+  subtreeEffects.forEach((subtreeEffect) => effect(subtreeEffect))
+  removeEffects(subtreeEffects)
+
+  parentItem.title = 'Updated parent'
+  childItem.title = 'Updated child'
+  grandchildItem.data = 'loaded asynchronously'
+
+  assert.deepEqual(calls, [1, 1, 1], 'Late updates should not run removed subtree effects')
   assert.end()
 })
 
