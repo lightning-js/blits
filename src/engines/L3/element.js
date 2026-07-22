@@ -674,6 +674,7 @@ const Element = {
     if (this.config.parent.props !== undefined && this.config.parent.props.__layout === true) {
       this.config.parent.triggerLayout(this.config.parent.props)
       this.node.on('loaded', () => {
+        if (this.eol === true) return
         this.config.parent.triggerLayout(this.config.parent.props)
       })
     }

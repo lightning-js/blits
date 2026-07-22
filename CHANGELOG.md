@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.8.2
+
+_22 jul 2026_
+
+- Added end of life guard to layout retrigger
+
 ## 2.8.1
 
 _22 jul 2026_
