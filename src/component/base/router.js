@@ -16,6 +16,7 @@
  */
 
 import symbols from '../../lib/symbols.js'
+import { Log } from '../../lib/log.js'
 import {
   back,
   currentRoute,
@@ -67,11 +68,36 @@ const resolveRouterView = (component, routerViewName) => {
     const registeredRouterView = getRegisteredRouterView(routerViewName)
     if (registeredRouterView !== null) return registeredRouterView
 
-    return getRouterView(component, routerViewName)
+    const treeRouterView = getRouterView(component, routerViewName)
+    if (treeRouterView !== null) return treeRouterView
+
+    // Named view not found — fall back to default (unnamed) view
+    const defaultView = getRegisteredRouterView('')
+    if (defaultView !== null) {
+      Log.warn(
+        `RouterView "${routerViewName}" was not found. Navigation is falling back to the default RouterView.`
+      )
+      return defaultView
+    }
+
+    const treeDefaultView = getRouterView(component)
+    if (treeDefaultView !== null) {
+      Log.warn(
+        `RouterView "${routerViewName}" was not found. Navigation is falling back to the default RouterView.`
+      )
+    }
+    return treeDefaultView
   }
 
   const singleRouterView = getSingleRegisteredRouterView()
   if (singleRouterView !== null) return singleRouterView
+
+  // When multiple router views exist and no name was specified,
+  // prefer the default (unnamed) router view before falling back
+  // to tree-walking. This ensures hooks on the App's main router
+  // fire correctly when calling router.to() from a child component.
+  const defaultView = getRegisteredRouterView('')
+  if (defaultView !== null) return defaultView
 
   return getRouterView(component)
 }

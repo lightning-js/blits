@@ -1,5 +1,14 @@
 # Changelog
 
+
+
+## 2.8.3
+
+_23 jul 2026_
+
+- Fixed issues with navigating when using multiple RouterViews
+
+
 ## 2.8.3
 
 _23 jul 2026_
