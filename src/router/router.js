@@ -81,14 +81,28 @@ const history = []
 const routerViews = new Set()
 let singleRouterView = null
 
-let overrideOptions = {}
-let navigationData = {}
-let navigatingBack = false
-let navigatingBackTo = undefined
-let previousFocus
-// Skips internal router navigation when set to true only for the next "navigate"
-// execution, needed for window.history management
-let preventHashChangeNavigation = false
+// Per-RouterView navigation state keyed by router view name.
+// When multiple router views exist, each view must have its own navigation
+// state so that one view's navigation doesn't interfere with another's hooks.
+const perViewState = new Map()
+
+const getViewState = (name = '') => {
+  if (!perViewState.has(name)) {
+    perViewState.set(name, {
+      overrideOptions: {},
+      navigationData: {},
+      navigatingBack: false,
+      navigatingBackTo: undefined,
+      previousFocus: undefined,
+      preventHashChangeNavigation: false,
+    })
+  }
+  return perViewState.get(name)
+}
+
+const clearViewState = (name = '') => {
+  perViewState.delete(name)
+}
 
 /**
  * Navigate to a route
@@ -103,8 +117,9 @@ let preventHashChangeNavigation = false
  * @returns {Promise<void>}
  */
 export const navigate = async function () {
+  const viewState = getViewState(this.name)
   // early return when in preventHashChange mode
-  if (preventHashChangeNavigation !== false) return
+  if (viewState.preventHashChangeNavigation !== false) return
   // early return when no routes
   if (!this[symbols.parent][symbols.routes] || this[symbols.parent][symbols.routes].length === 0)
     return
@@ -118,7 +133,12 @@ export const navigate = async function () {
 
   const hash = getHash(location.hash, this.name)
   // try to find the route
-  let route = matchHash(hash, this[symbols.parent][symbols.routes], overrideOptions, navigationData)
+  let route = matchHash(
+    hash,
+    this[symbols.parent][symbols.routes],
+    viewState.overrideOptions,
+    viewState.navigationData
+  )
 
   // early return when route not found
   if (route === false) {
@@ -151,10 +171,11 @@ export const navigate = async function () {
     this[symbols.parent],
     route,
     this.previousRoute,
-    currentPath
+    currentPath,
+    viewState
   )
   if (beforeEachResult === false) {
-    preventHashChangeNavigation = false
+    viewState.preventHashChangeNavigation = false
     state.navigating = false
     return
   }
@@ -167,10 +188,11 @@ export const navigate = async function () {
     this[symbols.parent],
     route,
     this.previousRoute,
-    currentPath
+    currentPath,
+    viewState
   )
   if (beforeResult === false) {
-    preventHashChangeNavigation = false
+    viewState.preventHashChangeNavigation = false
     state.navigating = false
     return
   }
@@ -184,7 +206,7 @@ export const navigate = async function () {
     this.previousRoute &&
     this.previousRoute.options &&
     this.previousRoute.options.inHistory === true &&
-    navigatingBack === false
+    viewState.navigatingBack === false
   ) {
     this.history.push(this.previousRoute)
   }
@@ -202,10 +224,10 @@ export const navigate = async function () {
   let view
   let focus
   // when navigating back let's see if we're navigating back to a route that was kept alive
-  if (navigatingBack === true && navigatingBackTo !== undefined) {
-    view = navigatingBackTo.view
-    focus = navigatingBackTo.focus
-    navigatingBackTo = null
+  if (viewState.navigatingBack === true && viewState.navigatingBackTo !== undefined) {
+    view = viewState.navigatingBackTo.view
+    focus = viewState.navigatingBackTo.focus
+    viewState.navigatingBackTo = null
   }
   // merge props with potential route params, navigation data and route data to be injected into the component instance
   const props = {
@@ -284,7 +306,7 @@ export const navigate = async function () {
   }
 
   // keep reference to the previous focus for storing in cache
-  previousFocus = Focus.get()
+  viewState.previousFocus = Focus.get()
 
   const children = this[symbols.children]
   this.activeView = children[children.length - 1]
@@ -313,15 +335,16 @@ export const navigate = async function () {
 
       // Resolve effective keepAlive: runtime override from $router.to() takes precedence
       // over the static route config option
-      const hasOverrideOptions = overrideOptions && typeof overrideOptions === 'object'
+      const hasOverrideOptions =
+        viewState.overrideOptions && typeof viewState.overrideOptions === 'object'
       const keepAlive =
-        hasOverrideOptions && overrideOptions.keepAlive !== undefined
-          ? overrideOptions.keepAlive
+        hasOverrideOptions && viewState.overrideOptions.keepAlive !== undefined
+          ? viewState.overrideOptions.keepAlive
           : this.previousRoute.options && this.previousRoute.options.keepAlive
 
       // cache the page when it's as 'keepAlive' instead of destroying
       if (
-        navigatingBack === false &&
+        viewState.navigatingBack === false &&
         keepAlive === true &&
         this.previousRoute &&
         this.previousRoute.options &&
@@ -330,7 +353,7 @@ export const navigate = async function () {
         const historyItem = this.history[this.history.length - 1]
         if (historyItem !== undefined) {
           historyItem.view = oldView
-          historyItem.focus = previousFocus
+          historyItem.focus = viewState.previousFocus
         }
       }
 
@@ -339,12 +362,12 @@ export const navigate = async function () {
        * 2. Navigating back, and the previous route is configured with "keep alive" set to true.
        * 3. Navigating back, and the previous route is not configured with "keep alive" set to true.
        */
-      if (this.previousRoute.options && (keepAlive !== true || navigatingBack === true)) {
+      if (this.previousRoute.options && (keepAlive !== true || viewState.navigatingBack === true)) {
         oldView.destroy()
         oldView = null
       }
 
-      previousFocus = null
+      viewState.previousFocus = null
     }
   }
 
@@ -363,16 +386,14 @@ export const navigate = async function () {
   // execute after route Hook
   await executeAfterHook(route.hooks, 'after', this[symbols.parent], route, this.previousRoute)
 
-  // Clear module-level variables after removeView has consumed them.
-  // Placed here so it executes for all navigation flows, not only when
-  // previousRoute exists and reuse is false.
-  overrideOptions = {}
-  navigationData = {}
+  // Clear per-view navigation state after navigation is complete.
+  viewState.overrideOptions = {}
+  viewState.navigationData = {}
 
   // reset navigating indicators
-  navigatingBack = false
+  viewState.navigatingBack = false
   state.navigating = false
-  preventHashChangeNavigation = false
+  viewState.preventHashChangeNavigation = false
 }
 
 const setOrAnimate = (element, transition, shouldAnimate = true) => {
@@ -402,7 +423,8 @@ const executeBeforeHook = async function (
   parent,
   route,
   previousRoute,
-  currentPath
+  currentPath,
+  viewState
 ) {
   let result
   if (hooks && hooks[hookName]) {
@@ -417,10 +439,10 @@ const executeBeforeHook = async function (
       Log.error(`Error or Rejected Promise in "${hookName}" Hook`, error)
       this.currentRoute = previousRoute
       if (this.history.length > 0) {
-        preventHashChangeNavigation = true
+        viewState.preventHashChangeNavigation = true
         platform.historyBack()
 
-        navigatingBack = false
+        viewState.navigatingBack = false
         state.navigating = false
       }
       return false
@@ -435,9 +457,9 @@ const executeBeforeHook = async function (
     if (result === false) {
       this.currentRoute = previousRoute
       if (this.history.length > 0) {
-        preventHashChangeNavigation = true
+        viewState.preventHashChangeNavigation = true
         platform.historyBack()
-        navigatingBack = false
+        viewState.navigatingBack = false
         state.navigating = false
       }
       return false
@@ -493,20 +515,34 @@ const executeTransition = async (transition, element, animate) => {
 }
 
 export const to = (path, data = {}, options = {}, routerViewName = '') => {
-  navigationData = data
-  overrideOptions = options
+  const viewState = getViewState(routerViewName)
+  viewState.navigationData = data
+  viewState.overrideOptions = options
 
   setHash(path, routerViewName)
 }
 
 export const toRouterView = (routerView, path, data = {}, options = {}) => {
-  navigationData = data
-  overrideOptions = options
+  const viewState = getViewState(routerView.name)
+  viewState.navigationData = data
+  viewState.overrideOptions = options
 
   setHash(path, routerView.name)
 }
 
 export const registerRouterView = (routerView) => {
+  // Warn when multiple unnamed router views are registered — they must be named
+  // to avoid shared state collisions and ambiguous route resolution.
+  if (routerView.name === '' && routerViews.size > 0) {
+    for (const existing of routerViews) {
+      if (existing.name === '') {
+        Log.warn(
+          'Multiple unnamed RouterViews detected. When using more than one RouterView, each should have a unique "name" prop to ensure correct routing behavior.'
+        )
+        break
+      }
+    }
+  }
   routerViews.add(routerView)
   singleRouterView = routerViews.size === 1 ? routerView : null
 }
@@ -514,6 +550,7 @@ export const registerRouterView = (routerView) => {
 export const unregisterRouterView = (routerView) => {
   routerViews.delete(routerView)
   singleRouterView = routerViews.size === 1 ? routerViews.values().next().value : null
+  clearViewState(routerView.name)
 }
 
 export const getRegisteredRouterView = (name) => {
@@ -531,11 +568,12 @@ export const getSingleRegisteredRouterView = () => {
 
 export const back = function () {
   if (this.history === undefined) return
+  const viewState = getViewState(this.name)
   const route = this.history.pop()
   if (route && this.currentRoute !== route) {
     // set indicator that we are navigating back (to prevent adding page to history stack)
-    navigatingBack = true
-    navigatingBackTo = route
+    viewState.navigatingBack = true
+    viewState.navigatingBackTo = route
     toRouterView(this, route.hash, route.data, route.options)
     return true
   }
@@ -567,8 +605,8 @@ export const back = function () {
     const route = matchHash(
       getHash(path),
       this[symbols.parent][symbols.routes],
-      overrideOptions,
-      navigationData
+      viewState.overrideOptions,
+      viewState.navigationData
     )
 
     if (route && backtrack) {
