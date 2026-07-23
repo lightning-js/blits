@@ -152,7 +152,11 @@ const layoutFn = function (config) {
   }
 
   // trigger layout on parent if parent is a layout
-  if (this.config.parent && this.config.parent.props.__layout === true) {
+  if (
+    this.config.parent &&
+    this.config.parent.eol !== true &&
+    this.config.parent.props.__layout === true
+  ) {
     this.config.parent.triggerLayout(this.config.parent.props)
   }
 }
