@@ -907,6 +907,7 @@ const Element = {
 
     if (this.config.parent.props && this.config.parent.props.__layout === true) {
       f.on('tick', () => {
+        if (this.eol === true || !this.config) return
         this.config.parent.triggerLayout(this.config.parent.props)
       })
     }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.8.3
+
+_23 jul 2026_
+
+- Added end of life guard to layout retrigger on node tick event
+
 ## 2.8.2
 
 _22 jul 2026_
