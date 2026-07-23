@@ -79,7 +79,7 @@ export default () =>
           }
         },
         focus() {
-          if (this.activeView && Focus.get() === this) {
+          if (this.active && this.activeView && Focus.get() === this) {
             this.activeView.$focus()
           }
         },
