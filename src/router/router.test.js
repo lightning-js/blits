@@ -919,20 +919,49 @@ test('this.$router.get(name) targets a named RouterView', async (assert) => {
   registerRouterView(modalRouterView)
 
   try {
-    assert.equal(app.$router.get('modal').to('/modal-first'), true, 'Named to should return true')
+    assert.equal(
+      app.$router.to('/main-first', { source: 'main' }, { navigationId: 'main' }),
+      true,
+      'Default to should return true'
+    )
+    assert.equal(
+      app.$router.get('modal').to('/modal-first', { source: 'modal' }, { navigationId: 'modal' }),
+      true,
+      'Named to should return true'
+    )
+
+    await navigate.call(mainRouterView)
+    assert.equal(
+      mainRouterView.currentRoute.path,
+      '/main-first',
+      'Default to should navigate the local/default RouterView'
+    )
+    assert.equal(
+      mainRouterView.currentRoute.data.source,
+      'main',
+      'Default RouterView should retain its own navigation data'
+    )
+    assert.equal(
+      mainRouterView.currentRoute.options.navigationId,
+      'main',
+      'Default RouterView should retain its own navigation options'
+    )
+
     await navigate.call(modalRouterView)
     assert.equal(
       modalRouterView.currentRoute.path,
       '/modal-first',
       'Named to should navigate the named RouterView'
     )
-
-    assert.equal(app.$router.to('/main-first'), true, 'Default to should return true')
-    await navigate.call(mainRouterView)
     assert.equal(
-      mainRouterView.currentRoute.path,
-      '/main-first',
-      'Default to should navigate the local/default RouterView'
+      modalRouterView.currentRoute.data.source,
+      'modal',
+      'Named RouterView should retain its own navigation data'
+    )
+    assert.equal(
+      modalRouterView.currentRoute.options.navigationId,
+      'modal',
+      'Named RouterView should retain its own navigation options'
     )
 
     app.$router.get('modal').to('/modal-second')

@@ -531,16 +531,15 @@ export const toRouterView = (routerView, path, data = {}, options = {}) => {
 }
 
 export const registerRouterView = (routerView) => {
-  // Warn when multiple unnamed router views are registered — they must be named
-  // to avoid shared state collisions and ambiguous route resolution.
-  if (routerView.name === '' && routerViews.size > 0) {
-    for (const existing of routerViews) {
-      if (existing.name === '') {
-        Log.warn(
-          'Multiple unnamed RouterViews detected. When using more than one RouterView, each should have a unique "name" prop to ensure correct routing behavior.'
-        )
-        break
-      }
+  // RouterView names identify both the view and its navigation state, so duplicate
+  // names cause state collisions and ambiguous route resolution.
+  for (const existing of routerViews) {
+    if (existing !== routerView && existing.name === routerView.name) {
+      const name = routerView.name === '' ? 'the default name' : `"${routerView.name}"`
+      Log.warn(
+        `Multiple RouterViews use ${name}. Each RouterView must have a unique and stable "name" prop to ensure correct routing behavior.`
+      )
+      break
     }
   }
   routerViews.add(routerView)

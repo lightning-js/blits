@@ -16,6 +16,7 @@
  */
 
 import symbols from '../../lib/symbols.js'
+import { Log } from '../../lib/log.js'
 import {
   back,
   currentRoute,
@@ -72,9 +73,20 @@ const resolveRouterView = (component, routerViewName) => {
 
     // Named view not found — fall back to default (unnamed) view
     const defaultView = getRegisteredRouterView('')
-    if (defaultView !== null) return defaultView
+    if (defaultView !== null) {
+      Log.warn(
+        `RouterView "${routerViewName}" was not found. Navigation is falling back to the default RouterView.`
+      )
+      return defaultView
+    }
 
-    return getRouterView(component)
+    const treeDefaultView = getRouterView(component)
+    if (treeDefaultView !== null) {
+      Log.warn(
+        `RouterView "${routerViewName}" was not found. Navigation is falling back to the default RouterView.`
+      )
+    }
+    return treeDefaultView
   }
 
   const singleRouterView = getSingleRegisteredRouterView()

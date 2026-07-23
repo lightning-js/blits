@@ -91,6 +91,8 @@ In some cases you may want to have multiple `<RouterView />` components in your 
 
 By assigning a `name` to a `<RouterView />`, you can retrieve a Router instance scoped to that Router view using the `this.$router.get()`-method.
 
+Router view names must be unique and stable for the lifetime of each view. The unnamed RouterView uses the empty string as its name, so an application should have at most one unnamed RouterView. Duplicate or dynamically changed names can cause ambiguous view resolution and shared navigation state.
+
 ```js
 export default Blits.Application({
   template: `
@@ -108,6 +110,8 @@ this.$router.get('modal').to('/modal/details')
 ```
 
 The scoped Router instance has the same methods and properties as `this.$router`. This means you can also use `this.$router.get('modal').back()` to navigate back down the history stack of the named Router view, or use `this.$router.get('modal').currentRoute` to retrieve its current route.
+
+If a named RouterView cannot be found, navigation falls back to the default unnamed RouterView and logs a warning.
 
 ## Navigation
 
