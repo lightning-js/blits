@@ -1,8 +1,13 @@
 # Changelog
 
+## 2.8.5
+
+_29 jul 2026_
+
+- Fixed EOL issue in transition progress callback
 
 
-## 2.8.3
+## 2.8.4
 
 _23 jul 2026_
 
