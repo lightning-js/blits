@@ -2139,6 +2139,191 @@ test('keepAlive caches view and restores same instance on back', async (assert) 
   stage.element = originalElement
 })
 
+// ---------------------------------------------------------------------------
+// keepAlive without inHistory — orphan prevention tests
+// ---------------------------------------------------------------------------
+
+test('keepAlive true without inHistory destroys the view instead of orphaning it', async (assert) => {
+  const originalElement = stage.element
+  let destroyCount = 0
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {
+      destroyCount++
+    },
+    parent,
+  })
+
+  const OrphanA = Component('OrphanA', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const OrphanB = Component('OrphanB', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/orphan-a',
+          component: OrphanA,
+          options: { keepAlive: true, inHistory: false, passFocus: false },
+        },
+        {
+          path: '/orphan-b',
+          component: OrphanB,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/orphan-a')
+  await navigate.call(host)
+
+  destroyCount = 0
+  to('/orphan-b')
+  await navigate.call(host)
+
+  assert.equal(
+    destroyCount,
+    1,
+    'View with keepAlive but no inHistory should be destroyed to prevent orphaning'
+  )
+
+  stage.element = originalElement
+})
+
+test('keepAlive true with inHistory true caches the view (not destroyed)', async (assert) => {
+  const originalElement = stage.element
+  let destroyCount = 0
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {
+      destroyCount++
+    },
+    parent,
+  })
+
+  const CacheA = Component('CacheA', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const CacheB = Component('CacheB', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/cache-a',
+          component: CacheA,
+          options: { keepAlive: true, inHistory: true, passFocus: false },
+        },
+        {
+          path: '/cache-b',
+          component: CacheB,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/cache-a')
+  await navigate.call(host)
+
+  destroyCount = 0
+  to('/cache-b')
+  await navigate.call(host)
+
+  assert.equal(destroyCount, 0, 'View with keepAlive and inHistory should be cached, not destroyed')
+
+  stage.element = originalElement
+})
+
+test('keepAlive override without inHistory destroys the view instead of orphaning it', async (assert) => {
+  const originalElement = stage.element
+  let destroyCount = 0
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {
+      destroyCount++
+    },
+    parent,
+  })
+
+  const OverA = Component('OverOrphanA', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+  const OverB = Component('OverOrphanB', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/over-orphan-a',
+          component: OverA,
+          options: { inHistory: false, passFocus: false },
+        },
+        {
+          path: '/over-orphan-b',
+          component: OverB,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/over-orphan-a')
+  await navigate.call(host)
+
+  // Navigate away with keepAlive override — but source route has inHistory: false,
+  // so the view cannot be cached and must be destroyed
+  destroyCount = 0
+  to('/over-orphan-b', {}, { keepAlive: true })
+  await navigate.call(host)
+
+  assert.equal(
+    destroyCount,
+    1,
+    'Runtime keepAlive override should still destroy when inHistory is false'
+  )
+
+  stage.element = originalElement
+})
+
 test('reuseComponent reuses the same view instance when returning to the route', async (assert) => {
   const originalElement = stage.element
 
