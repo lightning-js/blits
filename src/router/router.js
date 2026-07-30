@@ -342,7 +342,9 @@ export const navigate = async function () {
           ? viewState.overrideOptions.keepAlive
           : this.previousRoute.options && this.previousRoute.options.keepAlive
 
-      // cache the page when it's as 'keepAlive' instead of destroying
+      // cache the page when it's marked as 'keepAlive' instead of destroying,
+      // but only when navigating forward AND the route is in history (so it can be restored on back)
+      let cached = false
       if (
         viewState.navigatingBack === false &&
         keepAlive === true &&
@@ -354,6 +356,7 @@ export const navigate = async function () {
         if (historyItem !== undefined) {
           historyItem.view = oldView
           historyItem.focus = viewState.previousFocus
+          cached = true
         }
       }
 
@@ -361,8 +364,13 @@ export const navigate = async function () {
        * 1. Navigating forward, and the previous route is not configured with "keep alive" set to true.
        * 2. Navigating back, and the previous route is configured with "keep alive" set to true.
        * 3. Navigating back, and the previous route is not configured with "keep alive" set to true.
+       * 4. Navigating forward, keepAlive is true but caching failed (no inHistory or no history
+       *    item) — destroy to prevent orphaned components leaking in the eventsMap.
        */
-      if (this.previousRoute.options && (keepAlive !== true || viewState.navigatingBack === true)) {
+      if (
+        (this.previousRoute.options && (keepAlive !== true || viewState.navigatingBack === true)) ||
+        !cached
+      ) {
         oldView.destroy()
         oldView = null
       }

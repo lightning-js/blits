@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.8.6
+
+_30 jul 2026_
+
+- Fixed destroying orphaned views when keepAlive is true but route is not in history
+
 ## 2.8.5
 
 _29 jul 2026_
