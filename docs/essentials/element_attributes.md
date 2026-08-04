@@ -196,6 +196,8 @@ In order to contain / cut off the content inside an Element's `w` and `h`, you c
 
 Alternatively you can also use the `overflow`-attribute (and pass it `true` or `false`), which works similar to clipping just mapped inversely (i.e. `overflow="false"` ensures content that surpasses the parent dimensions is clipped-off).
 
+When `clipping` is enabled, you can additionally set the `clipradius`-attribute to a number to round the corners of the clip area, instead of clipping to a sharp rectangle. It has no effect when `clipping` is `false`, and is only supported on the WebGL renderer (not Canvas).
+
 ## Shaders
 
 Generally Elements that have a color or texture are simply rendered as a rectangle. With shaders you can add extra effects or even change the shape of what is rendered.
