@@ -985,6 +985,10 @@ test((assert) => {
   assert.equal(el.node['clipping'], false, 'overflow attribute should set node clipping parameter')
   assert.equal(el.props.props['clipping'], false, 'Props clipping parameter should be set')
 
+  el.set('clipradius', 20)
+  assert.equal(el.node['clipRadius'], 20, 'Node clipRadius parameter should be set')
+  assert.equal(el.props.props['clipRadius'], 20, 'Props clipRadius parameter should be set')
+
   assert.end()
 })
 
