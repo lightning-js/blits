@@ -104,68 +104,92 @@ export default {
       // pass focus to the parent so we don't get lost in focus limbo
       if (this.$hasFocus === true) this[symbols.parent].$focus()
 
-      // @todo - is this really necessary?
-      // This cause an issue with auto sizing of parent (and required an extra eol check there)
-      for (let key in this[symbols.state]) {
-        if (Array.isArray(this[symbols.state][key])) {
-          this[symbols.state][key] = []
+      try {
+        // @todo - is this really necessary?
+        // This cause an issue with auto sizing of parent (and required an extra eol check there)
+        for (let key in this[symbols.state]) {
+          if (Array.isArray(this[symbols.state][key])) {
+            this[symbols.state][key] = []
+          }
         }
-      }
 
-      this.$clearTimeouts()
-      this.$clearIntervals()
-      this.$clearDebounces()
+        this.$clearTimeouts()
+        this.$clearIntervals()
+        this.$clearDebounces()
 
-      eventListeners.removeListeners(this)
+        eventListeners.removeListeners(this)
 
-      const rendererEventListenersLength = this[symbols.rendererEventListeners].length
-      if (rendererEventListenersLength > 0) {
-        for (let i = 0; i < rendererEventListenersLength; i++) {
-          const eventListener = this[symbols.rendererEventListeners][i]
-          renderer.off(eventListener.event, eventListener.cb)
+        const rendererEventListenersLength = this[symbols.rendererEventListeners].length
+        if (rendererEventListenersLength > 0) {
+          for (let i = 0; i < rendererEventListenersLength; i++) {
+            const eventListener = this[symbols.rendererEventListeners][i]
+            renderer.off(eventListener.event, eventListener.cb)
+          }
         }
+
+        this[symbols.rendererEventListeners] = null
+
+        deleteChildren(this[symbols.children])
+        this[symbols.children].length = 0
+        removeEffects(this[symbols.effects])
+
+        this[symbols.state] = {}
+
+        this[symbols.props] = {}
+        this[symbols.computedKeys] = null
+        this[symbols.lifecycle] = {}
+        this[symbols.effects].length = 0
+        this[symbols.parent] = null
+        this[symbols.rootParent] = null
+        this[symbols.wrapper] = null
+        this[symbols.originalState] = null
+        this[symbols.slots].length = 0
+
+        delete this[symbols.computedKeys]
+        delete this[symbols.parent]
+        delete this[symbols.rootParent]
+        delete this[symbols.wrapper]
+        delete this[symbols.originalState]
+        delete this[symbols.children]
+        delete this[symbols.slots]
+        delete this[symbols.id]
+        delete this.ref
+        delete this[symbols.state].$hasFocus
+      } catch (e) {
+        // Memory-leak fix: previously a throw anywhere in the teardown above
+        // (most commonly a child's destroy() via deleteChildren, or a reactive
+        // effect fired by clearing state arrays) propagated out and aborted
+        // destroy() BEFORE holder.destroy() ran. That left the holder's renderer
+        // CoreNode subtree attached to the scene AND pinned in
+        // Stage.interactiveNodes, leaking the entire component tree. Swallow and
+        // log the culprit; the finally block still releases the node.
+        console.error(
+          `[Blits][destroy] error tearing down ${this.$componentId}; continuing teardown to prevent leak.`,
+          e
+        )
+      } finally {
+        // These MUST always run. holder.destroy() releases the renderer CoreNode
+        // subtree (which, together with the renderer interactiveNodes fix, allows
+        // GC to reclaim this component); cleanup() nulls the render-closure refs.
+        try {
+          if (this[symbols.holder] !== undefined && this[symbols.holder] !== null) {
+            this[symbols.holder].destroy()
+          }
+        } catch (e) {
+          console.error(`[Blits][destroy] holder.destroy() failed for ${this.$componentId}`, e)
+        }
+        this[symbols.holder] = null
+        delete this[symbols.holder]
+
+        try {
+          if (typeof this[symbols.cleanup] === 'function') this[symbols.cleanup]()
+        } catch (e) {
+          console.error(`[Blits][destroy] cleanup() failed for ${this.$componentId}`, e)
+        }
+        delete this[symbols.cleanup]
+        delete this[symbols.effects]
+        delete this.$componentId
       }
-
-      this[symbols.rendererEventListeners] = null
-
-      deleteChildren(this[symbols.children])
-      this[symbols.children].length = 0
-      removeEffects(this[symbols.effects])
-
-      this[symbols.state] = {}
-
-      this[symbols.props] = {}
-      this[symbols.computedKeys] = null
-      this[symbols.lifecycle] = {}
-      this[symbols.effects].length = 0
-      this[symbols.parent] = null
-      this[symbols.rootParent] = null
-      this[symbols.wrapper] = null
-      this[symbols.originalState] = null
-      this[symbols.slots].length = 0
-
-      delete this[symbols.computedKeys]
-      delete this[symbols.parent]
-      delete this[symbols.rootParent]
-      delete this[symbols.wrapper]
-      delete this[symbols.originalState]
-      delete this[symbols.children]
-      delete this[symbols.slots]
-      delete this[symbols.id]
-      delete this.ref
-      delete this[symbols.state].$hasFocus
-
-      this[symbols.holder].destroy()
-      this[symbols.holder] = null
-      delete this[symbols.holder]
-
-      this[symbols.cleanup]()
-      delete this[symbols.cleanup]
-
-      delete this[symbols.effects]
-
-      Log.debug(`Destroyed component ${this.$componentId}`)
-      delete this.$componentId
     },
     writable: false,
     enumerable: true,
@@ -239,14 +263,30 @@ export default {
  */
 const deleteChildren = function (children) {
   for (let i = 0; i < children.length; i++) {
-    if (!children[i]) return
-    // call destroy when method is available on child
-    if (children[i].destroy && typeof children[i].destroy === 'function') {
-      children[i].destroy()
-    }
-    // recursively call deleteChildren when it's an object of items (happens when using a forloop construct)
-    else if (Object.getPrototypeOf(children[i]) === Object.prototype) {
-      deleteChildren(Object.values(children[i]))
+    // Memory-leak fix: previously `if (!children[i]) return` aborted destruction
+    // of ALL remaining siblings on the first falsy entry. Use `continue` so a
+    // single null/hole never orphans (and leaks) the later children.
+    if (!children[i]) continue
+    try {
+      // call destroy when method is available on child
+      if (children[i].destroy && typeof children[i].destroy === 'function') {
+        children[i].destroy()
+      }
+      // recursively call deleteChildren when it's an object of items (happens when using a forloop construct)
+      else if (Object.getPrototypeOf(children[i]) === Object.prototype) {
+        deleteChildren(Object.values(children[i]))
+      }
+    } catch (e) {
+      // Memory-leak fix: a throwing child.destroy() previously propagated out of
+      // deleteChildren and aborted the parent's destroy() before holder.destroy()
+      // ran, leaking the whole subtree. Log the culprit and keep destroying the
+      // remaining siblings.
+      console.error(
+        `[Blits][deleteChildren] child.destroy() threw${
+          children[i] && children[i].$componentId ? ' for ' + children[i].$componentId : ''
+        }; continuing with remaining siblings.`,
+        e
+      )
     }
 
     children[i] = null
