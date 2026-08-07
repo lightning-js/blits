@@ -394,6 +394,20 @@
       "RouterView"
     ]
   },
+  "clipradius": {
+    "attrType": "regular",
+    "types": [
+      "number"
+    ],
+    "defaultValue": 0,
+    "reactive": true,
+    "description": "Rounds the corners of the clip area when `clipping` is enabled, instead of clipping to a sharp rectangle. Has no effect when `clipping` is `false`. WebGL only.",
+    "usedIn": [
+      "Element",
+      "Text",
+      "RouterView"
+    ]
+  },
   "overflow": {
     "attrType": "regular",
     "types": [

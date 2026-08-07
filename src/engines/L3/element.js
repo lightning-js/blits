@@ -483,6 +483,9 @@ const propsTransformer = {
   set clipping(v) {
     this.props['clipping'] = v
   },
+  set clipradius(v) {
+    this.props['clipRadius'] = v
+  },
   set overflow(v) {
     this.props['clipping'] = !!!v
   },
