@@ -18,6 +18,7 @@
 import test from 'tape'
 import Component from '../component.js'
 import { renderComponent } from './index.js'
+import symbols from '../lib/symbols.js'
 
 test('renderComponent snapshots a component with initial props', (assert) => {
   const Button = Component('Button', {
@@ -77,6 +78,45 @@ test('renderComponent snapshots a component with initial props', (assert) => {
   )
 
   fixture.destroy()
+  assert.end()
+})
+
+test('renderComponent destroys a child rendered after an initially empty for-loop', (assert) => {
+  const Child = Component('ChildAfterEmptyLoop', {
+    template: '<Element />',
+  })
+
+  const Parent = Component('ParentWithEmptyLoop', {
+    template: `
+      <Element>
+        <Element :for="item in $items" key="$item.id" />
+        <ChildAfterEmptyLoop />
+      </Element>
+    `,
+    state() {
+      return {
+        items: [],
+      }
+    },
+    components: {
+      ChildAfterEmptyLoop: Child,
+    },
+  })
+
+  const fixture = renderComponent(Parent)
+  const child = fixture.component[symbols.children].find((candidate) =>
+    candidate?.$componentId?.startsWith('BlitsComponent::ChildAfterEmptyLoop_')
+  )
+
+  assert.ok(child, 'Child after the empty for-loop should have rendered')
+
+  fixture.destroy()
+
+  assert.equal(
+    child.eol,
+    true,
+    'Child after the empty for-loop should be destroyed with its parent'
+  )
   assert.end()
 })
 

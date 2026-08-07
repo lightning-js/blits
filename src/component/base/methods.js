@@ -239,7 +239,7 @@ export default {
  */
 const deleteChildren = function (children) {
   for (let i = 0; i < children.length; i++) {
-    if (!children[i]) return
+    if (!children[i]) continue
     // call destroy when method is available on child
     if (children[i].destroy && typeof children[i].destroy === 'function') {
       children[i].destroy()
