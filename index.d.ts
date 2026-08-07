@@ -653,7 +653,7 @@ declare module '@lightningjs/blits' {
     P extends Record<string, any>,
     S,
     M,
-    C extends Record<string, () => any>,
+    C extends Record<string, () => any> = Record<never, never>,
   > = ThisType<
     Readonly<InferProps<P>> & S & M & Computed<C> & ChildComponentBase
   >
@@ -669,7 +669,7 @@ declare module '@lightningjs/blits' {
     P extends Props = {},
     S,
     M,
-    C extends Record<string, () => any>,
+    C extends Record<string, () => any> = Record<never, never>,
     W,
   > {
     components?: {
@@ -1478,7 +1478,7 @@ declare module '@lightningjs/blits' {
       P extends Props,
       S extends State,
       M extends Methods,
-      C extends Computed,
+      C extends Computed = Record<never, never>,
       W extends Watch>(config: ApplicationConfig<P, S, M, C, W>) : ComponentFactory
       /**
      * Blits Component
@@ -1489,7 +1489,7 @@ declare module '@lightningjs/blits' {
       P extends Props,
       S extends State,
       M extends Methods,
-      C extends Computed,
+      C extends Computed = Record<never, never>,
       W extends Watch>(name: string, config: ComponentConfig<P, S, M, C, W>) : ComponentFactory
     /**
      * Blits Launch
