@@ -18,6 +18,7 @@
 import test from 'tape'
 import Component from '../component.js'
 import { renderComponent } from './index.js'
+import symbols from '../lib/symbols.js'
 
 test('renderComponent snapshots a component with initial props', (assert) => {
   const Button = Component('Button', {
@@ -77,6 +78,143 @@ test('renderComponent snapshots a component with initial props', (assert) => {
   )
 
   fixture.destroy()
+  assert.end()
+})
+
+test('renderComponent destroys a child rendered after an initially empty for-loop', (assert) => {
+  const Child = Component('ChildAfterEmptyLoop', {
+    template: '<Element />',
+  })
+
+  const Parent = Component('ParentWithEmptyLoop', {
+    template: `
+      <Element>
+        <Element :for="item in $items" key="$item.id" />
+        <ChildAfterEmptyLoop />
+      </Element>
+    `,
+    state() {
+      return {
+        items: [],
+      }
+    },
+    components: {
+      ChildAfterEmptyLoop: Child,
+    },
+  })
+
+  const fixture = renderComponent(Parent)
+  const child = fixture.component[symbols.children].find((candidate) =>
+    candidate?.$componentId?.startsWith('BlitsComponent::ChildAfterEmptyLoop_')
+  )
+
+  assert.ok(child, 'Child after the empty for-loop should have rendered')
+
+  fixture.destroy()
+
+  assert.equal(
+    child.eol,
+    true,
+    'Child after the empty for-loop should be destroyed with its parent'
+  )
+  assert.end()
+})
+
+test('renderComponent destroys every element created by a populated for-loop', (assert) => {
+  const List = Component('ElementLoopCleanup', {
+    template: `
+      <Element>
+        <Element :for="item in $items" key="$item.id" />
+      </Element>
+    `,
+    state() {
+      return {
+        items: [{ id: 'one' }, { id: 'two' }, { id: 'three' }],
+      }
+    },
+  })
+
+  const fixture = renderComponent(List)
+  const loopElements = loopChildren(fixture.component).filter(
+    (child) => child.$componentId === undefined
+  )
+
+  assert.equal(loopElements.length, 3, 'The populated loop should render every element')
+
+  fixture.destroy()
+
+  assert.ok(
+    loopElements.every((element) => element.eol === true),
+    'Destroy should release every element created by the loop'
+  )
+  assert.end()
+})
+
+test('renderComponent destroys every component in nested populated for-loops', (assert) => {
+  const Item = Component('NestedLoopItem', {
+    template: '<Element />',
+  })
+
+  const Group = Component('NestedLoopGroup', {
+    template: `
+      <Element>
+        <NestedLoopItem :for="item in $items" key="$item.id" />
+      </Element>
+    `,
+    props: {
+      items: [],
+    },
+    components: {
+      NestedLoopItem: Item,
+    },
+  })
+
+  const List = Component('NestedLoopCleanup', {
+    template: `
+      <Element>
+        <NestedLoopGroup
+          :for="group in $groups"
+          key="$group.id"
+          :items="$group.items"
+        />
+      </Element>
+    `,
+    state() {
+      return {
+        groups: [
+          { id: 'first', items: [{ id: 'one' }, { id: 'two' }] },
+          { id: 'second', items: [{ id: 'three' }] },
+        ],
+      }
+    },
+    components: {
+      NestedLoopGroup: Group,
+    },
+  })
+
+  const fixture = renderComponent(List)
+  const groups = loopChildren(fixture.component).filter((child) =>
+    child.$componentId?.startsWith('BlitsComponent::NestedLoopGroup_')
+  )
+  const items = groups.flatMap((group) =>
+    loopChildren(group).filter((child) =>
+      child.$componentId?.startsWith('BlitsComponent::NestedLoopItem_')
+    )
+  )
+
+  assert.equal(groups.length, 2, 'The outer loop should render every group component')
+  assert.equal(items.length, 3, 'The inner loops should render every item component')
+
+  fixture.destroy()
+
+  assert.ok(
+    groups.every((group) => group.eol === true),
+    'Destroy should release every component created by the outer loop'
+  )
+  assert.ok(
+    items.every((item) => item.eol === true),
+    'Destroy should release every component created by the inner loops'
+  )
   assert.end()
 })
 
@@ -442,3 +580,21 @@ test('renderComponent input accepts a custom keyboard event', async (assert) => 
   fixture.destroy()
   assert.end()
 })
+
+const loopChildren = (component) => {
+  const children = component[symbols.children]
+  const result = []
+
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i]
+    if (
+      child &&
+      typeof child.destroy !== 'function' &&
+      Object.getPrototypeOf(child) === Object.prototype
+    ) {
+      result.push(...Object.values(child))
+    }
+  }
+
+  return result
+}

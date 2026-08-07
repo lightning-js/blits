@@ -23,6 +23,8 @@ import { initLog } from '../../lib/log.js'
 import timeouts_intervals from './timeouts_intervals.js'
 import { registerHooks } from '../../lib/hooks.js'
 import lifecycle from '../../lib/lifecycle.js'
+import { reactive } from '../../lib/reactivity/reactive.js'
+import { effect, removeEffects } from '../../lib/reactivity/effect.js'
 
 initLog()
 
@@ -270,6 +272,119 @@ test('Methods - Validate destroy method behavior', (assert) => {
   assert.equal(holderMock.destroyed, true, 'Holder destroy method should be called')
   assert.equal(childrenDestroyMock.count, 4, 'All children destroy methods should be called')
 
+  assert.end()
+})
+
+test('Methods - Destroy continues past an empty child slot', (assert) => {
+  const { component, childrenDestroyMock } = getTestComponent()
+
+  component[symbols.children].splice(1, 0, undefined)
+  component.destroy()
+
+  assert.equal(
+    childrenDestroyMock.count,
+    4,
+    'All children after an empty slot should still be destroyed'
+  )
+  assert.end()
+})
+
+test('Methods - Destroy continues past an empty keyed loop entry', (assert) => {
+  const { component, childrenDestroyMock } = getTestComponent()
+
+  component[symbols.children][2] = {
+    emptyItem: undefined,
+    item1: { componentId: 'child3', destroy: childrenDestroyMock },
+    item2: { componentId: 'child4', destroy: childrenDestroyMock },
+  }
+  component.destroy()
+
+  assert.equal(
+    childrenDestroyMock.count,
+    4,
+    'All keyed loop children after an empty entry should still be destroyed'
+  )
+  assert.end()
+})
+
+test('Methods - Destroy removes effects belonging to a child after an empty loop slot', (assert) => {
+  const { component } = getTestComponent()
+  const persistentState = reactive({ value: 0 })
+  let effectCalls = 0
+
+  const childEffect = () => {
+    persistentState.value
+    effectCalls++
+  }
+  const child = {
+    destroy() {
+      removeEffects([childEffect])
+    },
+  }
+
+  effect(childEffect)
+  component[symbols.children] = [undefined, child]
+  component.destroy()
+
+  persistentState.value = 1
+
+  assert.equal(
+    effectCalls,
+    1,
+    'A destroyed parent should not leave a skipped child effect subscribed to persistent state'
+  )
+
+  // Keep the regression test's reactive subscription isolated from subsequent tests.
+  removeEffects([childEffect])
+  assert.end()
+})
+
+test('Methods - Destroy does not rerun effects when clearing array state', (assert) => {
+  const { component } = getTestComponent()
+  component[symbols.state] = reactive({
+    $hasFocus: false,
+    items: [1, 2, 3],
+  })
+  let effectCalls = 0
+
+  const stateEffect = () => {
+    component[symbols.state].items
+    effectCalls++
+  }
+
+  component[symbols.effects].push(stateEffect)
+  effect(stateEffect)
+
+  component.destroy()
+
+  assert.equal(effectCalls, 1, 'Destroy should not trigger effects subscribed to array state')
+  assert.end()
+})
+
+test('Methods - Reactive array effects cannot abort component teardown', (assert) => {
+  const { component, cleanupMock, holderMock } = getTestComponent()
+  component[symbols.state] = reactive({
+    $hasFocus: false,
+    items: [1, 2, 3],
+  })
+
+  const stateEffect = () => {
+    component[symbols.state].items
+    if (component.eol === true) throw new Error('Effect ran during component teardown')
+  }
+
+  component[symbols.effects].push(stateEffect)
+  effect(stateEffect)
+
+  assert.doesNotThrow(() => component.destroy(), 'Destroy should not run reactive effects')
+  assert.equal(holderMock.destroyed, true, 'Destroy should release the renderer holder')
+  assert.equal(cleanupMock.called, true, 'Destroy should release generated render closures')
+
+  // Keep this test isolated if the regression returns.
+  if (holderMock.destroyed === false) {
+    removeEffects([stateEffect])
+    component.destroy()
+  }
   assert.end()
 })
 

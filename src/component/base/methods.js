@@ -104,6 +104,8 @@ export default {
       // pass focus to the parent so we don't get lost in focus limbo
       if (this.$hasFocus === true) this[symbols.parent].$focus()
 
+      removeEffects(this[symbols.effects])
+
       // @todo - is this really necessary?
       // This cause an issue with auto sizing of parent (and required an extra eol check there)
       for (let key in this[symbols.state]) {
@@ -130,7 +132,6 @@ export default {
 
       deleteChildren(this[symbols.children])
       this[symbols.children].length = 0
-      removeEffects(this[symbols.effects])
 
       this[symbols.state] = {}
 
@@ -239,7 +240,7 @@ export default {
  */
 const deleteChildren = function (children) {
   for (let i = 0; i < children.length; i++) {
-    if (!children[i]) return
+    if (!children[i]) continue
     // call destroy when method is available on child
     if (children[i].destroy && typeof children[i].destroy === 'function') {
       children[i].destroy()
