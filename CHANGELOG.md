@@ -1,4 +1,13 @@
 # Changelog
+## 2.8.7
+
+_07 aug 2026_
+
+- Added `clipradius` attribute for rounded-corner clipping
+- Fixed memory leak in delete children method
+- Early cleanup of effects in destroy sequence
+- Added `framecount` to fpsUpdate emit
+- Bumped renderer to 3.1.6
 
 ## 2.8.6
 
