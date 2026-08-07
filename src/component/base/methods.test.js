@@ -339,6 +339,55 @@ test('Methods - Destroy removes effects belonging to a child after an empty loop
   assert.end()
 })
 
+test('Methods - Destroy does not rerun effects when clearing array state', (assert) => {
+  const { component } = getTestComponent()
+  component[symbols.state] = reactive({
+    $hasFocus: false,
+    items: [1, 2, 3],
+  })
+  let effectCalls = 0
+
+  const stateEffect = () => {
+    component[symbols.state].items
+    effectCalls++
+  }
+
+  component[symbols.effects].push(stateEffect)
+  effect(stateEffect)
+
+  component.destroy()
+
+  assert.equal(effectCalls, 1, 'Destroy should not trigger effects subscribed to array state')
+  assert.end()
+})
+
+test('Methods - Reactive array effects cannot abort component teardown', (assert) => {
+  const { component, cleanupMock, holderMock } = getTestComponent()
+  component[symbols.state] = reactive({
+    $hasFocus: false,
+    items: [1, 2, 3],
+  })
+
+  const stateEffect = () => {
+    component[symbols.state].items
+    if (component.eol === true) throw new Error('Effect ran during component teardown')
+  }
+
+  component[symbols.effects].push(stateEffect)
+  effect(stateEffect)
+
+  assert.doesNotThrow(() => component.destroy(), 'Destroy should not run reactive effects')
+  assert.equal(holderMock.destroyed, true, 'Destroy should release the renderer holder')
+  assert.equal(cleanupMock.called, true, 'Destroy should release generated render closures')
+
+  // Keep this test isolated if the regression returns.
+  if (holderMock.destroyed === false) {
+    removeEffects([stateEffect])
+    component.destroy()
+  }
+  assert.end()
+})
+
 function initLogTest(assert) {
   assert.capture(Settings, 'get', (key) => {
     if (key === 'debugLevel') {
