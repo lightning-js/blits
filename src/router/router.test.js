@@ -979,6 +979,104 @@ test('this.$router.get(name) targets a named RouterView', async (assert) => {
   }
 })
 
+test('Unchanged RouterView must not unlock input while named RouterView is navigating', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('ConcurrentRouterViewNavigation', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  let releaseNamedNavigation
+  let namedNavigationStarted
+  const namedNavigationIsStarted = new Promise((resolve) => {
+    namedNavigationStarted = resolve
+  })
+  const holdNamedNavigation = new Promise((resolve) => {
+    releaseNamedNavigation = resolve
+  })
+
+  const parent = {
+    [symbols.routes]: [
+      {
+        path: '/concurrent-main',
+        component: TestComponent,
+        options: { passFocus: false },
+      },
+      {
+        path: '/concurrent-page-one',
+        component: TestComponent,
+        options: { passFocus: false },
+      },
+      {
+        path: '/concurrent-page-two',
+        component: TestComponent,
+        options: { passFocus: false },
+        hooks: {
+          async before() {
+            namedNavigationStarted()
+            await holdNamedNavigation
+          },
+        },
+      },
+    ],
+  }
+
+  const mainRouterView = {
+    [symbols.parent]: parent,
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    name: '',
+  }
+  const namedRouterView = {
+    [symbols.parent]: parent,
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    name: 'concurrent-fv',
+  }
+
+  try {
+    to('/concurrent-main')
+    await navigate.call(mainRouterView)
+    to('/concurrent-page-one', {}, {}, namedRouterView.name)
+    await navigate.call(namedRouterView)
+
+    to('/concurrent-page-two', {}, {}, namedRouterView.name)
+    const namedNavigation = navigate.call(namedRouterView)
+    await namedNavigationIsStarted
+
+    assert.equal(state.navigating, true, 'Named RouterView should lock input while navigating')
+
+    // The same hashchange is handled by every RouterView. The main route did not
+    // change, so this navigate exits early and currently clears the shared lock.
+    await navigate.call(mainRouterView)
+
+    assert.equal(
+      state.navigating,
+      true,
+      'Unchanged RouterView must not unlock input while named navigation is still active'
+    )
+
+    releaseNamedNavigation()
+    await namedNavigation
+    assert.equal(state.navigating, false, 'Input should unlock after all navigation completes')
+  } finally {
+    releaseNamedNavigation()
+    stage.element = originalElement
+    location.hash = '#/'
+  }
+})
+
 test('Transition out with end callback is invoked on navigate away', async (assert) => {
   const originalElement = stage.element
 
