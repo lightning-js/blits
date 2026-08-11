@@ -22,6 +22,7 @@ import symbols from '../lib/symbols.js'
 import { Log } from '../lib/log.js'
 import { stage } from '../launch.js'
 import Focus from '../focus/focus.js'
+import { isInAliveComponentTree } from '../focus/helpers.js'
 import Announcer from '../announcer/announcer.js'
 import Settings from '../settings.js'
 import { platform } from '../platform.js'
@@ -327,7 +328,9 @@ const performNavigation = async function (viewState) {
 
   // set focus to the view that we're routing to (unless explicitly disabling passing focus)
   if (route.options.passFocus !== false) {
-    focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
+    isInAliveComponentTree(focus, view)
+      ? /** @type {BlitsComponent} */ (focus).$focus()
+      : /** @type {BlitsComponent} */ (view).$focus()
   }
 
   // apply starting state of transition

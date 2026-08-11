@@ -229,6 +229,32 @@ test('Ignore focus requests for destroyed components', (assert) => {
   assert.end()
 })
 
+test('Ignore focus requests for components with a destroyed ancestor', (assert) => {
+  const focusedComponent = Focus.get()
+  const destroyedParent = {
+    eol: true,
+    [symbols.lifecycle]: {
+      state: 'destroy',
+    },
+  }
+  const component = {
+    [symbols.parent]: destroyedParent,
+    [symbols.lifecycle]: {
+      state: 'init',
+    },
+  }
+
+  Focus.set(component)
+
+  assert.equal(Focus.get(), focusedComponent, 'Component with destroyed ancestor should not focus')
+  assert.equal(
+    component[symbols.lifecycle].state,
+    'init',
+    'Rejected component lifecycle should remain unchanged'
+  )
+  assert.end()
+})
+
 test('Ignore delayed focus callback when component is destroyed', (assert) => {
   const focusedComponent = Focus.get()
   const component = {
