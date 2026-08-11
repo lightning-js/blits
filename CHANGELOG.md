@@ -1,4 +1,11 @@
 # Changelog
+
+## 2.8.8
+
+_11 aug 2026_
+
+- Bumped renderer to 3.3.1
+
 ## 2.8.7
 
 _07 aug 2026_
