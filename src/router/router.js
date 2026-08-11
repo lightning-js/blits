@@ -84,13 +84,16 @@ let singleRouterView = null
 let activeNavigations = 0
 
 const startNavigation = () => {
-  activeNavigations++
-  state.navigating = true
+  if (activeNavigations++ === 0) {
+    state.navigating = true
+  }
 }
 
 const finishNavigation = () => {
-  activeNavigations = Math.max(0, activeNavigations - 1)
-  state.navigating = activeNavigations > 0
+  activeNavigations--
+  if (activeNavigations === 0) {
+    state.navigating = false
+  }
 }
 
 // Per-RouterView navigation state keyed by router view name.
