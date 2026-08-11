@@ -20,7 +20,7 @@ import { state } from '../router/router.js'
 import Settings from '../settings.js'
 import { DEFAULT_HOLD_TIMEOUT_MS } from '../constants.js'
 import { Log } from '../lib/log.js'
-import { getAncestors, isInAliveComponentTree } from './helpers.js'
+import { getAncestors } from './helpers.js'
 import { platform } from '../platform.js'
 
 let focusedComponent = null
@@ -41,7 +41,7 @@ export default {
     return focusedComponent
   },
   set(component, event) {
-    if (component === undefined || isInAliveComponentTree(component) === false) return
+    if (component === undefined || component.eol === true) return
 
     clearTimeout(setFocusTimeout)
 
