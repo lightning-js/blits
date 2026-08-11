@@ -313,6 +313,20 @@ export const navigate = async function () {
 
   // set focus to the view that we're routing to (unless explicitly disabling passing focus)
   if (route.options.passFocus !== false) {
+    // Validate the cached focus reference: ensure neither it nor any ancestor
+    // has been destroyed while the page was kept alive off-screen.
+    let validFocus = focus
+    if (validFocus) {
+      let p = validFocus
+      while (p) {
+        if (p.eol === true) {
+          validFocus = null
+          break
+        }
+        p = p[symbols.parent]
+      }
+    }
+
     focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
   }
 

@@ -42,6 +42,11 @@ export default {
   },
   set(component, event) {
     if (component === undefined || component.eol === true) return
+    let ancestor = component[symbols.parent]
+    while (ancestor) {
+      if (ancestor.eol === true) return
+      ancestor = ancestor[symbols.parent]
+    }
 
     clearTimeout(setFocusTimeout)
 
