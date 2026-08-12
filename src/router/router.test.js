@@ -22,6 +22,7 @@ import { matchHash, getHash, setHash } from './utils.js'
 import { stage } from '../launch.js'
 import Component from '../component.js'
 import symbols from '../lib/symbols.js'
+import Focus from '../focus/focus.js'
 
 initLog()
 
@@ -721,6 +722,98 @@ test('Router.back() pops history and navigates to previous route', async (assert
   stage.element = originalElement
 })
 
+test('Router falls back to the restored view when cached focus has a destroyed ancestor', async (assert) => {
+  const originalElement = stage.element
+  const originalGetFocus = Focus.get
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  let createdViews = 0
+  let restoredViewFocusCalls = 0
+  const TestComponent = (options, holder) => {
+    const isRestoredView = createdViews++ === 0
+    return {
+      [symbols.holder]: holder,
+      $focus() {
+        if (isRestoredView) restoredViewFocusCalls++
+      },
+      destroy() {
+        this.eol = true
+      },
+    }
+  }
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/stale-focus-first',
+          component: TestComponent,
+          options: { inHistory: true, keepAlive: true, passFocus: false },
+        },
+        {
+          path: '/stale-focus-second',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    name: '',
+  }
+
+  try {
+    to('/stale-focus-first')
+    await navigate.call(host)
+    const restoredView = host.activeView
+
+    const destroyedAncestor = {
+      eol: false,
+      [symbols.parent]: restoredView,
+      [symbols.lifecycle]: { state: 'init' },
+    }
+    const cachedFocus = {
+      [symbols.parent]: destroyedAncestor,
+      [symbols.lifecycle]: { state: 'init' },
+    }
+    Focus.get = () => cachedFocus
+
+    // The cached route should pass focus when it is restored. It was disabled
+    // only for the initial navigation to keep this test independent of global
+    // focus state left by other router tests.
+    host.currentRoute.options.passFocus = true
+
+    to('/stale-focus-second')
+    await navigate.call(host)
+    Focus.get = originalGetFocus
+
+    destroyedAncestor.eol = true
+
+    assert.equal(back.call(host), true, 'Back should restore the keepAlive route')
+    await navigate.call(host)
+
+    assert.equal(
+      restoredViewFocusCalls,
+      1,
+      'Restored view should receive focus when cached focus has a destroyed ancestor'
+    )
+  } finally {
+    Focus.get = originalGetFocus
+    stage.element = originalElement
+    location.hash = '#/'
+  }
+})
+
 test('this.$router.back() uses the owning RouterView history', async (assert) => {
   const originalElement = stage.element
 
@@ -976,6 +1069,104 @@ test('this.$router.get(name) targets a named RouterView', async (assert) => {
     unregisterRouterView(modalRouterView)
     location.hash = '#/'
     stage.element = originalElement
+  }
+})
+
+test('Unchanged RouterView must not unlock input while named RouterView is navigating', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('ConcurrentRouterViewNavigation', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  let releaseNamedNavigation
+  let namedNavigationStarted
+  const namedNavigationIsStarted = new Promise((resolve) => {
+    namedNavigationStarted = resolve
+  })
+  const holdNamedNavigation = new Promise((resolve) => {
+    releaseNamedNavigation = resolve
+  })
+
+  const parent = {
+    [symbols.routes]: [
+      {
+        path: '/concurrent-main',
+        component: TestComponent,
+        options: { passFocus: false },
+      },
+      {
+        path: '/concurrent-page-one',
+        component: TestComponent,
+        options: { passFocus: false },
+      },
+      {
+        path: '/concurrent-page-two',
+        component: TestComponent,
+        options: { passFocus: false },
+        hooks: {
+          async before() {
+            namedNavigationStarted()
+            await holdNamedNavigation
+          },
+        },
+      },
+    ],
+  }
+
+  const mainRouterView = {
+    [symbols.parent]: parent,
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    name: '',
+  }
+  const namedRouterView = {
+    [symbols.parent]: parent,
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+    name: 'concurrent-fv',
+  }
+
+  try {
+    to('/concurrent-main')
+    await navigate.call(mainRouterView)
+    to('/concurrent-page-one', {}, {}, namedRouterView.name)
+    await navigate.call(namedRouterView)
+
+    to('/concurrent-page-two', {}, {}, namedRouterView.name)
+    const namedNavigation = navigate.call(namedRouterView)
+    await namedNavigationIsStarted
+
+    assert.equal(state.navigating, true, 'Named RouterView should lock input while navigating')
+
+    // The same hashchange is handled by every RouterView. The main route did not
+    // change, so this navigate exits early and currently clears the shared lock.
+    await navigate.call(mainRouterView)
+
+    assert.equal(
+      state.navigating,
+      true,
+      'Unchanged RouterView must not unlock input while named navigation is still active'
+    )
+
+    releaseNamedNavigation()
+    await namedNavigation
+    assert.equal(state.navigating, false, 'Input should unlock after all navigation completes')
+  } finally {
+    releaseNamedNavigation()
+    stage.element = originalElement
+    location.hash = '#/'
   }
 })
 
