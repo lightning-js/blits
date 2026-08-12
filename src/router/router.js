@@ -22,6 +22,7 @@ import symbols from '../lib/symbols.js'
 import { Log } from '../lib/log.js'
 import { stage } from '../launch.js'
 import Focus from '../focus/focus.js'
+import { isInAliveComponentTree } from '../focus/helpers.js'
 import Announcer from '../announcer/announcer.js'
 import Settings from '../settings.js'
 import { platform } from '../platform.js'
@@ -80,6 +81,20 @@ export const state = reactive(
 const history = []
 const routerViews = new Set()
 let singleRouterView = null
+let activeNavigations = 0
+
+const startNavigation = () => {
+  if (activeNavigations++ === 0) {
+    state.navigating = true
+  }
+}
+
+const finishNavigation = () => {
+  activeNavigations--
+  if (activeNavigations === 0) {
+    state.navigating = false
+  }
+}
 
 // Per-RouterView navigation state keyed by router view name.
 // When multiple router views exist, each view must have its own navigation
@@ -124,9 +139,17 @@ export const navigate = async function () {
   if (!this[symbols.parent][symbols.routes] || this[symbols.parent][symbols.routes].length === 0)
     return
 
-  if (this.history === undefined) this.history = []
+  startNavigation()
 
-  state.navigating = true
+  try {
+    await performNavigation.call(this, viewState)
+  } finally {
+    finishNavigation()
+  }
+}
+
+const performNavigation = async function (viewState) {
+  if (this.history === undefined) this.history = []
 
   Announcer.stop()
   Announcer.clear()
@@ -142,8 +165,6 @@ export const navigate = async function () {
 
   // early return when route not found
   if (route === false) {
-    state.navigating = false
-
     Log.error(`Route ${hash.hash} not found`)
     const routerHooks = this[symbols.parent][symbols.routerHooks]
     if (routerHooks && typeof routerHooks.error === 'function') {
@@ -154,7 +175,6 @@ export const navigate = async function () {
 
   // sameRouteObject is too simple check for now!
   if (this.currentRoute !== undefined && sameRouteObject(route, this.currentRoute)) {
-    state.navigating = false
     return
   }
 
@@ -176,7 +196,6 @@ export const navigate = async function () {
   )
   if (beforeEachResult === false) {
     viewState.preventHashChangeNavigation = false
-    state.navigating = false
     return
   }
 
@@ -193,7 +212,6 @@ export const navigate = async function () {
   )
   if (beforeResult === false) {
     viewState.preventHashChangeNavigation = false
-    state.navigating = false
     return
   }
 
@@ -313,7 +331,9 @@ export const navigate = async function () {
 
   // set focus to the view that we're routing to (unless explicitly disabling passing focus)
   if (route.options.passFocus !== false) {
-    focus ? focus.$focus() : /** @type {BlitsComponent} */ (view).$focus()
+    isInAliveComponentTree(focus, view)
+      ? /** @type {BlitsComponent} */ (focus).$focus()
+      : /** @type {BlitsComponent} */ (view).$focus()
   }
 
   // apply starting state of transition
@@ -400,7 +420,6 @@ export const navigate = async function () {
 
   // reset navigating indicators
   viewState.navigatingBack = false
-  state.navigating = false
   viewState.preventHashChangeNavigation = false
 }
 
@@ -451,7 +470,6 @@ const executeBeforeHook = async function (
         platform.historyBack()
 
         viewState.navigatingBack = false
-        state.navigating = false
       }
       return false
     }
@@ -468,7 +486,6 @@ const executeBeforeHook = async function (
         viewState.preventHashChangeNavigation = true
         platform.historyBack()
         viewState.navigatingBack = false
-        state.navigating = false
       }
       return false
     }

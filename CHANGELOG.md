@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.8.9
+
+- Fixed focus issue related to multiple named router views
+
 ## 2.8.8
 
 _11 aug 2026_
