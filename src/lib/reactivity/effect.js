@@ -18,14 +18,17 @@
 let currentEffect = null
 let currentKey = null
 
-let paused = false
+// counter that tracks all pauseTracking invocations
+// to ensure nested array operations don't prematurely
+// resume before all operations have completed
+let pauseCounter = 0
 
 export const pauseTracking = () => {
-  paused = true
+  pauseCounter++
 }
 
 export const resumeTracking = () => {
-  paused = false
+  if (pauseCounter > 0) pauseCounter--
 }
 
 const objectMap = new WeakMap()
@@ -45,7 +48,7 @@ export const removeEffects = (effectsToRemove) => {
 
 export const track = (target, key) => {
   if (currentEffect !== null) {
-    if (paused) {
+    if (pauseCounter > 0) {
       return
     }
     // note: nesting the conditions like this seems to perform better ¯\_(ツ)_/¯
@@ -76,7 +79,7 @@ export const track = (target, key) => {
 }
 
 export const trigger = (target, key, force = false) => {
-  if (paused === true) return
+  if (pauseCounter > 0) return
   const effectsMap = objectMap.get(target)
   if (effectsMap === undefined) {
     return

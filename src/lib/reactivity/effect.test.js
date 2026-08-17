@@ -16,7 +16,7 @@
  */
 
 import test from 'tape'
-import { trigger, track, effect } from './effect.js'
+import { trigger, track, effect, pauseTracking, resumeTracking } from './effect.js'
 
 test('Trigger - type', (assert) => {
   const expected = 'function'
@@ -41,5 +41,30 @@ test('Effect - Basic Effect', (assert) => {
   }
   effect(basicEffect)
   assert.equal(data.count, 1, 'Effect should run once initially and increment count')
+  assert.end()
+})
+
+test('Tracking remains paused until every nested pause is resumed', (assert) => {
+  const target = {}
+  let effectRuns = 0
+
+  effect(() => {
+    track(target, 'value')
+    effectRuns++
+  })
+
+  pauseTracking()
+  pauseTracking()
+  resumeTracking()
+
+  trigger(target, 'value')
+
+  assert.equal(
+    effectRuns,
+    1,
+    'A nested resume should not enable tracking while an outer pause is still active'
+  )
+
+  resumeTracking()
   assert.end()
 })

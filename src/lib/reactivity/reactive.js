@@ -68,8 +68,12 @@ const reactiveProxy = (original, _parent = null, _key) => {
         if (arrayPatchMethods.indexOf(key) !== -1) {
           return function (...args) {
             pauseTracking()
-            const result = target[key].apply(this, args)
-            resumeTracking()
+            let result
+            try {
+              result = target[key].apply(this, args)
+            } finally {
+              resumeTracking()
+            }
             // trigger a change on the parent object and the key
             // i.e. when pushing a new item to `obj.data`, _parent will equal `obj`
             // and _key will equal `data`
