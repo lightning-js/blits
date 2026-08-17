@@ -155,6 +155,50 @@ test('Reactive - Array Reactivity', (assert) => {
   assert.end()
 })
 
+test('Reactive - Track the length of a directly reactive array', (assert) => {
+  const cases = [
+    { name: 'push', initial: [], mutate: (items) => items.push('one'), expected: 1 },
+    { name: 'pop', initial: ['one'], mutate: (items) => items.pop(), expected: 0 },
+    { name: 'shift', initial: ['one'], mutate: (items) => items.shift(), expected: 0 },
+    { name: 'unshift', initial: [], mutate: (items) => items.unshift('one'), expected: 1 },
+    {
+      name: 'splice',
+      initial: ['one'],
+      mutate: (items) => items.splice(0, 1),
+      expected: 0,
+    },
+  ]
+
+  cases.forEach(({ name, initial, mutate, expected }) => {
+    const items = reactive(initial)
+    let length
+
+    effect(() => {
+      length = items.length
+    })
+
+    mutate(items)
+    assert.equal(length, expected, `Length should update after ${name}`)
+  })
+
+  const items = reactive(['two', 'one'])
+  let runs = 0
+  effect(() => {
+    items.length
+    runs++
+  })
+
+  const runsBeforeSameLengthMutations = runs
+  items.splice(0, 1, 'replacement')
+  items.sort()
+  assert.equal(
+    runs,
+    runsBeforeSameLengthMutations,
+    'Effect should not run when an array mutation preserves its length'
+  )
+  assert.end()
+})
+
 test('Reactive - Effect with specific keys', (assert) => {
   const data = reactive({ foo: 'foo', bar: 'bar', count: 0 })
 
