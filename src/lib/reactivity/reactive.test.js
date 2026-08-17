@@ -199,6 +199,21 @@ test('Reactive - Track the length of a directly reactive array', (assert) => {
   assert.end()
 })
 
+test('Reactive - Track nested array length through its parent', (assert) => {
+  const data = reactive({ items: [] })
+  let runs = 0
+
+  effect(() => {
+    data.items.length
+    runs++
+  })
+
+  data.items.push('one')
+
+  assert.equal(runs, 2, 'Effect should run once after nested array length changes')
+  assert.end()
+})
+
 test('Reactive - Effect with specific keys', (assert) => {
   const data = reactive({ foo: 'foo', bar: 'bar', count: 0 })
 
