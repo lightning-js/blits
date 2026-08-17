@@ -28,9 +28,12 @@ export default (file) => {
           } catch (err) {
             reject(err)
           }
-        } else reject(xhr.statusText)
+        } else reject(xhr.statusText || xhr.status)
       }
     }
+
+    xhr.onerror = () => reject(new Error('Network request failed'))
+
     xhr.open('GET', file)
     xhr.send(null)
   })
