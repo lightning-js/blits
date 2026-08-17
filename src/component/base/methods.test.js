@@ -361,7 +361,7 @@ test('Methods - Destroy does not rerun effects when clearing array state', (asse
   assert.end()
 })
 
-test.only('Methods - Destroy removes effects before moving focus to the parent', (assert) => {
+test('Methods - Destroy removes effects before moving focus to the parent', (assert) => {
   const { component } = getTestComponent()
   component[symbols.state] = reactive({ $hasFocus: true })
   // mock $focus functionality on the parent
