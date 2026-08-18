@@ -662,7 +662,7 @@ declare module '@lightningjs/blits' {
     P extends Record<string, any>,
     S,
     M,
-    C,
+    C extends Record<string, () => any> = Record<never, never>,
   > = ThisType<Readonly<InferProps<P>> & S & M & Computed<C> & ApplicationBase>
 
   export interface ComponentConfig<
