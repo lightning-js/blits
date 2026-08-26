@@ -30,6 +30,7 @@ import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 import shaders from '../../lib/shaders/shaders.js'
 import { resolveSpriteTexture } from './spriteTexture.js'
+import animationEngine from './animation.js'
 
 const holderComponentMap = new WeakMap()
 
@@ -187,14 +188,12 @@ const parsePercentage = function (v, base) {
  * @returns {any} The unpacked value.
  */
 const unpackTransition = (v) => {
-  if (typeof v !== 'object' || v === null) return v
-  if (v.constructor === Object) {
-    if ('value' in v === true) {
-      return v.value
-    }
-    if ('transition' in v === true) {
-      return unpackTransition(v.transition)
-    }
+  if (typeof v !== 'object') return v
+  if (v['value'] !== undefined) {
+    return v['value']
+  }
+  if (v['transition'] !== undefined) {
+    return unpackTransition(v['transition'])
   }
   return v
 }
@@ -637,11 +636,22 @@ const Element = {
       this.props.props['shader'] = shaders.createElementShader(props)
     }
 
+    const transitionKeys = []
+    //first unpack any transition values, then set the props on the element
     for (let i = 0; i < length; i++) {
       const key = propKeys[i]
       const value = props[key]
       if (value !== undefined) {
-        this.props[key] = unpackTransition(value)
+        if (typeof value !== 'object') {
+          this.props[key] = value
+          continue
+        }
+        if (value['transition'] !== undefined) {
+          this.props[key] = unpackTransition(value['transition'])
+          transitionKeys.push(key)
+          continue
+        }
+        this.props[key] = value
       }
     }
 
@@ -656,6 +666,11 @@ const Element = {
 
     if (this.props['holder'] === true) {
       holderComponentMap.set(this.node, this.component)
+    }
+
+    //create an animatable element if any of the props have a transition (without delay settings)
+    if (transitionKeys.length > 0) {
+      this.animatable = animationEngine.createAnimatableElement(this, props, transitionKeys)
     }
 
     if (this[symbols.isSprite] === true) {
@@ -855,102 +870,22 @@ const Element = {
   _executeAnimation(prop, value, transition) {
     // check if a transition is already scheduled to run on the same prop
     // and cancels it if it does
-    const stateOfAnimation =
-      this.scheduledTransitions[prop] !== undefined
-        ? this.scheduledTransitions[prop].f.state
-        : undefined
+    const transitionWrapper = this.scheduledTransitions[prop]
 
-    if (
-      stateOfAnimation !== undefined &&
-      (stateOfAnimation === 'scheduled' || stateOfAnimation === 'running')
-    ) {
-      this.scheduledTransitions[prop].f.stop(stateOfAnimation === 'running' ? false : true)
+    if (transitionWrapper !== undefined) {
+      transitionWrapper.cancel()
     }
 
     // if current value is the same as the value to animate to, instantly resolve
     if (this.node[prop] === value) return
 
-    const props = {}
-    props[prop] = value
-
-    // construct animate function
-    const f = this.node.animate(props, {
-      duration:
-        typeof transition === 'object'
-          ? 'duration' in transition
-            ? transition.duration
-            : 300
-          : 300,
-      easing:
-        typeof transition === 'object'
-          ? 'easing' in transition
-            ? transition.easing
-            : 'ease'
-          : 'ease',
-      delay: typeof transition === 'object' ? ('delay' in transition ? transition.delay : 0) : 0,
-    })
-
-    // capture the current value to be used in the transition start
-    const startValue = this.node[prop]
-
-    // schedule the transition for this prop, so it can be canceled /
-    // removed if another transition for the same prop starts in the mean time
-    this.scheduledTransitions[prop] = {
-      v: props[prop],
-      f,
+    // schedule the new transition
+    // animateElementProp(this, prop, value, transition)
+    if (this.animatable !== null && this.animatable[prop] !== undefined) {
+      this.animatable[prop](value, transition.duration, transition.easing)
+    } else {
+      animationEngine.animateElementProp(this, prop, value, transition)
     }
-
-    // Update inspector metadata when transition starts
-    if (inspectorEnabled === true) {
-      this.setInspectorMetadata({ 'blits-isTransitioning': true })
-    }
-
-    if (transition.start !== undefined && typeof transition.start === 'function') {
-      // fire transition start callback when animation really starts (depending on specified delay)
-      f.once('animating', () => {
-        transition.start.call(this.component, this, prop, startValue)
-      })
-    }
-
-    if (this.config.parent.props && this.config.parent.props.__layout === true) {
-      f.on('tick', () => {
-        if (this.eol === true || !this.config) return
-        this.config.parent.triggerLayout(this.config.parent.props)
-      })
-    }
-
-    if (transition.progress !== undefined && typeof transition.progress === 'function') {
-      let prevProgress = 0
-      f.on('tick', (_node, { progress }) => {
-        if (this.eol === true || !this.config) return
-        transition.progress.call(this.component, this, prop, progress, prevProgress)
-        prevProgress = progress
-      })
-    }
-
-    f.once('stopped', () => {
-      if (
-        this.scheduledTransitions[prop] !== undefined &&
-        this.scheduledTransitions[prop].canceled === true
-      ) {
-        return
-      }
-      // fire transition end callback when animation ends (if specified)
-      if (this.node !== undefined && transition.end && typeof transition.end === 'function') {
-        transition.end.call(this.component, this, prop, this.node[prop])
-      }
-      // remove the prop from scheduled transitions
-      delete this.scheduledTransitions[prop]
-      // Update inspector metadata when transition ends
-      if (inspectorEnabled === true) {
-        this.setInspectorMetadata({
-          'blits-isTransitioning': Object.keys(this.scheduledTransitions).length > 0,
-        })
-      }
-    })
-
-    // start animation
-    f.start()
   },
   destroy() {
     if (this.eol === true) return
@@ -982,15 +917,16 @@ const Element = {
     for (let i = 0; i < transitionProps.length; i++) {
       const transition = this.scheduledTransitions[transitionProps[i]]
       if (transition !== undefined) {
-        transition.canceled = true
-        if (transition.f !== undefined) transition.f.stop()
+        transition.cancel()
       }
     }
 
     // not setting to null and deleting,
     // because transition stopped might still be fired (maybe a renderer fix resolves that)
     this.scheduledTransitions = {}
-
+    this.animatable = null
+    delete this.animatable
+    this.activeAnimationCount = 0
     this.component = null
     delete this.component
 
@@ -1059,6 +995,8 @@ export default (config, component) => {
   return Object.assign(Object.create(Element), {
     eol: false,
     props: Object.assign(Object.create(propsTransformer), { props: {} }),
+    animatable: null,
+    activeAnimationCount: 0,
     scheduledTransitions: {},
     debounceTimeouts: {},
     config,

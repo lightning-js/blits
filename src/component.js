@@ -52,6 +52,18 @@ const required = (name) => {
 export const componentMap = new WeakMap()
 
 /**
+ * @typedef {import('animejs').Timeline} Timeline
+ * @typedef {import('animejs').TimelineParams} TimelineParams
+ * @typedef {import('animejs').JSAnimation} JSAnimation
+ * @typedef {import('animejs').JSTargetsParam} JSTargetsParam
+ * @typedef {import('animejs').AnimationParams} AnimationParams
+ * @typedef {import('animejs').Timer} Timer
+ * @typedef {import('animejs').TimerParams} TimerParams
+ * @typedef {import('animejs').Animatable} Animatable
+ * @typedef {import('animejs').AnimatableParams} AnimatableParams
+ */
+
+/**
  * @typedef {function} BlitsComponentFactory
  * @param {object} opts - The options for the component instance
  * @param {BlitsComponent} parentEl - The parent element for the component instance
@@ -166,6 +178,8 @@ export const componentMap = new WeakMap()
  * @property {function(): void} unfocus - Clears the focus state and sets lifecycle to 'unfocus'.
  * Builtins:
  * @property {BlitsAnnouncer} $announcer - The announcer object for the component instance
+ * @property {function(targets: JSTargetsParam, params: AnimatableParams): Animatable} $animatable - Creates an animatable for the component instance
+ * @property {function(targets: JSTargetsParam, params: AnimationParams): JSAnimation} $animate - Creates an animation for the component instance
  * @property {() => void} $clearTimeouts - Clears all timeouts created by the component instance
  * @property {(timeoutId: number) => void} $clearTimeout - Clears all timeouts created by the component instance
  * @property {() => void} $clearIntervals - Clears all intervals created by the component instance
@@ -182,6 +196,8 @@ export const componentMap = new WeakMap()
  * @property {function(any): any} $setTimeout - Sets a timeout for the component instance
  * @property {function(any): any} $size - The size object for the component instance
  * @property {function(any): any} $sizes - The sizes object for the component instance
+ * @property {function(params: TimelineParams): Timeline} $timeline - Creates a timeline for the component instance
+ * @property {function(params: TimerParams): Timer} $timer - Creates a timer for the component instance
  * @property {function(string): void} $trigger - Forces a reactivity trigger on a property in `originalState`.
  * @property {function(any): any} $unlisten - The unlisten object for the component instance
  *
@@ -213,7 +229,9 @@ const Component = (name = required('name'), config = required('config')) => {
 
     this[symbols.effects] = []
 
-    this[symbols.effects] = []
+    // create a Map for storing active animations (via this.$animate, this.$animatable, this.$timeline, this.$timer, etc)
+    // this allows for canceling all animations when the component is destroyed, or unmounted.
+    this[symbols.activeAnimations] = new Map()
 
     // instantiate a lifecycle object for this instance
     this[symbols.lifecycle] = Object.assign(Object.create(Lifecycle), {
@@ -285,7 +303,7 @@ const Component = (name = required('name'), config = required('config')) => {
 
     // create a reference to the wrapper element of the component (i.e. the root Element of the component)
     this[symbols.wrapper] = this[symbols.children][0]
-
+    this[symbols.refs] = {}
     // create a reference to an array of children that are slots
     this[symbols.slots] = this[symbols.children].filter((child) => child[symbols.isSlot])
 

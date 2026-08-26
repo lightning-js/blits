@@ -20,6 +20,8 @@ import { WebGlCoreRenderer, SdfTextRenderer } from '@lightningjs/renderer/webgl'
 import { CanvasCoreRenderer, CanvasTextRenderer } from '@lightningjs/renderer/canvas'
 import { Inspector } from '@lightningjs/renderer/inspector'
 
+import animationEngine from './animation.js'
+
 import { Log } from '../../lib/log.js'
 import { SCREEN_RESOLUTIONS, RENDER_QUALITIES } from '../../constants.js'
 import colors from '../../lib/colors/colors.js'
@@ -29,6 +31,8 @@ import { platform } from '../../platform.js'
 
 /** @type {RendererMain|{}} */
 export let renderer = {}
+/** @type {@import('@lightningjs/renderer').Stage|{}} */
+export let stage = {}
 
 const renderEngine = (settings) => {
   const renderMode = 'renderMode' in settings ? settings.renderMode : 'webgl'
@@ -110,6 +114,8 @@ export default (App, target, settings = {}) => {
     },
     target
   )
+  stage = renderer.stage
+  animationEngine.init()
 
   const initApp = () => {
     let app = App()
