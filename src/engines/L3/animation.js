@@ -8,6 +8,7 @@ import {
 import { stage, renderer } from './launch.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
+import { normalizeToEase } from '../../lib/animejs/easings.js'
 
 const inspectorEnabled = Settings.get('inspector', false)
 
@@ -28,19 +29,19 @@ const animateElementProp = (element, prop, value, transitionSettings) => {
   const updateFns = []
 
   if (transitionSettings !== undefined && typeof transitionSettings === 'object') {
-    ease = transitionSettings.easing || 'ease'
+    ease = transitionSettings.ease || normalizeToEase(transitionSettings.easing)
     duration = transitionSettings.duration || 300
     delay = transitionSettings.delay || 0
   }
   if (transitionSettings === undefined) {
-    ease = 'ease'
+    ease = 'linear'
     duration = 300
     delay = 0
   }
 
   const animation = animate(element.node, {
     [prop]: value,
-    easing: ease,
+    ease: ease,
     duration: duration,
     delay: delay,
     autoplay: false,
@@ -75,7 +76,7 @@ const createAnimatableElement = (element, props, keys) => {
     }
     animatableProps[key] = {
       duration: prop.duration || 300,
-      ease: prop.easing || 'ease',
+      ease: prop.ease || normalizeToEase(prop.easing),
     }
   }
 
