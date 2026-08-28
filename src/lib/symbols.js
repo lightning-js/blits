@@ -19,6 +19,7 @@
  * Symbol registry for internal framework properties and generated code.
  *
  * @typedef {Object} BlitsSymbols
+ * @property {symbol} activeAnimations
  * @property {symbol} cleanup
  * @property {symbol} currentView
  * @property {symbol} cursorTagStart
@@ -78,6 +79,7 @@
  * @type {BlitsSymbols}
  */
 export default {
+  activeAnimations: Symbol('activeAnimations'),
   cleanup: Symbol('cleanup'),
   currentView: Symbol('currentView'),
   cursorTagStart: Symbol('cursorTagStart'),
@@ -104,6 +106,7 @@ export default {
   propKeys: Symbol('propKeys'),
   raw: Symbol('raw'),
   ready: Symbol('ready'),
+  refs: Symbol('refs'),
   renderer: Symbol('renderer'),
   rootParent: Symbol('rootParent'),
   routes: Symbol('routes'),

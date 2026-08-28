@@ -18,7 +18,7 @@
 import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import engine from './engine.js'
-import blitsPackageInfo from '../package.json' with { type: 'json' }
+import blitsPackageInfo from '../package.json' // with { type: 'json' }
 import { configurePlatform } from './platform.js'
 
 /**
@@ -45,6 +45,7 @@ import { configurePlatform } from './platform.js'
  * @type {RendererMain | {}}
  */
 export let renderer = {}
+export let animationEngine = {}
 export const stage = {}
 
 async function rendererVersion() {
@@ -142,6 +143,6 @@ export default (App, target, settings) => {
   })
 
   stage.element = engine.Element
-
+  animationEngine = engine.AnimationEngine
   renderer = engine.Launch(App, target, settings)
 }
