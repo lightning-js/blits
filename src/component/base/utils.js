@@ -19,6 +19,21 @@ import symbols from '../../lib/symbols.js'
 
 import { renderer } from '../../launch.js'
 
+/** Keyed `:for` elms entries are plain objects of Blits elements; other POJOs stay as single items. */
+const flattenChildBuckets = (children) =>
+  (children || []).flatMap((child) => {
+    if (child == null || Object.getPrototypeOf(child) !== Object.prototype) return [child]
+    const vals = Object.values(child)
+    const isBucket =
+      vals.length > 0 &&
+      vals.every((v) => v != null && typeof v === 'object' && v.component !== undefined)
+    if (!isBucket) return [child]
+    return vals.map((c) => {
+      c.forComponent = c[Symbol.for('config')] && c[Symbol.for('config')][symbols.parent].component
+      return c
+    })
+  })
+
 export default {
   $size: {
     value: function (dimensions = { w: 0, h: 0 }) {
@@ -52,30 +67,17 @@ export default {
   [symbols.getChildren]: {
     value() {
       const parent = this[symbols.rootParent] || this[symbols.parent]
-      return (this[symbols.children] || []).concat(
+      return flattenChildBuckets(this[symbols.children] || []).concat(
         (parent &&
-          parent[symbols.getChildren]()
-            .map((child) => {
-              if (Object.getPrototypeOf(child) === Object.prototype) {
-                return Object.values(child).map((c) => {
-                  // ugly hack .. but the point is to reference the right component
-                  c.forComponent =
-                    c[Symbol.for('config')] && c[Symbol.for('config')][symbols.parent].component
-                  return c
-                })
-              }
-              return child
-            })
-            .flat()
-            .filter((child) => {
-              // problem is that component of a forloop in a slot has component of root component
-              if (child && child.component) {
-                return (
-                  (child.component && child.component.$componentId === this.$componentId) ||
-                  (child.forComponent && child.forComponent.$componentId === this.$componentId)
-                )
-              }
-            })) ||
+          flattenChildBuckets(parent[symbols.getChildren]()).filter((child) => {
+            // for-loop in slot: child may use forComponent instead of component
+            if (child && child.component) {
+              return (
+                child.component.$componentId === this.$componentId ||
+                (child.forComponent && child.forComponent.$componentId === this.$componentId)
+              )
+            }
+          })) ||
           []
       )
     },
