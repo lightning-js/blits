@@ -100,11 +100,11 @@ export default {
       this.eol = true
       this[symbols.lifecycle].state = 'destroy'
 
+      removeEffects(this[symbols.effects])
+
       // when destroying a component that currently has focus
       // pass focus to the parent so we don't get lost in focus limbo
       if (this.$hasFocus === true) this[symbols.parent].$focus()
-
-      removeEffects(this[symbols.effects])
 
       // @todo - is this really necessary?
       // This cause an issue with auto sizing of parent (and required an extra eol check there)

@@ -67,12 +67,18 @@ const reactiveProxy = (original, _parent = null, _key) => {
         // augment array path methods (that change the length of the array)
         if (arrayPatchMethods.indexOf(key) !== -1) {
           return function (...args) {
+            const oldLength = target.length
             pauseTracking()
             let result
             try {
               result = target[key].apply(this, args)
             } finally {
               resumeTracking()
+            }
+            // trigger a change when the length of the array has changed
+            // by the array operation
+            if (_parent === null && target.length !== oldLength) {
+              trigger(target, 'length')
             }
             // trigger a change on the parent object and the key
             // i.e. when pushing a new item to `obj.data`, _parent will equal `obj`
@@ -82,6 +88,10 @@ const reactiveProxy = (original, _parent = null, _key) => {
           }
         }
         if (key === 'length') {
+          // only track root level to prevent double reactive executions
+          if (_parent === null) {
+            track(target, 'length')
+          }
           return original.length
         }
 

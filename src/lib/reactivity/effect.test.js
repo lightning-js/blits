@@ -68,3 +68,68 @@ test('Tracking remains paused until every nested pause is resumed', (assert) => 
   resumeTracking()
   assert.end()
 })
+
+test('Effect - Restores tracking state when an effect throws', (assert) => {
+  const failedTarget = {}
+  const unrelatedTarget = {}
+  let failedEffectRuns = 0
+
+  const failedEffect = () => {
+    failedEffectRuns++
+    track(failedTarget, 'failed')
+    throw new Error('Effect failed')
+  }
+
+  assert.throws(
+    () => effect(failedEffect),
+    /Effect failed/,
+    'Effect should propagate the original error'
+  )
+
+  // Reads outside an effect must not be attributed to the effect that failed.
+  track(unrelatedTarget, 'unrelated')
+
+  assert.doesNotThrow(
+    () => trigger(unrelatedTarget, 'unrelated'),
+    'Unrelated reactive properties should not trigger the failed effect'
+  )
+  assert.equal(
+    failedEffectRuns,
+    1,
+    'Failed effect should not be registered on unrelated properties'
+  )
+
+  assert.end()
+})
+
+test('Effect - Restores the enclosing effect when a nested effect throws', (assert) => {
+  const outerTarget = {}
+  const innerTarget = {}
+  let outerEffectRuns = 0
+
+  const innerEffect = () => {
+    track(innerTarget, 'inner')
+    throw new Error('Nested effect failed')
+  }
+
+  const outerEffect = () => {
+    outerEffectRuns++
+
+    if (outerEffectRuns === 1) {
+      assert.throws(
+        () => effect(innerEffect, 'inner'),
+        /Nested effect failed/,
+        'Nested effect should propagate the original error'
+      )
+    }
+
+    // Tracking must resume with both the enclosing effect and its key.
+    track(outerTarget, 'outer')
+  }
+
+  effect(outerEffect, 'outer')
+  trigger(outerTarget, 'outer')
+
+  assert.equal(outerEffectRuns, 2, 'Enclosing effect should keep tracking after the nested error')
+  assert.end()
+})
