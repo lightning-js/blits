@@ -89,10 +89,17 @@ export const trigger = (target, key, force = false) => {
   }
 }
 
-export const effect = (effect, key = null) => {
-  currentEffect = effect
+export const effect = (effectFn, key = null) => {
+  const previousEffect = currentEffect
+  const previousKey = currentKey
+
+  currentEffect = effectFn
   currentKey = key
-  currentEffect()
-  currentEffect = null
-  currentKey = null
+
+  try {
+    effectFn()
+  } finally {
+    currentEffect = previousEffect
+    currentKey = previousKey
+  }
 }
