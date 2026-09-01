@@ -69,8 +69,12 @@ const reactiveProxy = (original, _parent = null, _key) => {
           return function (...args) {
             const oldLength = target.length
             pauseTracking()
-            const result = target[key].apply(this, args)
-            resumeTracking()
+            let result
+            try {
+              result = target[key].apply(this, args)
+            } finally {
+              resumeTracking()
+            }
             // trigger a change when the length of the array has changed
             // by the array operation
             if (_parent === null && target.length !== oldLength) {
