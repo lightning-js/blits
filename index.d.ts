@@ -642,7 +642,9 @@ declare module '@lightningjs/blits' {
   type InferProp<T> = T extends (...args: any[]) => any ? ReturnType<T> : T
 
   type InferProps<T extends Record<string, any>> = {
-    [K in keyof T]: InferProp<T[K]>
+    // Since InferProps is no longer used for `Computed` props,
+    // then we do not need to infer the return type of a function-typed prop in `Props`.
+    [K in keyof T]: T[K]
   }
 
   type Computed<T extends Record<string, () => any>> = {
