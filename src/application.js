@@ -125,10 +125,12 @@ const Application = (config) => {
     }
 
     keyUpHandler = (e) => {
-      const cb = keyUpCallbacks.get(e.keyCode)
-      if (cb !== undefined && typeof cb === 'function') {
+      const entry = keyUpCallbacks.get(e.keyCode)
+      if (entry !== undefined) {
         keyUpCallbacks.delete(e.keyCode)
-        cb()
+        if (entry.component.eol !== true && typeof entry.callback === 'function') {
+          entry.callback()
+        }
       }
       clearTimeout(holdTimeout)
       Focus.hold = false

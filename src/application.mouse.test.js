@@ -22,6 +22,7 @@
 import test from 'tape'
 import { initLog } from './lib/log.js'
 import Hover from './focus/hover.js'
+import Focus, { keyUpCallbacks } from './focus/focus.js'
 import Settings from './settings.js'
 import symbols from './lib/symbols.js'
 
@@ -33,6 +34,7 @@ const createComponent = (id, parent) => ({
   [symbols.lifecycle]: { state: 'init' },
 })
 const getKeydown = (docAdded) => docAdded.find((c) => c.event === 'keydown')
+const getKeyup = (docAdded) => docAdded.find((c) => c.event === 'keyup')
 
 function createMockApp() {
   return {
@@ -98,7 +100,11 @@ function cleanupAppAndRestore(config, restore, opts = {}) {
   Settings.set('enableMouse', false)
 }
 
-const keyEvent = (key, keyCode) => new KeyboardEvent('keydown', { key, keyCode, bubbles: true })
+const keyEvent = (key, keyCode, type = 'keydown') => {
+  const event = new KeyboardEvent(type, { key, bubbles: true })
+  Object.defineProperty(event, 'keyCode', { value: keyCode })
+  return event
+}
 
 function spyHoverClear() {
   const original = Hover.clear
@@ -268,6 +274,44 @@ test('Re-init after destroy re-registers listeners', async (assert) => {
     const keydownAfterReInit = docAdded.filter((c) => c.event === 'keydown').at(-1)
     await keydownAfterReInit.handler(keyEvent('ArrowDown', 40))
     assert.pass('keydown handler works after re-init')
+  } finally {
+    cleanupAppAndRestore(config, restore)
+  }
+})
+
+test('Key release callback is not executed after its component is destroyed', async (assert) => {
+  const { config, docAdded, restore } = await runApplicationInit(false)
+  const keydown = getKeydown(docAdded)
+  const keyup = getKeyup(docAdded)
+  let releaseCalled = false
+  const component = {
+    $componentId: 'destroyed-before-keyup',
+    eol: false,
+    [symbols.lifecycle]: { state: 'init' },
+    [symbols.parent]: undefined,
+    [symbols.inputEvents]: {
+      enter() {
+        return () => {
+          releaseCalled = true
+        }
+      },
+    },
+  }
+
+  try {
+    await new Promise((resolve) => setTimeout(resolve))
+    Focus.set(component)
+    await new Promise((resolve) => setTimeout(resolve))
+
+    await keydown.handler(keyEvent('Enter', 13))
+    assert.true(keyUpCallbacks.has(13), 'keydown should register its keyup callback')
+    component.eol = true
+    keyup.handler(keyEvent('Enter', 13, 'keyup'))
+
+    assert.false(
+      releaseCalled,
+      'keyup should not execute a callback belonging to a destroyed component'
+    )
   } finally {
     cleanupAppAndRestore(config, restore)
   }
