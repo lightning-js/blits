@@ -252,6 +252,41 @@ export default async (App, target, settings = {}, onRenderer) => {
   })
   ftlApp.canvas = canvas
 
+  // Animation engine (optional peer `animejs`): FTL owns the rAF loop, so
+  // AnimeJS runs in manual mode, driven by FTL ticks. `hasRunningTweens`
+  // keeps the loop alive while tweens run — no AnimeJS privates involved.
+  // A missing peer degrades to instant transitions (warned in element.js).
+  try {
+    const [tweenMod, animeMod] = await Promise.all([import('./tween.js'), import('animejs')])
+    if (
+      animeMod === undefined ||
+      animeMod.engine === undefined ||
+      typeof animeMod.animate !== 'function' ||
+      typeof animeMod.cubicBezier !== 'function'
+    ) {
+      throw new Error('unexpected shape (need engine/animate/cubicBezier)')
+    }
+    tweenMod.setAnimationEngine({
+      engine: animeMod.engine,
+      animate: animeMod.animate,
+      cubicBezier: animeMod.cubicBezier,
+    })
+    const animeEngine = animeMod.engine
+    animeEngine.useDefaultMainLoop = false
+    ftlApp.addActiveCheck(() => tweenMod.hasRunningTweens())
+    ftlApp.signals.tick.subscribe(() => {
+      try {
+        animeEngine.update()
+      } catch (e) {
+        Log.error('[Blits:FTL] animation engine update failed', e)
+      }
+    })
+  } catch {
+    Log.warn(
+      '[Blits:FTL] `animejs` peer not installed — transitions apply instantly (`npm i animejs`)'
+    )
+  }
+
   // Dev-only handle for debugging (`window.__blitsFtl.root`, `.createElement`,
   // ...). Stripped from production builds by the Blits vite precompiler define.
   if (typeof window !== 'undefined' && import.meta.env && import.meta.env.DEV) {

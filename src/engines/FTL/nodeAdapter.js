@@ -35,6 +35,7 @@
 //   in phase 1 by design.
 
 import { unsupported } from '../common/nodeAdapter.js'
+import { createTween } from './tween.js'
 import { ftlApp } from './launch.js'
 
 const requireApp = () => {
@@ -112,9 +113,11 @@ export default {
     node[key] = value
     node.dirty()
   },
-  animate() {
-    // Phase 2: bridge over `ftlApp.signals.tick` + `addActiveCheck` (AnimeJS).
-    return unsupported('animate')
+  animate(node, key, from, to, settings, write) {
+    if (typeof write !== 'function') {
+      throw new Error('[Blits:FTL] animate needs a write callback (element-layer routing)')
+    }
+    return createTween(node, key, from, to, settings, write)
   },
   on(node, evt, cb) {
     if (evt === 'loaded') {

@@ -45,10 +45,11 @@
  *
  * @typedef {object} AnimationController
  * @property {function(): void} start
- * @property {function(boolean=): void} stop
+ * @property {function(boolean=): void} stop - `stop(true)` finishes early
+ *   (end callbacks run); `stop(false)` cancels (end callbacks skipped).
  * @property {string} state - 'scheduled' | 'running' | 'stopped'
- * @property {function(string, function): void} once
- * @property {function(string, function): void} on
+ * @property {function(string, function): void} once - 'animating' | 'stopped'
+ * @property {function(string, function): void} on - 'tick', payload `(node, {progress})`
  *
  * @typedef {object} LoadedPayload
  * @property {number} w
@@ -61,7 +62,10 @@
  * @property {(props: object) => any} createTextNode - Create a text node.
  * @property {(node: any, key: string, value: any) => void} setProp - Assign one
  *   (already transformed) prop. FTL impl must call `dirty()` internally.
- * @property {(node: any, props: object, settings: AnimationSettings) => AnimationController} animate
+ * @property {(node: any, key: string, from: any, to: any, settings: AnimationSettings, write: (value: any) => void) => AnimationController} animate - Tween one
+ *   transformed prop from `from` to `to`. `write` persists eased values
+ *   (element-layer routing for text/color). L3 ignores `from`/`write` (the
+ *   renderer reads and writes).
  * @property {(node: any, evt: string, cb: function) => void} on - Events:
  *   'loaded' | 'failed' (phase 1) ; 'inBounds' | 'outOfBounds' | 'inViewport' (phase 2).
  * @property {(node: any, evt?: string, cb?: function) => void} off

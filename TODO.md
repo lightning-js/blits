@@ -36,6 +36,15 @@ Interface contract: `src/engines/common/nodeAdapter.js`.
       headless-Chrome smoke on `?renderer=ftl` — zero console/page errors,
       Portal renders (layout/colors/images/canvas text), keyboard focus +
       route navigation work.
+- [x] AnimeJS bridge (Blits-owned, optional peer `animejs`, FTL chunk only):
+      `FTL/tween.js` (L3-exact cubic-bezier easing map, controller emulation,
+      engine injection, running-tween counter for `addActiveCheck`),
+      loop integration in `FTL/launch.js` (manual engine mode + tick drive),
+      `nodeAdapter.animate` + `_executeAnimation` rewire with instant fallback.
+      `FTL/tween.test.js` (40 asserts). Verified on Transitions page:
+      interpolation frames differ, zero errors, start/end callbacks fire.
+- [x] `animejs@^4.0.0` added to blits `devDependencies` (resolves the optional
+      peer from Blits' real path at build/test time; not shipped to consumers).
 
 ## Findings (implementers read this)
 

@@ -11,10 +11,10 @@ Blits.Launch(App, 'app', {
 })
 ```
 
-Install the optional peer dependency to use it:
+Install the optional peer dependencies to use it:
 
 ```sh
-npm i ftl
+npm i ftl animejs
 ```
 
 For local development against sibling checkouts:
@@ -42,7 +42,11 @@ parse FTL code.
 
 ## Known phase-1 limitations (warn-and-continue, never silent)
 
-- Transitions/animations apply instantly (`transition.start/end` still fire)
+- Transitions/animations via AnimeJS (optional peer `animejs`, lazy-loaded
+  in the FTL chunk only). All 16 Blits easings map to identical L3
+  cubic-bezier curves; `start/progress/end` callbacks, delay, cancel and
+  router `end`-promises work. Without the peer, transitions apply instantly
+  with a warning
 - `rounded` / `border` / `shadow` / `shader` / custom `shaders[]` ignored
 - Gradient color objects ignored (solid fallback: transparent)
 - Native sprites (`image` / `map` / `frame`) ignored

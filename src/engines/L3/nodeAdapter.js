@@ -50,7 +50,9 @@ export default {
   setProp(node, key, value) {
     node[key] = value
   },
-  animate(node, props, settings) {
+  animate(node, key, from, to, settings) {
+    const props = {}
+    props[key] = to
     return node.animate(props, settings)
   },
   on(node, evt, cb) {

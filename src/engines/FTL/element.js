@@ -525,10 +525,17 @@ const attachNodeShims = (node) => {
       }
     }
   }
-  // Pseudo-animate: transitions are applied instantly in phase 1 (see animate).
-  node.animate = () => {
-    warnOnce('node-animate', 'direct node.animate() applies instantly in FTL phase 1')
-    return { start: () => {}, stop: () => {}, state: 'stopped', once: () => {}, on: () => {} }
+  // Direct node.animate() (user code via element refs): route through the
+  // adapter tween bridge with plain setProp writes.
+  node.animate = (props, settings) => {
+    const keys = Object.keys(props || {})
+    if (keys.length === 0) {
+      return { start: () => {}, stop: () => {}, state: 'stopped', once: () => {}, on: () => {} }
+    }
+    const key = keys[0]
+    return adapter.animate(node, key, node[key], props[key], settings || {}, (v) =>
+      adapter.setProp(node, key, v)
+    )
   }
 }
 
@@ -728,33 +735,179 @@ const Element = {
   animate(prop, value, transition) {
     if (this.eol === true) return
 
+    // Clear any existing debounce timeout for this property
     if (this.debounceTimeouts[prop] !== undefined) {
       clearTimeout(this.debounceTimeouts[prop])
       Log.debug(`Cleared debounce timeout for property "${prop}"`)
     }
 
-    // Phase 1: no animation engine — apply the end value on next tick so
-    // transition start/end callbacks still fire in the expected order.
+    // Debounce the animation execution
     this.debounceTimeouts[prop] = setTimeout(() => {
       delete this.debounceTimeouts[prop]
-      if (this.eol === true) return
-      warnOnce(
-        'transitions',
-        'transitions/animations apply instantly in FTL phase 1 (no animation engine wired yet)'
-      )
-      if (transition.start !== undefined && typeof transition.start === 'function') {
-        transition.start.call(this.component, this, prop, this.node[prop])
-      }
-      // Bypass transition detection: write the raw end value directly.
-      this.props.raw[prop] = { value }
-      this.set(prop, value)
-      if (transition.end !== undefined && typeof transition.end === 'function') {
-        transition.end.call(this.component, this, prop, this.node[prop])
-      }
-      if (this.config.parent.props && this.config.parent.props.__layout === true) {
-        this.config.parent.triggerLayout(this.config.parent.props)
-      }
+      this._executeAnimation(prop, value, transition)
     }, 0)
+  },
+  /**
+   * Read the current (text-aware) value of a transformed prop.
+   * @this {import('../../component').BlitsElement} this
+   */
+  _readProp(key) {
+    if (
+      textPropNames.indexOf(key) !== -1 &&
+      this.node.text !== null &&
+      this.node.text !== undefined &&
+      key !== 'color'
+    ) {
+      return this.node.text[key]
+    }
+    return this.node[key]
+  },
+  /**
+   * Build a write callback routing eased values to the right place.
+   * @this {import('../../component').BlitsElement} this
+   */
+  _writeProp(key) {
+    if (
+      textPropNames.indexOf(key) !== -1 &&
+      this.node.text !== null &&
+      this.node.text !== undefined &&
+      key !== 'color'
+    ) {
+      return (v) => {
+        if (this.eol === true || this.node === null || this.node === undefined) return
+        this.node.text[key] = v
+        this.node.dirty()
+      }
+    }
+    return (v) => {
+      if (this.eol === true || this.node === null || this.node === undefined) return
+      this.applySingleProp(key, v)
+    }
+  },
+  _executeAnimation(prop, value, transition) {
+    if (this.eol === true) return
+    // check if a transition is already scheduled to run on the same prop
+    // and cancels it if it does
+    const stateOfAnimation =
+      this.scheduledTransitions[prop] !== undefined
+        ? this.scheduledTransitions[prop].f.state
+        : undefined
+
+    if (
+      stateOfAnimation !== undefined &&
+      (stateOfAnimation === 'scheduled' || stateOfAnimation === 'running')
+    ) {
+      this.scheduledTransitions[prop].f.stop(stateOfAnimation === 'running' ? false : true)
+    }
+
+    const startValue = this._readProp(prop)
+    const startSnapshot = Array.isArray(startValue) ? startValue.slice() : startValue
+
+    // if current value is the same as the value to animate to, instantly resolve
+    if (Array.isArray(value) && Array.isArray(startValue)) {
+      let equal = value.length === startValue.length
+      for (let i = 0; equal === true && i < value.length; i++) {
+        if (value[i] !== startValue[i]) equal = false
+      }
+      if (equal === true) return
+    } else if (startValue === value) {
+      return
+    }
+
+    const settings = {
+      duration:
+        typeof transition === 'object'
+          ? 'duration' in transition
+            ? transition.duration
+            : 300
+          : 300,
+      easing:
+        typeof transition === 'object'
+          ? 'easing' in transition
+            ? transition.easing
+            : 'ease'
+          : 'ease',
+      delay: typeof transition === 'object' ? ('delay' in transition ? transition.delay : 0) : 0,
+    }
+
+    let f
+    try {
+      f = adapter.animate(this.node, prop, startSnapshot, value, settings, this._writeProp(prop))
+    } catch {
+      this._applyInstant(prop, value, transition)
+      return
+    }
+
+    // schedule the transition for this prop, so it can be canceled /
+    // removed if another transition for the same prop starts in the mean time
+    this.scheduledTransitions[prop] = {
+      v: value,
+      f,
+    }
+
+    if (transition.start !== undefined && typeof transition.start === 'function') {
+      // fire transition start callback when animation really starts (depending on specified delay)
+      f.once('animating', () => {
+        transition.start.call(this.component, this, prop, startSnapshot)
+      })
+    }
+
+    if (this.config.parent.props && this.config.parent.props.__layout === true) {
+      f.on('tick', () => {
+        if (this.eol === true || !this.config) return
+        this.config.parent.triggerLayout(this.config.parent.props)
+      })
+    }
+
+    if (transition.progress !== undefined && typeof transition.progress === 'function') {
+      let prevProgress = 0
+      f.on('tick', (_node, { progress }) => {
+        if (this.eol === true || !this.config) return
+        transition.progress.call(this.component, this, prop, progress, prevProgress)
+        prevProgress = progress
+      })
+    }
+
+    f.once('stopped', () => {
+      if (
+        this.scheduledTransitions[prop] !== undefined &&
+        this.scheduledTransitions[prop].canceled === true
+      ) {
+        return
+      }
+      // fire transition end callback when animation ends (if specified)
+      if (this.node !== undefined && transition.end && typeof transition.end === 'function') {
+        transition.end.call(this.component, this, prop, this._readProp(prop))
+      }
+      // remove the prop from scheduled transitions
+      delete this.scheduledTransitions[prop]
+    })
+
+    // start animation (guarded: a start-time engine failure falls back to
+    // instant-apply so a broken tween can never wedge the component)
+    try {
+      f.start()
+    } catch {
+      delete this.scheduledTransitions[prop]
+      this._applyInstant(prop, value, transition)
+    }
+  },
+  /**
+   * Instant fallback when no animation engine is available: apply the end
+   * value so the app keeps working, and still fire the end callback.
+   * @this {import('../../component').BlitsElement} this
+   */
+  _applyInstant(prop, value, transition) {
+    if (this.eol === true) return
+    warnOnce(
+      'transitions',
+      'transitions/animations apply instantly without the `animejs` peer (`npm i animejs`)'
+    )
+    this.props.raw[prop] = { value }
+    this.set(prop, value)
+    if (transition.end !== undefined && typeof transition.end === 'function') {
+      transition.end.call(this.component, this, prop, this._readProp(prop))
+    }
   },
   destroy() {
     if (this.eol === true) return
