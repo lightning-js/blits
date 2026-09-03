@@ -65,6 +65,9 @@ async function rendererVersion() {
  * @typedef {Object} BlitsSettings
  * @property {number} [w] - Width of the Application
  * @property {number} [h] - Height of the Application
+ * @property {'l3'|'ftl'} [renderer] - Renderer engine to use: 'l3' (default,
+ *   Lightning 3 renderer) or 'ftl' (new FTL renderer, phase-1 core-only —
+ *   see src/engines/FTL/README-FTL.md)
  * @property {boolean} [multithreaded] - Whether to enable multithreaded
  * @property {0|1|2|"info"|"warn"|"error"|"debug"[]} [debugLevel] - Debug level for console log messages
  * @property {Font[]} [fonts] - Fonts to be used in the Application
@@ -106,6 +109,10 @@ async function rendererVersion() {
  * Launches the Blits application with the given App, target, and settings.
  * Sets up logging, version info, and initializes the renderer and stage singletons.
  *
+ * The L3 path is fully synchronous (unchanged behavior). The FTL path
+ * (`settings.renderer: 'ftl'`) resolves its engine asynchronously; the global
+ * `renderer` binding is published before any app component is constructed.
+ *
  * @param {BlitsAppFactory} App - The root BlitsComponent to launch.
  * @param {HTMLElement} target - The DOM element or rendering target.
  * @param {BlitsSettings} settings - Configuration settings for the application.
@@ -134,6 +141,28 @@ export default (App, target, settings) => {
     Log.warn(
       'Passing a renderer platform via settings.platform is deprecated. Use settings.rendererPlatform instead.'
     )
+  }
+
+  const engineName =
+    settings !== undefined && settings.renderer !== undefined ? settings.renderer : 'l3'
+
+  if (engineName === 'ftl') {
+    Log.info('Blits Version ', blitsPackageInfo.version)
+    Log.info('Renderer ', 'ftl (phase-1 core-only)')
+    import('./engines/FTL/index.js').then((module) => {
+      const FTL = module.default
+      stage.element = FTL.Element
+      // The callback assigns the global `renderer` binding before App()
+      // constructs any component (see FTL/launch.js).
+      FTL.Launch(App, target, settings, (facade) => {
+        renderer = facade
+      })
+    })
+    return
+  }
+
+  if (engineName !== 'l3') {
+    Log.warn(`Unknown renderer '${engineName}', falling back to 'l3'`)
   }
 
   rendererVersion().then((v) => {
