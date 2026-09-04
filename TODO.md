@@ -45,6 +45,24 @@ Interface contract: `src/engines/common/nodeAdapter.js`.
       interpolation frames differ, zero errors, start/end callbacks fire.
 - [x] `animejs@^4.0.0` added to blits `devDependencies` (resolves the optional
       peer from Blits' real path at build/test time; not shipped to consumers).
+- [x] Shader bridge, built-ins only (Blits-owned, FTL chunk only):
+      `FTL/shaders.js` (L3-parity combo matrix, border/shadow/rounded/gradient
+      translators, `shader={type}` dispatch, injected modules/stage,
+      z-bucket re-listing on null<->set), `_syncElementShader` rewire with
+      reactive live updates, `additionalShaders` boot wiring.
+      `FTL/shaders.test.js` (56 asserts). Verified on Shaders/Gradients pages
+      + Portal: zero errors, rounded/border/shadow combos, live reactive
+      updates, pixel-verified gradient axes.
+- [x] `ftl` package: `./stage` export subpath (bridge needs the stage for
+      re-listing; keeps Blits imports on declared exports).
+- [x] Bucket-order cover-up fix (fullscreen gradient Portal root painted
+      over all text/images): FTL kind-split — background-kind shader quads
+      (rounded/combos/gradients/holepunch) paint before IMAGE/TEXT,
+      overlay kinds (border/shadow/grayscale) keep the late position;
+      `recycleElement` resets `_bucketRenderType`; Blits excludes text
+      nodes from gradient instances (effects don't sample glyphs).
+      Verified: Portal pixel-correct (logo/text/white focus card), focus
+      navigation repaints, zero errors.
 
 ## Findings (implementers read this)
 

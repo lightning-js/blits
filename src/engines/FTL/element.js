@@ -41,42 +41,30 @@
 import adapter from './nodeAdapter.js'
 import { ftlApp } from './launch.js'
 import {
+  colorToFtl,
+  buildElementShader,
+  buildCustomShader,
+  parseGradientColor,
+  createShaderInstance,
+  assignShader,
+} from './shaders.js'
+import {
   parseToObject,
   isObjectString,
   isTransition,
   isZeroDurationTransition,
 } from '../../lib/utils.js'
-import colors from '../../lib/colors/colors.js'
 
 import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 
-/** Warn-once helper for phase-1 out-of-scope props. */
+/** Warn-once helper for out-of-scope props. */
 const warned = {}
 const warnOnce = (key, msg) => {
   if (warned[key] === true) return
   warned[key] = true
   Log.warn(`[Blits:FTL] ${msg}`)
-}
-
-/**
- * Convert a Blits color (any format accepted by `colors.normalize`) to an
- * FTL `[r,g,b,a]` float array.
- * @param {any} v
- * @returns {number[]|null}
- */
-const colorToFtl = (v) => {
-  if (v === null || v === undefined) return null
-  const normalized = colors.normalize(typeof v === 'string' ? v : '' + v)
-  const hex = ('' + normalized).replace('0x', '').replace('#', '')
-  if (/^[0-9a-f]{8}$/i.test(hex) === false) return [1, 1, 1, 1]
-  return [
-    parseInt(hex.slice(0, 2), 16) / 255,
-    parseInt(hex.slice(2, 4), 16) / 255,
-    parseInt(hex.slice(4, 6), 16) / 255,
-    parseInt(hex.slice(6, 8), 16) / 255,
-  ]
 }
 
 /**
@@ -294,8 +282,19 @@ const propsTransformer = {
       this.props['color'] = colorToFtl(v)
       this.props['textColor'] = colorToFtl(v)
     } else if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
-      // Gradient color objects ({top, bottom, ...}) need shader support (phase 2).
-      warnOnce('color-gradient', 'gradient colors are not supported in FTL phase 1, ignoring')
+      // Gradient color object ({top, bottom, ...}): rendered through the
+      // LinearGradientShader bridge; element stays transparent otherwise.
+      this.props['gradient'] = v
+      // __textnode arrives as the string 'true' from codegen — truthy check.
+      if (this.raw !== undefined && this.raw.__textnode) {
+        const parsed = parseGradientColor(v)
+        this.props['textColor'] =
+          parsed !== null && parsed.solid !== undefined
+            ? parsed.solid
+            : parsed !== null && parsed.colors !== undefined
+              ? parsed.colors[0]
+              : [1, 1, 1, 1]
+      }
     }
   },
   set src(v) {
@@ -378,16 +377,30 @@ const propsTransformer = {
     this.props['alpha'] = v
   },
   set rounded(v) {
-    warnOnce('shaders', 'rounded/border/shadow/shader effects need phase-2 shader bridge, ignoring')
+    // Recorded for the shader bridge; applied in _syncElementShader (live)
+    // or at populate time (node doesn't exist yet during first transform).
+    this.props['rounded'] = v
+    if (this.element.node !== undefined && this.element.node !== null) {
+      this.element._syncElementShader()
+    }
   },
   set border(v) {
-    warnOnce('shaders', 'rounded/border/shadow/shader effects need phase-2 shader bridge, ignoring')
+    this.props['border'] = v
+    if (this.element.node !== undefined && this.element.node !== null) {
+      this.element._syncElementShader()
+    }
   },
   set shadow(v) {
-    warnOnce('shaders', 'rounded/border/shadow/shader effects need phase-2 shader bridge, ignoring')
+    this.props['shadow'] = v
+    if (this.element.node !== undefined && this.element.node !== null) {
+      this.element._syncElementShader()
+    }
   },
   set shader(v) {
-    warnOnce('shaders', 'rounded/border/shadow/shader effects need phase-2 shader bridge, ignoring')
+    this.props['shader'] = v
+    if (this.element.node !== undefined && this.element.node !== null) {
+      this.element._syncElementShader()
+    }
   },
   set clipping(v) {
     this.props['clip'] = !!v
@@ -556,6 +569,14 @@ const splitTextProps = (props) => {
       textProps[key] = props[key]
     } else if (key === 'color') {
       // element color stays null (transparent backdrop); textColor already set.
+    } else if (
+      key === 'rounded' ||
+      key === 'border' ||
+      key === 'shadow' ||
+      key === 'shader' ||
+      key === 'gradient'
+    ) {
+      // consumed by _syncElementShader, never assigned to the node.
     } else {
       elProps[key] = props[key]
     }
@@ -622,6 +643,12 @@ const Element = {
     } else {
       const elProps = { ...this.props.props }
       delete elProps['textColor']
+      // Shader-affecting props are consumed by _syncElementShader, not the node.
+      delete elProps['rounded']
+      delete elProps['border']
+      delete elProps['shadow']
+      delete elProps['shader']
+      delete elProps['gradient']
       if (this.props.raw['src'] !== undefined) {
         const texture = resolveImageTexture(this.props.raw['src'])
         if (texture !== null) {
@@ -637,6 +664,10 @@ const Element = {
     }
 
     attachNodeShims(this.node)
+
+    // Resolve element shaders AFTER the node exists (mirrors L3's
+    // elementShader creation in populate).
+    this._syncElementShader()
 
     if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
       this.node.on('loaded', (dimensions) => {
@@ -727,10 +758,100 @@ const Element = {
       adapter.setProp(this.node, 'texture', value)
       return
     }
+    if (
+      key === 'rounded' ||
+      key === 'border' ||
+      key === 'shadow' ||
+      key === 'shader' ||
+      key === 'gradient'
+    ) {
+      this._syncElementShader()
+      return
+    }
     if (this.props.raw['src'] !== undefined && key !== 'src') {
       // keep existing texture; src changes are handled below
     }
     adapter.setProp(this.node, key, value)
+  },
+  /**
+   * (Re)build the FTL shader instance from raw props and assign it.
+   * Mirrors L3's elementShader creation: `shader=` wins over the
+   * `rounded`/`border`/`shadow` combo, which wins over gradient `color`.
+   * No-op when the node doesn't exist yet (populate calls this after).
+   * @this {import('../../component').BlitsElement} this
+   */
+  _syncElementShader() {
+    if (this.node === null || this.node === undefined || this.eol === true) return
+    const raw = this.props.raw || {}
+    let desc = null
+    if (raw.shader !== undefined) {
+      const parsed =
+        typeof raw.shader === 'object'
+          ? raw.shader
+          : isObjectString(raw.shader) === true
+            ? parseToObject(raw.shader)
+            : null
+      if (typeof raw.shader === 'string') {
+        // String form addresses registered (custom) shader names: out of scope.
+        warnOnce(
+          'shader-custom',
+          `custom shader type '${raw.shader}' needs a hand port to FTL (phase 2+), ignoring`
+        )
+      } else if (parsed !== null) {
+        const normalized = { ...parsed }
+        if (normalized.type === undefined) normalized.type = 'linearGradient'
+        desc = buildCustomShader(normalized)
+      }
+    } else if (raw.rounded !== undefined || raw.border !== undefined || raw.shadow !== undefined) {
+      desc = buildElementShader({ rounded: raw.rounded, border: raw.border, shadow: raw.shadow })
+    } else if (raw.color !== undefined) {
+      // Gradient color object (raw may be the object or its object-string
+      // form — normalize before handing to the bridge).
+      const colorObj =
+        typeof raw.color === 'object'
+          ? raw.color
+          : isObjectString(raw.color) === true
+            ? parseToObject(raw.color)
+            : null
+      let parsed = colorObj !== null ? parseGradientColor(colorObj) : null
+      const isText = this.node.text !== null && this.node.text !== undefined
+      // Effect shaders don't sample the glyph texture, so a gradient instance
+      // on a text node would paint a solid block instead of text. Text keeps
+      // the first stop as its textColor (set by the transformer) — fall
+      // through to clear any stale instance below.
+      if (isText === true) {
+        parsed = null
+      }
+      if (parsed !== null && parsed.colors !== undefined) {
+        if (parsed.colors.length > 8) parsed.colors = parsed.colors.slice(0, 8)
+        desc = {
+          kind: 'linearGradient',
+          fields: {
+            colors: parsed.colors,
+            stops: parsed.stops,
+            angle: parsed.angle !== undefined ? parsed.angle : 0,
+          },
+        }
+        // Neutral base so the gradient shows unmodified (base rgb mixes by
+        // gradient alpha, base alpha multiplies through).
+        if (this.node.color === null || this.node.color === undefined) {
+          adapter.setProp(this.node, 'color', [1, 1, 1, 1])
+        }
+      } else if (parsed !== null && parsed.solid !== undefined) {
+        adapter.setProp(this.node, 'color', parsed.solid)
+      }
+    }
+    let instance = null
+    try {
+      instance = createShaderInstance(desc)
+    } catch {
+      warnOnce(
+        'shader-modules',
+        'FTL shader modules unavailable — effects ignored (launch wires them)'
+      )
+    }
+    assignShader(this.node, instance)
+    this.props.elementShader = instance !== null
   },
   animate(prop, value, transition) {
     if (this.eol === true) return
@@ -802,6 +923,12 @@ const Element = {
 
     const startValue = this._readProp(prop)
     const startSnapshot = Array.isArray(startValue) ? startValue.slice() : startValue
+
+    // Props with no node-side value (e.g. shader descriptors) can't tween.
+    if (startValue === undefined) {
+      this._applyInstant(prop, value, transition)
+      return
+    }
 
     // if current value is the same as the value to animate to, instantly resolve
     if (Array.isArray(value) && Array.isArray(startValue)) {

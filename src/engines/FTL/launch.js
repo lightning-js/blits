@@ -214,6 +214,50 @@ export default async (App, target, settings = {}, onRenderer) => {
       ? await import('ftl/renderer/canvas')
       : await import('ftl/renderer/webgl')
 
+  // Shader bridge modules + stage handle for bucket re-listing. Loaded here
+  // (not in shaders.js) so the bridge stays unit-testable without `ftl`.
+  // additionalShaders pre-inits every module the bridge may instantiate;
+  // per-element instances are created on demand afterwards.
+  let shaderBridge = null
+  let shaderInstances = []
+  let stageMod = null
+  try {
+    const [bridge, shaderMods, shaderCreateMod, stageModule] = await Promise.all([
+      import('./shaders.js'),
+      import('ftl/shaders'),
+      import('ftl/shaders/create'),
+      import('ftl/stage'),
+    ])
+    shaderBridge = bridge
+    stageMod = stageModule
+    const mods = {
+      createShader: shaderCreateMod.createShader,
+      RoundedShader: shaderMods.RoundedShader,
+      BorderShader: shaderMods.BorderShader,
+      ShadowShader: shaderMods.ShadowShader,
+      RoundedWithBorderShader: shaderMods.RoundedWithBorderShader,
+      RoundedWithShadowShader: shaderMods.RoundedWithShadowShader,
+      RoundedWithBorderAndShadowShader: shaderMods.RoundedWithBorderAndShadowShader,
+      LinearGradientShader: shaderMods.LinearGradientShader,
+      RadialGradientShader: shaderMods.RadialGradientShader,
+      HolePunchShader: shaderMods.HolePunchShader,
+    }
+    bridge.setShaderModules(mods)
+    shaderInstances = [
+      'RoundedShader',
+      'BorderShader',
+      'ShadowShader',
+      'RoundedWithBorderShader',
+      'RoundedWithShadowShader',
+      'RoundedWithBorderAndShadowShader',
+      'LinearGradientShader',
+      'RadialGradientShader',
+      'HolePunchShader',
+    ].map((key) => mods.createShader(mods[key]))
+  } catch (e) {
+    Log.warn('[Blits:FTL] shader modules unavailable — rounded/border/shadow/gradient ignored', e)
+  }
+
   const targetEl = resolveTarget(target)
   const canvas = resolveCanvas(targetEl, settings, w, h)
 
@@ -232,7 +276,8 @@ export default async (App, target, settings = {}, onRenderer) => {
       textureShader: createShader(DefaultTextureShader),
       msdfTextShader: null,
       bmfTextShader: null,
-      additionalShaders: [],
+      // Pre-inits every module the shader bridge may instantiate later.
+      additionalShaders: shaderInstances,
     })
   }
 
@@ -251,6 +296,16 @@ export default async (App, target, settings = {}, onRenderer) => {
     },
   })
   ftlApp.canvas = canvas
+
+  // The stage exists from here on (main() called setCurrentStage) — publish
+  // it to the shader bridge for bucket re-listing on shader null<->set.
+  if (shaderBridge !== null && stageMod !== null) {
+    try {
+      shaderBridge.setStage(stageMod.getCurrentStage())
+    } catch (e) {
+      Log.warn('[Blits:FTL] could not publish stage to shader bridge', e)
+    }
+  }
 
   // Animation engine (optional peer `animejs`): FTL owns the rAF loop, so
   // AnimeJS runs in manual mode, driven by FTL ticks. `hasRunningTweens`

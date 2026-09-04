@@ -39,16 +39,22 @@ parse FTL code.
   back with a warning
 - Flex `__layout` containers, `%` placement, router, focus, components
 - `frameTick` / `idle` / `active` hooks, `fpsUpdate` (derived from ticks)
-
-## Known phase-1 limitations (warn-and-continue, never silent)
-
 - Transitions/animations via AnimeJS (optional peer `animejs`, lazy-loaded
   in the FTL chunk only). All 16 Blits easings map to identical L3
   cubic-bezier curves; `start/progress/end` callbacks, delay, cancel and
   router `end`-promises work. Without the peer, transitions apply instantly
   with a warning
-- `rounded` / `border` / `shadow` / `shader` / custom `shaders[]` ignored
-- Gradient color objects ignored (solid fallback: transparent)
+- `rounded` / `border` / `shadow` (all combos, reactive live updates),
+  gradient `color` objects (`{top,bottom,left,right}` → linear gradient;
+  single key degrades to solid), and `shader={type}` for built-in types
+  (`linearGradient`, `radialGradient`, `holePunch`, effect combos)
+
+## Known limitations (warn-and-continue, never silent)
+
+- Custom `shaders:[]` types and string-form `shader="name"` need hand ports
+- Gradient color objects map corner pairs to a diagonal linear gradient
+  (approximation of L3's bilinear 4-corner blend); max 8 stops
+- Effect shaders are WebGL-only (`renderMode: 'canvas'` renders unshaded)
 - Native sprites (`image` / `map` / `frame`) ignored
 - MSDF/SDF atlas-only fonts fall back to canvas text (specify a font `file`
   to silence)
@@ -69,8 +75,7 @@ Blits core → stage.element (= FTL/element.js BlitsElement)
 `main({ platform, renderer, text, config })` and returns a renderer facade
 (`on/off/canvas/destroy`) that backs the global Blits `renderer` binding.
 
-## Roadmap (phase 2)
+## Roadmap
 
-Shader bridge (rounded/border/shadow/custom), sprite textures, MSDF fonts,
-animation engine over `signals.tick` + `addActiveCheck`, inspector metadata,
+Custom shader ports, sprite textures, MSDF fonts, inspector metadata,
 mouse picking via bounds walk, pixel-ratio support.
