@@ -29,6 +29,7 @@
 // - Frame dims fall back to 0 (FTL `| 0`); `map.defaults` merge matches L3.
 
 import { Log } from '../../lib/log.js'
+import { toNumber } from '../../lib/utils.js'
 
 const warned = {}
 const warnOnce = (key, msg) => {
@@ -87,10 +88,10 @@ export const resolveSpriteTexture = (ftlApp, raw) => {
   if (options === null || options === undefined) return base
   return ftlApp.createTexture('subtexture', {
     baseTexture: base,
-    x: options.x,
-    y: options.y,
-    w: options.w,
-    h: options.h,
+    x: toNumber(options.x),
+    y: toNumber(options.y),
+    w: toNumber(options.w),
+    h: toNumber(options.h),
   })
 }
 

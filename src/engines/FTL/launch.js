@@ -236,10 +236,11 @@ export default async (App, target, settings = {}, onRenderer) => {
   // Note: all specifiers below are static strings (no @vite-ignore) so Vite
   // can resolve and code-split them. They only load when the FTL engine is
   // selected; L3 apps never fetch these chunks.
-  const [{ default: main }, { default: platform }, textCanvas] = await Promise.all([
+  const [{ default: main }, { default: platform }, textCanvas, textMsdf] = await Promise.all([
     import('ftl'),
     import('ftl/platform/browser'),
     import('ftl/text/canvas'),
+    import('ftl/text/msdf'),
   ])
   const rendererModule =
     renderMode === 'canvas'
@@ -305,19 +306,21 @@ export default async (App, target, settings = {}, onRenderer) => {
   }
 
   let renderer
+  // MSDF text needs its shader program + engine; canvas renderMode has
+  // neither (MSDF is WebGL-only) and stays all-canvas.
+  let msdfTextShader = null
   if (renderMode === 'canvas') {
     const canvasRenderer = rendererModule.default || rendererModule
     renderer = canvasRenderer(canvas, { sortChildrenByZ: true })
   } else {
-    const [{ DefaultRectShader, DefaultTextureShader }, { createShader }] = await Promise.all([
-      import('ftl/shaders'),
-      import('ftl/shaders/create'),
-    ])
+    const [{ DefaultRectShader, DefaultTextureShader, MsdfTextShader }, { createShader }] =
+      await Promise.all([import('ftl/shaders'), import('ftl/shaders/create')])
     const webglRenderer = rendererModule.default || rendererModule
+    msdfTextShader = createShader(MsdfTextShader)
     renderer = webglRenderer(canvas, {
       rectangleShader: createShader(DefaultRectShader),
       textureShader: createShader(DefaultTextureShader),
-      msdfTextShader: null,
+      msdfTextShader,
       bmfTextShader: null,
       // Pre-inits every module the shader bridge may instantiate later.
       additionalShaders: shaderInstances,
@@ -329,6 +332,9 @@ export default async (App, target, settings = {}, onRenderer) => {
     renderer,
     text: {
       canvas: textCanvas.default || textCanvas,
+      // MSDF engine coexists with canvas; per-text `type` selects.
+      // Default stays canvas (unregistered families fall back, like L3).
+      msdf: textMsdf.default || textMsdf,
       defaultTextEngine: 'canvas',
     },
     config: {
@@ -389,6 +395,13 @@ export default async (App, target, settings = {}, onRenderer) => {
   // ...). Stripped from production builds by the Blits vite precompiler define.
   if (typeof window !== 'undefined' && import.meta.env && import.meta.env.DEV) {
     window.__blitsFtl = ftlApp
+    try {
+      const stageModule = await import('ftl/stage')
+      const stage = stageModule.getCurrentStage()
+      window.__blitsFtl.stage = stage
+    } catch {
+      // stage handle is best-effort debug only
+    }
   }
 
   if (settings.canvasColor) {
@@ -400,24 +413,42 @@ export default async (App, target, settings = {}, onRenderer) => {
     }
   }
 
-  // Fonts: the phase-1 canvas text engine can load any web-font file
-  // (ttf/otf/woff). MSDF/SDF entries that point at a font file are loaded the
-  // same way (canvas-grade shaping — no SDF fidelity); only atlas-only
-  // entries with no loadable file are skipped.
+  // Fonts: `msdf`/`sdf` entries load their atlas pair into the MSDF
+  // engine (derived `<file>.msdf.png/.json` unless explicit png/json;
+  // the Blits msdfGenerator vite plugin serves/generates those URLs).
+  // Everything else loads the raw file into the canvas engine. Families
+  // are registered per loaded engine so text nodes select correctly.
+  // All loads are awaited here: FTL renders MSDF from a family cache that
+  // must exist before first paint.
+  const { resolveFontEngine, fontEngines } = await import('./fonts.js')
   const fonts = settings.fonts || []
   for (let i = 0; i < fonts.length; i++) {
     const font = fonts[i]
-    const url = font.file || font.url
-    if (url !== undefined && /\.(ttf|otf|woff2?|eot)(\?.*)?$/i.test(url)) {
-      try {
-        await ftlApp.loadFont('canvas', { family: font.family, url })
-      } catch (e) {
-        Log.warn(`[Blits:FTL] failed to load font '${font.family}'`, e)
-      }
-    } else {
+    const plan = resolveFontEngine(font, renderMode)
+    if (plan.skipped !== undefined) {
       Log.warn(
-        `[Blits:FTL] font '${font.family}' (type '${font.type}') has no loadable font file, using canvas fallback`
+        `[Blits:FTL] font '${plan.family}' (type '${font.type}') has no loadable font file, using canvas fallback`
       )
+      continue
+    }
+    try {
+      if (plan.engine === 'msdf') {
+        await ftlApp.loadFont('msdf', {
+          family: plan.family,
+          atlas: plan.atlas,
+          fontData: plan.fontData,
+        })
+        fontEngines.register(plan.family, 'msdf')
+      } else {
+        await ftlApp.loadFont('canvas', { family: plan.family, url: plan.url })
+        fontEngines.register(plan.family, 'canvas')
+      }
+    } catch (e) {
+      Log.warn(
+        `[Blits:FTL] failed to load font '${plan.family}' (${plan.engine}), using canvas fallback`,
+        e
+      )
+      fontEngines.register(plan.family, 'canvas')
     }
   }
 

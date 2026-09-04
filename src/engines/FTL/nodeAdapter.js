@@ -112,6 +112,15 @@ export default {
     }
     node[key] = value
     node.dirty()
+    // FTL caches world state (worldTransform, bounds, globalAlpha) per
+    // element and only recomputes dirty-listed elements. A write here can
+    // move/fade/resize the whole subtree, so descendants must re-resolve
+    // too — otherwise children keep stale transforms (e.g. text under a
+    // tweened/faded container freezes mid-flight). texture/text carry no
+    // child-visible state and skip the walk (handled above).
+    if (typeof node.dirtyBranch === 'function') {
+      node.dirtyBranch()
+    }
   },
   animate(node, key, from, to, settings, write) {
     if (typeof write !== 'function') {

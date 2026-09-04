@@ -34,7 +34,7 @@
 
 import { Log } from '../../lib/log.js'
 import colors from '../../lib/colors/colors.js'
-import { parseToObject, isObjectString, isArrayString } from '../../lib/utils.js'
+import { parseToObject, isObjectString, isArrayString, toNumber } from '../../lib/utils.js'
 
 const warned = {}
 const warnOnce = (key, msg) => {
@@ -89,7 +89,7 @@ export const parseRoundedValue = (v) => {
   if (v === undefined || v === null) return null
   if (typeof v === 'number') return v
   if (typeof v === 'string') {
-    if (isArrayString(v) === true) return JSON.parse(v)
+    if (isArrayString(v) === true) return JSON.parse(v).map(toNumber)
     if (isObjectString(v) === true) {
       warnOnce('rounded-object', "'rounded' object form is not supported in FTL, ignoring")
       return null
@@ -97,7 +97,7 @@ export const parseRoundedValue = (v) => {
     const n = parseFloat(v)
     return Number.isNaN(n) === false ? n : null
   }
-  if (Array.isArray(v) === true) return v
+  if (Array.isArray(v) === true) return v.map(toNumber)
   if (typeof v === 'object') {
     warnOnce('rounded-object', "'rounded' object form is not supported in FTL, ignoring")
     return null
@@ -113,7 +113,7 @@ export const parseBorderValue = (v) => {
   if (v === undefined || v === null) return null
   if (typeof v === 'number') return { width: v }
   if (typeof v === 'string') {
-    if (isArrayString(v) === true) return { width: JSON.parse(v) }
+    if (isArrayString(v) === true) return { width: JSON.parse(v).map(toNumber) }
     if (isObjectString(v) === true) v = parseToObject(v)
     else {
       const n = parseFloat(v)
@@ -121,14 +121,15 @@ export const parseBorderValue = (v) => {
       return null
     }
   }
-  if (Array.isArray(v) === true) return { width: v }
+  if (Array.isArray(v) === true) return { width: v.map(toNumber) }
   if (typeof v === 'object') {
     const out = {}
-    if ('w' in v === true) out.width = v.w
-    if ('width' in v === true) out.width = v.width
+    if ('w' in v === true) out.width = Array.isArray(v.w) ? v.w.map(toNumber) : toNumber(v.w)
+    if ('width' in v === true)
+      out.width = Array.isArray(v.width) ? v.width.map(toNumber) : toNumber(v.width)
     if ('color' in v === true) out.color = colorToFtl(v.color)
-    if ('gap' in v === true) out.gap = v.gap
-    if ('align' in v === true) out.align = v.align
+    if ('gap' in v === true) out.gap = toNumber(v.gap)
+    if ('align' in v === true) out.align = toNumber(v.align)
     return out
   }
   return null
@@ -147,18 +148,18 @@ export const parseShadowValue = (v) => {
     if (isObjectString(v) === true) v = parseToObject(v)
     else return null
   }
-  if (Array.isArray(v) === true) return { projection: v }
+  if (Array.isArray(v) === true) return { projection: v.map(toNumber) }
   if (typeof v === 'object') {
     if (Array.isArray(v.projection) === true) {
-      const out = { projection: v.projection.slice(0, 4) }
+      const out = { projection: v.projection.slice(0, 4).map(toNumber) }
       if ('color' in v === true) out.color = colorToFtl(v.color)
       return out
     }
     const projection = [0, 0, 5, 5]
-    if ('x' in v === true) projection[0] = v.x
-    if ('y' in v === true) projection[1] = v.y
-    if ('blur' in v === true) projection[2] = v.blur
-    if ('spread' in v === true) projection[3] = v.spread
+    if ('x' in v === true) projection[0] = toNumber(v.x)
+    if ('y' in v === true) projection[1] = toNumber(v.y)
+    if ('blur' in v === true) projection[2] = toNumber(v.blur)
+    if ('spread' in v === true) projection[3] = toNumber(v.spread)
     const out = { projection }
     if ('color' in v === true) out.color = colorToFtl(v.color)
     return out

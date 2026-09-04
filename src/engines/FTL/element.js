@@ -49,11 +49,13 @@ import {
   assignShader,
 } from './shaders.js'
 import { resolveSpriteTexture, subscribeSpriteEvents } from './sprite.js'
+import { fontEngines, engineTextType } from './fonts.js'
 import {
   parseToObject,
   isObjectString,
   isTransition,
   isZeroDurationTransition,
+  toNumber,
 } from '../../lib/utils.js'
 
 import { Log } from '../../lib/log.js'
@@ -160,6 +162,9 @@ const layoutFn = function (config) {
   this.node[dimension] = offset - gap + padding.end
   this.node[oppositeDimension] = otherDimension
   this.node.dirty()
+  // Re-resolve the whole subtree: positioned children (and nested layout
+  // containers below them) cache world state that just went stale.
+  this.node.dirtyBranch()
 
   const align = {
     start: 0,
@@ -226,6 +231,7 @@ const unpackTransition = (v) => {
 /** Transformed prop names that belong to the FTL text object, not the element. */
 const textPropNames = [
   'text',
+  'type',
   'fontFamily',
   'fontSize',
   'textAlign',
@@ -258,25 +264,25 @@ const propsTransformer = {
     this.props['parent'] = v === 'root' ? adapter.getRoot() : v.node
   },
   set rotation(v) {
-    this.props['rotation'] = v * (Math.PI / 180)
+    this.props['rotation'] = toNumber(v) * (Math.PI / 180)
   },
   set w(v) {
-    this.props['w'] = parsePercentage.call(this, v, 'w')
+    this.props['w'] = toNumber(parsePercentage.call(this, v, 'w'))
   },
   set h(v) {
-    this.props['h'] = parsePercentage.call(this, v, 'h')
+    this.props['h'] = toNumber(parsePercentage.call(this, v, 'h'))
   },
   set x(v) {
-    this.props['x'] = parsePercentage.call(this, v, 'w')
+    this.props['x'] = toNumber(parsePercentage.call(this, v, 'w'))
   },
   set y(v) {
-    this.props['y'] = parsePercentage.call(this, v, 'h')
+    this.props['y'] = toNumber(parsePercentage.call(this, v, 'h'))
   },
   set z(v) {
-    this.props['zIndex'] = v
+    this.props['zIndex'] = toNumber(v)
   },
   set zIndex(v) {
-    this.props['zIndex'] = v
+    this.props['zIndex'] = toNumber(v)
   },
   set color(v) {
     if (typeof v === 'string' && v.startsWith('{') === false) {
@@ -341,47 +347,47 @@ const propsTransformer = {
   set mount(v) {
     if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
       if ('x' in v === true) {
-        this.props['mountX'] = v.x
+        this.props['mountX'] = toNumber(v.x)
       }
       if ('y' in v === true) {
-        this.props['mountY'] = v.y
+        this.props['mountY'] = toNumber(v.y)
       }
     } else {
-      this.props['mountX'] = v
-      this.props['mountY'] = v
+      this.props['mountX'] = toNumber(v)
+      this.props['mountY'] = toNumber(v)
     }
   },
   set pivot(v) {
     if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
       if ('x' in v === true) {
-        this.props['pivotX'] = v.x
+        this.props['pivotX'] = toNumber(v.x)
       }
       if ('y' in v === true) {
-        this.props['pivotY'] = v.y
+        this.props['pivotY'] = toNumber(v.y)
       }
     } else {
-      this.props['pivotX'] = v
-      this.props['pivotY'] = v
+      this.props['pivotX'] = toNumber(v)
+      this.props['pivotY'] = toNumber(v)
     }
   },
   set scale(v) {
     if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
       if ('x' in v === true) {
-        this.props['scaleX'] = v.x
+        this.props['scaleX'] = toNumber(v.x)
       }
       if ('y' in v === true) {
-        this.props['scaleY'] = v.y
+        this.props['scaleY'] = toNumber(v.y)
       }
     } else {
-      this.props['scaleX'] = v
-      this.props['scaleY'] = v
+      this.props['scaleX'] = toNumber(v)
+      this.props['scaleY'] = toNumber(v)
     }
   },
   set show(v) {
     this.props['visible'] = !!v
   },
   set alpha(v) {
-    this.props['alpha'] = v
+    this.props['alpha'] = toNumber(v)
   },
   set rounded(v) {
     // Recorded for the shader bridge; applied in _syncElementShader (live)
@@ -422,10 +428,10 @@ const propsTransformer = {
     this.props['fontFamily'] = v
   },
   set size(v) {
-    this.props['fontSize'] = v
+    this.props['fontSize'] = toNumber(v)
   },
   set maxwidth(v) {
-    this.props['maxWidth'] = v
+    this.props['maxWidth'] = toNumber(v)
     if (this.manualTextContain === true) {
       return
     }
@@ -436,7 +442,7 @@ const propsTransformer = {
     this.props['contain'] = 'width'
   },
   set maxheight(v) {
-    this.props['maxHeight'] = v
+    this.props['maxHeight'] = toNumber(v)
     if (this.manualTextContain === true) {
       return
     }
@@ -447,7 +453,7 @@ const propsTransformer = {
     this.props['contain'] = 'height'
   },
   set maxlines(v) {
-    this.props['maxLines'] = v
+    this.props['maxLines'] = toNumber(v)
   },
   set textoverflow(v) {
     if (v === false) {
@@ -460,10 +466,10 @@ const propsTransformer = {
     }
   },
   set letterspacing(v) {
-    this.props['letterSpacing'] = v || 1
+    this.props['letterSpacing'] = toNumber(v) || 1
   },
   set lineheight(v) {
-    this.props['lineHeight'] = v
+    this.props['lineHeight'] = toNumber(v)
   },
   set contain(v) {
     this.props['contain'] = v
@@ -648,6 +654,15 @@ const Element = {
       if (this.props.props['color'] !== undefined && textProps['textColor'] === undefined) {
         textProps['textColor'] = this.props.props['color']
       }
+      // Engine selection: explicit `type` wins, else the launch-built
+      // family registry decides (msdf-registered families render SDF,
+      // everything else stays canvas, like L3's family resolution).
+      if (textProps.type === undefined) {
+        const engine = fontEngines.engineOf(
+          textProps.fontFamily !== undefined ? textProps.fontFamily : textDefaults.fontFamily
+        )
+        if (engine !== undefined) textProps.type = engine
+      }
       this.node = adapter.createTextNode(elProps, {
         ...textDefaults,
         ...textProps,
@@ -814,6 +829,19 @@ const Element = {
    * @this {import('../../component').BlitsElement} this
    */
   applySingleProp(key, value) {
+    if (key === 'type') {
+      // Engine switches go through the fontFamily path below (the text
+      // object + bucket are fixed at creation).
+      warnOnce(
+        'text-type',
+        'live text engine switches are not supported, change fontFamily instead'
+      )
+      return
+    }
+    if (key === 'fontFamily') {
+      this._applyFontFamily(value)
+      return
+    }
     if (textPropNames.indexOf(key) !== -1) {
       if (this.node.text === null || this.node.text === undefined) return
       if (key === 'color') return
@@ -939,6 +967,32 @@ const Element = {
       delete this.debounceTimeouts[prop]
       this._executeAnimation(prop, value, transition)
     }, 0)
+  },
+  /**
+   * Apply a fontFamily change, recreating the text object when the new
+   * family resolves to a different text engine (render type + bucket are
+   * fixed at creation, so a field write is not enough).
+   * @this {import('../../component').BlitsElement} this
+   */
+  _applyFontFamily(value) {
+    if (this.node.text === null || this.node.text === undefined) return
+    const want = fontEngines.engineOf(value)
+    const current = this.node.text.type
+    const wantType =
+      want !== undefined && engineTextType[want] !== undefined ? engineTextType[want] : undefined
+    if (
+      wantType === undefined ||
+      current === undefined ||
+      current === wantType ||
+      ftlApp === null ||
+      ftlApp === undefined
+    ) {
+      this.node.text.fontFamily = value
+      this.node.dirty()
+      return
+    }
+    this.node.text = ftlApp.createText({ ...this.node.text, fontFamily: value, type: want })
+    this.node.dirty()
   },
   /**
    * Read the current (text-aware) value of a transformed prop.
