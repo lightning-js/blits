@@ -32,6 +32,11 @@ parse FTL code.
   `pivot`, `scale`, `alpha`, `show` (maps to FTL `visible`)
 - Solid `color` (any `colors.normalize` format → FTL rgba floats)
 - `src` images (raster; SVG needs explicit `w`/`h`), `@loaded` / `@error`
+- Native sprites (`<Sprite image map frame>`): sheet via `createImage`,
+  frames via `createTexture('subtexture')` with L3-identical map lookup
+  (`{defaults, frames}`, flat maps, inline frame objects); `@loaded`
+  subscribes on the frame texture (`@error` has no FTL failure signal and
+  warns, like `src` images)
 - Text (`content font size align maxwidth maxheight maxlines letterspacing
   lineheight contain textoverflow`), canvas text engine. Fonts whose entry
   points at a web-font file (`ttf/otf/woff`, including `type: 'msdf'` entries
@@ -55,7 +60,6 @@ parse FTL code.
 - Gradient color objects map corner pairs to a diagonal linear gradient
   (approximation of L3's bilinear 4-corner blend); max 8 stops
 - Effect shaders are WebGL-only (`renderMode: 'canvas'` renders unshaded)
-- Native sprites (`image` / `map` / `frame`) ignored
 - MSDF/SDF atlas-only fonts fall back to canvas text (specify a font `file`
   to silence)
 - `inspector: true` ignored; `holder` interactivity ignored
@@ -74,6 +78,23 @@ Blits core → stage.element (= FTL/element.js BlitsElement)
 `FTL/launch.js` maps Blits settings onto FTL
 `main({ platform, renderer, text, config })` and returns a renderer facade
 (`on/off/canvas/destroy`) that backs the global Blits `renderer` binding.
+
+## Engine notes (bundling / boot pitfalls)
+
+- Dynamic `import('ftl/...')` specifiers must stay static strings (no
+  `@vite-ignore`, no variables) or the browser build emits bare specifiers
+  that fail at runtime. The dev server additionally needs the `ftl/*` alias
+  in the app's vite config (optional-peer externalization + export remaps).
+- `webglRenderer(canvas, shaders)` requires an explicit `additionalShaders`
+  array (an omitted arg is not enough — the default parameter only applies
+  when the whole argument is undefined).
+- FTL only starts loading an element's texture once it is renderable
+  (`w>0 && h>0`) and flips out-of-bounds→in-bounds. Unmeasured Blits
+  text/image nodes get a 1x1 provisional size until `autoSize`/`set`
+  resolves them (mirrors L3's 1px text nodes).
+- The canvas backing store (`w`/`h`) is fitted to the display with CSS
+  (aspect preserved, refit on resize) unless the app passes its own sized
+  canvas — so stage coordinates map to the visible area like L3.
 
 ## Roadmap
 

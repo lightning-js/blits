@@ -48,6 +48,7 @@ import {
   createShaderInstance,
   assignShader,
 } from './shaders.js'
+import { resolveSpriteTexture, subscribeSpriteEvents } from './sprite.js'
 import {
   parseToObject,
   isObjectString,
@@ -314,15 +315,21 @@ const propsTransformer = {
   },
   set image(v) {
     this.raw['image'] = v
-    warnOnce('sprite', 'native sprites (image/map/frame) are not supported in FTL phase 1')
+    if (this.element[symbols.isSprite] === true && this.element.node) {
+      this.element._scheduleSpriteSync()
+    }
   },
   set map(v) {
     this.raw['map'] = v
-    warnOnce('sprite', 'native sprites (image/map/frame) are not supported in FTL phase 1')
+    if (this.element[symbols.isSprite] === true && this.element.node) {
+      this.element._scheduleSpriteSync()
+    }
   },
   set frame(v) {
     this.raw['frame'] = v
-    warnOnce('sprite', 'native sprites (image/map/frame) are not supported in FTL phase 1')
+    if (this.element[symbols.isSprite] === true && this.element.node) {
+      this.element._scheduleSpriteSync()
+    }
   },
   set fit(v) {
     void v
@@ -608,6 +615,11 @@ const Element = {
       this[symbols.isSlot] = true
     }
 
+    if (props[symbols.isSprite] === true) {
+      this[symbols.isSprite] = true
+      this._spriteState = { texture: undefined, unsub: null, _syncScheduled: false }
+    }
+
     this.props.element = this
 
     this.props['parent'] = props['parent'] || this.config.parent
@@ -649,11 +661,19 @@ const Element = {
       delete elProps['shadow']
       delete elProps['shader']
       delete elProps['gradient']
+      // Sprite props resolve to a texture in _syncSprite, not node fields.
+      delete elProps['image']
+      delete elProps['map']
+      delete elProps['frame']
       if (this.props.raw['src'] !== undefined) {
         const texture = resolveImageTexture(this.props.raw['src'])
         if (texture !== null) {
           elProps['texture'] = texture
         }
+      }
+      // Sprites size to their frame once loaded when no dims are given.
+      if (this[symbols.isSprite] === true && !('w' in this.props.raw) && !('h' in this.props.raw)) {
+        elProps['autoSize'] = true
       }
       // A defined color paints a rect; without color/texture the element is a
       // transparent layout container (FTL default, color null).
@@ -669,16 +689,25 @@ const Element = {
     // elementShader creation in populate).
     this._syncElementShader()
 
-    if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
-      this.node.on('loaded', (dimensions) => {
-        props['@loaded']({ w: dimensions.w, h: dimensions.h }, this)
-      })
+    // Sprites resolve their sheet/frame texture AFTER the node exists.
+    // Their @loaded/@error subscribe on the texture itself (see
+    // _syncSprite), so the generic node wiring below is skipped for them.
+    if (this[symbols.isSprite] === true) {
+      this._syncSprite()
     }
 
-    if (props['@error'] !== undefined && typeof props['@error'] === 'function') {
-      this.node.on('failed', (error) => {
-        props['@error'](error, this)
-      })
+    if (this[symbols.isSprite] !== true) {
+      if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
+        this.node.on('loaded', (dimensions) => {
+          props['@loaded']({ w: dimensions.w, h: dimensions.h }, this)
+        })
+      }
+
+      if (props['@error'] !== undefined && typeof props['@error'] === 'function') {
+        this.node.on('failed', (error) => {
+          props['@error'](error, this)
+        })
+      }
     }
 
     if (props.__layout === true) {
@@ -735,6 +764,49 @@ const Element = {
 
     if (this.config.parent.props && this.config.parent.props.__layout === true) {
       this.config.parent.triggerLayout(this.config.parent.props)
+    }
+  },
+  /**
+   * Coalesced sprite texture sync: image/map/frame are often set together,
+   * so resolve once on microtask (mirrors L3's _scheduleNativeSpriteSync).
+   * @this {import('../../component').BlitsElement} this
+   */
+  _scheduleSpriteSync() {
+    if (this[symbols.isSprite] !== true || !this.node || this.eol === true) return
+    const st = this._spriteState
+    if (st === undefined || st === null) return
+    if (st._syncScheduled === true) return
+    st._syncScheduled = true
+    queueMicrotask(() => {
+      st._syncScheduled = false
+      if (this.eol === true || !this.node) return
+      this._syncSprite()
+    })
+  },
+  /**
+   * Resolve the sprite sheet/frame texture and assign it, (re)subscribing
+   * `@loaded` on change. Skips redundant assigns by texture identity — the
+   * FTL texture manager dedups by cache key, so repeats are stable.
+   * @this {import('../../component').BlitsElement} this
+   */
+  _syncSprite() {
+    if (this[symbols.isSprite] !== true || !this.node || this.eol === true) return
+    const st = this._spriteState
+    if (st === undefined || st === null) return
+    const texture = resolveSpriteTexture(ftlApp, this.props.raw)
+    if (texture === st.texture) return
+    if (st.unsub !== null && st.unsub !== undefined) {
+      try {
+        st.unsub()
+      } catch {
+        // ignore teardown errors
+      }
+      st.unsub = null
+    }
+    st.texture = texture
+    adapter.setProp(this.node, 'texture', texture)
+    if (texture !== null && texture !== undefined) {
+      st.unsub = subscribeSpriteEvents(texture, this.props.raw, this)
     }
   },
   /**
@@ -1043,6 +1115,22 @@ const Element = {
     if (this.node === null) return
 
     Log.debug('Deleting Node', this.nodeId)
+
+    if (
+      this[symbols.isSprite] === true &&
+      this._spriteState !== undefined &&
+      this._spriteState !== null
+    ) {
+      const st = this._spriteState
+      if (st.unsub !== null && st.unsub !== undefined) {
+        try {
+          st.unsub()
+        } catch {
+          // ignore teardown errors
+        }
+      }
+      this._spriteState = null
+    }
 
     const debounceProps = Object.keys(this.debounceTimeouts)
     for (let i = 0; i < debounceProps.length; i++) {

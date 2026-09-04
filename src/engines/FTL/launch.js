@@ -77,6 +77,31 @@ const resolveCanvas = (targetEl, settings, w, h) => {
   return canvas
 }
 
+/**
+ * Fit the canvas into its target (or viewport) preserving aspect ratio,
+ * mirroring how the L3 renderer sizes its canvas to the display. Without
+ * this the 1920x1080 backing store overflows smaller windows and stage
+ * content outside the top-left stays unreachable. Refit on resize.
+ * @returns {function} cleanup function (removes the resize listener).
+ */
+const fitCanvas = (canvas, targetEl, w, h) => {
+  const fit = () => {
+    if (typeof window === 'undefined') return
+    const availW = targetEl && targetEl.clientWidth ? targetEl.clientWidth : window.innerWidth
+    const availH = targetEl && targetEl.clientHeight ? targetEl.clientHeight : window.innerHeight
+    if (availW <= 0 || availH <= 0) return
+    const scale = Math.min(availW / w, availH / h)
+    canvas.style.width = Math.floor(w * scale) + 'px'
+    canvas.style.height = Math.floor(h * scale) + 'px'
+  }
+  fit()
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', fit)
+    return () => window.removeEventListener('resize', fit)
+  }
+  return () => {}
+}
+
 const hexToRgbaFloat = (hex) => {
   const h = ('' + hex).replace('0x', '').replace('#', '')
   if (/^[0-9a-f]{8}$/i.test(h) === false) return [0, 0, 0, 0]
@@ -94,7 +119,7 @@ const hexToRgbaFloat = (hex) => {
  * signals. `stage` is intentionally absent in phase 1 (no mouse picking);
  * `application.js` already guards `renderer.stage == null`.
  */
-const createFacade = (app, canvas, settings) => {
+const createFacade = (app, canvas, settings, onDestroy = null) => {
   const subs = { idle: new Set(), active: new Set(), frameTick: new Set(), fpsUpdate: new Set() }
   let isIdle = false
   let frames = 0
@@ -181,6 +206,13 @@ const createFacade = (app, canvas, settings) => {
     destroy: () => {
       if (fpsTimer !== null) clearInterval(fpsTimer)
       Object.keys(subs).forEach((k) => subs[k].clear())
+      if (onDestroy !== null && onDestroy !== undefined) {
+        try {
+          onDestroy()
+        } catch {
+          // ignore teardown errors
+        }
+      }
       if (app && typeof app.stop === 'function') app.stop()
     },
   }
@@ -260,6 +292,17 @@ export default async (App, target, settings = {}, onRenderer) => {
 
   const targetEl = resolveTarget(target)
   const canvas = resolveCanvas(targetEl, settings, w, h)
+  // An app-provided canvas with explicit CSS size keeps it; otherwise Blits
+  // fits the backing store to the display (see fitCanvas).
+  const appSized =
+    settings.canvas !== undefined &&
+    settings.canvas.style !== undefined &&
+    settings.canvas.style.width !== '' &&
+    settings.canvas.style.height !== ''
+  let unfit = () => {}
+  if (appSized !== true) {
+    unfit = fitCanvas(canvas, targetEl, w, h)
+  }
 
   let renderer
   if (renderMode === 'canvas') {
@@ -385,7 +428,7 @@ export default async (App, target, settings = {}, onRenderer) => {
     Log.warn('[Blits:FTL] inspector is not supported with FTL in phase 1')
   }
 
-  rendererFacade = createFacade(ftlApp, canvas, settings)
+  rendererFacade = createFacade(ftlApp, canvas, settings, unfit)
 
   // Publish the facade BEFORE constructing components so Blits core
   // (`component.js` reading the global `renderer` binding) sees it in time.
