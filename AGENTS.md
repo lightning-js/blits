@@ -1,104 +1,65 @@
 # Blits App Framework - Agent Development Instructions
 
-**Target**: Fast, lightweight app development framework on top of the Lightning 3 renderer (with opt-in FTL engine) for constrained TV / set-top-box hardware
+**Target**: Contributors modifying the Blits framework itself (`src/`, `vite/`, `src/engines/`). Blits is a fast, lightweight app framework on the Lightning 3 renderer for constrained TV / set-top-box hardware.
+
+> App-developer guidance (how to *use* Blits: template syntax, `:for`/`:key`/`:range`, input bubbling, router recipes) lives in `docs/` — see the primer at the bottom. This file is about how to *build* Blits.
 
 ## Core Philosophy
 
-**Developer experience + performance**: Blits aims to be fun and easy (readable XML-style templates, declarative reactivity) while staying lightweight and fast on low-powered devices. Prefer the declarative Blits API over manual renderer calls. When in doubt, optimize for startup time, memory footprint, and steady frame rate — not micro-benchmarks.
+**Lean runtime, explicit contracts, loud boundaries**: the framework must stay small and fast on low-powered devices while giving app developers readable errors. Prefer declarative compilation (template → generated code) over imperative runtime work. When in doubt, do work once at setup/parse time, never per frame.
 
 ### Architecture Principles
 
-- **No classes for components ever** - Components are factories: `Blits.Component(name, config)` returns a factory function, instantiated via `Object.create(Base)` internally
-- **Declarative templates, explicit reactivity** - Describe UI in `template`; mark reactive bindings explicitly with `:`; keep logic in `state` / `props` / `computed` / `methods` / `watch`
-- **Lean runtime on constrained hardware** - Avoid per-frame allocation, heavy `frameTick` work, and unbounded lists; window long lists with `:range`
-- **Validate at public boundaries with `Log`** - Use `Log.warn` / `Log.error` at `Component()`, `Application()`, `Launch()`, router navigation, and plugin registration. Never validate inside render effects or per-frame callbacks
-- **Early returns** - Most common paths first, error / end-of-life checks on top
+- **No classes for framework objects ever** - Use factory functions, plain objects, `Object.create()` and `Object.defineProperties()`. The only `class` keywords in `src/` are test/platform shims — never copy them into framework code
+- **Factories close over config, instances hang off prototypes** - `Blits.Component(name, config)` returns a factory; instantiation is `component.call(Object.create(base), ...)` (`src/component.js:207,444,498,505`)
+- **Component `this` is a contract** - User callbacks (`state`, `methods`, `computed`, `watch`, `input`, `hooks`) run with component `this` via explicit `.apply(this)` / `.call(this, ...)`; framework helpers are arrows that never touch `this`
+- **Internals hide behind `symbols.*`** - Never string keys for framework slots; user `state`/`props`/`methods`/`computed` share one namespace, so internals must be collision-proof
+- **Validate at public boundaries with `Log`, throw only for missing contracts** - Setup, `Launch()`, navigation entry, plugin registration. Never validate inside effects, `frameTick` paths, or per-node updates
+- **Early returns** - Most common paths first, `undefined` / `null` / end-of-life checks on top, max 3 nesting levels
 
-## Target: Constrained TV / STB Hardware
+## Know the Machine: Constrained TV / STB Hardware
 
-Blits apps typically run on low-powered TV SoCs with limited CPU, GPU memory, and network bandwidth. Every framework decision must be evaluated against this baseline. Desktop browsers are a bonus, not the target.
+Blits apps run on low-powered TV SoCs with limited CPU, GPU memory, and network bandwidth. Desktop browsers are a bonus, not the target. Framework consequences:
 
-### Rules for fast apps on slow devices
+- **Setup-time work is cheap, per-frame work is not** - Parse, codegen, and component setup run once; `effect` bodies, `trigger` paths, focus changes, and `frameTick` handlers run constantly. Budget accordingly
+- **Memory pressure is real** - Prefer shared prototypes and pre-allocated structures over per-instance closures; always wire teardown (`destroy()` clears timers/listeners/renderer events/children)
+- **Startup is a feature** - Keep the runtime import graph lean; justify every dependency (framework `dependencies` are `@lightningjs/renderer` + `magic-string` only)
 
-- **Startup is a feature** - Lazy-load routes (`component: () => import('./pages/Home.js')`), defer below-the-fold work, keep `public/` assets small. External dependencies cost parse + memory: justify each one
-- **Window long lists** - Rails with 100+ items must use `:for` with `:key` plus `:range` (see Performance Rules). Never render hundreds of components unconditionally
-- **Images and textures cost memory** - Only rendered items load assets. Use `:range` so off-screen items neither exist nor fetch. Respect `gpuMemory` / `textureProcessingTimeLimit` settings instead of working around them
-- **Keep per-frame work near zero** - No object creation, no deep state walks, no layout thrash in `frameTick`, reactive effects, or `watch` handlers that fire at 60fps
-- **Prefer GPU-cheap animation** - Use `.transition` bindings (`:x.transition`, `:alpha.transition`) and router transitions instead of JS-driven per-frame interpolation. Spread list growth over ticks with `$setTimeout`
+## How Blits Is Built (Read This First)
+
+```
+template (XML string)
+  → src/lib/templateparser/parser.js        (XML → AST)
+  → src/lib/codegenerator/generator.js      (AST → new Function render + effects)
+  → src/component.js                        (JIT once per type; render.apply(stage, ...); effect(eff) per :binding)
+  → src/engines/L3/element.js               (stage.element: populate/set/animate real nodes)
+
+config object
+  → src/component/setup/index.js            (identifier → hooks → props → methods → state → computed → watch → router → input)
+  → src/component/base/index.js             (Base = defineProperties({launched:false}, {methods, scheduling, shared, utils}))
+
+state/props → src/lib/reactivity/reactive.js (Proxy, defineProperty fallback)
+:bindings   → src/lib/reactivity/effect.js    (effect/track/trigger, synchronous)
+input       → src/focus/focus.js              (single focus chain + bubbling)
+routes      → src/router/router.js            (navigate → hooks → transitions → view swap)
+bootstrap   → src/launch.js + src/engine.js + src/engines/*  ({Element, Launch} facade)
+build       → vite/index.js                   (reactivityGuard → preCompiler AOT → msdfGenerator)
+```
+
+AOT reuses the same pipeline: `src/lib/precompiler/precompiler.js` runs `parser` + `generator` at build time and inlines `code: {render, effects, context}` so runtime skips JIT (`src/component.js:498-502`).
 
 ## Performance Rules (CRITICAL)
 
-### 1. Template Binding Tiers
+These govern framework code you write, not app templates. Every rule below is quoted from a hot path.
 
-```xml
-<!-- ✅ DO: static for things that never change -->
-<Element w="300" h="200" color="#0891b2" />
-
-<!-- ✅ DO: dynamic ($...) set once from initial state -->
-<Element w="$width" h="$height" color="$color" />
-
-<!-- ✅ DO: reactive (:...) only where change must re-render -->
-<Element :w="$changingWidth" :alpha.transition="$focused === $index ? 1 : 0.6" />
-```
+### 1. Comparison Operations
 
 ```javascript
-// ❌ NEVER: make everything reactive "just in case"
-// :x, :y, :w, :h, :color on dozens of nodes that never change // NO - subscribes effects for nothing
-```
-
-Rules:
-
-- `attr="literal"` — static, baked into `elementConfigs` once (cheapest)
-- `attr="$var"` — dynamic, set once from initial state (no subscription)
-- `:attr="$var + expr"` — reactive, subscribes an `effect` that re-runs on every change (most expensive; use deliberately)
-- Interpolation (`:x="0 - $focused * 300"`, ternaries, `Math.floor`) is allowed but keep it simple; move complex logic to a `computed` or `method`
-
-### 2. Loops: Always `:key`, Window with `:range`
-
-```xml
-<!-- ✅ DO: keyed loop with a range window -->
-<Tile
-  :for="(item, index) in $items"
-  :range="{from: 0, to: $range + 7}"
-  :key="$item.id"
-  :x="$index * 320"
-/>
-```
-
-```xml
-<!-- ❌ NEVER: unkeyed loop over a large array -->
-<Tile :for="item in $items" /> <!-- NO - full recreate on every change -->
-```
-
-Rules:
-
-- Always pass `:key="$item.id"` (stable id). Without it the whole list is destroyed and recreated on change
-- Never put `:for` on the template root node (parser rejects it)
-- For rails / grids: use `:range="{from, to}"` with a 5–10 item lookahead buffer (see `docs/performance/lazy-loading.md`)
-- Grow-only lazy load: `from: 0, to: $range + 7`, bump `$range` on navigation, never decrement when scrolling back, and push growth to the next tick so scroll stays smooth:
-
-```javascript
-// ✅ DO: spread list growth over ticks
-input: {
-  right() {
-    this.focused = Math.min(this.focused + 1, this.items.length)
-    this.$setTimeout(() => (this.range = this.focused))
-  },
-  left() {
-    this.focused = Math.max(this.focused - 1, 0)
-    // do NOT decrement range when scrolling back — keep components alive
-  },
-}
-```
-
-### 3. Comparison Operations
-
-```javascript
-// ✅ DO: Direct comparisons
-if (value === null) return
-if (type === 2) continue
-if (buffer.length === 0) return
-if (Array.isArray(props) === true) { /* ... */ }
+// ✅ DO: Direct comparisons (src/focus/focus.js:44, src/component.js:446)
+if (component === undefined || isInAliveComponentTree(component) === false) return
+if (component === focusedComponent) return
+if (Base[symbols['launched']] === false) { /* ... */ }
+if (Array.isArray(props) === true) { /* ... */ } // src/component/setup/props.js:43
 
 // ❌ NEVER: Truthy/falsy checks
 if (value) return      // NO
@@ -106,37 +67,69 @@ if (!items.length)     // NO
 if (buffer)           // NO
 ```
 
-### 4. State Access & Computed Over Template Logic
+`indexOf(...) > -1` (not `.includes()`) in hot paths — `src/focus/focus.js:64`, `src/component/setup/state.js:31`, `src/lib/lifecycle.js:78`, `src/lib/reactivity/reactive.js:68`. `.includes()` appears only in cold code (parser, tests).
+
+### 2. Loops: Cached `for`, `while` for Walks, `forEach` Only at Setup
 
 ```javascript
-// ✅ DO: Extract frequently accessed state, expose derivations as computed
-computed: {
-  offset() {
-    return this.index * 100
-  },
+// ✅ DO: indexed for with cached length (src/component.js:379, src/lib/reactivity/effect.js:35)
+for (let i = 0; i < effects.length; i++) { /* ... */ }
+const propLength = props.length
+for (let i = 0; i < propLength; i++) { /* ... */ }
+
+// ✅ DO: while for chain/pointer walks (src/focus/focus.js:62, src/focus/helpers.js:43)
+while (i--) {
+  if (newFocusChain.indexOf(focusChain[i]) > -1) break
+  focusChain[i][symbols.lifecycle].state = 'unfocus'
 }
+while (current !== undefined && current !== null) { /* ... */ }
 
-// ✅ DO: Cache in method bodies
-const focused = this.focused
-const items = this.items
+// ✅ DO: for...in for dynamic user tables (src/component/setup/watch.js:24)
+for (let watch in watchers) { /* ... */ }
 
-// ❌ AVOID: Deep chains and function calls in hot reactive bindings
-// :x="$a.b.c.d + computeExpensive($x)" // NO - move to computed
+// ❌ NEVER: forEach/map in per-frame or reactive paths
+// effects.forEach(run) // NO — use indexed for (cf. src/lib/reactivity/effect.js:78-90)
 ```
 
-### 5. Early Returns & Flat Code
+`forEach` is acceptable at setup time only (`src/component/setup/input.js:24`, `src/settings.js:31`).
+
+### 3. Keep Hot Paths Allocation-Free and Log-Free
+
+The reactivity core is synchronous with no scheduler — every allocation and branch runs per state change (`src/lib/reactivity/effect.js:78-90`, `src/lib/reactivity/reactive.js:68-78,111-140`):
 
 ```javascript
-// ✅ DO: Error / end-of-life checks first, early returns
-function setFocusTarget(component) {
-  if (component === undefined) return
-  if (component.eol === true) return
-  if (component === focusedComponent) return
+// ✅ DO: guard-clause style from the actual trigger path
+if (paused === true) return // src/lib/reactivity/effect.js:79
+if (arrayPatchMethods.indexOf(key) !== -1) { // src/lib/reactivity/reactive.js:68
+  return function (...args) {
+    pauseTracking()
+    const result = target[key].apply(this, args)
+    resumeTracking()
+    trigger(_parent, _key)
+    // ...
+```
 
-  // Main logic here - flat, no nesting
-  const parent = component[symbols.parent]
-  // ...
+Rules:
+
+- No object creation, no deep walks, no `Log.*` inside `track`/`trigger`, array-patch wrappers, `effect` bodies, or the `frameTick` emit path (`src/component.js:308-343` only wires `renderer.on` — no validation there)
+- Short-circuit equality before writing: the `deepEqualArray` / `oldRawValue === rawValue` guard in `src/lib/reactivity/reactive.js:111-140` exists so watchers and effects don't refire — preserve it when touching that path
+- Effects are unkeyed subscriptions (`effect(eff)` with `key = null`, except for-loop internals) that re-run on any tracked dep — keep generated effect bodies pure and minimal. Every `:attr` in a user template becomes one such effect, which is why the binding-tier guidance exists for app developers
+
+### 4. Early Returns & Flat Code
+
+```javascript
+// ✅ DO: guards first, flat body (src/focus/focus.js:44-56, src/router/router.js:167-179)
+if (route === false) {
+  Log.error(`Route ${hash.hash} not found`)
+  return
 }
+if (this.currentRoute !== undefined && sameRouteObject(route, this.currentRoute)) return
+
+// Navigation concurrency uses a counter, not a boolean (src/router/router.js:84-94)
+if (activeNavigations++ === 0) {
+  state.navigating = true
+}
+// ... finishNavigation() decrements back to zero
 
 // ❌ NEVER: Deep nesting (max 3 levels)
 if (condition) {
@@ -150,261 +143,144 @@ if (condition) {
 }
 ```
 
-### 6. Renderer Settings That Affect Speed
+## Template Code Generator (Contributor Protocol)
 
-Map app needs to `Blits.Launch(App, target, settings)` keys (see `src/launch.js`):
+This is the heart of Blits. Get the protocol wrong and nothing renders. All refs are `src/lib/codegenerator/generator.js` unless noted.
 
-- `viewportMargin` → bounds margin driving `attach` / `detach` / `enter` / `exit` — larger keeps more alive (smoother scroll, more memory)
-- `fpsInterval` → `fpsUpdate` cadence (`frameTick` fires every frame, `fpsUpdate` on interval — never do heavy work in `frameTick`)
-- `gpuMemory` (`{max, target, cleanupInterval}`) + `textureProcessingTimeLimit` — respect them; don't defeat texture cleanup
-- `renderQuality` / `pixelRatio` / `screenResolution` / `maxFPS` / `canvasColor` / `inspector` — only set what the app needs
+### Pipeline and Call Sites
 
-## Data Structures & Reactivity
+- Parser (`src/lib/templateparser/parser.js:21`): hand cursor parser. Only `name="value"` attributes (single/double quotes, `attrNameRegex` at `src/lib/templateparser/parser.js:31`), dot-attrs split in `formatAttribute` (`src/lib/templateparser/parser.js:183-188`; `:x.transition="…"` → `{transition: …}`), colors normalized (`src/lib/templateparser/parser.js:202-232`), text stored as `Symbol.for('tagContent')` (`src/lib/templateparser/parser.js:144-146`). Structural rules in `format` (`src/lib/templateparser/parser.js:248-322`): single root (`:258-266`), no `:for` on root (`:261-266`), level validation and node assembly (`:283-314`). Errors are `TemplateParseError` / `TemplateStructureError` (`:329-380`).
+- Generator entry `src/lib/codegenerator/generator.js:23`: builds `renderCode` + `effectsCode` + `cleanupCode`, returns `{elms, cleanup, skips}` (`:75-88`).
+- Emitted signatures — **these must match the call sites exactly**:
+  - `render = new Function('parent','component','context','components','effect','getRaw','Log', …)` (`:91-100`) called as `config.code.render.apply(stage, [parentEl, this, config, globalComponents, effect, getRaw, Log])` (`src/component.js:273-281`; `this` is `stage`, so generated `this.element(...)` resolves to `stage.element`)
+  - each `effectsCode` entry becomes `new Function('component','elms','context','components','rootComponent','skips','effect', …)` (`:101-113`) invoked as `effects[i](this, children, config, globalComponents, rootComponent, skips, effect)` inside `effect(eff)` (`src/component.js:379-394`)
+  - AOT serializes the same functions via `render.toString()` (`src/lib/precompiler/precompiler.js:56-61`); `generator.test.js` asserts on the emitted strings. Adding/removing a parameter breaks JIT + AOT + tests together.
 
-### State / Props / Computed / Watch
+### Static vs `$` Dynamic vs `:` Reactive Emission
+
+Detection is key-prefix only: `isReactiveKey = str.startsWith(':')` (`:993`).
+
+| Tier | Example | Emission (`generateElementCode:231-264`, components `:388-406`) |
+|---|---|---|
+| `static` `attr="lit"` | `w="100"` | `elementConfigs[i]['attr'] = cast(…)` (`:261`). No `effectsCode` |
+| `dynamic` `attr="$foo"` (no `:`) | `w="$w"` | Same one-shot `cast()` path — initial config only, no subscription |
+| `reactive` `:attr="expr"` | `:w="$foo * 2"` | **Both** `elementConfigs[i]['attr'] = interpolate(…)` initial (`:250-255`) **and** `effectsCode.push(elms[i].set('attr', interpolate(…)))` (`:239-244`); components write `Symbol.for('props')['attr']` (`:390-394`, arrays via `getRaw().slice(0)` `:395-400`) |
+
+- `$foo → component.foo`, `$$ → component.$`; `'...'` literals are masked before substitution and restored after (`interpolate:818-852`). Tag text `{{…}}` becomes string concat via `parseTagContent:945-991`.
+- `cast:854-932` order matters: `content` → numeric (with `%` resolved against `parent.node.w/h` for `w,width,x` / `h,height,y`:875-886) → booleans → `@listener` (`component['x'] && component['x'].bind(component)`:900-902) → `$var` → `$`-containing objects → static string.
+- Component holders: `:attr` effects on holders are guarded by `skips` (`:234-235`) — non-`validAttributes` props are deleted from `elementConfigs` and recorded in `skips[i]` (`:293-302`, keys from `src/engines/L3/element.js:588` via the `elementAttributes` import at `src/lib/codegenerator/generator.js:21`).
+- `:for` (`generateForLoopCode:474-787`): `scope = Object.create(component)` per index (`:591`); `scope['item']` / `scope['key']` assignment (`:593-602`); loop-body refs use `scope.` prefix while outer refs keep `component.` (`:750-760`); outer-scope `:attr`s get their own loop re-running all indices (`:765-781`); destroy code is injected (`:685-718`) and `forStartCounter/forEndCounter` (`:482,693`) must span exactly that loop's nodes. Missing stable `:key` collapses keys to index and destroys/recreates (`:559`). `$shallow` defaults `true` (`:484-488`); `false` mutates the scope chain (`:654-656`). Static `ref` in a loop becomes `scope['__ref']` (`:604-609`).
+- Module-global `counter` (`:18,52`): snapshot `holderCounter` before generating children (`:360`); nested components must not leak counts across loops.
+
+### Extending Template Syntax (In Order)
+
+1. `src/lib/templateparser/parser.js:29-33,159-181`: extend `attrNameRegex`/`tagStartRegex`; add a branch in `formatAttribute` (`:183-188`, like the dot-split at `:186`); add structural rules in `format` (`:248-322`) if needed (cf. the `:for`-on-root rule at `:261-266`).
+2. `src/lib/codegenerator/generator.js:993` + branches at `:231-264` (elements) mirrored at `:388-406` (components): decide `effectsCode.push(elms[i].set…)` vs `props[…]` and initial `elementConfigs`/`props` via `interpolate` (expression) or `cast` (typed literal).
+3. Value grammar in `interpolate:818-852` / `cast:854-932` / `parseTagContent:945-991` — keep `$`→`component`, `$$`→`component.$`, and `'...'` masking in sync across all three.
+4. New structural directives: `generateCode` dispatch (`:789-816`) + `generateForLoopCode` mechanics (`:474-787`; `counter`, `scope.` vs `component.`, inner/outer effect split at `:645-652`, destroy injection at `:685-718`, `effect()` key list at `:727-738`).
+5. Runtime mapping in `src/engines/L3/element.js:propsTransformer` (`:236-586`; `%` handling at `:244-269`, `content` → `text` at `:540`) + `populate` (`:596`) / `set` (`:804`, transitions at `:820-828`) / `animate` (`:840-877`) if the attribute needs renderer behavior; `elementAttributes` (`:588`) feeds the codegen prop/attr split — change both together.
+6. No `src/lib/precompiler/precompiler.js` change needed if reusing `parser`+`generator` (verify the `mode === 'development'` flag still threads through at `:53`); add cases to `parser.test.js` / `generator.test.js`; extend `vite/reactivityGuard` (`vite/reactivityGuard.js:38`, guards built in `src/lib/reactivityguard/computedprops.js:261-396`) if the syntax introduces new `this.` reads in `computed`.
+
+## Symbols Registry
+
+`src/lib/symbols.js:80-147` — local `Symbol()` for private instance slots; `Symbol.for()` (global registry) **only** for keys the generated `new Function(...)` strings must share (`children`, `components`, `config`, `props`, `slots`, `componentType`, `isComponent`, `effects`, `removeEffects`, `tagContent`, `isSlot`, `isSprite`).
 
 ```javascript
-// ✅ DO: state as a regular function returning an object (this-bound)
-export default Blits.Component('Rail', {
-  state() {
-    return { focused: 0, range: 0, items: [] }
-  },
-  props: { color: 'red', height: undefined }, // object notation; array notation is deprecated
-  computed: {
-    // ✅ DO: getter-only, no side effects
-    offset() {
-      return this.index * 100
-    },
-  },
-  watch: {
-    alpha(v, old) {
-      /* react to change */
-    },
-    'size.h'(h) {
-      /* dot-notation deep watch */
-    },
-  },
-})
+// ✅ DO: symbols for internals (src/component.js:219-283)
+this[symbols.parent] = parentComponent
+this[symbols.holder] = parentEl
+this[symbols.props] = reactive(/* ... */)
+this[symbols.state] = reactive(/* ... */)
+factory[Symbol.for('config')] = config // src/component.js:510 — never factory.config
 
-// ❌ NEVER: arrow function for state/methods/computed/watch/input (breaks `this`)
-// state: () => ({ focused: 0 }) // NO
-
-// ❌ NEVER: mutate props inside a component (setter warns)
-// this.color = 'blue' // NO — props are owned by the parent / router
+// ❌ NEVER: string keys for framework slots (collides with user state/props/methods)
+this.parent = parentComponent // NO
 ```
 
-Rules:
+User `state`/`props`/`methods`/`computed` share the component namespace and collisions are `Log.error`s (`src/component/setup/state.js:49-55`, `src/component/setup/computed.js:28-35`) — internals must be physically unable to collide.
 
-- Access via `this.foo` in JS, `$foo` in template (`$$` escapes to `component.$`). Never use `state.` prefix in JS
-- Never reuse a name across `state` / `prop` / `method` / `computed` — setup logs errors (`src/component/setup/state.js`, `src/component/setup/computed.js`)
-- Never define your own `$hasFocus` / `$isHovered` state keys — they are built-in and reactive in templates (`$$hasFocus`, `$$isHovered`)
-- Route `params` / `data` arrive as props — the component must declare them to receive them
-- `$trigger(key)` forces a watcher to fire; use sparingly
+## Component Setup Pipeline (Adding a Feature)
 
-### Reactivity Internals (for contributors)
+Fixed order in `src/component/setup/index.js:32-62`: `identifier → registerHooks → props → methods → state → computed → watch → router → input`. To add a new config key (e.g. `config.throttle`):
 
-- `reactive(target, mode)` defaults to `Proxy`, falls back to `defineProperty` (`src/lib/reactivity/reactive.js`). Array mutations (`push/pop/splice/...`) trigger parent + key
-- `effect(fn, key)` tracks dependencies; template `:` bindings compile to effects (`src/lib/codegenerator/generator.js`). Keep effects small and side-effect free
-- `memo` helper exists for derived values — prefer `computed` at component level
+1. New file `src/component/setup/<key>.js` following the existing shape (`export default (component, <value>) => { … }`, `symbols.<key>Keys` bookkeeping, `Object.defineProperty` accessors like `src/component/setup/state.js:58-64`).
+2. Collision checks against `symbols.propKeys`/`methodKeys`/`stateKeys` with `Log.error`, mirroring `src/component/setup/state.js:45-56` / `src/component/setup/computed.js:27-39`.
+3. Wire into `setup/index.js` in dependency order (props before methods/state since they validate against each other).
+4. If the key needs template access, extend codegen (previous section) — don't bolt reactive reads on outside the `effect` protocol.
+5. If it needs per-instance cleanup, register it so `destroy()` releases it; expose time-based behavior through `src/component/base/timeouts_intervals.js` (`$setTimeout`/`$clearTimeout`/…) so teardown is automatic.
+
+Base composition lives in `src/component/base/index.js:28-47`: `shared = {…events, …router, …announcer, $reactive}` merged via `Object.defineProperties` — new `$`-helpers go in `src/component/base/*.js` as `value: function (…) {}` descriptors with `@this {import('../../component').BlitsComponent}` annotations (cf. `src/component/base/methods.js:31-33`).
 
 ## Code Patterns
 
-### Component Factory Pattern
+### Factory + Prototype Pattern
 
 ```javascript
-// ✅ DO: Blits.Component factory with config object
-import Menu from './components/Menu.js'
+// ✅ DO: factories closing over config (src/component.js:207, src/application.js:39, src/launch.js:114)
+const Component = (name = required('name'), config = required('config')) => { /* ... */ }
+const Application = (config) => { /* ... */ }
+export default (App, target, settings) => { /* ... */ }
 
-export default Blits.Component('MyComponent', {
-  components: { Menu },
-  template: `
-    <Element>
-      <Menu ref="menu" />
-      <Element :x="$offset" w="100" h="100" color="$color" />
-    </Element>
-  `,
-  state() {
-    return { offset: 0, color: '#0891b2' }
-  },
-  hooks: {
-    ready() {
-      this.$select('menu').$focus()
-    },
-    destroy() {
-      this.$clearTimeout(this._timer)
-    },
-  },
-})
+// ✅ DO: plain-object singletons for cross-cutting state
+const settings = { [symbols.settings]: {}, get(key, defaultValue = null) { /* ... */ } } // src/settings.js:20-22
+export default { _hold: false, set hold(v) { /* ... */ }, get() { /* ... */ } } // src/focus/focus.js:32-43
+
+// ✅ DO: defineProperties composition (src/component/base/index.js:42-47, src/lib/log.js:44-89)
+export default Object.defineProperties({ [symbols['launched']]: false }, { ...methods, ...scheduling, ...shared, ...utils })
+
+// ❌ NEVER: class for framework objects (the only `class` in src/ are shims: InternalKeyboardEvent, localCookie, TestKeyboardEvent)
 ```
 
-Rules:
-
-- Structure is `Holder > Wrapper > []Elements` (`src/component.js`). Internals live behind `symbols.*` — never use string keys for framework internals
-- Setup order is fixed: hooks → props → methods → state → computed → watch → routes → input (`src/component/setup/index.js`). Don't depend on cross-phase ordering beyond this
-- `components: { Menu, MyButton: Button }` registers tags (`<Menu />`, `<MyButton />`). `<Component is="$type" />` is not reactive after init
-- `ref="name"` + `this.$select('name')` for imperative access; `:ref` for dynamic refs; `:show="$active"` to toggle visibility
-- One file per component, filename capitalized matching the component (`src/components/MenuItem.js`); pages in `src/pages/` (`docs/getting_started/file_structure.md`)
-
-### Template Parser + Codegen Pattern
-
-- Parser (`src/lib/templateparser/parser.js`) is a hand cursor parser: single root required, no `:for` on root, `name="value"` attributes only, dot-attrs (`x.transition`) become `{transition: ...}`, colors normalized, comments/newlines stripped
-- Codegen (`src/lib/codegenerator/generator.js`) emits `new Function('parent,component,context,components,effect,getRaw,Log', renderCode)` once per type plus an `effects` function for `:` bindings. Static bindings bake into `elementConfigs`; `{{}}` becomes string concat; `$foo → component.foo`; `%` dims resolve against parent; `w/h` (never `width/height`)
-- Consequence: template syntax errors surface at parse/codegen time — keep templates simple and let the parser do the work instead of building elements imperatively
-
-### Router Pattern
+### `this`-Preserving Invocation
 
 ```javascript
-// ✅ DO: declarative routes with lazy pages, hooks, and transitions
-export default Blits.Component('App', {
-  template: `<Element><RouterView /></Element>`,
-  routes: [
-    {
-      path: '/',
-      component: () => import('./pages/Home.js'), // hoist shared loaders — inline duplicates break reuseComponent
-      options: { keepAlive: true, inHistory: true, passFocus: true },
-      transition: { in: { prop: 'alpha', value: 1, duration: 300 } },
-      announce: 'Home page',
-    },
-  ],
-  hooks: {
-    init() {
-      this.$router.to('/')
-    },
-  },
-})
+// ✅ DO: .apply/.call with component receiver (src/component.js:257, src/component/setup/computed.js:43)
+(config.state && typeof config.state === 'function' && config.state.apply(this)) || {}
+return computeds[computed].apply(this)
+cb = inputEvents[key].call(componentWithInputEvent, event) // src/focus/focus.js:96
+result = await hooks[hookName].call(parent, route, previousRoute) // src/router/router.js:459
 ```
 
-Rules (`src/router/router.js`, `src/component/base/router.js`):
+### Router / Focus Internals Worth Knowing
 
-- Navigate via `this.$router.to(path, data, opts)` / `this.$router.back()`; read `this.$router.currentRoute`, `navigating`, `state.path/params/hash/data`. `$$router.state.path` is reactive in templates
-- `before` returning `false` cancels, a `string` redirects, `object.path` redirects. `keepAlive` caches only on forward `inHistory` navigation; otherwise the old view is destroyed
-- `keepAlive` and `reuseComponent` are mutually exclusive. Hoist `() => import()` loaders shared across routes
-- Named views: `<RouterView name="modal" />` + `this.$router.get('modal').to(...)`; resolver prefers single/default view and warns on miss
-
-### Focus & Input Pattern
-
-```javascript
-// ✅ DO: local input handlers, explicit focus movement
-export default Blits.Component('Menu', {
-  template: `<Element :x="0 - $focused * 300"><!-- items --></Element>`,
-  state() {
-    return { focused: 0 }
-  },
-  input: {
-    right() {
-      this.focused += 1
-    },
-    left() {
-      this.focused -= 1
-    },
-    enter() {
-      this.$select('detail').$focus()
-    },
-    any(e) {
-      /* fallback for unhandled keys */
-    },
-  },
-})
-```
-
-Rules (`src/focus/focus.js`, `src/application.js`, `docs/components/user_input.md`):
-
-- Single focused component + focus chain; `set()` skips `eol` / duplicates; leaf focus is async (honors `holdTimeout`)
-- Input bubbles to the nearest ancestor with a matching handler (`input.any` catches all). Control bubbling explicitly: `$parent.$focus(e)` moves focus and bubbles, `$parent.$focus()` moves only, `$parent.$input(e)` handles without moving
-- `keyup` handler = return a function from the input handler (`return () => {...}` or `return this.onKeyUp`)
-- Custom keys via `Blits.Launch(App, el, { keymap: { 83: 'search' } })`; defaults live in `src/constants.js` (arrows, enter, space, back, escape). `intercept(e)` on App only
-- Mouse is opt-in (`enableMouse: true` → hover + click-to-focus + click as Enter). Don't assume pointer input exists
-
-### Engine Abstraction Pattern
-
-```javascript
-// ✅ DO: go through stage.element / renderer singletons, never import L3/FTL directly in components
-import { stage, renderer } from './launch.js'
-```
-
-Rules (`src/engine.js`, `src/engines/`, `src/launch.js`):
-
-- Both engines expose `{ Element, Launch }` so `stage.element = engine.Element; renderer = engine.Launch(...)`. `renderer: 'l3'` (default, sync) vs `renderer: 'ftl'` (async, phase-1 core-only — ignores `renderQuality` / `pixelRatio` / `gpuMemory` / `advanced`)
-- Unknown engine names fall back to `l3` with a warning. New engine work belongs under `src/engines/<Name>/{element,launch,nodeAdapter}.js` plus shared code in `src/engines/common/`
-- Codegen imports `elementAttributes` from the L3 element for the prop-vs-attr split — keep that contract when touching element props
-
-### Plugin / Settings / Logging Pattern
-
-```javascript
-// ✅ DO: framework logging + settings + cleanup discipline
-import { Log } from './lib/log.js'
-import Settings from './settings.js'
-
-const level = Settings.get('debugLevel', 0)
-
-export default Blits.Component('Player', {
-  hooks: {
-    ready() {
-      this._timer = this.$setTimeout(() => this.$emit('loaded'), 500)
-      this.$listen('volume', this.onVolume)
-    },
-    destroy() {
-      this.$clearTimeout(this._timer)
-      this.$unlisten('volume', this.onVolume)
-    },
-  },
-  methods: {
-    onVolume(v) {
-      Log.info('volume changed', v)
-    },
-  },
-})
-```
-
-Rules (`src/lib/log.js`, `src/settings.js`, `src/plugin.js`, `src/component/base/`):
-
-- Use `Log.info/warn/error/debug` (gated by `Settings.debugLevel`), never raw `console.*` in framework code
-- `Settings.get(key, default)` / `Settings.set(obj)`; settings flow from `Launch()` — don't read DOM / env directly for configured values
-- Plugins: `registerPlugin(fn, name, opts)` → `this.$name` on every component; built-ins in `src/plugins/`. Keep plugins side-effect free until installed
-- Cleanup is mandatory: `destroy()` clears timeouts/intervals/debounces/listeners/renderer events/children. Always use `$setTimeout/$setInterval/$debounce/$clear*` and `$emit/$listen/$unlisten` so cleanup is automatic
+- Router (`src/router/router.js`): `navigate` at `:134` → `performNavigation` with `sameRouteObject` early-exit (`:177`), `executeBeforeHook` at `:447` (`false` cancels, `string`/`object.path` redirects), `loadPage` at `:495` (factory/promise/`Module.default`), `reuseComponent` re-props in place (`:261-268`) vs `keepAlive` cache (`:352-394`) vs `oldView.destroy()`. Route `params`/`data` are merged into props (`:250-268`) — components must declare them.
+- Focus (`src/focus/focus.js:43-104`): guards (`undefined`/`eol`/duplicate, `state.navigating`), ancestor-diff unfocus via `while (i--)`, parent path set to `focus`, leaf applied async honoring `holdTimeout` (`:79-82`); `getComponentWithInputEvent:113-123` bubbles to the nearest ancestor with a matching handler.
+- Engines (`src/engine.js:18`, `src/engines/index.js:18`): the engine exposes `{Element, Launch}`; `stage.element = engine.Element` (`src/launch.js:144`) and `renderer = engine.Launch(App, target, settings)` (`src/launch.js:146`). New engine work belongs under `src/engines/<Name>/{element,launch,nodeAdapter}.js`.
+- Plugins (`src/plugin.js:25-42`): `registerPlugin(fn, name, opts)` → `this.$name` on every component via `Object.defineProperties(Base, pluginInstances)` (`src/component.js:476`); `throw` on missing name (`src/plugin.js:35-36`). Built-ins in `src/plugins/`.
 
 ## Logging & Validation (Blits Equivalent of DEV Guards)
 
-Blits ships user-facing warnings via `Log` (controlled by `debugLevel` + vite `injectDevConfig`), not a compile-time `DEV` strip. Follow the same spirit: loud at the boundary, silent in the hot path.
+Blits has no compile-time strip — `Log` is runtime-gated by `Settings.get('debugLevel')` (`src/lib/log.js:41-117`), with `console.*` encapsulated inside the logger. Same spirit as FTL's `if (DEV)`: loud at the boundary, silent in the hot path.
 
 ```javascript
-// ✅ DO: validate once at public API boundaries
-import { Log } from './lib/log.js'
+// ✅ DO: Log.warn recoverable, Log.error contract violations — at setup/entry only
+Log.error(`State ${key} already exists as a prop`) // src/component/setup/state.js:49
+Log.warn('Defining props as an Array has been deprecated ...') // src/component/setup/props.js:22
+Log.warn(`RouterView "${routerViewName}" was not found ...`) // src/component/base/router.js:77
+Log.error(`Route ${hash.hash} not found`) // src/router/router.js:168
 
-const createRoute = (def) => {
-  if (def === undefined || def === null) {
-    Log.error('[Blits] navigate: route definition is required')
-    return
-  }
-  if (typeof def.path !== 'string') {
-    Log.error('[Blits] navigate: route path must be a string')
-    return
-  }
-  // ... production code follows unchanged
-}
+// ✅ DO: throw only for missing required contracts
+const required = (name) => { throw new Error(`Parameter ${name} is required`) } // src/component.js:47-49
+throw new Error('Component "${...}" not found') // src/lib/codegenerator/generator.js:415
+if (name === undefined || name === '') { throw Error('Error registering plugin: ...') } // src/plugin.js:35-36
 ```
 
 ### Rules
 
-1. **Only validate at public API boundaries** — `Component()`, `Application()`, `Launch()`, `navigate()` / `$router.to()`, `registerPlugin()`, template parse/codegen entry. Never inside effects, `frameTick`, or per-node updates
-2. **Use `Log.warn` for recoverable misuse, `Log.error` for contract violations** — e.g. props mutation warns (`src/component/setup/props.js`), name collisions error (`src/component/setup/state.js`, `src/component/setup/computed.js`), deprecated array props warn once
-3. **Use explicit comparisons** — `typeof x !== 'function'`, `x === null`, `Array.isArray(x) === true`. No truthy/falsy checks, consistent with the rest of the codebase
-4. **Never validate deeper than the top-level call** — check the argument exists and has the right shape. Don't recursively walk templates, routes, or state trees on every call
+1. **Only validate at public API boundaries** — `Component()`, `Application()`, `Launch()` (`src/launch.js:117-131`), `navigate()` / `$router.to()`, `registerPlugin()`, parser/generator entry. Never inside effects, `frameTick`, or per-node `populate`/`set`.
+2. **`Log.warn` recoverable misuse, `Log.error` contract violations** — name collisions error, deprecated array props warn once, props mutation warns (`src/component/setup/props.js:64-68`).
+3. **Explicit comparisons** — `typeof x !== 'function'`, `x === null`, `Array.isArray(x) === true`. No truthy/falsy checks.
+4. **Never validate deeper than the top-level call** — check the argument exists and has the right shape; don't recursively walk templates, routes, or state trees per call.
 
 ### What NOT to do
 
 ```javascript
-// ❌ NEVER: logging / validation in hot paths
+// ❌ NEVER: raw console in framework code — use Log
+console.warn(`${watch} is not a function`) // NO — src/component/setup/watch.js:26 is a known violation, don't copy it
+
+// ❌ NEVER: logging in hot paths
 const renderEffect = () => {
   Log.info('effect ran') // NO — fires on every state change
-}
-
-// ❌ NEVER: raw console in framework code
-console.warn('not a function') // NO — use Log (fixes like src/component/setup/watch.js input validation should use Log)
-
-// ❌ NEVER: deep validation of nested structures per call
-for (const key in template) {
-  /* NO — top-level only */
 }
 ```
 
@@ -413,32 +289,22 @@ for (const key in template) {
 ### Function Signature Style
 
 ```javascript
-// ✅ DO: Arrow functions for callbacks and internal helpers
-const processElements = (elements) => {
-  // ...
-}
+// ✅ DO: Arrow functions for pure/internal helpers
+const normalizeProps = (props) => { /* ... */ } // src/component/setup/props.js:21
+const reactiveProxy = (original, _parent = null, _key) => { /* ... */ } // src/lib/reactivity/reactive.js:31
+export const effect = (effect, key = null) => { /* ... */ } // src/lib/reactivity/effect.js:92
+export const getHash = (hash, routerViewName = '') => { /* ... */ } // src/router/utils.js:7
 
-const normalizeProps = (props) => {
-  // ...
-}
-
-// ✅ DO: Regular functions for anything that needs component `this`
-export default Blits.Component('Rail', {
-  state() {
-    return { focused: 0 }
-  },
-  methods: {
-    next() {
-      this.focused += 1
-    },
-  },
-  input: {
-    right() {
-      this.focused += 1
-    },
-  },
-})
+// ✅ DO: function + @this for anything needing component this
+// src/component/setup/index.js:32, src/component/base/methods.js:30-33
+export default function (component, config) { /* ... */ }
+/**
+ * @this {import('../../component').BlitsComponent}
+ */
+value: function (e) { /* ... */ }
 ```
+
+Codegen itself is `export default function (templateObject = { children: [] }, devMode = false)` (`src/lib/codegenerator/generator.js:23`) — `function` because the precompiler invokes it with `.call({components}, …)`.
 
 ### JSDoc Type Annotations
 
@@ -446,15 +312,9 @@ export default Blits.Component('Rail', {
 
 **Do not use the `any` type in JSDoc.**
 
-Standard `@param {Type}`, `@returns {Type}`, `@this {Type}`, and `@typedef` blocks are encouraged — Blits already documents `BlitsComponent`, `BlitsElement`, `BlitsSettings`, and `Route` this way.
+Standard `@param {Type}`, `@returns {Type}`, `@this {Type}`, and `@typedef` blocks are required on new public APIs — see `@typedef {Object} BlitsSettings` + `@property` entries (`src/launch.js:65-95`), `BlitsComponent`/`BlitsComponentConfig` (`src/component.js:127-199`), `Route`/`Hash` (`src/router/router.js:38-79`), `BlitsSymbols` (`src/lib/symbols.js:18-73`).
 
 ```javascript
-/**
- * @typedef {Object} RailState
- * @property {number} focused - Focused item index
- * @property {number} range - Rendered range cursor
- */
-
 /**
  * Clamp the focused index.
  * @param {number} next - Requested index
@@ -467,65 +327,62 @@ const clampFocused = (next) => {
 
 ## What to NEVER Do
 
-1. **Never use classes for components** - Use `Blits.Component(name, config)` factories
-2. **Never use arrow functions for `state` / `methods` / `computed` / `watch` / `input` / `hooks`** - They need component `this`
-3. **Never mutate `props` directly** - Props are owned by the parent / router
-4. **Never reuse a name across `state` / `prop` / `method` / `computed`** - Setup logs errors and behavior is undefined
-5. **Never use `:for` without `:key`** - Use a stable id (`:key="$item.id"`); never index as key for mutable lists
-6. **Never render unbounded lists** - Window with `:range` (+ 5–10 lookahead) and grow on next tick via `$setTimeout`
-7. **Never do heavy work in `frameTick`, effects, or watchers** - No allocation, no deep walks, no logging per frame
-8. **Never use truthy/falsy checks** - Use explicit comparisons (`=== null`, `!== undefined`, `Array.isArray(x) === true`)
-9. **Never nest more than 3 levels deep** - Use early returns (`undefined` / `eol` / duplicate-focus checks first)
-10. **Never use raw `console.*` in framework code** - Use `Log.info/warn/error/debug`
-11. **Never use string keys for framework internals** - Use `symbols.*` (`symbols.state`, `symbols.props`, `symbols.routes`, ...)
-12. **Never use `width` / `height`** - Element dims are `w` / `h`
-13. **Never leak timers / listeners / renderer events** - Use `$setTimeout/$setInterval/$debounce/$emit/$listen` so `destroy()` cleans up
-14. **Never use inline JSDoc type casts** - Write `@param` without `{Type}` inline expressions
-15. **Never use the `any` type in JSDoc** - Be specific or omit the type
+1. **Never use classes for framework objects** - Factories, plain objects, `Object.create`/`Object.defineProperties`
+2. **Never use arrow functions where component `this` is needed** - Setup runners, `value: function` descriptors, and all user-callback invocations use `.apply(this)`/`.call(this)`
+3. **Never use string keys for framework internals** - Use `symbols.*`; `Symbol.for()` only for keys generated code must share
+4. **Never change a codegen `new Function` signature on one side only** - `src/lib/codegenerator/generator.js:91-113`, `src/component.js:273-281,379-394`, `src/lib/precompiler/precompiler.js:56-61`, and `generator.test.js` change together
+5. **Never add validation/logging to hot paths** - No `Log`, no checks inside `track`/`trigger`, array-patch wrappers, `effect` bodies, `frameTick` handlers, or per-node `populate`/`set`
+6. **Never use truthy/falsy checks** - Explicit `=== null`, `!== undefined`, `Array.isArray(x) === true`, `indexOf(...) > -1`
+7. **Never use forEach/map in reactive or per-frame paths** - Indexed `for` with cached length; `while` for walks; `for...in` for user tables
+8. **Never nest more than 3 levels deep** - Early returns (`undefined` / `eol` / duplicate / `navigating` guards first)
+9. **Never use raw `console.*` in framework code** - `Log.info/warn/error/debug` (gated by `debugLevel`); `throw` only for missing required contracts
+10. **Never break the setup order** - `identifier → hooks → props → methods → state → computed → watch → router → input` (`src/component/setup/index.js:32-62`); new keys validate collisions like `src/component/setup/state.js` / `src/component/setup/computed.js` do
+11. **Never leak timers / listeners / renderer events** - Route through `$setTimeout`/`$setInterval`/`$debounce`/`$emit`/`$listen` so `destroy()` cleans up
+12. **Never use inline JSDoc type casts** - No `/** @type {X} */ (expr)`; no `any` in JSDoc
 
 ## Code Review Checklist
 
 Before submitting code, verify:
 
-- [ ] Components use `Blits.Component` / `Blits.Application` factories (no classes)
-- [ ] `state` / `methods` / `computed` / `watch` / `input` / `hooks` are regular functions (correct `this`)
-- [ ] No name collisions across `state` / `props` / `methods` / `computed`
-- [ ] Props are never mutated; route params are declared as props before use
-- [ ] Template bindings use the cheapest tier (`static` > `$` once > `:` reactive); complex expressions moved to `computed` / `methods`
-- [ ] Every `:for` has a stable `:key`; large lists add `:range` with lookahead and next-tick growth
-- [ ] No `:for` on template root; custom tags registered in `components`; `ref` + `$select` used for imperative access
-- [ ] Focus moves explicitly (`$focus` / `$input` / `$router`); input bubbling is intentional (`any` only as fallback); `keyup` uses returned callbacks
-- [ ] Router changes hoist shared `() => import()` loaders; `keepAlive` and `reuseComponent` not combined; `passFocus` / `inHistory` set deliberately
-- [ ] No heavy work, allocation, or logging in `frameTick` / effects / watchers; transitions use `.transition` bindings
-- [ ] All comparisons are explicit (`===`, `!==`, `Array.isArray(x) === true`)
-- [ ] Early returns implemented; no nesting beyond 3 levels; `eol` / `undefined` guards on top
-- [ ] Framework internals use `symbols.*`, `Settings.get/set`, and `Log.*` (no `console`, no direct env reads)
-- [ ] Timers / listeners / renderer subscriptions use `$`-helpers and are released in `destroy`
-- [ ] Element dims are `w` / `h`; colors are CSS strings; `%` dims used only where parent-relative sizing is intended
-- [ ] No inline JSDoc casts; no `any` in JSDoc; new public APIs carry `@param` / `@returns` / `@typedef`
-- [ ] Tests added/updated (`tape` + `global-jsdom`; `renderComponent` fixture with `focus()` before `input()` and `destroy()` after); `npm run test:run` and `npm run lint` pass
+- [ ] Factories / plain objects / `Object.create` / `Object.defineProperties` used; no new `class` in framework code
+- [ ] Arrows for helpers, `function` + `@this` where component `this` matters; user callbacks invoked via `.apply(this)`/`.call(this)`
+- [ ] Framework slots use `symbols.*` (`Symbol.for()` only for generated-code keys); no new string keys on components/elements
+- [ ] Codegen signature changes applied on all sides: `generator.js`, `component.js` call sites, `precompiler.js`, `generator.test.js`/`parser.test.js`
+- [ ] New template syntax follows the ordered recipe (parser → key prefix → element/component branches → value grammar → runtime transformer → tests); `skips`/`elementAttributes` contract preserved
+- [ ] New config keys follow the setup recipe (setup module → collision checks → ordered wiring → codegen if template-visible → cleanup)
+- [ ] Engine changes preserve the `{Element, Launch}` facade
+- [ ] All comparisons explicit (`===`, `!==`, `Array.isArray(x) === true`, `indexOf > -1` in hot paths)
+- [ ] Indexed `for` / `while` in hot paths; no `forEach`/`map` outside setup; no nesting beyond 3 levels; early returns on top
+- [ ] No allocation, deep walks, or logging in `track`/`trigger`, effects, watchers, `frameTick`, or `populate`/`set`; equality short-circuits preserved
+- [ ] `Log.warn` recoverable / `Log.error` violations at boundaries only; `throw` only for missing contracts; no `console.*`
+- [ ] No inline JSDoc casts; no `any`; new public APIs carry `@param` / `@returns` / `@typedef` / `@this`
+- [ ] Style matches enforcement: single quotes, no semicolons, 2-space indent, print width 100, LF (`eslint.config.cjs:61-86`, `.editorconfig`)
+- [ ] Tests added/updated (`tape` + `global-jsdom`; codegen tests assert emitted strings; `renderComponent` fixture with `focus()` before `input()` and `destroy()` after); `npm run test:run` and `npm run lint` pass
 
 ## Common Patterns to Follow
 
 Look at these files for reference patterns:
 
-- [`src/component.js`](src/component.js) - Component factory + Holder/Wrapper/Elements assembly
-- [`src/component/base/index.js`](src/component/base/index.js) - Base composition (`methods`, `router`, `events`, `timeouts`, `announcer`, `$reactive`)
-- [`src/component/setup/index.js`](src/component/setup/index.js) - Setup order (hooks → props → methods → state → computed → watch → routes → input)
-- [`src/lib/templateparser/parser.js`](src/lib/templateparser/parser.js) - Template parsing constraints
-- [`src/lib/codegenerator/generator.js`](src/lib/codegenerator/generator.js) - Static vs reactive codegen
-- [`src/lib/reactivity/reactive.js`](src/lib/reactivity/reactive.js) + [`src/lib/reactivity/effect.js`](src/lib/reactivity/effect.js) - Proxy reactivity + effects
-- [`src/lib/lifecycle.js`](src/lib/lifecycle.js) - Lifecycle states (`init`, `ready`, `focus`, `unfocus`, `destroy`, `attach`/`detach`, `enter`/`exit`)
-- [`src/router/router.js`](src/router/router.js) - Navigation flow, transitions, `keepAlive` cache
+- [`src/component.js`](src/component.js) - Component factory, codegen invocation, effects/watcher wiring, plugin installation
+- [`src/component/base/index.js`](src/component/base/index.js) - `defineProperties` composition (`methods`, `scheduling`, `shared`, `utils`)
+- [`src/component/setup/index.js`](src/component/setup/index.js) - Setup order and per-key modules (`props.js`, `state.js`, `computed.js`, `watch.js`, `input.js`, `routes.js`)
+- [`src/lib/symbols.js`](src/lib/symbols.js) - `Symbol()` vs `Symbol.for()` registry
+- [`src/lib/templateparser/parser.js`](src/lib/templateparser/parser.js) - Cursor parser, attribute grammar, structural rules
+- [`src/lib/codegenerator/generator.js`](src/lib/codegenerator/generator.js) - Static/dynamic/reactive emission, `interpolate`/`cast`, `:for` internals
+- [`src/lib/reactivity/reactive.js`](src/lib/reactivity/reactive.js) + [`src/lib/reactivity/effect.js`](src/lib/reactivity/effect.js) - Proxy reactivity, sync effects, equality guards
+- [`src/lib/lifecycle.js`](src/lib/lifecycle.js) - Lifecycle states and transitions
+- [`src/lib/hooks.js`](src/lib/hooks.js) - Hook registration/emission
+- [`src/lib/precompiler/precompiler.js`](src/lib/precompiler/precompiler.js) + [`vite/`](vite/) - AOT precompile, `reactivityGuard`, plugin order
+- [`src/router/router.js`](src/router/router.js) - Navigation flow, reuse vs `keepAlive` vs destroy
 - [`src/focus/focus.js`](src/focus/focus.js) - Focus chain + input bubbling
-- [`src/application.js`](src/application.js) - App bootstrap, keymap, hold, mouse support
-- [`src/engine.js`](src/engine.js) + [`src/engines/`](src/engines/) - L3 / FTL engine abstraction
-- [`src/launch.js`](src/launch.js) - `Launch()` settings and renderer/stage singletons
-- [`src/settings.js`](src/settings.js) + [`src/lib/log.js`](src/lib/log.js) - Settings + gated logging
+- [`src/launch.js`](src/launch.js) - `Launch()` settings, engine selection, singletons
+- [`src/engine.js`](src/engine.js) + [`src/engines/`](src/engines/) - `{Element, Launch}` facade and L3 implementation
+- [`src/settings.js`](src/settings.js) + [`src/lib/log.js`](src/lib/log.js) - Settings store + gated logging
 - [`src/plugin.js`](src/plugin.js) + [`src/plugins/`](src/plugins/) - Plugin registration
-- [`vite/index.js`](vite/index.js) - Vite plugins (`preCompiler`, `reactivityGuard`, `blitsFileConverter`)
 - [`src/testing/`](src/testing/) - `renderComponent` test harness
 
-App-side guidance lives in `docs/`: template syntax (`docs/essentials/template_syntax.md`), element attributes (`docs/essentials/element_attributes.md`), `for`-loops (`docs/built-in/for-loop.md`), lazy loading (`docs/performance/lazy-loading.md`), router (`docs/router/`), user input (`docs/components/user_input.md`), and testing (`docs/testing/test-harness.md`).
+## Appendix: App-Developer Primer (Context, Not the Job)
 
-Remember: Blits is an app framework for constrained TV hardware. Keep the authoring experience delightful and the runtime fast — declarative templates, explicit reactivity, windowed lists, cheap frames, and clean teardown.
+Framework changes must be validated against app ergonomics. The one-paragraph version: templates have three binding tiers — `attr="literal"` (static, baked once), `attr="$var"` (dynamic, set once), `:attr="expr"` (reactive, subscribes one `effect` per binding, so it is the most expensive). Lists need `:for` + stable `:key="$item.id"` + `:range` windowing for rails; input is local handlers bubbling to the nearest ancestor with a match; routes lazy-load via `() => import()` with `keepAlive`/`reuseComponent` mutually exclusive. Details live in `docs/`: template syntax (`docs/essentials/template_syntax.md`), element attributes (`docs/essentials/element_attributes.md`), `for`-loops (`docs/built-in/for-loop.md`), lazy loading (`docs/performance/lazy-loading.md`), router (`docs/router/`), user input (`docs/components/user_input.md`), testing (`docs/testing/test-harness.md`).
+
+Remember: you are building the framework, not the app. Do work once at parse/setup time, keep every per-frame path allocation-free and log-free, honor the codegen and symbols contracts, and keep the authoring experience delightful.
