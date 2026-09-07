@@ -45,6 +45,10 @@ import { configurePlatform } from './platform.js'
  * @type {RendererMain | {}}
  */
 export let renderer = {}
+/**
+ * @typedef {import('./engines/L3/animation').AnimationEngine} AnimationEngine
+ * @type {AnimationEngine | {}}
+ */
 export let animationEngine = {}
 export const stage = {}
 
