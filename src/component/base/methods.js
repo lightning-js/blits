@@ -16,7 +16,12 @@
  */
 
 import symbols from '../../lib/symbols.js'
-import { default as Focus, keyUpCallbacks, getComponentWithInputEvent } from '../../focus/focus.js'
+import {
+  default as Focus,
+  keyUpCallbacks,
+  getComponentWithInputEvent,
+  removeKeyUpCallbacks,
+} from '../../focus/focus.js'
 import eventListeners from '../../lib/eventListeners.js'
 import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
@@ -71,7 +76,7 @@ export default {
       }
 
       if (cb !== undefined && event.keyCode) {
-        keyUpCallbacks.set(event.keyCode, cb)
+        keyUpCallbacks.set(event.keyCode, { callback: cb, component: componentWithInputEvent })
       }
 
       return true
@@ -98,6 +103,7 @@ export default {
      */
     value: function () {
       this.eol = true
+      removeKeyUpCallbacks(this)
       this[symbols.lifecycle].state = 'destroy'
 
       removeEffects(this[symbols.effects])

@@ -1088,7 +1088,7 @@ test('Element - Destroy created Element node', (assert) => {
   const el = createElement()
   el.set('w', { transition: { value: 100, duration: 4000 } })
   el.destroy()
-  assert.equal(el.node, null, 'Node should set to null')
+  assert.equal(el.node, undefined, 'Node should be set to undefined')
   assert.equal(el.component, undefined, 'Component should be deleted from element')
   assert.equal(el.props, undefined, 'Props should be deleted from element')
   assert.equal(el.config, undefined, 'Config should be deleted from element')
@@ -1341,13 +1341,13 @@ test('Element - Transition progress callback', (assert) => {
   }, 100)
 })
 
-test('Element - Transition end when node undefined', (assert) => {
+test('Element - Transition callbacks do not run after destroy', (assert) => {
   assert.capture(renderer, 'createNode', () => new CustomNode())
   const el = createElement()
   const endSpy = sinon.spy()
   el.set('w', { transition: { value: 100, duration: 100, end: endSpy } })
   setTimeout(() => {
-    el.node = undefined
+    el.destroy()
   }, 20)
   setTimeout(() => {
     assert.notOk(endSpy.called, 'End should not be called')

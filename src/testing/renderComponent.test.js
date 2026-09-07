@@ -19,6 +19,7 @@ import test from 'tape'
 import Component from '../component.js'
 import { renderComponent } from './index.js'
 import symbols from '../lib/symbols.js'
+import { keyUpCallbacks } from '../focus/focus.js'
 
 test('renderComponent snapshots a component with initial props', (assert) => {
   const Button = Component('Button', {
@@ -578,6 +579,33 @@ test('renderComponent input accepts a custom keyboard event', async (assert) => 
   assert.equal(fixture.snapshot().state.keyCode, 13, 'Custom event should be passed to handler')
 
   fixture.destroy()
+  assert.end()
+})
+
+test('Destroy removes a pending key release callback owned by the component', async (assert) => {
+  const Button = Component('KeyReleaseButton', {
+    template: '<Element />',
+    input: {
+      enter() {
+        return () => {}
+      },
+    },
+  })
+
+  const fixture = renderComponent(Button)
+  const event = fixture.createKeyboardEvent('enter', { keyCode: 13 })
+
+  await fixture.focus()
+  fixture.input('enter', event)
+  assert.true(keyUpCallbacks.has(13), 'keydown should register its keyup callback')
+
+  fixture.destroy()
+  assert.false(
+    keyUpCallbacks.has(13),
+    "destroy should remove the component's pending keyup callback"
+  )
+
+  keyUpCallbacks.delete(13)
   assert.end()
 })
 

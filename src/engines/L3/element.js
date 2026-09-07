@@ -946,7 +946,7 @@ const Element = {
     delete this.forComponent
 
     this.node.destroy()
-    this.node = null
+    this.node = undefined
   },
   get nodeId() {
     return this.node && this.node.id
