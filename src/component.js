@@ -180,6 +180,7 @@ export const componentMap = new WeakMap()
  * @property {BlitsAnnouncer} $announcer - The announcer object for the component instance
  * @property {function(targets: JSTargetsParam, params: AnimatableParams): Animatable} $animatable - Creates an animatable for the component instance
  * @property {function(targets: JSTargetsParam, params: AnimationParams): JSAnimation} $animate - Creates an animation for the component instance
+ * @property {() => void} $cancelAnimations - Cancels all active animations and clears the active animations map
  * @property {() => void} $clearTimeouts - Clears all timeouts created by the component instance
  * @property {(timeoutId: number) => void} $clearTimeout - Clears all timeouts created by the component instance
  * @property {() => void} $clearIntervals - Clears all intervals created by the component instance
