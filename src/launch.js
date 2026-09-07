@@ -18,7 +18,7 @@
 import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import engine from './engine.js'
-import blitsPackageInfo from '../package.json' // with { type: 'json' }
+import blitsPackageInfo from '../package.json' with { type: 'json' }
 import { configurePlatform } from './platform.js'
 
 /**

@@ -3,7 +3,7 @@
     "target": "ES2020",
     "module": "ESNext",
     "allowJs": true,
-    "checkJs": false,
+    "checkJs": true,
     "moduleResolution": "node",
     "baseUrl": "./"
   },
