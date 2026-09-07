@@ -206,6 +206,7 @@ const cancelAnimations = (activeAnimations) => {
  * @property {function} createAnimation - Creates an animation for the given targets and properties
  * @property {function} createTimer - Creates a timer with the given properties
  * @property {function} createTimeline - Creates a timeline with the given properties
+ * @property {function} cancelAnimations - Cancels all active animations and clears the active animations map
  */
 export default {
   init,
