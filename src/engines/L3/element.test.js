@@ -1182,11 +1182,6 @@ class CustomNode extends EventEmitter {
     }, 0)
   }
 
-  animate(props, transObj) {
-    const animationEmitter = new CustomAnimator(this, props, transObj)
-    return animationEmitter
-  }
-
   destroy() {}
   fail() {
     this.emit('failed')

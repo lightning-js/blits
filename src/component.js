@@ -178,8 +178,8 @@ export const componentMap = new WeakMap()
  * @property {function(): void} unfocus - Clears the focus state and sets lifecycle to 'unfocus'.
  * Builtins:
  * @property {BlitsAnnouncer} $announcer - The announcer object for the component instance
- * @property {function(targets: JSTargetsParam, params: AnimatableParams): Animatable} $animatable - Creates an animatable for the component instance
- * @property {function(targets: JSTargetsParam, params: AnimationParams): JSAnimation} $animate - Creates an animation for the component instance
+ * @property {function(JSTargetsParam, AnimatableParams): Animatable} $animatable - Creates an animatable for the component instance
+ * @property {function(JSTargetsParam, AnimationParams): JSAnimation} $animate - Creates an animation for the component instance
  * @property {() => void} $cancelAnimations - Cancels all active animations and clears the active animations map
  * @property {() => void} $clearTimeouts - Clears all timeouts created by the component instance
  * @property {(timeoutId: number) => void} $clearTimeout - Clears all timeouts created by the component instance
@@ -197,8 +197,8 @@ export const componentMap = new WeakMap()
  * @property {function(any): any} $setTimeout - Sets a timeout for the component instance
  * @property {function(any): any} $size - The size object for the component instance
  * @property {function(any): any} $sizes - The sizes object for the component instance
- * @property {function(params: TimelineParams): Timeline} $timeline - Creates a timeline for the component instance
- * @property {function(params: TimerParams): Timer} $timer - Creates a timer for the component instance
+ * @property {function(TimelineParams): Timeline} $timeline - Creates a timeline for the component instance
+ * @property {function(TimerParams): Timer} $timer - Creates a timer for the component instance
  * @property {function(string): void} $trigger - Forces a reactivity trigger on a property in `originalState`.
  * @property {function(any): any} $unlisten - The unlisten object for the component instance
  *

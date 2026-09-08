@@ -91,10 +91,15 @@ const createAnimatableElement = (element, props, keys) => {
 
 const applyCallbacksWithElement = (element, animation, key, settings) => {
   const updateFns = []
+  const startValue = element.node[key]
   animation.onBegin = () => {
     if (element.eol === true) return
     if (element.component !== undefined) {
       element.component[symbols.activeAnimations].set(animation.id, animation)
+    }
+    if (settings.start !== undefined && typeof settings.start === 'function') {
+      // fire transition start callback when animation really starts (depending on specified delay)
+      settings.start.call(element.component, element, key, startValue)
     }
 
     globalActiveAnimationCount++
