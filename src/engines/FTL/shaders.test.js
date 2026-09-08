@@ -51,6 +51,7 @@ const mockModules = () => {
     'RoundedWithBorderAndShadowShader',
     'LinearGradientShader',
     'RadialGradientShader',
+    'BilinearShader',
     'HolePunchShader',
   ]) {
     mods[key] = { __key: key }
@@ -159,7 +160,53 @@ test('shaders - parseGradientColor', (assert) => {
   )
 
   const single = parseGradientColor({ top: '#ff0000' })
-  assert.deepEqual(single.solid, [1, 0, 0, 1], 'single key degrades to solid')
+  assert.equal(single.solid, undefined, 'single key is a fade, not a solid')
+  assert.equal(single.fade, true, 'single key sets fade flag')
+  assert.deepEqual(single.colors[0], [1, 0, 0, 1], 'fade starts opaque')
+  assert.deepEqual(single.colors[1], [1, 0, 0, 0], 'fade ends transparent')
+  assert.deepEqual(single.stops, [0, 1], 'fade stops span full range')
+  assert.ok(Math.abs(single.angle - 0) < 1e-9, 'top-only fade runs top->bottom (angle 0)')
+
+  const bottomOnly = parseGradientColor({ bottom: '#ff0000' })
+  assert.equal(bottomOnly.fade, true, 'bottom-only is a fade')
+  assert.ok(Math.abs(bottomOnly.angle - Math.PI) < 1e-9, 'bottom-only fade runs bottom->top')
+
+  const leftOnly = parseGradientColor({ left: '#ff0000' })
+  assert.equal(leftOnly.fade, true, 'left-only is a fade')
+
+  // Opaque axis pairs stay on the linear path with no fade flag.
+  const opaqueAxis = parseGradientColor({ top: '#44037a', bottom: '#240244' })
+  assert.equal(opaqueAxis.corners, undefined, 'axis pair is not bilinear')
+  assert.equal(opaqueAxis.fade, undefined, 'opaque stops need no fade')
+  assert.equal(opaqueAxis.colors.length, 2, 'two linear stops')
+
+  // Translucent stops on the linear path opt into alpha propagation.
+  const translucentAxis = parseGradientColor({ top: 'transparent', bottom: '#444444' })
+  assert.equal(translucentAxis.corners, undefined, 'axis pair is not bilinear')
+  assert.equal(translucentAxis.fade, true, 'translucent stop sets fade flag')
+
+  const semiAxis = parseGradientColor({ left: '#475569aa', right: '#64748baa' })
+  assert.equal(semiAxis.fade, true, 'semi-transparent stops set fade flag')
+
+  // Adjacent pairs resolve to bilinear corners (L3 resolveNodeDefaults
+  // parity: missing edges default to transparent black).
+  const adjacent = parseGradientColor({ top: '#0891b2', right: '#f87171' })
+  assert.ok(
+    Array.isArray(adjacent.corners) && adjacent.corners.length === 4,
+    'adjacent pair is bilinear'
+  )
+  assert.deepEqual(adjacent.corners[0], [8 / 255, 145 / 255, 178 / 255, 1], 'Tl = top')
+  assert.deepEqual(adjacent.corners[1], [8 / 255, 145 / 255, 178 / 255, 1], 'Tr = top ?? right')
+  assert.deepEqual(adjacent.corners[2], [0, 0, 0, 0], 'Bl defaults transparent')
+  assert.deepEqual(adjacent.corners[3], [248 / 255, 113 / 255, 113 / 255, 1], 'Br = right')
+
+  const threeKeys = parseGradientColor({ top: '#ff0000', left: '#00ff00', bottom: '#0000ff' })
+  assert.ok(
+    Array.isArray(threeKeys.corners) && threeKeys.corners.length === 4,
+    'three keys are bilinear'
+  )
+  assert.deepEqual(threeKeys.corners[0], [1, 0, 0, 1], 'Tl = top ?? left')
+  assert.deepEqual(threeKeys.corners[2], [0, 0, 1, 1], 'Bl = bottom ?? left')
 
   assert.equal(parseGradientColor({}), null, 'no known keys -> null')
   assert.end()
@@ -199,6 +246,12 @@ test('shaders - createShaderInstance needs injected modules', (assert) => {
   const instance = createShaderInstance({ kind: 'rounded', fields: { radius: 12 } })
   assert.equal(instance.__module, 'RoundedShader', 'right module')
   assert.equal(instance.radius, 12, 'fields assigned')
+  const bilinear = createShaderInstance({
+    kind: 'bilinearGradient',
+    fields: { corners: [[[1, 0, 0, 1]]] },
+  })
+  assert.equal(bilinear.__module, 'BilinearShader', 'bilinear kind dispatches')
+  assert.deepEqual(bilinear.corners, [[[1, 0, 0, 1]]], 'corners assigned')
   assert.equal(createShaderInstance({ kind: 'nope', fields: {} }), null, 'unknown kind -> null')
   assert.end()
 })

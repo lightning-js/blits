@@ -273,6 +273,7 @@ export default async (App, target, settings = {}, onRenderer) => {
       RoundedWithBorderAndShadowShader: shaderMods.RoundedWithBorderAndShadowShader,
       LinearGradientShader: shaderMods.LinearGradientShader,
       RadialGradientShader: shaderMods.RadialGradientShader,
+      BilinearShader: shaderMods.BilinearShader,
       HolePunchShader: shaderMods.HolePunchShader,
     }
     bridge.setShaderModules(mods)
@@ -285,6 +286,7 @@ export default async (App, target, settings = {}, onRenderer) => {
       'RoundedWithBorderAndShadowShader',
       'LinearGradientShader',
       'RadialGradientShader',
+      'BilinearShader',
       'HolePunchShader',
     ].map((key) => mods.createShader(mods[key]))
   } catch (e) {

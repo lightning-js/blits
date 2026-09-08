@@ -176,14 +176,44 @@ const gradientCorners = {
 }
 
 /**
- * Translate a gradient `color` object (`{top,bottom,left,right}`, any subset)
- * to `{ colors, stops, angle }` for the FTL LinearGradientShader.
- * - Axis pairs map exactly (left->right angle 0, top->bottom PI/2).
- * - Corner pairs map to the diagonal angle (approximation of L3's bilinear
- *   4-corner blend — visually close, documented).
- * - A single key degrades to a solid color (returned as `solid`).
+ * Resolve the four bilinear corner colors for a gradient `color` object,
+ * mirroring L3's `Stage.resolveNodeDefaults` (Tl = top ?? left, Tr = top ??
+ * right, Bl = bottom ?? left, Br = bottom ?? right). L3 sets `color=0`
+ * (transparent black) alongside the edge colors, so a missing corner
+ * resolves to `[0,0,0,0]`.
  * @param {object} obj
- * @returns {{ solid?: number[], colors?: number[][], stops?: number[], angle?: number }|null}
+ * @returns {number[][]} [topLeft, topRight, bottomLeft, bottomRight]
+ */
+export const resolveGradientCorners = (obj) => {
+  const edge = {}
+  const keys = Object.keys(obj)
+  for (let i = 0; i < keys.length; i++) {
+    const k = keys[i]
+    if (gradientCorners[k] !== undefined && obj[k] !== undefined) edge[k] = colorToFtl(obj[k])
+  }
+  const transparent = [0, 0, 0, 0]
+  return [
+    edge.top !== undefined ? edge.top : edge.left !== undefined ? edge.left : transparent,
+    edge.top !== undefined ? edge.top : edge.right !== undefined ? edge.right : transparent,
+    edge.bottom !== undefined ? edge.bottom : edge.left !== undefined ? edge.left : transparent,
+    edge.bottom !== undefined ? edge.bottom : edge.right !== undefined ? edge.right : transparent,
+  ]
+}
+
+/**
+ * Translate a gradient `color` object (`{top,bottom,left,right}`, any subset)
+ * for FTL rendering.
+ * - A single key is an L3-style fade: opaque color -> transparent of the
+ *   same RGB (identical to L3's transparent-black default in premultiplied
+ *   space). Returned with `fade: true` for the LinearGradientShader.
+ * - Axis pairs (top+bottom, left+right) map exactly to the
+ *   LinearGradientShader angle. When any stop is translucent, `fade: true`
+ *   is set so alpha propagates (L3 interpolates alpha per-vertex).
+ * - Adjacent pairs and 3-4 keys resolve to four bilinear corners
+ *   (L3 `resolveNodeDefaults` parity) for the BilinearShader — no linear
+ *   gradient can reproduce that field.
+ * @param {object} obj
+ * @returns {{ solid?: number[], colors?: number[][], stops?: number[], angle?: number, fade?: boolean, corners?: number[][] }|null}
  */
 export const parseGradientColor = (obj) => {
   if (obj === undefined || obj === null || typeof obj !== 'object') return null
@@ -193,14 +223,39 @@ export const parseGradientColor = (obj) => {
     return null
   }
   if (keys.length === 1) {
-    return { solid: colorToFtl(obj[keys[0]]) }
+    const opaque = colorToFtl(obj[keys[0]])
+    const transparent = [opaque[0], opaque[1], opaque[2], 0]
+    const key = keys[0]
+    // Direction: fade runs from the named edge toward the opposite edge,
+    // matching L3's vertex interpolation (e.g. `{top}` = opaque at top).
+    const far = { top: 'bottom', bottom: 'top', left: 'right', right: 'left' }[key]
+    const dx = gradientCorners[far][0] - gradientCorners[key][0]
+    const dy = gradientCorners[far][1] - gradientCorners[key][1]
+    const tau = Math.PI * 2
+    const raw = Math.atan2(-dy, -dx) + Math.PI / 2
+    return {
+      colors: [opaque, transparent],
+      stops: [0, 1],
+      angle: ((raw % tau) + tau) % tau,
+      fade: true,
+    }
+  }
+  const hasTop = keys.indexOf('top') !== -1
+  const hasBottom = keys.indexOf('bottom') !== -1
+  const hasLeft = keys.indexOf('left') !== -1
+  const hasRight = keys.indexOf('right') !== -1
+  const isAxisPair =
+    keys.length === 2 &&
+    ((hasTop === true && hasBottom === true) || (hasLeft === true && hasRight === true))
+  if (isAxisPair === false) {
+    return { corners: resolveGradientCorners(obj) }
   }
   const first = keys[0]
   const last = keys[keys.length - 1]
   const dx = gradientCorners[last][0] - gradientCorners[first][0]
   const dy = gradientCorners[last][1] - gradientCorners[first][1]
   const colors = keys.map((k) => colorToFtl(obj[k]))
-  const stops = keys.map((_, i) => (keys.length === 1 ? 0 : i / (keys.length - 1)))
+  const stops = keys.map((_, i) => i / (keys.length - 1))
   // FTL geometry: dist grows along gradVec = (-cos A, -sin A) with
   // A = angle - 90° (screen coords, y down). Solving gradVec ~ (dx, dy) for
   // the desired start->end direction gives angle = atan2(-dy, -dx) + PI/2
@@ -208,7 +263,15 @@ export const parseGradientColor = (obj) => {
   // normalized to [0, 2PI) for stable tests and uniforms.
   const tau = Math.PI * 2
   const raw = Math.atan2(-dy, -dx) + Math.PI / 2
-  return { colors, stops, angle: ((raw % tau) + tau) % tau }
+  const out = { colors, stops, angle: ((raw % tau) + tau) % tau }
+  // Any translucent stop needs alpha propagation (L3 interpolates alpha).
+  for (let i = 0; i < colors.length; i++) {
+    if (colors[i][3] < 1) {
+      out.fade = true
+      break
+    }
+  }
+  return out
 }
 
 /**
@@ -393,6 +456,7 @@ const kindToModule = {
   roundedWithBorderAndShadow: 'RoundedWithBorderAndShadowShader',
   linearGradient: 'LinearGradientShader',
   radialGradient: 'RadialGradientShader',
+  bilinearGradient: 'BilinearShader',
   holePunch: 'HolePunchShader',
 }
 

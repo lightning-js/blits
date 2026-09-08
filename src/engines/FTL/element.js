@@ -300,7 +300,9 @@ const propsTransformer = {
             ? parsed.solid
             : parsed !== null && parsed.colors !== undefined
               ? parsed.colors[0]
-              : [1, 1, 1, 1]
+              : parsed !== null && parsed.corners !== undefined
+                ? parsed.corners[0]
+                : [1, 1, 1, 1]
       }
     }
   },
@@ -922,7 +924,17 @@ const Element = {
       if (isText === true) {
         parsed = null
       }
-      if (parsed !== null && parsed.colors !== undefined) {
+      if (parsed !== null && parsed.corners !== undefined) {
+        desc = {
+          kind: 'bilinearGradient',
+          fields: { corners: parsed.corners },
+        }
+        // Neutral base so the corners show unmodified (corner alpha
+        // multiplies through base alpha).
+        if (this.node.color === null || this.node.color === undefined) {
+          adapter.setProp(this.node, 'color', [1, 1, 1, 1])
+        }
+      } else if (parsed !== null && parsed.colors !== undefined) {
         if (parsed.colors.length > 8) parsed.colors = parsed.colors.slice(0, 8)
         desc = {
           kind: 'linearGradient',
@@ -932,6 +944,7 @@ const Element = {
             angle: parsed.angle !== undefined ? parsed.angle : 0,
           },
         }
+        if (parsed.fade === true) desc.fields.fade = true
         // Neutral base so the gradient shows unmodified (base rgb mixes by
         // gradient alpha, base alpha multiplies through).
         if (this.node.color === null || this.node.color === undefined) {
