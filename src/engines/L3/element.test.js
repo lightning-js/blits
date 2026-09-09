@@ -1024,7 +1024,7 @@ test('Element - Zero duration transition sets value directly without animating',
   assert.capture(renderer, 'createNode', () => customNode)
   const el = createElement()
 
-  const animateSpy = sinon.spy(customNode, 'animate')
+  const animateSpy = sinon.spy(el, 'animate')
 
   el.set('w', { transition: { value: 200, duration: 0 } })
 
@@ -1041,7 +1041,7 @@ test('Element - Zero duration transition on multiple properties sets values dire
   assert.capture(renderer, 'createNode', () => customNode)
   const el = createElement()
 
-  const animateSpy = sinon.spy(customNode, 'animate')
+  const animateSpy = sinon.spy(el, 'animate')
 
   el.set('x', { transition: { value: 50, duration: 0 } })
   el.set('y', { transition: { value: 75, duration: 0 } })
@@ -1063,7 +1063,7 @@ test('Element - Non-zero duration transition calls animate', (assert) => {
   assert.capture(renderer, 'createNode', () => customNode)
   const el = createElement()
 
-  const animateSpy = sinon.spy(customNode, 'animate')
+  const animateSpy = sinon.spy(el, 'animate')
 
   el.set('w', { transition: { value: 300, duration: 500 } })
 
@@ -1193,7 +1193,12 @@ class CustomNode extends EventEmitter {
 }
 
 function createElement(props = {}) {
-  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  const el = element(
+    { parent: { node: { w: 1920, h: 1080 } } },
+    {
+      [symbols.activeAnimations]: new Map(),
+    }
+  )
   const data = {
     parent: {
       node: new EventEmitter(),
