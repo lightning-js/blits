@@ -1063,10 +1063,9 @@ test('Element - Non-zero duration transition calls animate', (assert) => {
   assert.capture(renderer, 'createNode', () => customNode)
   const el = createElement()
 
-  const animateSpy = sinon.spy(el, 'animate')
+  const animateSpy = sinon.spy(el, '_executeAnimation')
 
   el.set('w', { transition: { value: 300, duration: 500 } })
-
   assert.equal(el.props.props['w'], 300, 'Props w parameter should be set to 300')
   assert.equal(animateSpy.callCount, 0, 'animate is debounced via setTimeout(0)')
 
