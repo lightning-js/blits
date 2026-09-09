@@ -45,6 +45,36 @@ import { configurePlatform } from './platform.js'
  * @type {RendererMain | {}}
  */
 export let renderer = {}
+/**
+ * @typedef {import('./engines/L3/animation').AnimationEngine} AnimationEngine
+ * @type {AnimationEngine}
+ */
+export let animationEngine = {
+  init: () => {
+    Log.warn('Animation engine not initialized yet')
+  },
+  createTimeline: () => {
+    Log.warn('Animation engine not initialized yet')
+  },
+  createAnimatable: () => {
+    Log.warn('Animation engine not initialized yet')
+  },
+  createAnimatableElement: () => {
+    Log.warn('Animation engine not initialized yet')
+  },
+  animateElementProp: () => {
+    Log.warn('Animation engine not initialized yet')
+  },
+  createAnimation: () => {
+    Log.warn('Animation engine not initialized yet')
+  },
+  createTimer: () => {
+    Log.warn('Animation engine not initialized yet')
+  },
+  cancelAnimations: () => {
+    Log.warn('Animation engine not initialized yet')
+  },
+}
 export const stage = {}
 
 async function rendererVersion() {
@@ -142,6 +172,6 @@ export default (App, target, settings) => {
   })
 
   stage.element = engine.Element
-
+  animationEngine = engine.AnimationEngine
   renderer = engine.Launch(App, target, settings)
 }

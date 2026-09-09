@@ -19,6 +19,7 @@
 /// <reference path="./blits.d.ts" />
 
 import {type ShaderEffect as RendererShaderEffect, type RendererMainSettings} from '@lightningjs/renderer'
+import type { Timeline, TimelineParams, JSAnimation, TargetsParam, AnimationParams, Timer, TimerParams, Animatable, AnimatableParams } from 'animejs'
 import { CanvasShaderType } from '@lightningjs/renderer/canvas';
 import { WebGlShaderType } from '@lightningjs/renderer/webgl';
 
@@ -591,6 +592,26 @@ declare module '@lightningjs/blits' {
        */
       h: number
     }) => void
+
+    /**
+     * Creates a timeline for the component instance
+     */
+    $timeline: (params?: TimelineParams) => Timeline
+
+    /**
+     * Creates a timer for the component instance
+     */
+    $timer: (params: TimerParams) => Timer
+
+    /**
+     * Creates an Animatable for the component instance
+     */
+    $animatable: (targets: TargetsParam, params: AnimatableParams) => Animatable
+
+    /**
+     * Creates an Animation for the component instance
+     */
+    $animate: (targets: TargetsParam, params: AnimationParams) => JSAnimation
   }
 
   /**

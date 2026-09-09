@@ -44,7 +44,7 @@ export default (component, props = {}) => {
     props = normalizeProps(props)
   }
   if (!('ref' in props)) {
-    props.ref = undefined
+    props.ref = null
   }
   const keys = Object.keys(props)
   component[symbols.propKeys] = keys

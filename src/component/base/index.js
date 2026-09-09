@@ -24,6 +24,7 @@ import utils from './utils.js'
 import symbols from '../../lib/symbols.js'
 import { reactive } from '../../lib/reactivity/reactive.js'
 import Settings from '../../settings.js'
+import animation from './animation.js'
 
 export const shared = {
   ...events,
@@ -43,5 +44,5 @@ export default Object.defineProperties(
   {
     [symbols['launched']]: false,
   },
-  { ...methods, ...scheduling, ...shared, ...utils }
+  { ...methods, ...scheduling, ...shared, ...utils, ...animation }
 )
