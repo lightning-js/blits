@@ -36,6 +36,10 @@
       "types": "./src/platforms/webOS/announcer.d.ts",
       "default": "./src/platforms/webOS/announcer.js"
     },
+    "./platforms/dom/announcer": {
+      "types": "./src/platforms/dom/announcer.d.ts",
+      "default": "./src/platforms/dom/announcer.js"
+    },
     "./testing": {
       "types": "./src/testing/index.d.ts",
       "default": "./src/testing/index.js"
