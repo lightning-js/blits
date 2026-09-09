@@ -142,6 +142,31 @@ Blits.Launch(App, 'app', {
 })
 ```
 
+For platforms with a screen reader, Blits also provides a DOM announcer. It maintains a single
+visually hidden `aria-live="assertive"` region and updates its text for every announcement. The
+live region does not take DOM focus.
+
+```js
+import createAnnouncer from '@lightningjs/blits/platforms/dom/announcer'
+
+Blits.Launch(App, 'app', {
+  announcer: true,
+  platform: () => ({
+    announcer: createAnnouncer(),
+  }),
+})
+```
+
+For example, a focused component can announce its label through the platform screen reader:
+
+```js
+hooks: {
+  focus() {
+    this.$announcer.speak(this.label)
+  },
+}
+```
+
 The `rendererPlatform` setting is separate from `platform`. It is only passed to the renderer, and should be used for renderer specific platform configuration.
 
 ## Effects & Shaders
