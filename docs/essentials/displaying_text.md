@@ -31,6 +31,7 @@ The Text-tag accepts the following attributes:
 - `lineheight` - the spacing between lines in pixels
 - `contain` - the strategy for containing text within the bounds, can be `none` (default), `width`, or `both`. In most cases, the value of this attribute will automatically be set by Blits, based on the other specified attributes
 - `textoverflow` - the suffix to be added when text is cropped due to bounds limits, defaults to `...` (see more details [here](#text-overflow))
+- `richtext` - enables _Rich Text_ parsing on the `content`, allowing inline styling (bold, italic, underline, strikethrough, color) via BBCode-style tags. Defaults to `false` (see more details [here](#rich-text))
 
 ## Text dimensions
 
@@ -75,6 +76,33 @@ The text renderer offers the ability to display a _text overflow suffix_ when th
 This functionality is automatically enabled, but requires that both a _horizontal_ boundary (using `maxwidth`) and a _vertical_ boundary (using `maxlines` or `maxheight`) are specified on the Text component.
 
 The `textoverflow`-attribute itself is not required, unless you want to use another suffix than the standard `...`. If you want _no suffix_ (and just a hard cutoff), the`textoverflow`-attribute should be set to `false` or an _empty string_.
+
+## Rich Text
+
+Normally the `content` of a `<Text>`-tag is displayed as plain text. When you want to style _parts_ of a text differently (like a single bold word or a colored price), you can turn on _Rich Text_ by adding the `richtext`-attribute.
+
+```xml
+<Text richtext="true" content="Normal [b]Bold[/b] [i]Italic[/i]" />
+```
+
+Inside the `content` you can then use the following tags:
+
+- `[b]...[/b]` - bold
+- `[i]...[/i]` - italic
+- `[u]...[/u]` - underline
+- `[s]...[/s]` - strikethrough
+- `[color=...]...[/color]` - colored text, in `0xRRGGBBAA` format (i.e. `0xff0000ff` for red)
+
+Tags can also be combined:
+
+```xml
+<Text richtext="true" content="[color=0xff0000ff]Red[/color] and [b][i]bold italic[/i][/b]" />
+<Text richtext="true" content="Was [s]$99[/s] now $49" />
+```
+
+Rich Text is off by default, so plain texts keep the faster rendering path. Only enable it on the texts that need inline styling.
+
+Underline and strikethrough are drawn by the renderer and don't need extra fonts. Bold and italic are separate font faces though, so you'll need to register those styles as extra fonts in your Launch settings (see [Using custom fonts](#using-custom-fonts)).
 
 ## SDF and Canvas2d
 
