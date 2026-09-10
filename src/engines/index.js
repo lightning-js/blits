@@ -16,3 +16,22 @@
  */
 
 export { default as L3 } from './L3/index.js'
+
+/**
+ * Select an engine by name. `'l3'` (default) keeps the current behavior;
+ * `'ftl'` selects the FTL renderer (phase-1 core-only, see FTL/README-FTL.md).
+ * Resolved via dynamic import so the L3 bundle never includes FTL code.
+ * Unknown names fall back to L3 with a console warning so a typo never
+ * silently boots the wrong renderer.
+ */
+export const selectEngine = async (name) => {
+  if (name === 'ftl') {
+    const { default: FTL } = await import('./FTL/index.js')
+    return FTL
+  }
+  if (name !== undefined && name !== null && name !== 'l3') {
+    console.warn(`[Blits] unknown renderer '${name}', falling back to 'l3'`)
+  }
+  const { default: L3 } = await import('./L3/index.js')
+  return L3
+}
