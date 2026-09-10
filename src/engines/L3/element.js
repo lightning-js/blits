@@ -241,7 +241,7 @@ const propsTransformer = {
     this.props['rotation'] = v * (Math.PI / 180)
   },
   set richtext(v) {
-    this.props['richText'] = v === true || v === 'true'
+    this.props['richText'] = v
   },
   set w(v) {
     const parsed = parsePercentage.call(this, v, 'w')
