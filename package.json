@@ -85,7 +85,7 @@
     "jsdom": "24.0.0",
     "lint-staged": "^15.5.0",
     "prettier": "^3.6.2",
-    "sinon": "^21.0.0",
+    "sinon": "^22.1.0",
     "tap-diff": "^0.1.1",
     "tap-filter": "^1.0.3",
     "tape": "^5.5.0"
