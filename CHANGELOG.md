@@ -1,6 +1,15 @@
 # Changelog
 
+## 2.9.0
+
+_9 sep 2026_
+
+- Added DOM based Aria announcer implementation
+
+
 ## 2.8.9
+
+_12 aug 2026_
 
 - Fixed focus issue related to multiple named router views
 
