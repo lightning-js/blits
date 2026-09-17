@@ -70,7 +70,7 @@
   "author": "Michiel van der Geest <hello@michielvandergeest.com>",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@babel/eslint-parser": "^7.26.5",
+    "@babel/eslint-parser": "^8.0.5",
     "@babel/plugin-syntax-import-assertions": "^7.26.0",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.33.0",
