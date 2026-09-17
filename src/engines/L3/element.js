@@ -240,7 +240,7 @@ const propsTransformer = {
   set rotation(v) {
     this.props['rotation'] = v * (Math.PI / 180)
   },
-  set richtext(v) {
+  set rich(v) {
     this.props['richText'] = v
   },
   set w(v) {
