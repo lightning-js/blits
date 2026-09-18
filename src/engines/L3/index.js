@@ -17,8 +17,10 @@
 
 import Element from './element.js'
 import Launch from './launch.js'
+import AnimationEngine from './animation.js'
 
 export default {
   Element,
   Launch,
+  AnimationEngine,
 }

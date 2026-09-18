@@ -120,6 +120,7 @@ export default {
         }
       }
 
+      this.$cancelAnimations()
       this.$clearTimeouts()
       this.$clearIntervals()
       this.$clearDebounces()

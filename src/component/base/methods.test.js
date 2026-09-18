@@ -17,6 +17,7 @@
 
 import test from 'tape'
 import methods from './methods.js'
+import animation from './animation.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
 import { initLog } from '../../lib/log.js'
@@ -477,7 +478,7 @@ export const getTestComponent = () => {
       [symbols.intervals]: [],
       [symbols.debounces]: new Map(),
     },
-    { ...methods, ...timeouts_intervals }
+    { ...methods, ...timeouts_intervals, ...animation }
   )
 
   return { component, cleanupMock, holderMock, childrenDestroyMock }

@@ -1024,7 +1024,7 @@ test('Element - Zero duration transition sets value directly without animating',
   assert.capture(renderer, 'createNode', () => customNode)
   const el = createElement()
 
-  const animateSpy = sinon.spy(customNode, 'animate')
+  const animateSpy = sinon.spy(el, 'animate')
 
   el.set('w', { transition: { value: 200, duration: 0 } })
 
@@ -1041,7 +1041,7 @@ test('Element - Zero duration transition on multiple properties sets values dire
   assert.capture(renderer, 'createNode', () => customNode)
   const el = createElement()
 
-  const animateSpy = sinon.spy(customNode, 'animate')
+  const animateSpy = sinon.spy(el, 'animate')
 
   el.set('x', { transition: { value: 50, duration: 0 } })
   el.set('y', { transition: { value: 75, duration: 0 } })
@@ -1063,10 +1063,9 @@ test('Element - Non-zero duration transition calls animate', (assert) => {
   assert.capture(renderer, 'createNode', () => customNode)
   const el = createElement()
 
-  const animateSpy = sinon.spy(customNode, 'animate')
+  const animateSpy = sinon.spy(el, '_executeAnimation')
 
   el.set('w', { transition: { value: 300, duration: 500 } })
-
   assert.equal(el.props.props['w'], 300, 'Props w parameter should be set to 300')
   assert.equal(animateSpy.callCount, 0, 'animate is debounced via setTimeout(0)')
 
@@ -1182,11 +1181,6 @@ class CustomNode extends EventEmitter {
     }, 0)
   }
 
-  animate(props, transObj) {
-    const animationEmitter = new CustomAnimator(this, props, transObj)
-    return animationEmitter
-  }
-
   destroy() {}
   fail() {
     this.emit('failed')
@@ -1198,7 +1192,12 @@ class CustomNode extends EventEmitter {
 }
 
 function createElement(props = {}) {
-  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  const el = element(
+    { parent: { node: { w: 1920, h: 1080 } } },
+    {
+      [symbols.activeAnimations]: new Map(),
+    }
+  )
   const data = {
     parent: {
       node: new EventEmitter(),
