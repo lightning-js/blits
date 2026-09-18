@@ -18,9 +18,8 @@
 // blits file type reference
 /// <reference path="./blits.d.ts" />
 
-import {type ShaderEffect as RendererShaderEffect, type RendererMainSettings} from '@lightningjs/renderer'
-import { CanvasShaderType } from '@lightningjs/renderer/canvas';
-import { WebGlShaderType } from '@lightningjs/renderer/webgl';
+import { CanvasShaderType } from '@lightningjs/renderer/canvas'
+import { WebGlShaderType } from '@lightningjs/renderer/webgl'
 
 declare module '@lightningjs/blits' {
   type RendererShaderEffect = import('@lightningjs/renderer').ShaderEffect
@@ -1410,6 +1409,14 @@ declare module '@lightningjs/blits' {
      */
     enableMouse?: boolean,
     /**
+     * Minimum time in milliseconds between two pointer moves that are processed for hover.
+     *
+     * Moves arriving sooner are dropped, not delayed.
+     *
+     * @default 100
+     */
+    mouseMoveThrottle?: number,
+      /**
      * Maximum FPS at which the App will be rendered
      *
      * Lowering the maximum FPS value can improve the overall experience on lower end devices.
@@ -1528,4 +1535,17 @@ declare module '@lightningjs/blits' {
   const Blits: Blits;
 
   export default Blits;
+
+  /**
+   * Blits Settings
+   *
+   * Reads and changes the application settings at runtime. Most settings are read once, when the
+   * App launches, so changing them later has no effect. Settings that are read each time they are
+   * used, such as `mouseMoveThrottle`, take effect immediately.
+   */
+  export const Settings: {
+    get<K extends keyof Settings>(key: K, defaultValue?: Settings[K]): Settings[K]
+    set<K extends keyof Settings>(key: K, value: Settings[K]): void
+    set(settings: Partial<Settings>): void
+  }
 }

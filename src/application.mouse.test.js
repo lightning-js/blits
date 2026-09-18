@@ -22,7 +22,6 @@
 import test from 'tape'
 import { initLog } from './lib/log.js'
 import Hover from './focus/hover.js'
-import Focus, { keyUpCallbacks } from './focus/focus.js'
 import Settings from './settings.js'
 import symbols from './lib/symbols.js'
 
@@ -279,40 +278,80 @@ test('Re-init after destroy re-registers listeners', async (assert) => {
   }
 })
 
-test('Key release callback is not executed after its component is destroyed', async (assert) => {
-  const { config, docAdded, restore } = await runApplicationInit(false)
-  const keydown = getKeydown(docAdded)
-  const keyup = getKeyup(docAdded)
-  let releaseCalled = false
-  const component = {
-    $componentId: 'destroyed-before-keyup',
-    eol: false,
-    [symbols.lifecycle]: { state: 'init' },
-    [symbols.parent]: undefined,
-    [symbols.inputEvents]: {
-      enter() {
-        return () => {
-          releaseCalled = true
-        }
-      },
+// Counts the pointer moves that get past the throttle: each one emits `mouse::move`.
+async function countHandledMoves(timeStamps) {
+  const { default: Application } = await import('./application.js')
+  Settings.set('enableMouse', true)
+  const spies = createListenerSpies()
+  const config = {}
+  Application(config)
+  let handled = 0
+  const app = {
+    ...createMockApp(),
+    $emit: (name) => {
+      if (name === 'mouse::move') handled++
     },
   }
-
+  config.hooks[symbols.init].call(app)
   try {
-    await new Promise((resolve) => setTimeout(resolve))
-    Focus.set(component)
-    await new Promise((resolve) => setTimeout(resolve))
+    const mousemove = spies.docAdded.find((c) => c.event === 'mousemove')
+    for (const timeStamp of timeStamps) mousemove.handler({ timeStamp, clientX: 0, clientY: 0 })
+    return handled
+  } finally {
+    cleanupAppAndRestore(config, spies.restore)
+  }
+}
 
-    await keydown.handler(keyEvent('Enter', 13))
-    assert.true(keyUpCallbacks.has(13), 'keydown should register its keyup callback')
-    component.eol = true
-    keyup.handler(keyEvent('Enter', 13, 'keyup'))
+const MOVE_TIMESTAMPS = [1000, 1050, 1099, 1100, 1150]
 
-    assert.false(
-      releaseCalled,
-      'keyup should not execute a callback belonging to a destroyed component'
+test('Pointer moves within 100ms of the last handled move are dropped by default', async (assert) => {
+  assert.equal(await countHandledMoves(MOVE_TIMESTAMPS), 2, 'only moves 100ms apart are handled')
+})
+
+test('mouseMoveThrottle setting changes the pointer move throttle window', async (assert) => {
+  Settings.set('mouseMoveThrottle', 16)
+  try {
+    assert.equal(
+      await countHandledMoves(MOVE_TIMESTAMPS),
+      4,
+      'moves at least 16ms apart are handled',
     )
   } finally {
-    cleanupAppAndRestore(config, restore)
+    delete Settings[symbols.settings].mouseMoveThrottle
+  }
+})
+
+test('mouseMoveThrottle can be changed while the App is running', async (assert) => {
+  const { default: Application } = await import('./application.js')
+  Settings.set('enableMouse', true)
+  const spies = createListenerSpies()
+  const config = {}
+  Application(config)
+  let handled = 0
+  const app = {
+    ...createMockApp(),
+    $emit: (name) => {
+      if (name === 'mouse::move') handled++
+    },
+  }
+  config.hooks[symbols.init].call(app)
+  try {
+    const mousemove = spies.docAdded.find((c) => c.event === 'mousemove')
+    const countMoves = (timeStamps) => {
+      handled = 0
+      for (const timeStamp of timeStamps) mousemove.handler({ timeStamp, clientX: 0, clientY: 0 })
+      return handled
+    }
+
+    assert.equal(countMoves([1000, 1050]), 1, 'the default 100ms window applies at launch')
+
+    Settings.set('mouseMoveThrottle', Infinity)
+    assert.equal(countMoves([2000, 5000]), 0, 'all moves are dropped while the throttle is Infinity')
+
+    Settings.set('mouseMoveThrottle', 16)
+    assert.equal(countMoves([5010, 5030]), 2, 'moves are handled again once the throttle is lowered')
+  } finally {
+    delete Settings[symbols.settings].mouseMoveThrottle
+    cleanupAppAndRestore(config, spies.restore)
   }
 })

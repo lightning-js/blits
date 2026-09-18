@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { default as Component, componentMap } from './component.js'
+import { componentMap, default as Component } from './component.js'
 import { default as Focus, keyUpCallbacks } from './focus/focus.js'
 import Hover from './focus/hover.js'
 
@@ -149,7 +149,7 @@ const Application = (config) => {
 
     // limit the amount of move events per time frame
     mouseMoveHandler = (e) => {
-      if (e.timeStamp - lastMoved < 100) return
+      if (e.timeStamp - lastMoved < Settings.get('mouseMoveThrottle', 100)) return
       lastMoved = e.timeStamp
 
       this.$emit('mouse::move', e)
