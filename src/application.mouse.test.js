@@ -272,3 +272,46 @@ test('Re-init after destroy re-registers listeners', async (assert) => {
     cleanupAppAndRestore(config, restore)
   }
 })
+
+// Counts the pointer moves that get past the throttle: each one emits `mouse::move`.
+async function countHandledMoves(timeStamps) {
+  const { default: Application } = await import('./application.js')
+  Settings.set('enableMouse', true)
+  const spies = createListenerSpies()
+  const config = {}
+  Application(config)
+  let handled = 0
+  const app = {
+    ...createMockApp(),
+    $emit: (name) => {
+      if (name === 'mouse::move') handled++
+    },
+  }
+  config.hooks[symbols.init].call(app)
+  try {
+    const mousemove = spies.docAdded.find((c) => c.event === 'mousemove')
+    for (const timeStamp of timeStamps) mousemove.handler({ timeStamp, clientX: 0, clientY: 0 })
+    return handled
+  } finally {
+    cleanupAppAndRestore(config, spies.restore)
+  }
+}
+
+const MOVE_TIMESTAMPS = [1000, 1050, 1099, 1100, 1150]
+
+test('Pointer moves within 100ms of the last handled move are dropped by default', async (assert) => {
+  assert.equal(await countHandledMoves(MOVE_TIMESTAMPS), 2, 'only moves 100ms apart are handled')
+})
+
+test('mouseMoveThrottle setting changes the pointer move throttle window', async (assert) => {
+  Settings.set('mouseMoveThrottle', 16)
+  try {
+    assert.equal(
+      await countHandledMoves(MOVE_TIMESTAMPS),
+      4,
+      'moves at least 16ms apart are handled',
+    )
+  } finally {
+    delete Settings[symbols.settings].mouseMoveThrottle
+  }
+})

@@ -18,9 +18,8 @@
 // blits file type reference
 /// <reference path="./blits.d.ts" />
 
-import {type ShaderEffect as RendererShaderEffect, type RendererMainSettings} from '@lightningjs/renderer'
-import { CanvasShaderType } from '@lightningjs/renderer/canvas';
-import { WebGlShaderType } from '@lightningjs/renderer/webgl';
+import { CanvasShaderType } from '@lightningjs/renderer/canvas'
+import { WebGlShaderType } from '@lightningjs/renderer/webgl'
 
 declare module '@lightningjs/blits' {
   type RendererShaderEffect = import('@lightningjs/renderer').ShaderEffect
@@ -1408,6 +1407,14 @@ declare module '@lightningjs/blits' {
      */
     enableMouse?: boolean,
     /**
+     * Minimum time in milliseconds between two pointer moves that are processed for hover.
+     *
+     * Moves arriving sooner are dropped, not delayed.
+     *
+     * @default 100
+     */
+    mouseMoveThrottle?: number,
+      /**
      * Maximum FPS at which the App will be rendered
      *
      * Lowering the maximum FPS value can improve the overall experience on lower end devices.
