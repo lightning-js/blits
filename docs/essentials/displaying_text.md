@@ -31,6 +31,7 @@ The Text-tag accepts the following attributes:
 - `lineheight` - the spacing between lines in pixels
 - `contain` - the strategy for containing text within the bounds, can be `none` (default), `width`, or `both`. In most cases, the value of this attribute will automatically be set by Blits, based on the other specified attributes
 - `textoverflow` - the suffix to be added when text is cropped due to bounds limits, defaults to `...` (see more details [here](#text-overflow))
+- `rich` - enables _Rich Text_ parsing on the `content`, allowing inline styling (bold, italic, underline, strikethrough, color) via BBCode-style tags. Defaults to `false` (see more details [here](#rich-text))
 
 ## Text dimensions
 
@@ -76,6 +77,33 @@ This functionality is automatically enabled, but requires that both a _horizonta
 
 The `textoverflow`-attribute itself is not required, unless you want to use another suffix than the standard `...`. If you want _no suffix_ (and just a hard cutoff), the`textoverflow`-attribute should be set to `false` or an _empty string_.
 
+## Rich Text
+
+Normally the `content` of a `<Text>`-tag is displayed as plain text. When you want to style _parts_ of a text differently (like a single bold word or a colored price), you can turn on _Rich Text_ by adding the `rich`-attribute.
+
+```xml
+<Text rich="true" content="Normal [b]Bold[/b] [i]Italic[/i]" />
+```
+
+Inside the `content` you can then use the following tags:
+
+- `[b]...[/b]` - bold
+- `[i]...[/i]` - italic
+- `[u]...[/u]` - underline
+- `[s]...[/s]` - strikethrough
+- `[color=...]...[/color]` - colored text, in `0xRRGGBBAA` format (i.e. `0xff0000ff` for red)
+
+Tags can also be combined:
+
+```xml
+<Text rich="true" content="[color=0xff0000ff]Red[/color] and [b][i]bold italic[/i][/b]" />
+<Text rich="true" content="Was [s]$99[/s] now $49" />
+```
+
+Rich Text is off by default, so plain texts keep the faster rendering path. Only enable it on the texts that need inline styling.
+
+Underline and strikethrough are drawn by the renderer and don't need extra fonts. Bold and italic are separate font faces though, so you'll need to register those styles as extra fonts in your Launch settings. See [Registering bold and italic fonts](#registering-bold-and-italic-fonts) for a full example.
+
 ## SDF and Canvas2d
 
 Compared to Lightning 2, texts have improved a lot in Lightning 3, thanks to the SDF (Signed Distance Field) Text renderer.
@@ -115,6 +143,27 @@ From this moment on you'll be able to use the font `ComicSans` anywhere in your 
 ```xml
 <Text font="ComicSans" content="I'm Comic Sans font!" />
 ```
+
+### Registering bold and italic fonts
+
+Bold and italic are separate font faces, each with its own font file. Blits has no `weight` or `style` option, so you register each style as its own entry in the `fonts` array, with its own `family` name:
+
+```js
+  fonts: [
+    { family: 'roboto', type: 'msdf', file: 'fonts/Roboto-Regular.ttf' },
+    { family: 'roboto-bold', type: 'msdf', file: 'fonts/Roboto-Bold.ttf' },
+    { family: 'roboto-italic', type: 'msdf', file: 'fonts/Roboto-Italic.ttf' },
+  ],
+```
+
+Each style is then a normal font family you can use with the `font`-attribute, and [Rich Text](#rich-text) uses these same registered faces for its `[b]` and `[i]` tags:
+
+```xml
+<Text font="roboto-bold" content="Bold text" />
+<Text rich="true" font="roboto" content="Normal [b]Bold[/b] and [i]Italic[/i]" />
+```
+
+> Underline (`[u]`) and strikethrough (`[s]`) are drawn by the renderer and need no extra fonts.
 
 ### Custom characters
 
