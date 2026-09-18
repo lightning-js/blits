@@ -908,6 +908,7 @@ const Element = {
     if (transition.start !== undefined && typeof transition.start === 'function') {
       // fire transition start callback when animation really starts (depending on specified delay)
       f.once('animating', () => {
+        if (this.eol === true) return
         transition.start.call(this.component, this, prop, startValue)
       })
     }
@@ -929,6 +930,7 @@ const Element = {
     }
 
     f.once('stopped', () => {
+      if (this.eol === true) return
       if (
         this.scheduledTransitions[prop] !== undefined &&
         this.scheduledTransitions[prop].canceled === true
@@ -936,7 +938,7 @@ const Element = {
         return
       }
       // fire transition end callback when animation ends (if specified)
-      if (this.node !== undefined && transition.end && typeof transition.end === 'function') {
+      if (transition.end && typeof transition.end === 'function') {
         transition.end.call(this.component, this, prop, this.node[prop])
       }
       // remove the prop from scheduled transitions
@@ -1010,7 +1012,7 @@ const Element = {
     delete this.forComponent
 
     this.node.destroy()
-    this.node = null
+    this.node = undefined
   },
   get nodeId() {
     return this.node && this.node.id

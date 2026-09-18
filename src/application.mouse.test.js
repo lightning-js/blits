@@ -22,6 +22,7 @@
 import test from 'tape'
 import { initLog } from './lib/log.js'
 import Hover from './focus/hover.js'
+import Focus, { keyUpCallbacks } from './focus/focus.js'
 import Settings from './settings.js'
 import symbols from './lib/symbols.js'
 
@@ -33,6 +34,7 @@ const createComponent = (id, parent) => ({
   [symbols.lifecycle]: { state: 'init' },
 })
 const getKeydown = (docAdded) => docAdded.find((c) => c.event === 'keydown')
+const getKeyup = (docAdded) => docAdded.find((c) => c.event === 'keyup')
 
 function createMockApp() {
   return {
@@ -98,7 +100,11 @@ function cleanupAppAndRestore(config, restore, opts = {}) {
   Settings.set('enableMouse', false)
 }
 
-const keyEvent = (key, keyCode) => new KeyboardEvent('keydown', { key, keyCode, bubbles: true })
+const keyEvent = (key, keyCode, type = 'keydown') => {
+  const event = new KeyboardEvent(type, { key, bubbles: true })
+  Object.defineProperty(event, 'keyCode', { value: keyCode })
+  return event
+}
 
 function spyHoverClear() {
   const original = Hover.clear

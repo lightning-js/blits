@@ -641,7 +641,9 @@ declare module '@lightningjs/blits' {
   type InferProp<T> = T extends (...args: any[]) => any ? ReturnType<T> : T
 
   type InferProps<T extends Record<string, any>> = {
-    [K in keyof T]: InferProp<T[K]>
+    // Since InferProps is no longer used for `Computed` props,
+    // then we do not need to infer the return type of a function-typed prop in `Props`.
+    [K in keyof T]: T[K]
   }
 
   type Computed<T extends Record<string, () => any>> = {
@@ -652,7 +654,7 @@ declare module '@lightningjs/blits' {
     P extends Record<string, any>,
     S,
     M,
-    C extends Record<string, () => any>,
+    C extends Record<string, () => any> = Record<never, never>,
   > = ThisType<
     Readonly<InferProps<P>> & S & M & Computed<C> & ChildComponentBase
   >
@@ -661,14 +663,14 @@ declare module '@lightningjs/blits' {
     P extends Record<string, any>,
     S,
     M,
-    C,
+    C extends Record<string, () => any> = Record<never, never>,
   > = ThisType<Readonly<InferProps<P>> & S & M & Computed<C> & ApplicationBase>
 
   export interface ComponentConfig<
     P extends Props = {},
     S,
     M,
-    C extends Record<string, () => any>,
+    C extends Record<string, () => any> = Record<never, never>,
     W,
   > {
     components?: {
@@ -1485,7 +1487,7 @@ declare module '@lightningjs/blits' {
       P extends Props,
       S extends State,
       M extends Methods,
-      C extends Computed,
+      C extends Computed = Record<never, never>,
       W extends Watch>(config: ApplicationConfig<P, S, M, C, W>) : ComponentFactory
       /**
      * Blits Component
@@ -1496,7 +1498,7 @@ declare module '@lightningjs/blits' {
       P extends Props,
       S extends State,
       M extends Methods,
-      C extends Computed,
+      C extends Computed = Record<never, never>,
       W extends Watch>(name: string, config: ComponentConfig<P, S, M, C, W>) : ComponentFactory
     /**
      * Blits Launch
