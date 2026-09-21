@@ -275,7 +275,9 @@ const propsTransformer = {
     this.props['zIndex'] = v
   },
   set color(v) {
-    if (typeof v === 'string' && v.startsWith('{') === false) {
+    if (typeof v === 'number') {
+      this.props['color'] = v
+    } else if (typeof v === 'string' && v.startsWith('{') === false) {
       this.props['color'] = colors.normalize(v)
     } else if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
       this.props['color'] = 0
@@ -810,6 +812,20 @@ const Element = {
     if (this.props.raw[prop] === value) return
     // @ts-ignore
     this.props.raw[prop] = value
+
+    if (prop === 'color' && typeof value === 'number') {
+      // A gradient can share its base color with the new solid color (notably zero).
+      // The renderer skips equal base colors, so reset its sides in that case.
+      if (this.node.color === value) {
+        this.node.colorTop = value
+        this.node.colorBottom = value
+        this.node.colorLeft = value
+        this.node.colorRight = value
+      }
+      // Use the renderer setter to invalidate colors, including text colors.
+      this.node.color = value
+      return
+    }
 
     this.props.props = {}
     // @ts-ignore
