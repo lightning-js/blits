@@ -1,5 +1,34 @@
 # Changelog
 
+## 2.9.0
+
+_9 sep 2026_
+
+- Added DOM based Aria announcer implementation
+
+
+## 2.8.9
+
+_12 aug 2026_
+
+- Fixed focus issue related to multiple named router views
+
+## 2.8.8
+
+_11 aug 2026_
+
+- Bumped renderer to 3.3.1
+
+## 2.8.7
+
+_07 aug 2026_
+
+- Added `clipradius` attribute for rounded-corner clipping
+- Fixed memory leak in delete children method
+- Early cleanup of effects in destroy sequence
+- Added `framecount` to fpsUpdate emit
+- Bumped renderer to 3.1.6
+
 ## 2.8.6
 
 _30 jul 2026_

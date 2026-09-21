@@ -81,15 +81,30 @@ const addToQueue = (message, politeness, delay = false, options = {}) => {
 
   // setup a promise to allow developer to chain functionality
   // when specific utterances are done
-  let resolveFn
+  let resolvePromise
+  let settled = false
   const done = new Promise((resolve) => {
-    resolveFn = resolve
+    resolvePromise = resolve
   })
+
+  const resolveFn = (status) => {
+    if (settled === true) return
+    settled = true
+    resolvePromise(status)
+  }
 
   // augment the promise with a cancel / remove function
   done.remove = done.cancel = () => {
     const index = queue.findIndex((item) => item.id === id)
-    if (index !== -1) queue.splice(index, 1)
+    if (index !== -1) {
+      queue.splice(index, 1)
+    } else if (id === currentId && debounce !== null) {
+      clearDebounceTimer()
+      currentId = null
+      currentResolveFn = null
+      isProcessing = false
+      processQueue()
+    }
     Log.debug(`Announcer - removed from queue: "${message}" (id: ${id})`)
     resolveFn('canceled')
   }

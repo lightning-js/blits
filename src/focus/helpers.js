@@ -29,3 +29,22 @@ export const getAncestors = (components) => {
   }
   return components
 }
+
+/**
+ * Checks whether a component and its ancestors are alive. When root is provided,
+ * the component must also belong to that root's tree.
+ * @param {Object|undefined|null} component
+ * @param {Object|undefined|null} [root]
+ * @returns {boolean}
+ */
+export const isInAliveComponentTree = (component, root) => {
+  let current = component
+
+  while (current !== undefined && current !== null) {
+    if (current.eol === true) return false
+    if (root !== undefined && current === root) return true
+    current = current[symbols.parent]
+  }
+
+  return root === undefined
+}

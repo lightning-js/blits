@@ -338,7 +338,7 @@ const Component = (name = required('name'), config = required('config')) => {
       // fpsUpdate event
       if (config.hooks.fpsUpdate) {
         const cb = (_r, data) => {
-          emit('fpsUpdate', this[symbols.identifier], this, [data.fps])
+          emit('fpsUpdate', this[symbols.identifier], this, [data.fps, data.frameCount])
         }
         renderer.on('fpsUpdate', cb)
         this[symbols.rendererEventListeners].push({ event: 'fpsUpdate', cb })
