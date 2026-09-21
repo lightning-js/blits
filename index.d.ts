@@ -1410,6 +1410,14 @@ declare module '@lightningjs/blits' {
      */
     enableMouse?: boolean,
     /**
+     * Minimum time in milliseconds between two pointer moves that are processed for hover.
+     *
+     * Moves arriving sooner are dropped, not delayed.
+     *
+     * @default 100
+     */
+    mouseMoveThrottle?: number,
+      /**
      * Maximum FPS at which the App will be rendered
      *
      * Lowering the maximum FPS value can improve the overall experience on lower end devices.
@@ -1528,4 +1536,5 @@ declare module '@lightningjs/blits' {
   const Blits: Blits;
 
   export default Blits;
+
 }

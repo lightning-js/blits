@@ -58,12 +58,13 @@ Example font object:
 
 ## Input & Focus
 
-| Setting         | Type      | Description |
-|----------------|-----------|-------------|
-| `keymap`       | `object`  | Custom key mapping for input events |
-| `holdTimeout`  | `number`  | Time (ms) to consider a key press as hold |
-| `inputThrottle`| `number`  | Input throttle time (ms) to prevent rapid successive inputs |
-| `enableMouse`  | `boolean` | Enable mouse support (hover and click-to-focus). Defaults to false. |
+| Setting             | Type      | Description                                                                                                      |
+|---------------------|-----------|------------------------------------------------------------------------------------------------------------------|
+| `keymap`            | `object`  | Custom key mapping for input events                                                                              |
+| `holdTimeout`       | `number`  | Time (ms) to consider a key press as hold                                                                        |
+| `inputThrottle`     | `number`  | Input throttle time (ms) to prevent rapid successive inputs                                                      |
+| `enableMouse`       | `boolean` | Enable mouse support (hover and click-to-focus). Defaults to false.                                              |
+| `mouseMoveThrottle` | `number`  | Minimum time (ms) between pointer moves processed for hover; moves arriving sooner are dropped. Defaults to 100. |
 
 ## Renderer
 
@@ -215,6 +216,7 @@ Blits.Launch(App, 'app', {
   inspector: false,
   announcer: true,
   enableMouse: false, // set true for hover + click-to-focus on canvas
+  mouseMoveThrottle: 100, // lower (e.g. 16) for hover that tracks the pointer more closely
   platform: (defaults) => ({
     screenHeight: 720,
     input: myInputTarget,
