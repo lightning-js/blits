@@ -92,7 +92,7 @@
   },
   "dependencies": {
     "@lightningjs/renderer": "3.5.0",
-    "magic-string": "^0.30.21"
+    "magic-string": "^1.4.1"
   },
   "repository": {
     "type": "git",
