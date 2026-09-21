@@ -18,8 +18,9 @@
 // blits file type reference
 /// <reference path="./blits.d.ts" />
 
-import { CanvasShaderType } from '@lightningjs/renderer/canvas'
-import { WebGlShaderType } from '@lightningjs/renderer/webgl'
+import {type ShaderEffect as RendererShaderEffect, type RendererMainSettings, type FrameCounter} from '@lightningjs/renderer'
+import { CanvasShaderType } from '@lightningjs/renderer/canvas';
+import { WebGlShaderType } from '@lightningjs/renderer/webgl';
 
 declare module '@lightningjs/blits' {
   type RendererShaderEffect = import('@lightningjs/renderer').ShaderEffect
@@ -241,7 +242,7 @@ declare module '@lightningjs/blits' {
     *
     * Note: This event fire multiple times
     */
-    fpsUpdate?: (fps: number) => void;
+    fpsUpdate?: (fps: number, frameCounter: FrameCounter) => void;
   }
 
   export interface Input {

@@ -114,7 +114,11 @@ const Application = (config) => {
       }
 
       Focus.input(key, e)
-      if (mouseEnabled === true) Hover.clear()
+      if (mouseEnabled === true) {
+        Hover.clear()
+        // forget the node under the pointer too, so moving on it hovers it again
+        currentNode = undefined
+      }
       clearTimeout(holdTimeout)
       holdTimeout = setTimeout(
         () => {

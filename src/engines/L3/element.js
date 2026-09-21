@@ -649,10 +649,11 @@ const Element = {
     if (this.props.props['color'] === undefined && '__textnode' in props === false) {
       this.props.props['color'] = 0
     }
-
-    this.node = props.__textnode
-      ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
-      : renderer.createNode(this.props.props)
+    const isTextNode = props.__textnode
+    this.node =
+      isTextNode === true
+        ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
+        : renderer.createNode(this.props.props)
 
     if (this.props['holder'] === true) {
       holderComponentMap.set(this.node, this.component)
@@ -680,7 +681,8 @@ const Element = {
 
     if (this.config.parent.props !== undefined && this.config.parent.props.__layout === true) {
       this.config.parent.triggerLayout(this.config.parent.props)
-      this.node.on('loaded', () => {
+
+      this.node.on(isTextNode === true ? 'textCalculated' : 'loaded', () => {
         if (this.eol === true) return
         this.config.parent.triggerLayout(this.config.parent.props)
       })
