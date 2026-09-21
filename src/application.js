@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { default as Component, componentMap } from './component.js'
+import { componentMap, default as Component } from './component.js'
 import { default as Focus, keyUpCallbacks } from './focus/focus.js'
 import Hover from './focus/hover.js'
 
@@ -114,7 +114,11 @@ const Application = (config) => {
       }
 
       Focus.input(key, e)
-      if (mouseEnabled === true) Hover.clear()
+      if (mouseEnabled === true) {
+        Hover.clear()
+        // forget the node under the pointer too, so moving on it hovers it again
+        currentNode = undefined
+      }
       clearTimeout(holdTimeout)
       holdTimeout = setTimeout(
         () => {

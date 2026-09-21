@@ -259,6 +259,35 @@ test('Key input when hover already null does not throw', async (assert) => {
   }
 })
 
+test('Moving the pointer on the same node hovers it again after key input cleared the hover', async (assert) => {
+  const { renderer } = await import('./launch.js')
+  const { componentMap } = await import('./component.js')
+  const node = {}
+  const card = createComponent('card')
+  componentMap.set(node, card)
+  renderer.canvas = { getBoundingClientRect: () => ({ left: 0, top: 0 }) }
+  renderer.stage = { getNodeFromPosition: () => node }
+
+  const { config, docAdded, restore } = await runApplicationInit(true)
+  try {
+    const mousemove = docAdded.find((c) => c.event === 'mousemove')
+    const keydown = getKeydown(docAdded)
+
+    mousemove.handler({ timeStamp: 1000, clientX: 10, clientY: 10 })
+    assert.equal(Hover.get(), card, 'the pointer hovers the component under it')
+
+    await keydown.handler(keyEvent('ArrowDown', 40))
+    assert.equal(Hover.get(), null, 'key input clears the hover')
+
+    mousemove.handler({ timeStamp: 2000, clientX: 12, clientY: 10 })
+    assert.equal(Hover.get(), card, 'moving on the same component hovers it again')
+  } finally {
+    delete renderer.canvas
+    delete renderer.stage
+    cleanupAppAndRestore(config, restore)
+  }
+})
+
 test('Re-init after destroy re-registers listeners', async (assert) => {
   const { config, docAdded, restore } = await runApplicationInit(true)
   const keydownHandlers = docAdded.filter((c) => c.event === 'keydown')
