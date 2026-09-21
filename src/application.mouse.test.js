@@ -343,44 +343,9 @@ test('mouseMoveThrottle setting changes the pointer move throttle window', async
     assert.equal(
       await countHandledMoves(MOVE_TIMESTAMPS),
       4,
-      'moves at least 16ms apart are handled',
+      'moves at least 16ms apart are handled'
     )
   } finally {
     delete Settings[symbols.settings].mouseMoveThrottle
-  }
-})
-
-test('mouseMoveThrottle can be changed while the App is running', async (assert) => {
-  const { default: Application } = await import('./application.js')
-  Settings.set('enableMouse', true)
-  const spies = createListenerSpies()
-  const config = {}
-  Application(config)
-  let handled = 0
-  const app = {
-    ...createMockApp(),
-    $emit: (name) => {
-      if (name === 'mouse::move') handled++
-    },
-  }
-  config.hooks[symbols.init].call(app)
-  try {
-    const mousemove = spies.docAdded.find((c) => c.event === 'mousemove')
-    const countMoves = (timeStamps) => {
-      handled = 0
-      for (const timeStamp of timeStamps) mousemove.handler({ timeStamp, clientX: 0, clientY: 0 })
-      return handled
-    }
-
-    assert.equal(countMoves([1000, 1050]), 1, 'the default 100ms window applies at launch')
-
-    Settings.set('mouseMoveThrottle', Infinity)
-    assert.equal(countMoves([2000, 5000]), 0, 'all moves are dropped while the throttle is Infinity')
-
-    Settings.set('mouseMoveThrottle', 16)
-    assert.equal(countMoves([5010, 5030]), 2, 'moves are handled again once the throttle is lowered')
-  } finally {
-    delete Settings[symbols.settings].mouseMoveThrottle
-    cleanupAppAndRestore(config, spies.restore)
   }
 })

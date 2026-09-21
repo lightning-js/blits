@@ -66,19 +66,6 @@ Example font object:
 | `enableMouse`       | `boolean` | Enable mouse support (hover and click-to-focus). Defaults to false.                                              |
 | `mouseMoveThrottle` | `number`  | Minimum time (ms) between pointer moves processed for hover; moves arriving sooner are dropped. Defaults to 100. |
 
-`mouseMoveThrottle` can also be changed while the App is running, for example to stop processing pointer moves during a
-heavy animation:
-
-```js
-import { Settings } from '@lightningjs/blits'
-
-Settings.set('mouseMoveThrottle', Infinity) // ignore pointer moves
-// ... animation runs ...
-Settings.set('mouseMoveThrottle', 16) // track the pointer closely again
-```
-
-Most other settings are only read when the App launches, so changing them at runtime has no effect.
-
 ## Renderer
 
 | Setting         | Type      | Description |

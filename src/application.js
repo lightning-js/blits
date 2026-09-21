@@ -80,6 +80,7 @@ const Application = (config) => {
     const throttleMs = Settings.get('inputThrottle', 0)
 
     const mouseEnabled = Settings.get('enableMouse', false)
+    const mouseMoveThrottle = Settings.get('mouseMoveThrottle', 100)
     const { createKeyboardEvent, input, isKeyboardEvent, now = Date.now, viewport } = platform
 
     keyDownHandler = async (e) => {
@@ -153,7 +154,7 @@ const Application = (config) => {
 
     // limit the amount of move events per time frame
     mouseMoveHandler = (e) => {
-      if (e.timeStamp - lastMoved < Settings.get('mouseMoveThrottle', 100)) return
+      if (e.timeStamp - lastMoved < mouseMoveThrottle) return
       lastMoved = e.timeStamp
 
       this.$emit('mouse::move', e)

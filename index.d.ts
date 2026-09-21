@@ -1537,16 +1537,4 @@ declare module '@lightningjs/blits' {
 
   export default Blits;
 
-  /**
-   * Blits Settings
-   *
-   * Reads and changes the application settings at runtime. Most settings are read once, when the
-   * App launches, so changing them later has no effect. Settings that are read each time they are
-   * used, such as `mouseMoveThrottle`, take effect immediately.
-   */
-  export const Settings: {
-    get<K extends keyof Settings>(key: K, defaultValue?: Settings[K]): Settings[K]
-    set<K extends keyof Settings>(key: K, value: Settings[K]): void
-    set(settings: Partial<Settings>): void
-  }
 }

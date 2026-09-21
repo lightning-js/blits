@@ -26,5 +26,3 @@ export default {
   Launch,
   Plugin,
 }
-
-export { default as Settings } from './src/settings.js'
