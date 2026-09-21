@@ -102,7 +102,16 @@ Tags can also be combined:
 
 Rich Text is off by default, so plain texts keep the faster rendering path. Only enable it on the texts that need inline styling.
 
-Underline and strikethrough are drawn by the renderer and don't need extra fonts. Bold and italic are separate font faces though, so you'll need to register those styles as extra fonts in your Launch settings. See [Registering bold and italic fonts](#registering-bold-and-italic-fonts) for a full example.
+### No additional fonts required
+
+All four styles are handled entirely by the text renderer, using the _single_ font that you specify via the `font`-attribute (or the default font from the launch settings). There is no need to register separate bold or italic font faces, and there is no need to regenerate your font atlas to include them. Bold and italic are applied on the fly by the renderer, while underline and strikethrough are drawn as additional lines.
+
+```xml
+<!-- a single regular font is sufficient, no bold or italic files are needed -->
+<Text font="lato" rich="true" content="Normal [b]Bold[/b] and [i]Italic[/i]" />
+```
+
+> If the styled text is still displayed as plain text, with the tags visible (i.e. you literally see `[b]Bold[/b]`), then the `rich`-attribute is most likely missing. This attribute is what enables the parsing of the tags.
 
 ## SDF and Canvas2d
 
@@ -143,27 +152,6 @@ From this moment on you'll be able to use the font `ComicSans` anywhere in your 
 ```xml
 <Text font="ComicSans" content="I'm Comic Sans font!" />
 ```
-
-### Registering bold and italic fonts
-
-Bold and italic are separate font faces, each with its own font file. Blits has no `weight` or `style` option, so you register each style as its own entry in the `fonts` array, with its own `family` name:
-
-```js
-  fonts: [
-    { family: 'roboto', type: 'msdf', file: 'fonts/Roboto-Regular.ttf' },
-    { family: 'roboto-bold', type: 'msdf', file: 'fonts/Roboto-Bold.ttf' },
-    { family: 'roboto-italic', type: 'msdf', file: 'fonts/Roboto-Italic.ttf' },
-  ],
-```
-
-Each style is then a normal font family you can use with the `font`-attribute, and [Rich Text](#rich-text) uses these same registered faces for its `[b]` and `[i]` tags:
-
-```xml
-<Text font="roboto-bold" content="Bold text" />
-<Text rich="true" font="roboto" content="Normal [b]Bold[/b] and [i]Italic[/i]" />
-```
-
-> Underline (`[u]`) and strikethrough (`[s]`) are drawn by the renderer and need no extra fonts.
 
 ### Custom characters
 
