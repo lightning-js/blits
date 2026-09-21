@@ -189,6 +189,10 @@
       {
         "text": "Custom Plugins",
         "link": "/plugins/custom_plugins"
+      },
+      {
+        "text": "Animation",
+        "link": "/plugins/animation"
       }
     ]
   },
