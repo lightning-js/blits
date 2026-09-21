@@ -681,17 +681,11 @@ const Element = {
 
     if (this.config.parent.props !== undefined && this.config.parent.props.__layout === true) {
       this.config.parent.triggerLayout(this.config.parent.props)
-      if (isTextNode === true) {
-        this.node.on('textCalculated', () => {
-          if (this.eol === true) return
-          this.config.parent.triggerLayout(this.config.parent.props)
-        })
-      } else {
-        this.node.on('loaded', () => {
-          if (this.eol === true) return
-          this.config.parent.triggerLayout(this.config.parent.props)
-        })
-      }
+
+      this.node.on(isTextNode === true ? 'textCalculated' : 'loaded', () => {
+        if (this.eol === true) return
+        this.config.parent.triggerLayout(this.config.parent.props)
+      })
     }
   },
   /**
