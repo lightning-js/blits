@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { default as Component, componentMap } from './component.js'
+import { componentMap, default as Component } from './component.js'
 import { default as Focus, keyUpCallbacks } from './focus/focus.js'
 import Hover from './focus/hover.js'
 
@@ -80,6 +80,7 @@ const Application = (config) => {
     const throttleMs = Settings.get('inputThrottle', 0)
 
     const mouseEnabled = Settings.get('enableMouse', false)
+    const mouseMoveThrottle = Settings.get('mouseMoveThrottle', 100)
     const { createKeyboardEvent, input, isKeyboardEvent, now = Date.now, viewport } = platform
 
     keyDownHandler = async (e) => {
@@ -114,7 +115,11 @@ const Application = (config) => {
       }
 
       Focus.input(key, e)
-      if (mouseEnabled === true) Hover.clear()
+      if (mouseEnabled === true) {
+        Hover.clear()
+        // forget the node under the pointer too, so moving on it hovers it again
+        currentNode = undefined
+      }
       clearTimeout(holdTimeout)
       holdTimeout = setTimeout(
         () => {
@@ -125,10 +130,12 @@ const Application = (config) => {
     }
 
     keyUpHandler = (e) => {
-      const cb = keyUpCallbacks.get(e.keyCode)
-      if (cb !== undefined && typeof cb === 'function') {
+      const entry = keyUpCallbacks.get(e.keyCode)
+      if (entry !== undefined) {
         keyUpCallbacks.delete(e.keyCode)
-        cb()
+        if (entry.component.eol !== true && typeof entry.callback === 'function') {
+          entry.callback()
+        }
       }
       clearTimeout(holdTimeout)
       Focus.hold = false
@@ -147,7 +154,7 @@ const Application = (config) => {
 
     // limit the amount of move events per time frame
     mouseMoveHandler = (e) => {
-      if (e.timeStamp - lastMoved < 100) return
+      if (e.timeStamp - lastMoved < mouseMoveThrottle) return
       lastMoved = e.timeStamp
 
       this.$emit('mouse::move', e)
