@@ -17,7 +17,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v7
       with:
         node-version: 20.16.0
 
@@ -117,14 +117,14 @@ jobs:
 
     - name: Upload Test Report Artifact
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: test-report
         path: test-report.txt
 
     - name: Upload Test Results
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: test-results
         path: |
@@ -139,7 +139,7 @@ jobs:
 
     - name: Upload Error Log
       if: fromJSON(steps.analyze-results.outputs.result).testsFailed == true
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: error-log
         path: ./error.txt
