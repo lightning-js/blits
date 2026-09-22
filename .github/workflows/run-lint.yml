@@ -26,7 +26,7 @@ jobs:
         echo '${{ github.event.pull_request.head.ref }}' > ./pr_branch.txt
 
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v7
       with:
         node-version: 20.16.0
 
