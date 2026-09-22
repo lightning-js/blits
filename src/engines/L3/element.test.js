@@ -22,6 +22,8 @@ import { EventEmitter } from 'node:events'
 import { initLog } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import sinon from 'sinon'
+import { CoreNode, CoreTextNode } from '@lightningjs/renderer'
+import colors from '../../lib/colors/colors.js'
 import shaders from '../../lib/shaders/shaders.js' // Changed from './shaderLoader.js'
 
 initLog()
@@ -249,6 +251,63 @@ test('Element - Set `color` property', (assert) => {
   assert.equal(el.node['color'], '0xf0ffffff', 'Node color parameter should be set')
   assert.equal(el.props.props['color'], '0xf0ffffff', 'Props color parameter should be set')
   assert.equal(el.props.raw['color'], 'azure', "Props' raw map entry should be added")
+  assert.end()
+})
+
+test('Element - Packed colors populate regular and text nodes', (assert) => {
+  for (const __textnode of [false, true]) {
+    const create = assert.capture(
+      renderer,
+      __textnode ? 'createTextNode' : 'createNode',
+      () => new EventEmitter()
+    )
+    for (const color of [0, 0x12345678, 0x800000ff, 0xffffffff]) {
+      const el = createElement({ props: { color, __textnode } })
+      assert.equal(create().at(-1).args[0].color, color, 'Creation preserves packed RGBA')
+      assert.equal(el.props.raw.color, color, 'Raw color is preserved')
+    }
+  }
+  assert.end()
+})
+
+test('Element - Packed color updates use renderer setters', (assert) => {
+  for (const Node of [CoreNode, CoreTextNode]) {
+    assert.capture(renderer, 'createNode', () => new EventEmitter())
+    const el = createElement()
+    // Exercise real renderer color setters without creating a rendering stage.
+    el.node = Object.assign(Object.create(Node.prototype), { props: { color: 0 }, updateType: 0 })
+    const normalize = sinon.spy(colors, 'normalize')
+    try {
+      const transformed = el.props.props
+      for (const color of [0x12345678, 0x800000ff, 0xffffffff, 0]) {
+        el.set('color', color)
+        assert.equal(el.node.color, color, 'Packed color reaches renderer unchanged')
+        assert.equal(el.props.raw.color, color, 'Raw color stays synchronized')
+        assert.equal(el.props.props, transformed, 'Numeric updates reuse the property container')
+        assert.ok(el.node.updateType, 'Renderer is invalidated')
+        el.node.updateType = 0
+        el.set('color', color)
+        assert.equal(el.node.updateType, 0, 'Repeated assignments do not invalidate')
+      }
+      assert.equal(normalize.callCount, 0, 'Numeric updates skip string normalization')
+      el.set('color', 'red')
+      assert.equal(el.node.color, '0xff0000ff', 'String colors still work')
+      el.set('color', { top: 'red', bottom: 'blue' })
+      assert.equal(el.node.colorTl, '0xff0000ff', 'Gradient top is applied')
+      assert.equal(el.node.colorBl, '0x0000ffff', 'Gradient bottom is applied')
+      el.set('color', 0)
+      for (const corner of ['colorTl', 'colorTr', 'colorBl', 'colorBr']) {
+        assert.equal(el.node[corner], 0, 'Transparent zero clears gradient corners')
+      }
+      el.set('color', "{left: 'red', right: 'blue'}")
+      el.set('color', 0xffffffff)
+      assert.equal(el.node.colorTl, 0xffffffff, 'Packed white replaces gradient')
+      el.set('color', 'azure')
+      assert.equal(el.node.color, '0xf0ffffff', 'String color replaces packed white')
+    } finally {
+      normalize.restore()
+    }
+  }
   assert.end()
 })
 
@@ -1088,7 +1147,7 @@ test('Element - Destroy created Element node', (assert) => {
   const el = createElement()
   el.set('w', { transition: { value: 100, duration: 4000 } })
   el.destroy()
-  assert.equal(el.node, null, 'Node should set to null')
+  assert.equal(el.node, undefined, 'Node should be set to undefined')
   assert.equal(el.component, undefined, 'Component should be deleted from element')
   assert.equal(el.props, undefined, 'Props should be deleted from element')
   assert.equal(el.config, undefined, 'Config should be deleted from element')
@@ -1341,13 +1400,13 @@ test('Element - Transition progress callback', (assert) => {
   }, 100)
 })
 
-test('Element - Transition end when node undefined', (assert) => {
+test('Element - Transition callbacks do not run after destroy', (assert) => {
   assert.capture(renderer, 'createNode', () => new CustomNode())
   const el = createElement()
   const endSpy = sinon.spy()
   el.set('w', { transition: { value: 100, duration: 100, end: endSpy } })
   setTimeout(() => {
-    el.node = undefined
+    el.destroy()
   }, 20)
   setTimeout(() => {
     assert.notOk(endSpy.called, 'End should not be called')

@@ -98,6 +98,14 @@ _HSL and HSLA formats are planned to be added in the future._
 <Element w="200" h="200" color="skyblue" />
 ```
 
+For convenience, Blits exports the known HTML color names, including `transparent` so they can be used in the App or in plugins:
+
+```js
+import htmlColors from '@lightningjs/blits/colors'
+
+htmlColors.red // '0xff0000ff'
+```
+
 ### Basic linear gradients
 
 The color attribute can also be used to specify basic linear gradients.

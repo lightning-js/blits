@@ -361,6 +361,35 @@ test('Methods - Destroy does not rerun effects when clearing array state', (asse
   assert.end()
 })
 
+test('Methods - Destroy removes effects before moving focus to the parent', (assert) => {
+  const { component } = getTestComponent()
+  component[symbols.state] = reactive({ $hasFocus: true })
+  // mock $focus functionality on the parent
+  component[symbols.parent] = {
+    $focus() {
+      component[symbols.state].$hasFocus = false
+    },
+  }
+  Object.defineProperty(component, '$hasFocus', {
+    get() {
+      return this[symbols.state].$hasFocus
+    },
+  })
+
+  let effectCalls = 0
+  const focusEffect = () => {
+    component[symbols.state].$hasFocus
+    effectCalls++
+  }
+
+  component[symbols.effects].push(focusEffect)
+  effect(focusEffect)
+  component.destroy()
+
+  assert.equal(effectCalls, 1, 'Moving focus during destroy should not run $hasFocus effects')
+  assert.end()
+})
+
 test('Methods - Reactive array effects cannot abort component teardown', (assert) => {
   const { component, cleanupMock, holderMock } = getTestComponent()
   component[symbols.state] = reactive({

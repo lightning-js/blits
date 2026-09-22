@@ -29,6 +29,12 @@ let setFocusTimeout
 
 export const keyUpCallbacks = new Map()
 
+export const removeKeyUpCallbacks = (component) => {
+  for (const [keyCode, entry] of keyUpCallbacks) {
+    if (entry.component === component) keyUpCallbacks.delete(keyCode)
+  }
+}
+
 export default {
   _hold: false,
   set hold(v) {
@@ -99,7 +105,7 @@ export default {
     }
 
     if (cb !== undefined) {
-      keyUpCallbacks.set(event.keyCode, cb)
+      keyUpCallbacks.set(event.keyCode, { callback: cb, component: componentWithInputEvent })
     }
   },
 }
