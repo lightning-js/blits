@@ -113,7 +113,7 @@ jobs:
 
     - name: Upload Lint Results
       if: steps.changed-files.outputs.has_js_changes == 'true'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: lint-results
         path: |
