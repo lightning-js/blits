@@ -1,10 +1,14 @@
 {
   "name": "@lightningjs/blits",
-  "version": "2.9.0",
+  "version": "2.10.0",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
     ".": "./index.js",
+    "./colors": {
+      "types": "./src/lib/colors/htmlColors.d.ts",
+      "default": "./src/lib/colors/htmlColors.js"
+    },
     "./platforms": {
       "types": "./src/platforms.d.ts",
       "default": "./src/platforms.js"

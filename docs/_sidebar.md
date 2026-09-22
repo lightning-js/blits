@@ -44,5 +44,6 @@
   - [Global App State](/plugins/global_app_state.md)
   - [Storage](/plugins/storage.md)
   - [Custom Plugins](/plugins/custom_plugins.md)
+  - [Animation](/plugins/animation.md)
 - Performance
   - [Lazy loading](/performance/lazy-loading.md)
