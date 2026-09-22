@@ -25,7 +25,7 @@ jobs:
       run: npx c8 --reporter=lcov --reporter=text npm run test:run
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v7
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: ./coverage/lcov.info
