@@ -191,21 +191,18 @@ export default {
       // early exit when component is marked as end of life
       if (this.eol === true) return
 
-      let selected = null
-      this[symbols.children].forEach((child) => {
+      for (const child of this[symbols.children]) {
         if (Array.isArray(child)) {
-          child.forEach((c) => {
-            if (c['ref'] === ref) selected = c
-          })
+          const selected = child.find((c) => c['ref'] === ref)
+          if (selected !== undefined) return selected
         } else if (Object.getPrototypeOf(child) === Object.prototype) {
-          Object.keys(child).forEach((k) => {
-            if (child[k]['ref'] === ref) selected = child[k]
-          })
+          const selected = Object.values(child).find((c) => c['ref'] === ref)
+          if (selected !== undefined) return selected
         } else {
-          if (child['ref'] === ref) selected = child
+          if (child['ref'] === ref) return child
         }
-      })
-      return selected
+      }
+      return null
     },
     writable: false,
     enumerable: true,

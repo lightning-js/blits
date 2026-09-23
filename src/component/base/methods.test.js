@@ -154,6 +154,19 @@ test('Methods - Validate $select method behavior', (assert) => {
   assert.end()
 })
 
+test('Methods - $select returns the first matching ref', (assert) => {
+  const Child = function (componentId) {
+    this.componentId = componentId
+    this.ref = 'duplicate'
+  }
+  const first = new Child('first')
+  const second = new Child('second')
+  const component = Object.defineProperties({ [symbols.children]: [first, second] }, { ...methods })
+
+  assert.equal(component.$select('duplicate'), first, 'first matching child should be returned')
+  assert.end()
+})
+
 test('Methods - Validate $select method with nested array of children structure', (assert) => {
   const ChildComponent = function (id, ref) {
     this.componentId = id
