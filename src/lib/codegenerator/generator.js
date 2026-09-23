@@ -534,7 +534,7 @@ const generateForLoopCode = function (templateObject, parent) {
     let to${forStartCounter}
 
     forloops[${forStartCounter}] = (collection = [], elms, created) => {
-      ${invalidateSelectCache ? "rootComponent?.[Symbol.for('invalidateSelectCache')]?.()" : ''}
+      ${invalidateSelectCache ? "rootComponent && rootComponent[Symbol.for('invalidateSelectCache')]()" : ''}
       const rawCollection = getRaw(collection)
       const keys = new Set()
       let l = rawCollection.length
