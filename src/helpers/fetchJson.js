@@ -22,10 +22,18 @@ export default (file) => {
       if (xhr.readyState == XMLHttpRequest.DONE) {
         // file protocol returns 0
         // http(s) protocol returns 200
-        if (xhr.status === 0 || xhr.status === 200) resolve(JSON.parse(xhr.responseText))
-        else reject(xhr.statusText)
+        if (xhr.status === 0 || xhr.status === 200) {
+          try {
+            resolve(JSON.parse(xhr.responseText))
+          } catch (err) {
+            reject(err)
+          }
+        } else reject(xhr.statusText || xhr.status)
       }
     }
+
+    xhr.onerror = () => reject(new Error('Network request failed'))
+
     xhr.open('GET', file)
     xhr.send(null)
   })

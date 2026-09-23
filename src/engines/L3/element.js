@@ -275,7 +275,9 @@ const propsTransformer = {
     this.props['zIndex'] = v
   },
   set color(v) {
-    if (typeof v === 'string' && v.startsWith('{') === false) {
+    if (typeof v === 'number') {
+      this.props['color'] = v
+    } else if (typeof v === 'string' && v.startsWith('{') === false) {
       this.props['color'] = colors.normalize(v)
     } else if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
       this.props['color'] = 0
@@ -649,10 +651,11 @@ const Element = {
     if (this.props.props['color'] === undefined && '__textnode' in props === false) {
       this.props.props['color'] = 0
     }
-
-    this.node = props.__textnode
-      ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
-      : renderer.createNode(this.props.props)
+    const isTextNode = props.__textnode
+    this.node =
+      isTextNode === true
+        ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
+        : renderer.createNode(this.props.props)
 
     if (this.props['holder'] === true) {
       holderComponentMap.set(this.node, this.component)
@@ -680,7 +683,8 @@ const Element = {
 
     if (this.config.parent.props !== undefined && this.config.parent.props.__layout === true) {
       this.config.parent.triggerLayout(this.config.parent.props)
-      this.node.on('loaded', () => {
+
+      this.node.on(isTextNode === true ? 'textCalculated' : 'loaded', () => {
         if (this.eol === true) return
         this.config.parent.triggerLayout(this.config.parent.props)
       })
@@ -809,6 +813,20 @@ const Element = {
     // @ts-ignore
     this.props.raw[prop] = value
 
+    if (prop === 'color' && typeof value === 'number') {
+      // A gradient can share its base color with the new solid color (notably zero).
+      // The renderer skips equal base colors, so reset its sides in that case.
+      if (this.node.color === value) {
+        this.node.colorTop = value
+        this.node.colorBottom = value
+        this.node.colorLeft = value
+        this.node.colorRight = value
+      }
+      // Use the renderer setter to invalidate colors, including text colors.
+      this.node.color = value
+      return
+    }
+
     this.props.props = {}
     // @ts-ignore
     this.props[prop] = unpackTransition(value)
@@ -908,6 +926,7 @@ const Element = {
     if (transition.start !== undefined && typeof transition.start === 'function') {
       // fire transition start callback when animation really starts (depending on specified delay)
       f.once('animating', () => {
+        if (this.eol === true) return
         transition.start.call(this.component, this, prop, startValue)
       })
     }
@@ -929,6 +948,7 @@ const Element = {
     }
 
     f.once('stopped', () => {
+      if (this.eol === true) return
       if (
         this.scheduledTransitions[prop] !== undefined &&
         this.scheduledTransitions[prop].canceled === true
@@ -936,7 +956,7 @@ const Element = {
         return
       }
       // fire transition end callback when animation ends (if specified)
-      if (this.node !== undefined && transition.end && typeof transition.end === 'function') {
+      if (transition.end && typeof transition.end === 'function') {
         transition.end.call(this.component, this, prop, this.node[prop])
       }
       // remove the prop from scheduled transitions
@@ -1010,7 +1030,7 @@ const Element = {
     delete this.forComponent
 
     this.node.destroy()
-    this.node = null
+    this.node = undefined
   },
   get nodeId() {
     return this.node && this.node.id
