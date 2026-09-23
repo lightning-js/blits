@@ -25,6 +25,8 @@ import { renderer } from '../../launch.js'
 import { keyMap } from '../../application.js'
 import { platform } from '../../platform.js'
 
+const selectCache = new WeakMap()
+
 export default {
   $focus: {
     /**
@@ -98,6 +100,7 @@ export default {
      */
     value: function () {
       this.eol = true
+      selectCache.delete(this)
       this[symbols.lifecycle].state = 'destroy'
 
       // when destroying a component that currently has focus
@@ -191,15 +194,43 @@ export default {
       // early exit when component is marked as end of life
       if (this.eol === true) return
 
+      let cache = selectCache.get(this)
+      if (cache !== undefined && cache.has(ref) === true) {
+        const selected = cache.get(ref)
+        if (selected !== undefined && selected.eol !== true) return selected
+        cache.delete(ref)
+      }
+
       for (const child of this[symbols.children]) {
         if (Array.isArray(child)) {
           const selected = child.find((c) => c['ref'] === ref)
-          if (selected !== undefined) return selected
+          if (selected !== undefined) {
+            if (cache === undefined) {
+              cache = new Map()
+              selectCache.set(this, cache)
+            }
+            cache.set(ref, selected)
+            return selected
+          }
         } else if (Object.getPrototypeOf(child) === Object.prototype) {
           const selected = Object.values(child).find((c) => c['ref'] === ref)
-          if (selected !== undefined) return selected
+          if (selected !== undefined) {
+            if (cache === undefined) {
+              cache = new Map()
+              selectCache.set(this, cache)
+            }
+            cache.set(ref, selected)
+            return selected
+          }
         } else {
-          if (child['ref'] === ref) return child
+          if (child['ref'] === ref) {
+            if (cache === undefined) {
+              cache = new Map()
+              selectCache.set(this, cache)
+            }
+            cache.set(ref, child)
+            return child
+          }
         }
       }
       return null

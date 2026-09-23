@@ -167,6 +167,27 @@ test('Methods - $select returns the first matching ref', (assert) => {
   assert.end()
 })
 
+test('Methods - $select caches successful lookups', (assert) => {
+  let reads = 0
+  const child = {}
+  Object.defineProperty(child, 'ref', {
+    get() {
+      reads++
+      return 'cached'
+    },
+  })
+  const children = [child]
+  const component = Object.defineProperties({}, { ...methods })
+  component[symbols.children] = children
+
+  const selected = component.$select('cached')
+  const firstReadCount = reads
+
+  assert.equal(component.$select('cached'), selected, 'cached ref should avoid a second scan')
+  assert.equal(reads, firstReadCount, 'cached lookup should not inspect child refs again')
+  assert.end()
+})
+
 test('Methods - Validate $select method with nested array of children structure', (assert) => {
   const ChildComponent = function (id, ref) {
     this.componentId = id
