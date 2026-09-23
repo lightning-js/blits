@@ -524,6 +524,8 @@ const generateForLoopCode = function (templateObject, parent) {
     }
   }
 
+  const invalidateSelectCache = 'ref' in templateObject
+
   ctx.renderCode.push(`
     created[${forStartCounter}] = []
     effects[${forStartCounter}] = []
@@ -532,6 +534,7 @@ const generateForLoopCode = function (templateObject, parent) {
     let to${forStartCounter}
 
     forloops[${forStartCounter}] = (collection = [], elms, created) => {
+      ${invalidateSelectCache ? "rootComponent?.[Symbol.for('invalidateSelectCache')]?.()" : ''}
       const rawCollection = getRaw(collection)
       const keys = new Set()
       let l = rawCollection.length

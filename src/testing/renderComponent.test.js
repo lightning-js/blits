@@ -135,6 +135,11 @@ test('renderComponent destroys every element created by a populated for-loop', (
   })
 
   const fixture = renderComponent(List)
+  assert.equal(
+    typeof fixture.component[Symbol.for('invalidateSelectCache')],
+    'function',
+    'component should expose loop cache invalidation'
+  )
   const loopElements = loopChildren(fixture.component).filter(
     (child) => child.$componentId === undefined
   )
@@ -147,6 +152,43 @@ test('renderComponent destroys every element created by a populated for-loop', (
     loopElements.every((element) => element.eol === true),
     'Destroy should release every element created by the loop'
   )
+  assert.end()
+})
+
+test('renderComponent refreshes cached refs when a keyed loop reorders items', async (assert) => {
+  const Item = Component('SelectLoopRefItem', { template: '<Element />' })
+  const List = Component('SelectLoopRefRefresh', {
+    template: `
+      <Element>
+        <SelectLoopRefItem :for="item in $items" key="$item.id" ref="$item.id" />
+      </Element>
+    `,
+    state() {
+      return { items: [{ id: 'first' }, { id: 'second' }] }
+    },
+    components: { SelectLoopRefItem: Item },
+  })
+
+  const fixture = renderComponent(List)
+  const firstSelection = fixture.component.$select('first')
+  const secondSelection = fixture.component.$select('second')
+
+  fixture.setState({ items: [{ id: 'second' }, { id: 'first' }] })
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  fixture.snapshot()
+
+  assert.equal(
+    fixture.component.$select('first'),
+    firstSelection,
+    'first keyed ref should remain selectable'
+  )
+  assert.equal(
+    fixture.component.$select('second'),
+    secondSelection,
+    'second keyed ref should remain selectable'
+  )
+
+  fixture.destroy()
   assert.end()
 })
 

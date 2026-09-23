@@ -4557,6 +4557,7 @@ test('Generate code for a template with a simple for-loop on an Element with an 
     let to1
 
     forloops[1] = (collection = [], elms, created) => {
+      rootComponent?.[Symbol.for('invalidateSelectCache')]?.()
       const rawCollection = getRaw(collection)
       const keys = new Set()
       let l = rawCollection.length

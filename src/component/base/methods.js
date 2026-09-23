@@ -239,6 +239,14 @@ export default {
     enumerable: true,
     configurable: false,
   },
+  [symbols.invalidateSelectCache]: {
+    value: function () {
+      selectCache.delete(this)
+    },
+    writable: false,
+    enumerable: false,
+    configurable: false,
+  },
   $trigger: {
     /**
      * @this {import('../../component').BlitsComponent}
