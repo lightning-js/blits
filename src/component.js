@@ -426,8 +426,9 @@ const Component = (name = required('name'), config = required('config')) => {
       }
     }
 
-    // finaly set the lifecycle state to ready (in the next tick)
-    setTimeout(() => (this[symbols.lifecycle].state = 'ready'))
+    // finally set the lifecycle state to ready (synchronously: instantiation,
+    // reactivity setup and template spawn are all complete at this point)
+    this[symbols.lifecycle].state = 'ready'
 
     // and return this
     return this
