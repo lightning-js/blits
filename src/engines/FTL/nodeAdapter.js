@@ -22,6 +22,10 @@
 // - NEVER leak raw mutation: every `setProp` assigns then calls `el.dirty()`.
 //   (`texture`/`text` accessors dirty internally — assigning them is enough,
 //   but an extra `dirty()` is harmless and keeps the invariant obvious.)
+// - Descendant invalidation (`dirtyBranch`) runs for inherited state
+//   (transform, alpha, visibility, ...). `color`/`w`/`h` carry no
+//   child-visible state and skip the walk (`w`/`h` except on RTT roots,
+//   where a resize must re-render the framebuffer via member dirties).
 // - Text nodes: Blits `__textnode` props become `createText()` assigned to
 //   `el.text` (FTL decouples text objects from elements). Spike needed for
 //   exact canvas-text prop names (see TODO.md).
@@ -118,6 +122,14 @@ export default {
     // too — otherwise children keep stale transforms (e.g. text under a
     // tweened/faded container freezes mid-flight). texture/text carry no
     // child-visible state and skip the walk (handled above).
+    //
+    // Narrowing: color/w/h never enter a descendant's worldTransform,
+    // bounds or globalAlpha, so the subtree walk is pure overhead for them
+    // (e.g. a focus background-color tween dirties 1 node instead of the
+    // whole card). w/h are excluded for RTT roots: a root resize changes
+    // the framebuffer size, which is only picked up via member dirties.
+    if (key === 'color') return
+    if ((key === 'w' || key === 'h') && (node.rtt !== true || node.rttGroupId !== null)) return
     if (typeof node.dirtyBranch === 'function') {
       node.dirtyBranch()
     }
