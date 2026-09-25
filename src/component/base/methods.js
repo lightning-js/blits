@@ -30,6 +30,8 @@ import { renderer } from '../../launch.js'
 import { keyMap } from '../../application.js'
 import { platform } from '../../platform.js'
 
+const selectCache = new WeakMap()
+
 export default {
   $focus: {
     /**
@@ -103,6 +105,7 @@ export default {
      */
     value: function () {
       this.eol = true
+      selectCache.delete(this)
       removeKeyUpCallbacks(this)
       this[symbols.lifecycle].state = 'destroy'
 
@@ -197,24 +200,58 @@ export default {
       // early exit when component is marked as end of life
       if (this.eol === true) return
 
-      let selected = null
-      this[symbols.children].forEach((child) => {
+      let cache = selectCache.get(this)
+      if (cache !== undefined && cache.has(ref) === true) {
+        const selected = cache.get(ref)
+        if (selected !== undefined && selected.eol !== true) return selected
+        cache.delete(ref)
+      }
+
+      for (const child of this[symbols.children]) {
+        if (child === undefined || child === null) continue
         if (Array.isArray(child)) {
-          child.forEach((c) => {
-            if (c['ref'] === ref) selected = c
-          })
+          const selected = child.find((c) => c['ref'] === ref)
+          if (selected !== undefined) {
+            if (cache === undefined) {
+              cache = new Map()
+              selectCache.set(this, cache)
+            }
+            cache.set(ref, selected)
+            return selected
+          }
         } else if (Object.getPrototypeOf(child) === Object.prototype) {
-          Object.keys(child).forEach((k) => {
-            if (child[k]['ref'] === ref) selected = child[k]
-          })
+          const selected = Object.values(child).find((c) => c['ref'] === ref)
+          if (selected !== undefined) {
+            if (cache === undefined) {
+              cache = new Map()
+              selectCache.set(this, cache)
+            }
+            cache.set(ref, selected)
+            return selected
+          }
         } else {
-          if (child['ref'] === ref) selected = child
+          if (child['ref'] === ref) {
+            if (cache === undefined) {
+              cache = new Map()
+              selectCache.set(this, cache)
+            }
+            cache.set(ref, child)
+            return child
+          }
         }
-      })
-      return selected
+      }
+      return null
     },
     writable: false,
     enumerable: true,
+    configurable: false,
+  },
+  [symbols.invalidateSelectCache]: {
+    value: function () {
+      selectCache.delete(this)
+    },
+    writable: false,
+    enumerable: false,
     configurable: false,
   },
   $trigger: {
