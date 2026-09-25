@@ -208,6 +208,7 @@ export default {
       }
 
       for (const child of this[symbols.children]) {
+        if (child === undefined || child === null) continue
         if (Array.isArray(child)) {
           const selected = child.find((c) => c['ref'] === ref)
           if (selected !== undefined) {
