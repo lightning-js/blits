@@ -95,7 +95,7 @@
     "tape": "^5.9.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "3.5.0",
+    "@lightningjs/renderer": "^3.5.1",
     "magic-string": "^1.4.1"
   },
   "repository": {
