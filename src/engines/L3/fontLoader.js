@@ -17,23 +17,27 @@
 
 import Settings from '../../settings.js'
 import { renderer } from './launch.js'
-
-const fontTypeMapping = {
-  sdf: 'sdf',
-  msdf: 'sdf',
-  canvas: 'canvas',
-  web: 'canvas',
-}
+import { resolveFontEngineType } from './fontTypes.js'
 
 export default () => {
   const stage = renderer.stage
+  const renderMode = Settings.get('renderMode', 'webgl')
 
   const fonts = Settings.get('fonts', [])
   for (let i = 0; i < fonts.length; i++) {
     const font = fonts[i]
-    const type = fontTypeMapping[font.type] || 'sdf'
+    const type = resolveFontEngineType(font.type)
 
     if (type === 'sdf') {
+      // The SDF text renderer is not compatible with the Canvas core renderer
+      // (no `sdf` font handler is registered), so skip these fonts instead of
+      // throwing in `stage.loadFont`.
+      if (renderMode === 'canvas') {
+        console.warn(
+          `Blits: Skipping SDF font "${font.family}" because SDF fonts are not supported with renderMode "canvas".`
+        )
+        continue
+      }
       stage.loadFont('sdf', {
         fontFamily: font.family,
         atlasUrl: font.png || (font.file && font.file.replace(/\.[^.]+$/, `.${font.type}.png`)),
