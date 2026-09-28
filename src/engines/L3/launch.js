@@ -123,9 +123,10 @@ export default (App, target, settings = {}) => {
 
   shaderLoader()
   fontLoader()
-  // Defer app initialization until after the current call stack is cleared,
-  // allowing the renderer to finish setting up before the app starts creating components
-  Promise.resolve().then(initApp)
+  // Initialize the app synchronously: renderer setup above is fully synchronous,
+  // so there is no need to yield before creating components (yielding only lets
+  // the render loop's first frames jump ahead of app readiness)
+  initApp()
 
   return renderer
 }

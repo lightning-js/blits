@@ -111,13 +111,13 @@ test('Component - Instance should initiate lifecycle object', (assert) => {
   )
   assert.equal(
     foo[symbols.lifecycle].previous,
-    null,
-    'Lifecycle object should have previous state not initialized'
+    'init',
+    'Lifecycle object should have init as previous state'
   )
   assert.equal(
     foo[symbols.lifecycle].current,
-    'init',
-    'Lifecycle object should have initial current state'
+    'ready',
+    'Lifecycle object should have ready as current state immediately after instantiation'
   )
   assert.end()
 })
@@ -400,16 +400,22 @@ test('Component - Instance should have all symbols configured', (assert) => {
   assert.end()
 })
 
-test('Component - Instance should have ready state after the next process tick', (assert) => {
-  assert.plan(1)
+test('Component - Instance should have ready state synchronously upon instantiation', (assert) => {
+  assert.plan(2)
 
   const foo = Component('Foo', {})()
+
+  assert.equal(
+    foo[symbols.lifecycle].state,
+    'ready',
+    'Foo component lifecycle should be in a ready state immediately after instantiation'
+  )
 
   setTimeout(() => {
     assert.equal(
       foo[symbols.lifecycle].state,
       'ready',
-      'Foo component lifecycle should be eventually in a ready state'
+      'Foo component lifecycle should remain in a ready state'
     )
   })
 })
