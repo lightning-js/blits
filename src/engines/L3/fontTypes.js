@@ -33,7 +33,7 @@ const fontTypeMapping = {
  * Resolve a Blits font type to a renderer font-engine type.
  * Unknown (or missing) types default to `sdf`, matching fontLoader behavior.
  *
- * @param {string} [type] - The font type declared in settings (web, msdf, sdf, canvas)
+ * @param {string} [type] - The font type declared in settings (web, msdf, sdf)
  * @returns {'sdf'|'canvas'}
  */
 export const resolveFontEngineType = (type) => fontTypeMapping[type] || 'sdf'
