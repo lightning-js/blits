@@ -2,10 +2,11 @@
 
 ## 2.11.0
 
-_24 sep 2026_
+_28 sep 2026_
 
 - Improved `$select()` method by adding caching
 - Upgraded several dependencies
+- Bumped renderer to 3.5.1
 
 ## 2.10.0
 
