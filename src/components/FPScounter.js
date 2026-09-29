@@ -16,7 +16,6 @@
  */
 
 import Blits from '../../index.js'
-import { renderer } from '../launch.js'
 import fps_sprite from '../../public/assets/fps_sprite.base64.js'
 
 // exporting as named export to allow selective importing
@@ -93,28 +92,32 @@ export const FPScounter = Blits.Component('FPScounter', {
       avgFps: '---',
       minFps: '---',
       maxFps: '---',
+
+      data: {
+        minFps: 10000,
+        maxFps: 0,
+        totalFps: 0,
+        fpsUpdateCounter: 0,
+        avgFps: 0,
+      },
     }
   },
   hooks: {
-    ready() {
-      let minFps = 10000
-      let maxFps = 0
-      let avgFps = 0
-      let totalFps = 0
-      let fpsUpdateCounter = 0
+    /**
+     * @this {{ data: { minFps: number, maxFps: number, totalFps: number, fpsUpdateCounter: number, avgFps: number }, fps: string, avgFps: string, minFps: string, maxFps: string }}
+     * @param {number} fps
+     */
+    fpsUpdate(fps) {
+      this.data.minFps = Math.min(fps, this.data.minFps)
+      this.data.maxFps = Math.max(fps, this.data.maxFps)
+      this.data.totalFps += fps
+      this.data.fpsUpdateCounter++
+      this.data.avgFps = Math.round(this.data.totalFps / this.data.fpsUpdateCounter)
 
-      renderer.on('fpsUpdate', (rM, { fps }) => {
-        minFps = Math.min(fps, minFps)
-        maxFps = Math.max(fps, maxFps)
-        totalFps += fps
-        fpsUpdateCounter++
-        avgFps = Math.round(totalFps / fpsUpdateCounter)
-
-        this.fps = fps.toString().padStart(3, '0')
-        this.avgFps = avgFps.toString().padStart(3, '0')
-        this.minFps = minFps.toString().padStart(3, '0')
-        this.maxFps = maxFps.toString().padStart(3, '0')
-      })
+      this.fps = fps.toString().padStart(3, '0')
+      this.avgFps = this.data.avgFps.toString().padStart(3, '0')
+      this.minFps = this.data.minFps.toString().padStart(3, '0')
+      this.maxFps = this.data.maxFps.toString().padStart(3, '0')
     },
   },
 })
