@@ -93,7 +93,9 @@ export default (App, target, settings = {}) => {
           SCREEN_RESOLUTIONS[screenHeight] ||
           1,
         numImageWorkers:
-          'webWorkersLimit' in settings ? settings.webWorkersLimit : hardwareConcurrency || 2,
+          'webWorkersLimit' in settings
+            ? settings.webWorkersLimit
+            : Math.min(hardwareConcurrency || 2, 2),
         clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
         inspector: settings.inspector === true ? Inspector : undefined,
         boundsMargin: settings.viewportMargin || 0,
