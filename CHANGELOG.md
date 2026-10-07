@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.12.0
+
+_8 oct 2026_
+
+- Added support for rich text using _bb-code_-style formatting
+- Capped default number of webworkers at 2 for faster App startup time
+- Added selective instantiation of _only_ the relevant text renders based on the registered fonts
+- Bumped renderer to 3.6.0 with latest rich text enhancements
+
 ## 2.11.0
 
 _28 sep 2026_
