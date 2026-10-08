@@ -25,6 +25,17 @@ export interface ProfileToken {
   readonly startTime: number
 }
 
+export interface ProfilerFrameOptions {
+  frames?: boolean
+  maxFrames?: number
+  targetFps?: number
+}
+
+export interface ProfilerSnapshot {
+  measurements: Record<string, ProfilerEntry>
+  frames: object
+}
+
 /**
  * Marks the start of a measurement.
  *
@@ -41,6 +52,9 @@ export function profileEnd(name: string, start: ProfileToken | 0): void
  * Measures the execution time of a (synchronous) function
  */
 export function profile<T>(name: string, fn: () => T): T
+
+/** Attaches the profiler to a renderer that emits frameTick events. */
+export function setProfilerRenderer(renderer: unknown): void
 
 declare const profiler: Profiler
 export default profiler

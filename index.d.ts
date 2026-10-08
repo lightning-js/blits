@@ -1517,11 +1517,11 @@ declare module '@lightningjs/blits' {
     /**
      * Clears previously collected measurements and starts recording
      */
-    start(): void,
+    start(options?: { frames?: boolean, maxFrames?: number, targetFps?: number }): void,
     /**
      * Stops recording and returns the collected measurements
      */
-    stop(): Record<string, ProfilerEntry>,
+    stop(): { measurements: Record<string, ProfilerEntry>, frames: object },
     /**
      * Clears all collected measurements, without changing the enabled state
      */
@@ -1529,7 +1529,15 @@ declare module '@lightningjs/blits' {
     /**
      * Returns the measurements collected so far
      */
-    snapshot(): Record<string, ProfilerEntry>,
+    snapshot(): { measurements: Record<string, ProfilerEntry>, frames: object },
+    /**
+     * Returns frame-oriented results collected with start({ frames: true })
+     */
+    frameSnapshot(): object,
+    /**
+     * Logs marker and frame results as console tables and returns the combined snapshot
+     */
+    report(): { measurements: Record<string, ProfilerEntry>, frames: object },
     /**
      * Whether the profiler is currently recording
      */
