@@ -20,6 +20,11 @@ import { initLog, Log } from './lib/log.js'
 import engine from './engine.js'
 import blitsPackageInfo from '../package.json' with { type: 'json' }
 import { configurePlatform } from './platform.js'
+import profiler from './lib/profiler.js'
+
+// Vite replaces __DEV__ with a boolean at build time. The typeof check keeps
+// the source usable outside Vite (for example in the test runner).
+const isDev = typeof __DEV__ !== 'undefined' && __DEV__
 
 /**
  * @typedef {Object} Font
@@ -93,6 +98,7 @@ async function rendererVersion() {
  * @property {boolean} [enableMouse] - Enable mouse support (hover and click-to-focus). Defaults to false.
  * @property {number} [maxFPS] - Maximum FPS
  * @property {function} [platform] - Platform factory for non-browser environments
+ * @property {boolean} [profiler] - Start the performance profiler on launch
  */
 
 /**
@@ -129,6 +135,12 @@ export default (App, target, settings) => {
   Settings.set(settings)
 
   initLog()
+
+  if (isDev === true) {
+    // expose the profiler, so it can be controlled from the devtools console
+    globalThis.__BLITS_PROFILER__ = profiler
+    if (Settings.get('profiler', false) === true) profiler.start()
+  }
 
   if (warnLegacyRendererPlatform === true) {
     Log.warn(

@@ -1112,6 +1112,15 @@ declare module '@lightningjs/blits' {
    */
   export interface Settings {
     /**
+     * Start the performance profiler when the App launches
+     *
+     * The profiler is also available on `globalThis.__BLITS_PROFILER__`, so it
+     * can be started and stopped from the devtools console
+     *
+     * @default false
+     */
+    profiler?: boolean,
+    /**
      * Width of the Application
      */
     w?: number,
@@ -1476,6 +1485,56 @@ declare module '@lightningjs/blits' {
     plugin: (options?: any) => any
   }
 
+
+  export interface ProfilerEntry {
+    /**
+     * Number of times the measurement was recorded
+     */
+    calls: number,
+    /**
+     * Total time spent, in milliseconds
+     */
+    totalMs: number,
+    /**
+     * Slowest single measurement, in milliseconds
+     */
+    maxMs: number,
+    /**
+     * Average time per call, in milliseconds
+     */
+    averageMs: number
+  }
+
+  export interface Profiler {
+    /**
+     * Marks the start of a measurement
+     */
+    mark(name: string): void,
+    /**
+     * Ends the most recent measurement started with the same name
+     */
+    markEnd(name: string): void,
+    /**
+     * Clears previously collected measurements and starts recording
+     */
+    start(): void,
+    /**
+     * Stops recording and returns the collected measurements
+     */
+    stop(): Record<string, ProfilerEntry>,
+    /**
+     * Clears all collected measurements, without changing the enabled state
+     */
+    reset(): void,
+    /**
+     * Returns the measurements collected so far
+     */
+    snapshot(): Record<string, ProfilerEntry>,
+    /**
+     * Whether the profiler is currently recording
+     */
+    readonly enabled: boolean
+  }
 
   /**
    * Blits App Framework
