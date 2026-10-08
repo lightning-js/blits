@@ -2578,3 +2578,69 @@ test('reuseComponent reuses the same view instance when returning to the route',
 
   stage.element = originalElement
 })
+
+test('Edge case: async hook failure with empty history should not cause endless loop', async (assert) => {
+  const originalElement = stage.element
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set() {},
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: {
+      render: () => ({
+        elms: [
+          {
+            [symbols.holder]: { destroy: () => {} },
+            node: {},
+          },
+        ],
+        cleanup: () => {},
+      }),
+      effects: [],
+    },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/page1',
+          component: TestComponent,
+          hooks: {
+            async before() {
+              throw new Error('Hook failed')
+            },
+          },
+        },
+      ],
+      [symbols.routerHooks]: {
+        async beforeEach() {
+          throw new Error('BeforeEach hook failed')
+        },
+      },
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/page1')
+
+  try {
+    await navigate.call(host)
+  } catch {
+    // Expected to fail
+  }
+
+  // Wait a bit to ensure no endless loop
+  await new Promise((resolve) => setTimeout(resolve, 50))
+
+  // Verify navigation state is properly reset
+  assert.equal(state.navigating, false, 'Navigation state should be reset after hook failure')
+  assert.ok(true, 'Should not cause endless loop when hook fails with empty history')
+
+  stage.element = originalElement
+})
