@@ -222,9 +222,9 @@ test('Profiler - frame analysis records bounded complete frames', (assert) => {
     2,
     'starts frame analysis by default and keeps the configured frames'
   )
-  assert.equal(frames.frameInterval.maxMs, 30, 'uses renderer frame intervals')
+  assert.equal(frames.frameInterval.maxMs, 40, 'uses the closing renderer frame interval')
   assert.equal(frames.labels.work.calls, 2, 'attributes spans to frames')
-  assert.equal(frames.slowFramePercent, 50, 'counts intervals over 1.5 target frame times')
+  assert.equal(frames.slowFramePercent, 100, 'counts intervals over 1.5 target frame times')
   assert.equal(frames.slowestFrames.length, 2, 'keeps expensive frame attribution for inspection')
   const table = console.table
   const info = console.info

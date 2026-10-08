@@ -58,17 +58,18 @@ const clearFrames = () => {
   frameHistory = []
 }
 
-const finishFrame = () => {
+const finishFrame = (data) => {
   if (activeFrame === undefined || activeFrame.sessionId !== sessionId) return
+  activeFrame.intervalMs = typeof data.delta === 'number' ? data.delta : 0
   frameHistory.push(activeFrame)
   if (frameHistory.length > frameConfig.maxFrames) frameHistory.shift()
 }
 
 const beginFrame = (data) => {
-  finishFrame()
+  finishFrame(data)
   activeFrame = {
     sessionId,
-    intervalMs: typeof data.delta === 'number' ? data.delta : 0,
+    intervalMs: 0,
     totalMs: 0,
     labels: new Map(),
   }

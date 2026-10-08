@@ -60,7 +60,7 @@ const sortedProducts = profile('products.sort', () =>
 
 ## Frame analysis
 
-Frame analysis is enabled by default. The profiler retains the latest 300 complete frames. You can change the limit and target frame rate when needed, or disable frame analysis when it is not needed.
+Frame analysis is enabled by default. A frame is a renderer-frame sample bounded by consecutive `frameTick` events. The profiler retains the latest 300 complete frames. You can change the limit and target frame rate when needed, or disable frame analysis when it is not needed.
 
 ```js
 profiler.start({
