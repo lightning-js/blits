@@ -47,3 +47,4 @@
   - [Animation](/plugins/animation.md)
 - Performance
   - [Lazy loading](/performance/lazy-loading.md)
+  - [Profiling](/performance/profiling.md)

@@ -1531,7 +1531,7 @@ declare module '@lightningjs/blits' {
      */
     snapshot(): { measurements: Record<string, ProfilerEntry>, frames: object },
     /**
-     * Returns frame-oriented results collected with start({ frames: true })
+     * Returns frame-oriented results collected by default or with start({ frames: true })
      */
     frameSnapshot(): object,
     /**

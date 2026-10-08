@@ -207,7 +207,7 @@ test('Profiler - profile() wraps a function', (assert) => {
 test('Profiler - frame analysis records bounded complete frames', (assert) => {
   const renderer = fakeRenderer()
   profiler.setRenderer(renderer)
-  profiler.start({ frames: true, maxFrames: 2, targetFps: 60 })
+  profiler.start({ maxFrames: 2, targetFps: 60 })
   renderer.frame(100, 16)
   profile('outer', () => profile('inner', () => 42))
   renderer.frame(120, 20)
@@ -217,7 +217,11 @@ test('Profiler - frame analysis records bounded complete frames', (assert) => {
   renderer.frame(190, 40)
 
   const frames = profiler.frameSnapshot()
-  assert.equal(frames.frameCount, 2, 'keeps only the configured number of complete frames')
+  assert.equal(
+    frames.frameCount,
+    2,
+    'starts frame analysis by default and keeps the configured frames'
+  )
   assert.equal(frames.frameInterval.maxMs, 30, 'uses renderer frame intervals')
   assert.equal(frames.labels.work.calls, 2, 'attributes spans to frames')
   assert.equal(frames.slowFramePercent, 50, 'counts intervals over 1.5 target frame times')

@@ -315,7 +315,7 @@ const profiler = {
     activeMarks.clear()
     activeSpan = undefined
     frameConfig =
-      options.frames === true
+      options.frames !== false
         ? {
             maxFrames: options.maxFrames || 300,
             targetFrameMs: 1000 / (options.targetFps || 60),
@@ -365,7 +365,7 @@ const profiler = {
   report,
   setRenderer: setProfilerRenderer,
   /**
-   * Returns frame-oriented measurements collected with start({ frames: true }).
+   * Returns frame-oriented measurements collected by default or with start({ frames: true }).
    * @returns {object}
    */
   frameSnapshot,
