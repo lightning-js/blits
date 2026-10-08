@@ -35,10 +35,12 @@ const findMatchingBrace = (text, startPos) => {
     // Skip comments when not in strings
     else if (!inString && char === '/' && text[position + 1] === '/') {
       // Skip line comment
-      position = text.indexOf('\n', position) || text.length - 1
+      const nextNewline = text.indexOf('\n', position + 2)
+      position = nextNewline === -1 ? text.length - 1 : nextNewline
     } else if (!inString && char === '/' && text[position + 1] === '*') {
       // Skip block comment
-      position = text.indexOf('*/', position + 2) || text.length - 1
+      const end = text.indexOf('*/', position + 2)
+      position = end === -1 ? text.length - 1 : end + 1
     }
     // Count braces only outside strings and comments
     else if (!inString) {
@@ -60,143 +62,298 @@ const findComputedFunctionEnd = (computedObj, openingBracePos) => {
   return findMatchingBrace(computedObj, openingBracePos)
 }
 
-export default (code) => {
-  // Find component declarations
-  const componentRegex =
-    /Blits\.(Component|Application)\s*\(\s*(?:'[^']*'|"[^"]*")?\s*(?:,\s*)?({[\s\S]*?})\s*\)/g
+// Skip whitespace + commas + comments (line and block) starting from `pos`, return next code position.
+const skipNonCode = (text, pos) => {
+  let p = pos
+  while (p < text.length) {
+    const c = text[p]
+
+    // whitespace
+    if (c === ' ' || c === '\t' || c === '\n' || c === '\r') {
+      p++
+      continue
+    }
+
+    // separators between object members
+    if (c === ',') {
+      p++
+      continue
+    }
+
+    // line comment
+    if (c === '/' && text[p + 1] === '/') {
+      const nextNewline = text.indexOf('\n', p + 2)
+      p = nextNewline === -1 ? text.length : nextNewline + 1
+      continue
+    }
+
+    // block comment
+    if (c === '/' && text[p + 1] === '*') {
+      const end = text.indexOf('*/', p + 2)
+      p = end === -1 ? text.length : end + 2
+      continue
+    }
+
+    return p
+  }
+
+  return p
+}
+
+// Skip a non-method computed member (`key: value`) and return the position after it.
+const skipComputedMember = (text, pos) => {
+  const keyMatch = /^(\w+)\s*:\s*/.exec(text.substring(pos))
+  if (!keyMatch) return -1
+
+  let p = pos + keyMatch[0].length
+  p = skipNonCode(text, p)
+  if (p >= text.length - 1) return p
+
+  if (text.startsWith('function', p)) {
+    const open = text.indexOf('{', p)
+    if (open === -1) return -1
+    const close = findMatchingBrace(text, open)
+    return close === -1 ? -1 : close
+  }
+
+  let depth = 0
+  let inString = false
+  let stringChar = ''
+
+  for (; p < text.length - 1; p++) {
+    const char = text[p]
+
+    if (!inString && (char === '"' || char === "'" || char === '`')) {
+      inString = true
+      stringChar = char
+    } else if (inString && char === stringChar && text[p - 1] !== '\\') {
+      inString = false
+    } else if (!inString && char === '/' && text[p + 1] === '/') {
+      const nextNewline = text.indexOf('\n', p + 2)
+      p = nextNewline === -1 ? text.length - 2 : nextNewline
+    } else if (!inString && char === '/' && text[p + 1] === '*') {
+      const end = text.indexOf('*/', p + 2)
+      p = end === -1 ? text.length - 2 : end + 1
+    } else if (!inString) {
+      if (char === '{' || char === '(' || char === '[') depth++
+      else if (char === '}' || char === ')' || char === ']') depth--
+      else if (char === ',' && depth === 0) return p
+    }
+  }
+
+  return p
+}
+
+// Find the opening `{` of the component config object after Blits.Component( / Application(
+const findConfigBraceStart = (text, openParenPos) => {
+  let p = openParenPos + 1
+  p = skipNonCode(text, p)
+  if (p >= text.length) return -1
+
+  if (text[p] === '{') return p
+
+  if (text[p] === "'" || text[p] === '"' || text[p] === '`') {
+    const quote = text[p]
+    p++
+    while (p < text.length) {
+      if (text[p] === quote && text[p - 1] !== '\\') {
+        p++
+        break
+      }
+      p++
+    }
+    p = skipNonCode(text, p)
+    if (p < text.length && text[p] === '{') return p
+  }
+
+  return -1
+}
+
+const processComputedBlock = (configObject) => {
   const modifications = []
   const commentText = ' /* auto-generated reactivity guard */ '
 
-  let match
-  while ((match = componentRegex.exec(code)) !== null) {
-    const configObject = match[2]
+  const computedKeywordMatch = /computed\s*:\s*{/.exec(configObject)
 
-    // Find computed section with proper brace balancing
-    const computedKeywordMatch = /computed\s*:\s*{/.exec(configObject)
+  if (computedKeywordMatch) {
+    // Find start position of the computed block
+    const computedStart = computedKeywordMatch.index + computedKeywordMatch[0].length - 1 // Position of the opening brace
 
-    if (computedKeywordMatch) {
-      // Find start position of the computed block
-      const computedStart = computedKeywordMatch.index + computedKeywordMatch[0].length - 1 // Position of the opening brace
+    // Find the matching closing brace for computed object in config
+    const computedEnd = findComputedObjectEnd(configObject, computedStart)
 
-      // Find the matching closing brace for computed object in config
-      const computedEnd = findComputedObjectEnd(configObject, computedStart)
+    if (computedEnd !== -1) {
+      const computedObj = configObject.substring(computedStart, computedEnd)
+      const computedBlockStart = computedKeywordMatch.index
+      const computedBlockEnd = computedEnd
 
-      if (computedEnd !== -1) {
-        const computedObj = configObject.substring(computedStart, computedEnd)
+      // Process each computed property
+      const computedProps = []
+      let currentPos = 1 // Start after the opening brace
 
-        // Process each computed property
-        const computedProps = []
-        let currentPos = 1 // Start after the opening brace
+      // Process computed properties content
+      // intentionally not using regexes to extract functions and their content
+      // using cursor-based parsing gives better accuracy
+      while (currentPos < computedObj.length - 1) {
+        // -1 to exclude the closing brace
+        // Skip whitespace/comments so we don't match commented-out computed functions
+        currentPos = skipNonCode(computedObj, currentPos)
+        if (currentPos >= computedObj.length - 1) break
 
-        // Process computed properties content
-        // intentionally not using regexes to extract functions and their content
-        // using cursor-based parsing gives better accuracy
-        while (currentPos < computedObj.length - 1) {
-          // -1 to exclude the closing brace
-          // Find the next function name
-          const functionNameMatch = /\s*(\w+)\s*\(\)/.exec(computedObj.substring(currentPos))
-          if (!functionNameMatch) break
-
-          const funcName = functionNameMatch[1]
-          const funcNamePos = currentPos + functionNameMatch.index
-
-          // Find opening brace for this function
-          const openingBracePos = computedObj.indexOf('{', funcNamePos)
-          if (openingBracePos === -1) break
-
-          // Find closing brace for individual computed function
-          const closingBracePos = findComputedFunctionEnd(computedObj, openingBracePos)
-
-          if (closingBracePos === -1) {
-            break
-          }
-
-          // Extract the entire function and its body
-          // This is better and more accurate than using regex to avoid nested braces
-          const functionStartPos = funcNamePos
-          const functionEndPos = closingBracePos
-          const fullFunction = computedObj.substring(functionStartPos, functionEndPos)
-          const functionBody = computedObj
-            .substring(openingBracePos + 1, closingBracePos - 1)
-            .trim()
-
-          computedProps.push({
-            name: funcName,
-            fullText: fullFunction,
-            body: functionBody,
-            startPos: functionStartPos,
-            endPos: functionEndPos,
-          })
-
-          // Move past this function
-          currentPos = closingBracePos
-        }
-
-        // Store the original computed object for later replacement
-        const originalComputedObj = configObject.substring(
-          computedStart - 'computed: '.length,
-          computedEnd
+        // Find the next function name (computed properties are `name() { ... }`
+        // or long-form `name: function() { ... }`)
+        const functionNameMatch = /^(\w+)\s*(?:\(\)|:\s*function\s*\([^)]*\))\s*/.exec(
+          computedObj.substring(currentPos)
         )
 
-        let modifiedComputedObj = originalComputedObj
-        let hasChanges = false
+        if (!functionNameMatch) {
+          const nextPos = skipComputedMember(computedObj, currentPos)
+          if (nextPos === -1) break
+          currentPos = nextPos
+          continue
+        }
 
-        for (const prop of computedProps) {
-          const thisRefs = extractThisReferences(prop.body)
+        const funcName = functionNameMatch[1]
+        const funcNamePos = currentPos
 
-          if (thisRefs.size > 0) {
-            // Skip if already modified
-            if (
-              prop.body.includes(commentText) ||
-              Array.from(thisRefs).some((ref) => prop.body.startsWith(ref))
-            ) {
-              continue
-            }
+        // Find opening brace for this function
+        const afterSignaturePos = funcNamePos + functionNameMatch[0].length
+        const openingBracePos = computedObj.indexOf('{', afterSignaturePos)
+        if (openingBracePos === -1) break
 
-            // reactivity code
-            const refCode = Array.from(thisRefs)
-              .map((ref) => `${ref};`)
-              .join(' ')
+        // Find closing brace for individual computed function
+        const closingBracePos = findComputedFunctionEnd(computedObj, openingBracePos)
 
-            // replacement with the same whitespace
-            const openBraceIndex = prop.fullText.indexOf('{')
+        if (closingBracePos === -1) {
+          break
+        }
 
-            if (openBraceIndex !== -1) {
-              // Extract indentation from the original function body
-              const indentMatch = prop.body.match(/^(\s+)/)
-              const indent = indentMatch ? indentMatch[1] + '  ' : '    ' // Default to 4 spaces if no indent found
+        // Extract the entire function and its body
+        // This is better and more accurate than using regex to avoid nested braces
+        const functionStartPos = funcNamePos
+        const functionEndPos = closingBracePos
+        const fullFunction = computedObj.substring(functionStartPos, functionEndPos)
+        const functionBody = computedObj.substring(openingBracePos + 1, closingBracePos - 1).trim()
 
-              const modifiedPropText =
-                prop.fullText.substring(0, openBraceIndex + 1) +
-                '\n' +
-                indent +
-                commentText +
-                '\n' +
-                indent +
-                refCode +
-                '\n' +
-                indent +
-                prop.body +
-                '\n' +
-                prop.fullText.substring(0, openBraceIndex).match(/^(\s*)/)[0] +
-                '}'
+        computedProps.push({
+          name: funcName,
+          fullText: fullFunction,
+          body: functionBody,
+          startPos: functionStartPos,
+          endPos: functionEndPos,
+        })
 
-              // Replace this property in the computed object text
-              modifiedComputedObj = modifiedComputedObj.replace(prop.fullText, modifiedPropText)
-              hasChanges = true
-            }
+        // Move past this function
+        currentPos = closingBracePos
+      }
+
+      // Store the original computed object for later replacement
+      const originalComputedObj = configObject.substring(computedBlockStart, computedBlockEnd)
+      const computedObjOffsetInOriginal = computedStart - computedBlockStart
+      const computedObjEndInOriginal = computedObjOffsetInOriginal + computedObj.length
+
+      let modifiedComputedObj = originalComputedObj
+      let hasChanges = false
+
+      const replacements = []
+
+      for (const prop of computedProps) {
+        const thisRefs = extractThisReferences(prop.body)
+
+        if (thisRefs.size > 0) {
+          // Skip if already modified
+          if (
+            prop.body.includes(commentText.trim()) ||
+            Array.from(thisRefs).some((ref) => {
+              if (prop.body.startsWith(ref)) return true
+              // stripped && guard: body starts with the first segment, e.g. 'this.media &&'
+              const firstSegEnd = ref.indexOf('.', 5)
+              return firstSegEnd !== -1 && prop.body.startsWith(ref.substring(0, firstSegEnd))
+            })
+          ) {
+            continue
+          }
+
+          // reactivity code
+          const refCode = Array.from(thisRefs)
+            .map((ref) => `${toSafeRef(ref)};`)
+            .join(' ')
+
+          // replacement with the same whitespace
+          const openBraceIndex = prop.fullText.indexOf('{')
+
+          if (openBraceIndex !== -1) {
+            // Extract indentation from the original function body
+            const indentMatch = prop.body.match(/^(\s+)/)
+            const indent = indentMatch ? indentMatch[1] + '  ' : '    ' // Default to 4 spaces if no indent found
+
+            const modifiedPropText =
+              prop.fullText.substring(0, openBraceIndex + 1) +
+              '\n' +
+              indent +
+              commentText +
+              '\n' +
+              indent +
+              refCode +
+              '\n' +
+              indent +
+              prop.body +
+              '\n' +
+              prop.fullText.substring(0, openBraceIndex).match(/^(\s*)/)[0] +
+              '}'
+
+            replacements.push({
+              start: prop.startPos,
+              end: prop.endPos,
+              text: modifiedPropText,
+            })
           }
         }
+      }
 
-        if (hasChanges) {
-          // Store the modification of the entire computed object
-          modifications.push({
-            original: originalComputedObj,
-            replacement: modifiedComputedObj,
-          })
+      if (replacements.length > 0) {
+        let modifiedComputedInner = computedObj
+
+        replacements.sort((a, b) => b.start - a.start)
+        for (const r of replacements) {
+          modifiedComputedInner =
+            modifiedComputedInner.slice(0, r.start) + r.text + modifiedComputedInner.slice(r.end)
         }
+
+        modifiedComputedObj =
+          originalComputedObj.slice(0, computedObjOffsetInOriginal) +
+          modifiedComputedInner +
+          originalComputedObj.slice(computedObjEndInOriginal)
+        hasChanges = true
+      }
+
+      if (hasChanges) {
+        modifications.push({
+          original: originalComputedObj,
+          replacement: modifiedComputedObj,
+        })
       }
     }
+  }
+
+  return modifications
+}
+
+export default (code) => {
+  const componentOpenRegex = /Blits\.(Component|Application)\s*\(/g
+  const modifications = []
+
+  let match
+  while ((match = componentOpenRegex.exec(code)) !== null) {
+    const openParenPos = match.index + match[0].length - 1
+    const configStart = findConfigBraceStart(code, openParenPos)
+    if (configStart === -1) continue
+
+    const configEnd = findMatchingBrace(code, configStart)
+    if (configEnd === -1) continue
+
+    const configObject = code.substring(configStart, configEnd + 1)
+    modifications.push(...processComputedBlock(configObject))
   }
 
   // Apply all modifications at once, from last to first to preserve positions
@@ -213,33 +370,64 @@ export default (code) => {
       modifiedCode = modifiedCode.replace(mod.original, mod.replacement)
     }
 
-    return { code: modifiedCode }
+    // Returning code without a source map
+    // Vite will automatically chain this with the next plugin's source map (preCompiler)
+    return {
+      code: modifiedCode,
+      map: { mappings: '' },
+    }
   }
 
   return null
 }
 
+const toSafeRef = (ref) => {
+  // Converts 'this.a.b.c' to 'this.a && this.a.b && this.a.b.c'
+  const normalized = ref.replace(/\?\./g, '.')
+  const segments = normalized.split('.')
+  if (segments.length <= 2) return normalized
+  const parts = []
+  for (let i = 2; i <= segments.length; i++) {
+    parts.push(segments.slice(0, i).join('.'))
+  }
+  return parts.join(' && ')
+}
+
 const extractThisReferences = (funcBody) => {
   const thisRefs = new Set()
 
-  // Find all this.X references, but exclude method calls
-  const refRegex = /this\.\w+(?!\s*\()/g // matches this.X but not this.X() or this.X.Y()
+  // Match full property chains, including optional chaining
+  const refRegex = /this(?:\.[$\w]+|\?\.[$\w]+)+/g
   let refMatch
 
   while ((refMatch = refRegex.exec(funcBody)) !== null) {
     const fullRef = refMatch[0]
 
-    // Extract just the variable part (this.X)
-    // We need to avoid method calls or chained methods
-    const varRef = fullRef.split('.').slice(0, 2).join('.')
+    const segmentRegex = /(\??\.)([$\w]+)/g
+    let segMatch
+    let lastValidRef = 'this'
 
-    // Don't add if it's part of a method call
-    if (
-      !funcBody
-        .substring(refMatch.index)
-        .match(new RegExp(`^${varRef.replace(/\./g, '\\.')}\\s*\\(`))
-    ) {
-      thisRefs.add(varRef)
+    while ((segMatch = segmentRegex.exec(fullRef.substring(4))) !== null) {
+      const candidate = 'this' + fullRef.substring(4, 4 + segMatch.index + segMatch[0].length)
+      const afterCandidate = funcBody.substring(refMatch.index + candidate.length)
+      if (afterCandidate.match(/^\s*\(/)) {
+        break
+      }
+      lastValidRef = candidate
+    }
+
+    if (lastValidRef !== 'this') {
+      thisRefs.add(lastValidRef)
+    }
+  }
+
+  // Remove shorter prefixes when a longer chain already covers them
+  for (const ref of [...thisRefs]) {
+    for (const other of thisRefs) {
+      if (other !== ref && other.startsWith(ref + '.')) {
+        thisRefs.delete(ref)
+        break
+      }
     }
   }
 

@@ -77,6 +77,10 @@
         "link": "/components/user_input"
       },
       {
+        "text": "Mouse support",
+        "link": "/components/mouse_support"
+      },
+      {
         "text": "Methods",
         "link": "/components/methods"
       },
@@ -108,7 +112,7 @@
       },
       {
         "text": "Layout",
-        "link": "/built-in/layout.md"
+        "link": "/built-in/layout"
       }
     ]
   },
@@ -126,6 +130,36 @@
       {
         "text": "Transitions",
         "link": "/router/transitions"
+      }
+    ]
+  },
+  {
+    "text": "Testing",
+    "items": [
+      {
+        "text": "Test harness",
+        "link": "/testing/test-harness"
+      }
+    ]
+  },
+  {
+    "text": "Shader",
+    "items": [
+      {
+        "text": "Importing Shaders",
+        "link": "/shaders/importing-shaders"
+      },
+      {
+        "text": "WebGl Shaders",
+        "link": "/shaders/webgl-shadertypes"
+      },
+      {
+        "text": "Canvas Shaders",
+        "link": "/shaders/canvas-shadertypes"
+      },
+      {
+        "text": "v2 Conversion Guide",
+        "link": "/shaders/v2-conversion-guide"
       }
     ]
   },
@@ -151,6 +185,14 @@
       {
         "text": "Storage",
         "link": "/plugins/storage"
+      },
+      {
+        "text": "Custom Plugins",
+        "link": "/plugins/custom_plugins"
+      },
+      {
+        "text": "Animation",
+        "link": "/plugins/animation"
       }
     ]
   },

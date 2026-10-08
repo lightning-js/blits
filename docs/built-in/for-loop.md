@@ -1,6 +1,6 @@
 # For loop
 
-The for loop is technically also a [directive](../directives.md), but such an important one that it deserves its own section.
+The for loop is technically also a [directive](./directives.md), but such an important one that it deserves its own section.
 
 The for loop directive can be used when you want to repeat multiple instances of an Element or a Component, without having to specify them hardcoded one by one in your template.
 

@@ -32,12 +32,22 @@ export default function () {
 
       // we should only precompile .blits, .js and .ts files
       if (
-        fileExtension === '.js' ||
-        fileExtension === '.ts' ||
-        fileExtension === '.blits' ||
-        fileExtension === '.mjs'
+        filePath.indexOf('node_modules') === -1 &&
+        (fileExtension === '.js' ||
+          fileExtension === '.ts' ||
+          fileExtension === '.blits' ||
+          fileExtension === '.mjs')
       ) {
-        return compiler(source, filePath, config.mode)
+        const result = compiler(source, filePath, config.mode)
+
+        if (typeof result === 'object') {
+          return {
+            code: result.code,
+            map: result.map,
+          }
+        }
+        // No transformation needed - return null so Vite knows no changes were made
+        return null
       }
 
       // vite expects null if there is no modification

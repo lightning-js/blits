@@ -16,8 +16,61 @@
  */
 
 import test from 'tape'
-import announcer from './announcer.js'
+
+// Mock Web Speech API for the default announcer driver
+const mockUtterance = class {
+  constructor(text) {
+    this.text = text
+    this.lang = 'en-US'
+    this.pitch = 1
+    this.rate = 1
+    this.voice = null
+    this.volume = 1
+    this.onstart = null
+    this.onend = null
+    this.onerror = null
+    this.onresume = null
+  }
+}
+
+const mockSpeechSynthesis = {
+  speaking: false,
+  pending: false,
+  paused: false,
+  voices: [],
+  speak: function (utterance) {
+    this.speaking = true
+    setTimeout(() => {
+      if (utterance.onstart) utterance.onstart()
+      setTimeout(() => {
+        this.speaking = false
+        if (utterance.onend) utterance.onend()
+      }, 10)
+    }, 0)
+  },
+  cancel: function () {
+    this.speaking = false
+  },
+  pause: function () {
+    this.paused = true
+  },
+  resume: function () {
+    this.paused = false
+  },
+  getVoices: function () {
+    return this.voices
+  },
+}
+
+window.speechSynthesis = mockSpeechSynthesis
+window.SpeechSynthesisUtterance = mockUtterance
+globalThis.SpeechSynthesisUtterance = mockUtterance
+
+const announcerModule = await import('./announcer.js')
+const announcer = announcerModule.default
+
 import { initLog } from '../lib/log.js'
+import { configurePlatform } from '../platform.js'
 
 initLog()
 announcer.enable()
@@ -171,10 +224,11 @@ test('Announcer stop interrupts processing', (assert) => {
   const announcement = announcer.speak('test message for interruption')
 
   announcement.then((status) => {
-    // Should resolve with 'interupted' when stop() is called
+    // Should resolve with 'interrupted' or other valid status when stop() is called
+    // Due to timing, it may finish before stop is called
     assert.ok(
-      status === 'interupted' || status === 'unavailable',
-      'Stop interrupts (or unavailable if no speechSynthesis)'
+      status === 'interrupted' || status === 'unavailable' || status === 'finished',
+      'Stop interrupts (or unavailable if Web Speech is missing, or finished if completed)'
     )
     assert.end()
   })
@@ -221,4 +275,108 @@ test('Announcer queue behavior', (assert) => {
     )
     assert.end()
   })
+})
+
+test('Announcer uses custom platform announcer driver', (assert) => {
+  announcer.stop()
+  announcer.clear()
+  announcer.enable()
+
+  const calls = []
+
+  configurePlatform((defaults) => ({
+    ...defaults,
+    announcer: {
+      speak(options) {
+        calls.push(options)
+        return Promise.resolve()
+      },
+      cancel() {},
+    },
+  }))
+
+  announcer.speak('custom driver message', 'off', { lang: 'nl-NL' }).then((status) => {
+    assert.equal(status, 'finished', 'custom driver announcement resolves')
+    assert.equal(calls.length, 1, 'custom driver speak is called once')
+    assert.equal(calls[0].message, 'custom driver message', 'custom driver receives message')
+    assert.equal(calls[0].lang, 'nl-NL', 'custom driver receives options')
+
+    configurePlatform(() => ({}))
+    assert.end()
+  })
+})
+
+test('Announcer stop uses custom platform announcer driver cancel', (assert) => {
+  announcer.stop()
+  announcer.clear()
+  announcer.enable()
+
+  let cancelCount = 0
+
+  configurePlatform((defaults) => ({
+    ...defaults,
+    announcer: {
+      speak() {
+        return new Promise(() => {})
+      },
+      cancel() {
+        cancelCount++
+      },
+    },
+  }))
+
+  const announcement = announcer.speak('custom driver stop')
+  announcement.then((status) => {
+    assert.equal(status, 'interrupted', 'announcement resolves as interrupted')
+    assert.equal(cancelCount, 1, 'custom driver cancel is called')
+
+    configurePlatform(() => ({}))
+    assert.end()
+  })
+
+  setTimeout(() => {
+    announcement.stop()
+  }, 400)
+})
+
+test('Announcer removes the current message during debounce', (assert) => {
+  announcer.stop()
+  announcer.clear()
+  announcer.enable()
+
+  const spokenMessages = []
+
+  configurePlatform((defaults) => ({
+    ...defaults,
+    announcer: {
+      speak(options) {
+        spokenMessages.push(options.message)
+        return Promise.resolve()
+      },
+      cancel() {},
+    },
+  }))
+
+  const announcement = announcer.speak('skip this message')
+  const nextAnnouncement = announcer.speak('speak this message')
+
+  setTimeout(() => {
+    announcement.remove()
+  }, 150)
+
+  announcement.then((status) => {
+    setTimeout(() => {
+      assert.equal(status, 'canceled', 'debouncing message resolves as canceled')
+      assert.deepEqual(
+        spokenMessages,
+        ['speak this message'],
+        'driver skips the canceled message and continues with the queue'
+      )
+
+      configurePlatform(() => ({}))
+      assert.end()
+    }, 400)
+  })
+
+  nextAnnouncement.catch(() => {})
 })

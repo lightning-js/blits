@@ -15,9 +15,21 @@ Remote images are also supported and can be linked directly (e.g., `http://mycdn
 
 ## Sizing and Scaling
 
-Make sure to give your Element a width (`w` ) and a height (`h`) attribute. Images will _not_ be rendered if they don't have both attributes present. The Lightning renderer will scale the image to fit these exact dimensions.
+It is recommended to give your Element a width (`w`) and a height (`h`) attribute so the Lightning renderer can scale the image to those exact dimensions. If neither is specified, the image will render at its natural dimensions. For best control over layout, always set explicit dimensions.
 
 For the best performance, it's important to keep your source images as small as possible. If you're displaying an image at `200px x 200px`, make sure the image is exactly that size or _smaller_. The latter option may lead to some quality loss, but can positively impact the overall performance of your App.
+
+## Advanced src Attribute
+
+Besides passing a string to the `src` attribute, you can also pass an object with extra options.
+
+```xml
+<Element :src="{src: 'assets/background', type: 'ktx', keepAlive: true}" w="1920" h="1080" />
+```
+
+The `type` option can be used to explicitly set the image type. This is useful when the type can not be derived from the url or filename, or when you want to use a compressed texture format like `ktx`.
+
+The `keepAlive` option prevents the texture generated from the source image from being cleaned up. Use this for images that are reused often and should stay available in memory.
 
 ## Colorization
 

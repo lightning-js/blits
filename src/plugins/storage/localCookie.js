@@ -1,10 +1,6 @@
 /*
- * If not stated otherwise in this file or this component's LICENSE file the
- * following copyright and licenses apply:
- *
- * Copyright 2019 Metrological
- *
- * Licensed under the Apache License, Version 2.0 (the License);
+ * Copyright 2025 Comcast Cable Communications Management, LLC
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -15,7 +11,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
+import { platform } from '../../platform.js'
 
 // LocalStorage and Cookie storage library
 class localCookie {
@@ -43,7 +43,8 @@ class localCookie {
 
   // Checks if local storage is available and works
   _checkIfLocalStorageWorks() {
-    if (typeof localStorage !== 'undefined') {
+    const localStorage = platform.localStorage
+    if (localStorage !== undefined) {
       try {
         localStorage.setItem('feature_test', 'yes')
         if (localStorage.getItem('feature_test') === 'yes') {
@@ -68,23 +69,23 @@ class localCookie {
    * Local Storage APIs
    */
   _getItemLocalStorage(key) {
-    return window.localStorage.getItem(key)
+    return platform.localStorage.getItem(key)
   }
 
   _setItemLocalStorage(key, value) {
-    return window.localStorage.setItem(key, value)
+    return platform.localStorage.setItem(key, value)
   }
 
   _removeItemLocalStorage(key) {
-    return window.localStorage.removeItem(key)
+    return platform.localStorage.removeItem(key)
   }
 
   _clearLocalStorage() {
-    return window.localStorage.clear()
+    return platform.localStorage.clear()
   }
 
   _getLocalStorageKeys() {
-    return Object.keys(window.localStorage)
+    return Object.keys(platform.localStorage)
   }
 
   /*
@@ -93,7 +94,7 @@ class localCookie {
   _getItemCookie(key) {
     /* eslint-disable */
 		function escape(s) { return s.replace(/([.*+?\^${}()|\[\]\/\\])/g, '\\$1'); };
-		var match = document.cookie.match(RegExp('(?:^|;\\s*)' + escape(key) + '=([^;]*)'));
+		var match = platform.getCookie().match(RegExp('(?:^|;\\s*)' + escape(key) + '=([^;]*)'));
 
 		//if value in key of the entire cookie is empty, its deleted
 		if (match && match[1] === '')
@@ -105,13 +106,13 @@ class localCookie {
 	_setItemCookie(key, value) {
 		var now = new Date()
 		var expires = new Date(now.getTime() +1000*60*60*24*365*5) // 5 years!
-		document.cookie = `${key}=${value}; expires=${expires.toUTCString()};`
+		platform.setCookie(`${key}=${value}; expires=${expires.toUTCString()};`)
 		return //return undefined just like localStorage
 	}
 
 	_removeItemCookie(key) {
 		// to delete an k/v set the key to empty
-		document.cookie = `${key}=;Max-Age=-99999999;`
+		platform.setCookie(`${key}=;Max-Age=-99999999;`)
 		return //return undefined just like localStorage
 	}
 
@@ -119,14 +120,14 @@ class localCookie {
 		// empty all key/values in cookies
 		// What about cookies we got from the server? ¯\_(ツ)_/¯
 		// They should have the HttpOnly flag, so we shouldn't be able to delete them
-		document.cookie.split(";").forEach( (c) => {
-			document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=;Max-Age=-99999999");
+		platform.getCookie().split(";").forEach( (c) => {
+			platform.setCookie(c.replace(/^ +/, "").replace(/=.*/, "=;expires=;Max-Age=-99999999"));
 		});
 
 		return //return undefined
 	}
 	_getCookieKeys() {
-		return document.cookie.split(";").map((item)=>item.trim().split("=")[0])
+		return platform.getCookie().split(";").map((item)=>item.trim().split("=")[0])
 	}
 }
 

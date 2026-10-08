@@ -48,6 +48,20 @@ When registering the Global App State plugin, you pass it a state object as the 
 
 The newly created Global App state works exactly the same as an internal Component state. You can read values and you can directly change values. And when you do change a value, it automatically triggers reactive updates. Either via reactive attributes in the template, or in the form of watchers / computed values in the Component logic.
 
+## TypeScript Support
+
+Enable autocomplete and type inference for the App State plugin by adding a `blits.d.ts` file in the root folder of your app project:
+
+```typescript
+import type { AppStatePlugin } from '@lightningjs/blits/plugins/appstate'
+
+declare module '@lightningjs/blits' {
+  interface CustomComponentProperties {
+    $appState?: AppStatePlugin
+  }
+}
+```
+
 ### Using global app state in a Component
 
 Any variable in the Global App state can be used directly in the template, much like a local Component state. Changing values in the global app state also works exactly the same as updating the internal component state.

@@ -25,6 +25,8 @@ import { SCREEN_RESOLUTIONS, RENDER_QUALITIES } from '../../constants.js'
 import colors from '../../lib/colors/colors.js'
 import fontLoader from './fontLoader.js'
 import shaderLoader from './shaderLoader.js'
+import { getRequiredFontEngines } from './fontTypes.js'
+import { platform } from '../../platform.js'
 
 /** @type {RendererMain|{}} */
 export let renderer = {}
@@ -36,11 +38,22 @@ const renderEngine = (settings) => {
   if (renderMode === 'canvas') return CanvasCoreRenderer
 }
 
-const textRenderEngines = (settings) => {
+export const textRenderEngines = (settings) => {
   const renderMode = 'renderMode' in settings ? settings.renderMode : 'webgl'
 
-  if (renderMode === 'webgl') return [SdfTextRenderer, CanvasTextRenderer]
+  // SDF text rendering is not compatible with the Canvas core renderer
   if (renderMode === 'canvas') return [CanvasTextRenderer]
+
+  if (renderMode === 'webgl') {
+    // Only register the font engines actually required by the configured
+    // fonts, so unused text renderers are never initialized.
+    const { hasSdfFont, hasCanvasFont } = getRequiredFontEngines(settings.fonts)
+    if (hasSdfFont === true && hasCanvasFont === true) return [SdfTextRenderer, CanvasTextRenderer]
+    if (hasSdfFont === true) return [SdfTextRenderer]
+    // Canvas-only fonts, or no fonts declared at all (system/default fonts
+    // render via the Canvas engine, which can render any font family).
+    return [CanvasTextRenderer]
+  }
 }
 
 const textureMemorySettings = (settings) => {
@@ -73,6 +86,11 @@ const textureMemorySettings = (settings) => {
  *
  */
 export default (App, target, settings = {}) => {
+  const screenHeight = settings.platform ? settings.platform.screenHeight : platform.screenHeight
+  const hardwareConcurrency = settings.platform
+    ? settings.platform.hardwareConcurrency
+    : platform.hardwareConcurrency
+
   renderer = new RendererMain(
     {
       ...{
@@ -84,12 +102,12 @@ export default (App, target, settings = {}) => {
         deviceLogicalPixelRatio:
           settings.pixelRatio ||
           SCREEN_RESOLUTIONS[settings.screenResolution] ||
-          SCREEN_RESOLUTIONS[window.innerHeight] ||
+          SCREEN_RESOLUTIONS[screenHeight] ||
           1,
         numImageWorkers:
           'webWorkersLimit' in settings
             ? settings.webWorkersLimit
-            : window.navigator.hardwareConcurrency || 2,
+            : Math.min(hardwareConcurrency || 2, 2),
         clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
         inspector: settings.inspector === true ? Inspector : undefined,
         boundsMargin: settings.viewportMargin || 0,
@@ -100,6 +118,7 @@ export default (App, target, settings = {}) => {
         textureMemory: textureMemorySettings(settings),
         createImageBitmapSupport: 'auto',
         targetFPS: 'maxFPS' in settings ? settings.maxFPS : 0,
+        platform: settings.rendererPlatform || null,
       },
       ...(settings.advanced || {}),
     },
@@ -118,7 +137,9 @@ export default (App, target, settings = {}) => {
 
   shaderLoader()
   fontLoader()
-  initApp()
+  // Defer app initialization until after the current call stack is cleared,
+  // allowing the renderer to finish setting up before the app starts creating components
+  Promise.resolve().then(initApp)
 
   return renderer
 }

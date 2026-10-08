@@ -18,6 +18,9 @@
 import { Log } from './log.js'
 import { emit, privateEmit } from './hooks.js'
 import symbols from './symbols.js'
+import Settings from '../settings.js'
+
+let inspectorEnabled = null
 
 /**
  * List of valid lifecycle states for a component.
@@ -28,6 +31,8 @@ const states = [
   'ready', // fired when component instantiated, reactivity setup done and template spawned
   'focus', // fired when receiving focus (can occur multiple times)
   'unfocus', // fired when losing focus (can occur multiple times)
+  'hover', // fired when pointer enters the component (mouse support only; can occur multiple times)
+  'unhover', // fired when pointer leaves the component (mouse support only; can occur multiple times)
   'destroy', // fired when component is destroyed and removed
   'attach', // fired when entering the viewport margin and attached to the render tree
   'detach', // fired when leaving the viewport margin and detached from the render tree
@@ -72,7 +77,7 @@ export default {
   set state(v) {
     if ((states.indexOf(v) > -1 && v !== this.current) || v === 'refocus') {
       Log.debug(
-        `Setting lifecycle state from ${this.current} to ${v} for ${this.component.componentId}`
+        `Setting lifecycle state from ${this.current} to ${v} for ${this.component.$componentId}`
       )
       this.previous = this.current
       this.current = v
@@ -81,9 +86,35 @@ export default {
       privateEmit(v, this.component[symbols.identifier], this.component)
       // emit 'public' hook
       emit(v, this.component[symbols.identifier], this.component)
-      // update the built-in hasFocus state variable
-      if (v === 'focus') this.component[symbols.state].hasFocus = true
-      if (v === 'unfocus') this.component[symbols.state].hasFocus = false
+      // update the built-in $hasFocus state variable
+      if (v === 'focus' || v === 'unfocus') {
+        if (inspectorEnabled === null) {
+          inspectorEnabled = Settings.get('inspector', false)
+        }
+      }
+      // update the built-in isHovered state variable
+      if (v === 'hover') this.component[symbols.state].$isHovered = true
+      if (v === 'unhover') this.component[symbols.state].$isHovered = false
+      if (v === 'focus') {
+        this.component[symbols.state].$hasFocus = true
+        if (
+          inspectorEnabled === true &&
+          this.component[symbols.holder] &&
+          typeof this.component[symbols.holder].setInspectorMetadata === 'function'
+        ) {
+          this.component[symbols.holder].setInspectorMetadata({ 'blits-hasFocus': true })
+        }
+      }
+      if (v === 'unfocus') {
+        this.component[symbols.state].$hasFocus = false
+        if (
+          inspectorEnabled === true &&
+          this.component[symbols.holder] &&
+          typeof this.component[symbols.holder].setInspectorMetadata === 'function'
+        ) {
+          this.component[symbols.holder].setInspectorMetadata({ 'blits-hasFocus': false })
+        }
+      }
     }
   },
 }

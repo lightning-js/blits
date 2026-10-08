@@ -62,7 +62,9 @@ export default Blits.Component('MyComponent', {
     </Element>
   `,
   state() {
-    focusIndex: 1
+    return {
+      focusIndex: 1
+    }
   },
   input: {
     down() {
@@ -83,25 +85,77 @@ export default Blits.Component('MyComponent', {
 })
 ```
 
-Another frequent case is that focus is passed on to the parent Component. The parent component is available on the Component scope as `this.parent`. So passing the focus to the parent is as simple as calling `this.parent.$focus()`.
+Another frequent case is that focus is passed on to the parent Component. The parent component is available on the Component scope as `this.$parent`. So passing the focus to the parent is as simple as calling `this.$parent.$focus()`.
 
 The `$focus`-method accepts an optional `event` parameter, which is of the type `KeyboardEvent`. When the `event` parameter is provided, not only will the selected Component receive focus, but the input event will be emitted again on the component that just received focus.
 
 This can be used to _bubble up_ input events (specified in the `input` key of the component configuration object) and helps to create a smooth experience, preventing a user to click multiple times.
 
-When a Component receives focus the `focus` lifecycle-hook is invoke. Additionally the built in state variable `hasFocus` is set from `false` to `true`.
+When a Component receives focus the `focus` lifecycle-hook is invoke. Additionally the built in state variable `$hasFocus` is set from `false` to `true`.
 
 #### Focus chain
 
-It's worth noting that the when a Component is _focused_ it's parents will _also_ be set to focused as part of the _focus chain_. Each parent will have it's `focus` lifecycle-hook invoked and the `hasFocus` state variable will be set to true.
+It's worth noting that the when a Component is _focused_ it's parents will _also_ be set to focused as part of the _focus chain_. Each parent will have it's `focus` lifecycle-hook invoked and the `$hasFocus` state variable will be set to true.
 
-When moving the focus to a different Component, all components that are in a focused state, but are not part of the new _focus chain_ to said Component will be put into `unfocus` state (i.e. `unfocus` lifecycle hook is invoked and `hasFocus` is set to `false`). For shared ancestors of the new Component to gain focus, the `focus` lifecycle hook is _not_ called again.
+When moving the focus to a different Component, all components that are in a focused state, but are not part of the new _focus chain_ to said Component will be put into `unfocus` state (i.e. `unfocus` lifecycle hook is invoked and `$hasFocus` is set to `false`). For shared ancestors of the new Component to gain focus, the `focus` lifecycle hook is _not_ called again.
 
 #### Refocus
 
 When the `$focus` method is called on a Component that is already is a focused state (either because it is the focused Component, or becasue it's an ancestor of the focused Component, and thus part of a focus chain) it is essentially being _refocused_. In this case the `focus`-lifecycle hook is invoked again, making sure that _focus_ functionality is executed.
 
-> Tip: a _refocus_ can be distinguished from a _fresh focus_, by checking the value of the  built-in `hasFocus` state variable. In the event of a refocus the `hasFocus` is already set to `true` when invoking the `focus`-hook. When it's a fresh focus the value is `false`.
+> Tip: a _refocus_ can be distinguished from a _fresh focus_, by checking the value of the  built-in `$hasFocus` state variable. In the event of a refocus the `$hasFocus` is already set to `true` when invoking the `focus`-hook. When it's a fresh focus the value is `false`.
+
+### $input
+
+The `$input()`-method handles keyboard events on a component **without changing focus**. It works similarly to `$focus()`, but for input handling instead of focus management.
+
+**Comparison with `$focus()` methods:**
+- `this.$parent.$focus()` - Changes focus to parent **ONLY** (no event parameter = no bubbling)
+- `this.$parent.$focus(e)` - Changes focus to parent **AND** bubbles the event (with event parameter)
+- `this.$parent.$input(e)` - Handles the input event on parent **ONLY** (no focus change)
+
+Both `this.$parent.$focus(e)` and `this.$parent.$input(e)` process events on the parent. The difference is that `$focus()` changes focus, while `$input()` only handles the input event.
+
+> **v2**: `this.parent` was renamed to `this.$parent` in Blits v2.
+
+**When to use `$input`:**
+Use this when you need another component (like a parent) to handle the key but want to keep focus on the current component.
+
+The `$input()`-method accepts one parameter: the `event` (KeyboardEvent), which is the keyboard event to handle. The key name is automatically extracted from the event using the configured keymap.
+
+The method returns `true` if the component or any parent component handled the event, or `false` if no handler was found.
+
+```js
+export default Blits.Component('MyComponent', {
+  input: {
+    enter(e) {
+      // Handle the enter key locally
+      this.doSomething()
+
+      // Also let parent handle it without changing focus
+      this.$parent.$input(e)
+    },
+    back(e) {
+      // Let parent handle back key, but keep focus here
+      if (this.$parent.$input(e)) {
+        // Parent handled it
+        return
+      }
+      // No parent handler, handle it ourselves
+      this.handleBack()
+    },
+    space(e) {
+      // Handle input on a component selected by ref
+      const menu = this.$select('mainMenu')
+      if (menu) {
+        menu.$input(e)
+      }
+    },
+  }
+})
+```
+
+> **Note**: The `$input()` method works on the component it's called on (like `$focus()`), so call it on the target component (e.g., `this.$parent.$input(e)` or `this.$select('ref').$input(e)`) to handle input on that component without changing focus.
 
 ### $trigger
 
@@ -112,9 +166,11 @@ Instead of setting a value to `null` and then setting it back to the initial val
 ```js
 export default Blits.Component('MyComponent', {
   state() {
-    focusIndex: 1
+    return {
+      focusIndex: 1
+    }
   },
-  watchers: {
+  watch: {
     focusIndex(v) {
       console.log('I trigger when focusIndex changes')
     }
@@ -136,7 +192,7 @@ export default Blits.Component('MyComponent', {
 When working with Components in Blits you will often want to send data from one to another. In the case of (direct) child Component, using
 props is the defacto way for inter-component communication.
 
-For passing data from a child to a parent component, you may be tempted to use the `this.parent` reference and change the state directly. While this works, it does create a strict dependency on the parent, meaning the child Component only works properly when tied directly to a specific parent. This reduces reusability of Components and may cause limitations or problems later on.
+For passing data from a child to a parent component, you may be tempted to use the `this.$parent` reference and change the state directly. While this works, it does create a strict dependency on the parent, meaning the child Component only works properly when tied directly to a specific parent. This reduces reusability of Components and may cause limitations or problems later on.
 
 Instead the `this.$emit()` method can be used, which is available on each Component as a utility function. It's designed to easily emit data to anywhere in an App. The first argument is the `name` of the event that will be emitted (i.e. `changeBackground`) and optionally a second argument with additional `data` can be passed.
 
@@ -172,7 +228,7 @@ Note that this recursive operation comes at a cost, especially when emitting lar
 
 
 ```js
-// explicitely _not_ passing this.navigationResult by reference
+// explicitly _not_ passing this.navigationResult by reference
 this.$emit('setMenuItems', this.navigationResult, false)
 ```
 
@@ -193,7 +249,7 @@ export default Blits.Component('MyComponent', {
       // activate event without any additional value
       this.$listen('activate', () => {
         console.log('activated')
-        // set a text state valuye
+        // set a text state value
         this.text = 'We are active!'
       })
 
@@ -297,7 +353,9 @@ The `this.$clearTimeouts()`-method is a utility method that is used to clear all
 ```js
 export default Blits.Component('MyComponent', {
   state() {
-    timeout: null
+    return {
+      timeout: null
+    }
   },
   hooks: {
     init() {
@@ -374,6 +432,76 @@ export default Blits.Component('MyComponent', {
     enter() {
       // clear the interval
       this.$clearInterval(this.interval)
+    }
+  }
+})
+```
+
+## Debounce
+
+Debouncing is a technique to limit the rate at which a function executes. This is particularly useful when navigating through lists or handling rapid user input, where you want to execute a method only after the user has stopped the action for a specified delay.
+
+Similar to timeouts and intervals, debounced functions can cause memory leaks if not properly cleaned up. Blits provides built-in debounce methods that automatically handle cleanup when a component is destroyed.
+
+### $debounce
+
+The `this.$debounce()`-method creates a debounced function that delays execution until after a specified delay has passed since the last invocation. If the same name is debounced again before the delay completes, the previous debounce is cancelled and a new one is created.
+
+The first argument is a `name` (string) that uniquely identifies this debounce instance within the component. The second argument is the `callback` function to execute. The third argument is the `delay` in milliseconds. Additional arguments can be passed and will be forwarded to the callback function.
+
+The method returns a `debounce id`, which can be used to manually clear the debounce.
+
+**Key Features:**
+- **Name-based**: Each debounce is identified by a unique name (unique per component instance)
+- **Automatic replacement**: Calling `$debounce` with the same name replaces the previous debounce
+- **Memory efficient**: Only stores debounce IDs internally, function is captured in closure
+- **Automatic cleanup**: All debounces are cleared when component is destroyed
+
+### $clearDebounce
+
+The `this.$clearDebounce()`-method clears a specific debounce by its name. This prevents the debounced function from executing.
+
+### $clearDebounces
+
+The `this.$clearDebounces()`-method clears all debounces registered on the component in one go. This method is automatically called when destroying a Component, preventing memory leaks due to dangling debounce timers.
+
+```js
+export default Blits.Component('ListComponent', {
+  state() {
+    return {
+      items: [],
+      currentIndex: 0
+    }
+  },
+  input: {
+    down() {
+      // Debounce navigation - only load data after 300ms of no navigation
+      this.$debounce('navigate', () => {
+        this.loadCurrentItem()
+      }, 300)
+    },
+    up() {
+      // Different debounce for different operation
+      this.$debounce('update', () => {
+        this.updateUI()
+      }, 200)
+    }
+  },
+  methods: {
+    loadCurrentItem() {
+      // This will only execute after 300ms of no navigation
+      const item = this.items[this.currentIndex]
+      // ... load item data
+    },
+    updateUI() {
+      // This will only execute after 200ms of no update calls
+      // ... update UI
+    }
+  },
+  hooks: {
+    unfocus() {
+      // Optionally clear all debounces when component loses focus
+      this.$clearDebounces()
     }
   }
 })

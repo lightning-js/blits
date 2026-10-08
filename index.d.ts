@@ -18,10 +18,14 @@
 // blits file type reference
 /// <reference path="./blits.d.ts" />
 
-import {type ShaderEffect as RendererShaderEffect, type WebGlCoreShader, type RendererMainSettings} from '@lightningjs/renderer'
+import {type ShaderEffect as RendererShaderEffect, type RendererMainSettings, type FrameCounter} from '@lightningjs/renderer'
+import { CanvasShaderType } from '@lightningjs/renderer/canvas';
+import { WebGlShaderType } from '@lightningjs/renderer/webgl';
 
 declare module '@lightningjs/blits' {
-
+  type RendererShaderEffect = import('@lightningjs/renderer').ShaderEffect
+  type WebGlCoreShader = import('@lightningjs/renderer').WebGlCoreShader
+  type RendererMainSettings = import('@lightningjs/renderer').RendererMainSettings
 
   export interface AnnouncerUtteranceOptions {
     /**
@@ -54,6 +58,34 @@ declare module '@lightningjs/blits' {
      * @default 1
      */
     volume?: number,
+    /**
+     * Whether to enable utterance keep-alive (prevents pausing on some platforms)
+     *
+     * @default undefined
+     */
+    enableUtteranceKeepAlive?: boolean
+  }
+
+  export interface AnnouncerDriverOptions extends AnnouncerUtteranceOptions {
+    /**
+     * Message to be spoken by the platform announcer driver.
+     */
+    message: string | number,
+    /**
+     * Internal announcement id used by the Blits announcer queue.
+     */
+    id: number,
+  }
+
+  export interface AnnouncerDriver {
+    /**
+     * Speak one queued announcement.
+     */
+    speak(options: AnnouncerDriverOptions): Promise<any>,
+    /**
+     * Stop the active platform announcement, when supported.
+     */
+    cancel(): void,
   }
 
   export interface AnnouncerUtterance<T = any> extends Promise<T> {
@@ -164,6 +196,8 @@ declare module '@lightningjs/blits' {
     * Fires when the Component is being destroyed and removed.
     */
     destroy?: () => void;
+    hover?: () => void;
+    unhover?: () => void;
     /**
     * Fires upon each frame start  (allowing you to tap directly into the renderloop)
     *
@@ -195,21 +229,24 @@ declare module '@lightningjs/blits' {
     */
     exit?: () => void;
     /**
-    * Fires when the renderer is done rendering and enters an idle state
+    * Fires when the renderer is done rendering and enters an idle state (idle = true)
+    * and when the renderer starts rendering again and leaves the idle state (idle = false)
+    *
+    * @param idle - boolean to indicate whether the renderer is in idle state or not
     *
     * Note: This event can fire multiple times
     */
-    idle?: () => void;
+    idle?: (idle: boolean) => void;
     /**
     * Fires at a predefined interval and reports the current FPS value
     *
     * Note: This event fire multiple times
     */
-    fpsUpdate?: (fps: number) => void;
+    fpsUpdate?: (fps: number, frameCounter: FrameCounter) => void;
   }
 
   export interface Input {
-    [key: string]: (event: KeyboardEvent) => void | undefined | unknown,
+    [key: string]: ((event: KeyboardEvent) => unknown) | undefined,
     /**
      * Catch all input function
      *
@@ -314,12 +351,24 @@ declare module '@lightningjs/blits' {
      *
      * @param {string}
     */
-    to(location: string, data?: RouteData, options?: RouteOptions): void;
+    to(location: string, data?: RouteData, options?: RouteOptions): boolean;
+
+    /**
+     * Get a router scoped to a named RouterView
+     *
+     * @param {string}
+    */
+    get(name: string): Router;
 
     /**
      * Navigate to the previous location
     */
     back(): boolean;
+
+    /**
+     * Enable or disable RouterView history navigation on Back input
+     */
+    backNavigation: boolean;
 
     /**
      * Get the current route read-only
@@ -328,17 +377,17 @@ declare module '@lightningjs/blits' {
 
     /**
      * Get the list of all routes
-     */
+    */
     readonly routes: Route[];
 
     /**
      * Get navigating state
-     */
+    */
     readonly navigating: boolean;
 
     /**
      * Reactive router state
-     */
+    */
     state: {
       /**
        * Path of the current route
@@ -362,13 +411,40 @@ declare module '@lightningjs/blits' {
     }
   }
 
-  export type ComponentBase = {
+  // Extension point for app- and plugin-specific fields on the component `this`.
+  // Add your own properties (e.g., `$telemetry`, `componentName`) via TypeScript
+  // module augmentation in your app, without changing core types.
+  // Note: `ComponentBase` extends this interface, so augmented fields appear in all
+  // hooks, methods, input, computed, and watch.
+  export interface CustomComponentProperties {
+    // Empty by design: extend in your app via TypeScript module augmentation.
+  }
+
+
+  export interface ComponentBase extends CustomComponentProperties {
     /**
     * Indicates whether the component currently has focus
     *
     * @returns Boolean
     */
-    hasFocus: boolean,
+    readonly $hasFocus: boolean,
+
+    /**
+     * Parent component instance. Undefined for the root Application component (destroyed case not modeled).
+     */
+    readonly $parent: ComponentBase | undefined,
+
+    /**
+     * Human-readable identifier for this component instance (e.g. "MyComponent_0")
+     */
+    readonly $componentId: string,
+
+    /**
+    * Indicates whether the component currently is hovered
+    *
+    * @returns Boolean
+    */
+    $isHovered: boolean,
 
     /**
     * Listen to events emitted by other components
@@ -413,6 +489,33 @@ declare module '@lightningjs/blits' {
     $clearTimeout: (id: ReturnType<typeof setTimeout>) => void
 
     /**
+    * Debounce a function execution, preventing memory leaks and function re-allocation
+    * @param name - Unique identifier for this debounce instance (unique per component instance)
+    * @param callback - Function to debounce
+    * @param ms - Delay in milliseconds
+    * @param args - Arguments to pass to the callback
+    */
+    $debounce: (name: string, callback: (...args: any[]) => void, ms?: number, ...args: any[]) => ReturnType<typeof setTimeout>
+
+    /**
+    * Clear a specific debounce by name
+    * @param name - The name of the debounce to clear
+    */
+    $clearDebounce: (name: string) => void
+
+    /**
+    * Clear all debounces registered on the component (automatically called on component destroy)
+    */
+    $clearDebounces: () => void
+
+    /**
+    * Defer a callback to the next tick (setTimeout 0), automatically cleaned upon component destroy
+    * @param callback - Function to execute on the next tick
+    * @param args - Arguments to pass to the callback
+    */
+    $nextTick: (callback: (...args: any[]) => void, ...args: any[]) => ReturnType<typeof setTimeout>
+
+    /**
     * Set an interval that is automatically cleaned upon component destroy
     */
     $setInterval: (callback: (args: any) => void, ms?: number | undefined) => ReturnType<typeof setInterval>
@@ -432,11 +535,11 @@ declare module '@lightningjs/blits' {
     */
     $focus: (event?: KeyboardEvent) => void
     /**
-     * @deprecated
-     * Deprecated:  use `this.$focus()` instead
+     * Handle a keyboard event on this component without changing focus
+     * @param event - The keyboard event to handle
+     * @returns Returns true if this component or a parent component handled the event, false otherwise
      */
-    focus: (event?: KeyboardEvent) => void
-
+    $input: (event: KeyboardEvent) => boolean
     /**
     * Select a child Element or Component by ref
     *
@@ -455,12 +558,6 @@ declare module '@lightningjs/blits' {
     $select: (ref: string) => ComponentBase
 
     /**
-     * @deprecated
-     * Deprecated: use `this.$select()` instead
-     */
-    select: (ref: string) => ComponentBase
-
-    /**
      * Announcer methods for screen reader support
      */
     $announcer: Announcer
@@ -470,16 +567,17 @@ declare module '@lightningjs/blits' {
      */
     $trigger: (key: string) => void
     /**
-     * @deprecated
-     *
-     * Triggers a forced update on state variables.
-     * Deprecated: use `this.$trigger()` instead
-     */
-    trigger: (key: string) => void
-    /**
      * Router instance
      */
     $router: Router
+    /**
+     * Creates a reactive object. Changes to properties on the returned object
+     * will automatically trigger re-renders in any component that accesses them.
+     *
+     * Pre-configured with the app's reactivity mode and global scope.
+     * Primarily intended for use inside custom plugins.
+     */
+    $reactive: <T extends Record<string, any>>(target: T) => T
     /**
      * Dynamically set the size of a component holder node
      */
@@ -493,6 +591,20 @@ declare module '@lightningjs/blits' {
        */
       h: number
     }) => void
+  }
+
+  /**
+   * Context type for the root Application: no parent.
+   */
+  export interface ApplicationBase extends Omit<ComponentBase, '$parent'> {
+    readonly $parent: undefined
+  }
+
+  /**
+   * Context type for Components (Blits.Component): always has a parent when mounted. Destroyed case is not modeled.
+   */
+  export interface ChildComponentBase extends Omit<ComponentBase, '$parent'> {
+    readonly $parent: ComponentBase
   }
 
   /**
@@ -525,23 +637,46 @@ declare module '@lightningjs/blits' {
     cast?: () => any
   };
 
-  // Props Array
-  export type Props = (string | PropObject)[];
+  export type Props = Record<string, any>
 
-  // Extract the prop names from the props array
-  type ExtractPropNames<P extends Props> = {
-      readonly [K in P[number] as K extends string ? K : K extends { key: infer Key } ? Key : never]: any;
-  };
+  type InferProp<T> = T extends (...args: any[]) => any ? ReturnType<T> : T
 
-  // Update the PropsDefinition to handle props as strings or objects
-  export type PropsDefinition<P extends Props> = ExtractPropNames<P>;
+  type InferProps<T extends Record<string, any>> = {
+    // Since InferProps is no longer used for `Computed` props,
+    // then we do not need to infer the return type of a function-typed prop in `Props`.
+    [K in keyof T]: T[K]
+  }
 
-  export type ComponentContext<P extends Props, S, M, C> = ThisType<PropsDefinition<P> & S & M & C & ComponentBase>
+  type Computed<T extends Record<string, () => any>> = {
+    [K in keyof T]: Readonly<ReturnType<T[K]>>
+  }
 
-  export interface ComponentConfig<P extends Props, S, M, C, W> {
+  export type ComponentContext<
+    P extends Record<string, any>,
+    S,
+    M,
+    C extends Record<string, () => any> = Record<never, never>,
+  > = ThisType<
+    Readonly<InferProps<P>> & S & M & Computed<C> & ChildComponentBase
+  >
+
+  export type ApplicationContext<
+    P extends Record<string, any>,
+    S,
+    M,
+    C extends Record<string, () => any> = Record<never, never>,
+  > = ThisType<Readonly<InferProps<P>> & S & M & Computed<C> & ApplicationBase>
+
+  export interface ComponentConfig<
+    P extends Props = {},
+    S,
+    M,
+    C extends Record<string, () => any> = Record<never, never>,
+    W,
+  > {
     components?: {
-        [key: string]: ComponentFactory,
-    },
+      [key: string]: ComponentFactory
+    }
     /**
      * XML-based template string of the Component
      *
@@ -594,7 +729,7 @@ declare module '@lightningjs/blits' {
      * }
      * ```
      */
-    state?: (this: PropsDefinition<P>) => S;
+    state?: (this: Readonly<InferProps<P>> & ChildComponentBase) => S;
     /**
      * Methods for abstracting more complex business logic into separate function
      */
@@ -615,12 +750,17 @@ declare module '@lightningjs/blits' {
      * Watchers for changes to state variables, props or computed properties
      */
     watch?: W & ComponentContext<P, S, M, C>
+    /**
+     * Router Configuration
+     */
+    router?: RouterConfig<P, S, M, C>
   }
 
   export interface RouterHooks {
-    init?: () => Promise<> | void;
-    beforeEach?: (to: Route, from: Route) => string | Route | Promise<string | Route> | void;
-    error?: (err: string) => string | Route | Promise<string | Route> | void;
+    init?: () => Promise<void> | void;
+    beforeEach?: (to: Route, from: Route) => string | Route | void | boolean | Promise<string | Route | void | boolean>;
+    afterEach?: (to: Route, from: Route) => string | Route | void | boolean | Promise<string | Route | void | boolean>;
+    error?: (err: string) => string | Route | void | boolean | Promise<string | Route | void | boolean>;
   }
 
   export interface RouterConfig<P extends Props, S, M, C> {
@@ -643,34 +783,62 @@ declare module '@lightningjs/blits' {
      * ```
      */
     routes?: Route[]
+
+    /**
+     * Enable or disable RouterView history navigation on Back input
+     *
+     * @default true
+     *
+     * @remarks
+     * This is an app-wide setting that affects all RouterView instances in your application.
+     * The router state is global and shared across all router instances.
+     *
+     * @example
+     * ```js
+     * router: {
+     *   backNavigation: false, // Disable automatic back navigation
+     *   routes: [...]
+     * }
+     * ```
+     */
+    backNavigation?: boolean
   }
 
-  export type ApplicationConfig<P extends Props, S, M, C, W> = ComponentConfig<P, S, M, C, W> & (
-    {
-      /**
-       * Router Configuration
-       */
-      router?: RouterConfig<P, S, M, C>,
-      routes?: never
-    }
-    |
-    {
-      router?: never
-      /**
-       * Routes definition
-       *
-       * @example
-       *
-       * ```js
-       * routes: [
-       *  { path: '/', component: Home },
-       *  { path: '/details', component: Details },
-       *  { path: '/account', component: Account },
-       * ]
-       * ```
-     */
-      routes?: Route[]
-    }
+  export type ApplicationConfig<P extends Props, S, M, C, W> = Omit<
+    ComponentConfig<P, S, M, C, W>,
+    'hooks' | 'methods' | 'input' | 'computed' | 'watch' | 'state' | 'router' | 'routes'
+  > & {
+    hooks?: Hooks & ApplicationContext<P, S, M, C>
+    methods?: M & ApplicationContext<P, S, M, C>
+    input?: Input & ApplicationContext<P, S, M, C>
+    computed?: C & ApplicationContext<P, S, M, C>
+    watch?: W & ApplicationContext<P, S, M, C>
+    state?: (this: Readonly<InferProps<P>> & ApplicationBase) => S
+  } & (
+    | {
+        /**
+         * Router Configuration
+         */
+        router?: RouterConfig<P, S, M, C>
+        routes?: never
+      }
+    | {
+        router?: never
+        /**
+         * Routes definition
+         *
+         * @example
+         *
+         * ```js
+         * routes: [
+         *  { path: '/', component: Home },
+         *  { path: '/details', component: Details },
+         *  { path: '/account', component: Account },
+         * ]
+         * ```
+         */
+        routes?: Route[]
+      }
   )
 
   export interface Transition {
@@ -742,7 +910,8 @@ declare module '@lightningjs/blits' {
   }[keyof T]
 
   export interface RouteHooks {
-    before?: (to: Route, from: Route) => string | Route | Promise<string | Route>;
+    before?: (to: Route, from: Route) => string | Route | void | boolean | Promise<string | Route | void | boolean>;
+    after?: (to: Route, from: Route) => string | Route | void | boolean | Promise<string | Route | void | boolean>;
   }
 
   export type Route = {
@@ -862,7 +1031,7 @@ declare module '@lightningjs/blits' {
 
   type Shader = {
     name: string,
-    type: WebGlCoreShader
+    type: WebGlShaderType | CanvasShaderType
   }
 
   type ScreenResolutions = 'hd' | '720p' | 720 | 'fhd' | 'fullhd' | '1080p' | 1080 | '4k' | '2160p' | 2160
@@ -870,6 +1039,70 @@ declare module '@lightningjs/blits' {
 
   type ReactivityModes = 'Proxy' | 'defineProperty'
   type RenderModes = 'webgl' | 'canvas'
+
+  interface Platform {
+    /**
+     * Target used for keyboard and pointer input listeners.
+     */
+    input?: EventTarget | any,
+    /**
+     * Target used for viewport-level listeners such as resize, scroll, and hashchange.
+     */
+    viewport?: EventTarget | any,
+    /**
+     * Dispatch an event through the platform's event system.
+     */
+    dispatchEvent?: (event: any) => boolean | void,
+    /**
+     * Persistent key/value storage API.
+     */
+    localStorage?: Storage | any,
+    /**
+     * Read the platform cookie string.
+     */
+    getCookie?: () => string,
+    /**
+     * Write a cookie string.
+     */
+    setCookie?: (value: string) => void,
+    /**
+     * Navigate back in the platform history, when available.
+     */
+    historyBack?: () => void,
+    /**
+     * Current viewport/screen height.
+     */
+    screenHeight?: number,
+    /**
+     * Available hardware concurrency.
+     */
+    hardwareConcurrency?: number,
+    /**
+     * User agent string for platform-specific defaults.
+     */
+    userAgent?: string,
+    /**
+     * KeyboardEvent constructor used for event creation and type checks.
+     */
+    KeyboardEvent?: typeof KeyboardEvent | any,
+    /**
+     * Check whether an object should be treated as a keyboard event.
+     */
+    isKeyboardEvent?: (event: any) => boolean,
+    /**
+     * Create a keyboard event for the current platform.
+     */
+    createKeyboardEvent?: (type: string, init?: KeyboardEventInit | any) => any,
+    /**
+     * Platform-specific announcer driver used instead of the default Web Speech driver.
+     */
+    announcer?: AnnouncerDriver,
+    /**
+     * Monotonic timestamp provider used for input throttling.
+     */
+    now?: () => number,
+    [key: string]: any,
+  }
 
     /**
    * Settings
@@ -898,10 +1131,6 @@ declare module '@lightningjs/blits' {
      * Fonts to be used in the Application
      */
     fonts?: Font[],
-    /**
-     * Effects to be used by DynamicShader
-     */
-    effects?: ShaderEffect[],
     /**
      * Shaders to be used in the application
      */
@@ -995,8 +1224,9 @@ declare module '@lightningjs/blits' {
     * Maximum number of web workers to spin up simultaneously for offloading functionality such
     * as image loading to separate threads (when supported by the browser)
     *
-    * If not specified defaults to the number of logical processers available as reported by
-    * `navigator.hardwareConcurrency` (or 2 if `navigator.hardwareConcurrency` is not supported)
+    * If not specified defaults to the number of logical processers available on the device, as reported by
+    * `navigator.hardwareConcurrency`, with a maximum of 2. If `navigator.hardwareConcurrency` is
+    * not supported the default value will be 2
     */
     webWorkersLimit?: number
     /**
@@ -1034,18 +1264,6 @@ declare module '@lightningjs/blits' {
      * Defaults to `0`
      */
     viewportMargin?: number | [number, number, number, number],
-    /**
-     * Threshold in `Megabytes` after which all the textures that are currently not visible
-     * within the configured viewport margin will be be freed and cleaned up
-     *
-     * When passed `0` the threshold is disabled and textures will not be actively freed
-     * and cleaned up
-     *
-     * Defaults to `200` (mb)
-     * @deprecated
-     * Deprecated:  use `gpuMemory` launch setting instead
-     */
-    gpuMemoryLimit?: number,
     /**
      * Configures the gpu memory settings used by the renderer
      */
@@ -1183,6 +1401,24 @@ declare module '@lightningjs/blits' {
      */
     announcerOptions?: AnnouncerUtteranceOptions,
     /**
+     * Enable mouse support (hover and click-to-focus).
+     *
+     * When set to `true`, pointer movement over the canvas updates hover state on components
+     * and click dispatches focus and Enter key input to the component under the cursor.
+     * When set to `false`, no mouse or pointer listeners are registered.
+     *
+     * @default false
+     */
+    enableMouse?: boolean,
+    /**
+     * Minimum time in milliseconds between two pointer moves that are processed for hover.
+     *
+     * Moves arriving sooner are dropped, not delayed.
+     *
+     * @default 100
+     */
+    mouseMoveThrottle?: number,
+      /**
      * Maximum FPS at which the App will be rendered
      *
      * Lowering the maximum FPS value can improve the overall experience on lower end devices.
@@ -1190,7 +1426,23 @@ declare module '@lightningjs/blits' {
      *
      * Defaults to `0` which means no maximum
      */
-    maxFPS?: number
+    maxFPS?: number,
+    /**
+     * Custom platform layer to be used by the App.
+     *
+     * Allows replacing platform capabilities such as input targets, storage,
+     * keyboard event constructors, and speech APIs.
+     * A callback receives Blits' browser defaults and should return the platform overrides.
+     */
+    platform?: (defaults: Platform) => Partial<Platform>,
+    /**
+     * Custom platform layer to be used by the renderer.
+     *
+     * For renderer-specific platform implementations. Passing a renderer platform
+     * through `platform` is deprecated.
+     */
+    rendererPlatform?: RendererMainSettings['platform']
+
   }
 
   interface State {
@@ -1206,7 +1458,7 @@ declare module '@lightningjs/blits' {
   }
 
   interface Computed {
-    [key: string]: any
+    [key: string]: () => any
   }
 
 
@@ -1221,7 +1473,7 @@ declare module '@lightningjs/blits' {
      * Should do all necessary setup and ideally return an object with
      * properties or methods that can be used in the App
      */
-    plugin: () => any
+    plugin: (options?: any) => any
   }
 
 
@@ -1237,7 +1489,7 @@ declare module '@lightningjs/blits' {
       P extends Props,
       S extends State,
       M extends Methods,
-      C extends Computed,
+      C extends Computed = Record<never, never>,
       W extends Watch>(config: ApplicationConfig<P, S, M, C, W>) : ComponentFactory
       /**
      * Blits Component
@@ -1248,7 +1500,7 @@ declare module '@lightningjs/blits' {
       P extends Props,
       S extends State,
       M extends Methods,
-      C extends Computed,
+      C extends Computed = Record<never, never>,
       W extends Watch>(name: string, config: ComponentConfig<P, S, M, C, W>) : ComponentFactory
     /**
      * Blits Launch
@@ -1279,10 +1531,11 @@ declare module '@lightningjs/blits' {
      * Object with options to be passed into the plugin instantiation method.
      * Can be used to set default values
      */
-    Plugin(plugin: Plugin, nameOrOptions?: string | object , options?: object) : void
+    Plugin(plugin: Plugin | ((options?: any) => any), nameOrOptions?: string | object , options?: object) : void
   }
 
   const Blits: Blits;
 
   export default Blits;
+
 }

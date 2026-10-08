@@ -24,7 +24,7 @@ Each route in this array, is an Object literal that includes the following key p
 - `component` - the Blits component to render for the route. This can be a direct reference, but also a promise or a dynamic import that resolves to a Blits component
 - `hooks` (optional) - hooks such as `before` can be defined to execute code before navigating to the route
 - `options` (optional) - additional options defining route behaviour, such as `keepAlive` and `inHistory`
-- `transitions` (optional) - used to define custom transitions between pages
+- `transition` (optional) - used to define custom transitions between pages
 - `meta` (optional) - an object with arbitrary data associated with a route (like `auth: true/false`, a route ID or route description). Not reactive or passed as props to a component. Available in the `before` and `beforeEach` router hooks.
 
 ### Route options
@@ -85,6 +85,34 @@ export default Blits.Application({
 })
 ```
 
+### Named router views
+
+In some cases you may want to have multiple `<RouterView />` components in your App. For example, when you want to open a modal on top of the main routed Page.
+
+By assigning a `name` to a `<RouterView />`, you can retrieve a Router instance scoped to that Router view using the `this.$router.get()`-method.
+
+Router view names must be unique and stable for the lifetime of each view. The unnamed RouterView uses the empty string as its name, so an application should have at most one unnamed RouterView. Duplicate or dynamically changed names can cause ambiguous view resolution and shared navigation state.
+
+```js
+export default Blits.Application({
+  template: `
+    <Element>
+      <RouterView />
+      <RouterView name="modal" />
+    </Element>
+  `,
+  // ...
+})
+```
+
+```js
+this.$router.get('modal').to('/modal/details')
+```
+
+The scoped Router instance has the same methods and properties as `this.$router`. This means you can also use `this.$router.get('modal').back()` to navigate back down the history stack of the named Router view, or use `this.$router.get('modal').currentRoute` to retrieve its current route.
+
+If a named RouterView cannot be found, navigation falls back to the default unnamed RouterView and logs a warning.
+
 ## Navigation
 
 Each component in a routed Blits app has a `this.$router` object that provides access to the Router instance. It can be used to programmatically navigate to pages, by calling the `to()` method on it.
@@ -106,6 +134,8 @@ export default Blits.Component('Poster', {
 ```
 
 Whenever you navigate to a new page, the URL hash will automatically be updated. Unless specified otherwise, navigating to a new page, will add that route to the history stack. The `back` input action is automatically wired up to navigate back down the history stack.
+
+If you want to disable this automatic history navigation on Back (for example, to let a top-level navigation component handle Back), set `this.$router.backNavigation = false`. Set `this.$router.backNavigation = true` to restore the default behavior.
 
 By default, every time you navigate to a new route, the application focus will be automatically passed to the newly loaded page. If you instead want to maintain the current focus (for example in a widget that sits above your RouterView), you can use `passFocus: false` as part of the router options.
 
@@ -150,6 +180,7 @@ In the example above, the `backtrack` option is set to `true` for the `/examples
 The Router API provides several useful methods and properties for managing routes and navigation:
 
 - `this.$router.to()` - navigating to a different location (as discussed above)
+- `this.$router.get()` - retrieve a Router instance scoped to a named Router view
 - `this.$router.back()` - programmatically navigate back down the history stack
 - `this.$router.currentRoute` - retrieve the current route
 - `this.$router.routes` - retrieve the list of all routes

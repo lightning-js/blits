@@ -18,10 +18,13 @@
 let counter
 let isDev
 
+import { elementAttributes } from '../../engines/L3/element.js'
+
 export default function (templateObject = { children: [] }, devMode = false) {
   const ctx = {
     renderCode: [
       'const elms = []',
+      `const validAttributes = ${JSON.stringify(elementAttributes)}`,
       'const elementConfigs = []',
       'const forloops = []',
       'const props = []',
@@ -81,7 +84,7 @@ export default function (templateObject = { children: [] }, devMode = false) {
       forloops.length = 0
       props.length = 0
       skips.length = 0
-    }}
+    }, skips}
   `)
 
   return {
@@ -97,14 +100,43 @@ export default function (templateObject = { children: [] }, devMode = false) {
     ),
     effects: ctx.effectsCode.map(
       (code) =>
-        new Function('component', 'elms', 'context', 'components', 'rootComponent', 'effect', code)
+        new Function(
+          'component',
+          'elms',
+          'context',
+          'components',
+          'rootComponent',
+          'skips',
+          'effect',
+          code
+        )
     ),
     context: ctx.context,
   }
 }
 
 // This is used to get only variable from expression
-const extractVariables = function (value) {
+const extractVariables = function (value, isContentKey = false) {
+  if (isContentKey) {
+    // Strip string literals (single and double quoted) so that $variables
+    // embedded in plain text (e.g. "'this.$notifications.add()'") are not
+    // mistakenly extracted as component variable references.
+    const stripped = value.replace(/'[^']*'|"[^"]*"/g, '')
+
+    // A $variable is a real component reference only if:
+    // 1. The value starts with a bare $variable (e.g. "$notification.add(ms,)")
+    // 2. The stripped text contains string concatenation (e.g. "'Count: ' + $notifications.count")
+    // Plain text with embedded $variables (e.g. "Custom plugin with $reactive state")
+    // should not trigger verification.
+    const isBareDollarVar = /^\s*\$\$?\w+/.test(stripped)
+    const hasConcatExpression = /\+/.test(stripped)
+
+    if (!isBareDollarVar && !hasConcatExpression) {
+      return false
+    }
+    value = stripped
+  }
+
   const regEx = /\$\$?\w+(\.\w+)?/g
   const matches = value.match(regEx)
   if (matches !== null) {
@@ -115,8 +147,8 @@ const extractVariables = function (value) {
   }
 }
 
-const verifyVariables = function (value, renderCode, type = 'dynamic') {
-  const variablesToBeVerified = extractVariables(value)
+const verifyVariables = function (value, renderCode, isContentKey = false, type = 'dynamic') {
+  const variablesToBeVerified = extractVariables(value, isContentKey)
   if (variablesToBeVerified !== false) {
     for (let i = 0; i < variablesToBeVerified.length; i++) {
       let variable = variablesToBeVerified[i]
@@ -151,6 +183,10 @@ const generateElementCode = function (
 
   renderCode.push(`elementConfigs[${counter}] = {}`)
 
+  if (counter === 0) {
+    renderCode.push(`elementConfigs[${counter}]['___wrapper'] = true `)
+  }
+
   if (options.forloop) {
     renderCode.push(`if(${elm} === undefined) {`)
   }
@@ -170,6 +206,14 @@ const generateElementCode = function (
     renderCode.push(`elementConfigs[${counter}][Symbol.for('isSlot')] = true`)
   }
 
+  if (templateObject[Symbol.for('componentType')] === 'Sprite') {
+    renderCode.push(`elementConfigs[${counter}][Symbol.for('isSprite')] = true`)
+  }
+
+  if (options.holder) {
+    renderCode.push(`elementConfigs[${counter}]['holder'] = true`)
+  }
+
   Object.keys(templateObject).forEach((key) => {
     if (key === 'slot') {
       renderCode.push(`
@@ -179,13 +223,15 @@ const generateElementCode = function (
 
     if (key === 'key') return
 
+    // a ref on a component belongs to the component itself, not to its holder element
+    if (options.holder === true && (key === 'ref' || key === ':ref')) return
+
     // Skip inspector-data in production builds for performance optimization
     if (key === 'inspector-data' && !isDev) return
 
     const value = templateObject[key]
 
     if (isReactiveKey(key)) {
-      if (options.holder && key === ':color') return
       if (options.holder) {
         this.effectsCode.push(`
         if(typeof skips === 'undefined' || (typeof skips[${counter}] === 'undefined' ||
@@ -202,7 +248,7 @@ const generateElementCode = function (
       }
       // value.includes('.') === false &&
       if (isDev === true && options.component !== 'scope.' && value.includes('$')) {
-        verifyVariables(value, renderCode, 'reactive')
+        verifyVariables(value, renderCode, key === ':content', 'reactive')
       }
       renderCode.push(
         `elementConfigs[${counter}]['${key.substring(1)}'] = ${interpolate(
@@ -212,7 +258,7 @@ const generateElementCode = function (
       )
     } else {
       if (isDev === true && options.component !== 'scope.' && value.includes('$')) {
-        verifyVariables(value, renderCode)
+        verifyVariables(value, renderCode, key === 'content')
       }
       renderCode.push(
         `elementConfigs[${counter}]['${key}'] = ${cast(value, key, options.component)}`
@@ -220,13 +266,43 @@ const generateElementCode = function (
     }
   })
 
+  if (templateObject[Symbol.for('tagContent')] !== undefined) {
+    const val = templateObject[Symbol.for('tagContent')]
+
+    // Check if the string contains interpolation (`{{ }}`).
+    const regex = /\{\{\s*.+?\s*\}\}/
+    const containsInterpolation = regex.test(val)
+
+    if (containsInterpolation === false) {
+      // Inline text is treated as static content when interpolation is not defined.
+      renderCode.push(`elementConfigs[${counter}]['content'] = '${val}'`)
+    } else {
+      const output = parseTagContent(val, options.component)
+      renderCode.push(`elementConfigs[${counter}]['content'] = ${output}`)
+
+      const variableRegEx = /\{\{\s*(?=[^}]*\$).+?\s*\}\}/
+      // Check if the interpolation contains $ variable
+      const isReactive = variableRegEx.test(val)
+      if (isReactive === true) {
+        this.effectsCode.push(`
+          ${elm}.set('content', ${output})
+        `)
+      }
+    }
+  }
+
   if (options.holder === true) {
     renderCode.push(`
     skips[${counter}] = []
-    if(typeof cmps[${counter}] !== 'undefined') {
-      for(let key in cmps[${counter}][Symbol.for('config')].props) {
-        delete elementConfigs[${counter}][cmps[${counter}][Symbol.for('config')].props[key]]
-        skips[${counter}].push(cmps[${counter}][Symbol.for('config')].props[key])
+    if(typeof cmps[${counter}] !== 'undefined' && cmps[${counter}][Symbol.for('config')].props !== undefined) {
+      // attributes that are a prop should be removed from element config (even if it's a know element prop)
+      let props = cmps[${counter}][Symbol.for('config')].props
+      if(Array.isArray(props) === false) props = Object.keys(cmps[${counter}][Symbol.for('config')].props)
+      for(let k = 0; k < props.length; k++) {
+        const key = props[k]
+        if(validAttributes.indexOf(key) !== -1) continue
+        delete elementConfigs[${counter}][key]
+        skips[${counter}].push(key)
       }
     }
     `)
@@ -283,9 +359,11 @@ const generateComponentCode = function (
 
   const children = templateObject.children
   delete templateObject.children
+  // Capture holder counter before generating element code (which may process children and increment counter)
+  const holderCounter = counter
   generateElementCode.call(this, templateObject, parent, { ...options, ...{ holder: true } })
 
-  parent = options.key ? `elms[${counter}][${options.key}]` : `elms[${counter}]`
+  parent = options.key ? `elms[${holderCounter}][${options.key}]` : `elms[${holderCounter}]`
 
   counter++
 
@@ -354,6 +432,21 @@ const generateComponentCode = function (
     }
   `)
 
+  if (isDev === true) {
+    const templateTagName = templateObject[Symbol.for('componentType')]
+    const holderElm = options.key
+      ? `elms[${holderCounter}][${options.key}]`
+      : `elms[${holderCounter}]`
+    const componentDisplayName = `typeof componentType === 'string'
+      ? componentType
+      : (componentType?.[Symbol.for('componentType')] || '${templateTagName}')`
+    renderCode.push(`
+      if (${holderElm} !== undefined && typeof ${holderElm}.setInspectorMetadata === 'function') {
+        ${holderElm}.setInspectorMetadata({ 'blits-componentType': ${componentDisplayName} })
+      }
+    `)
+  }
+
   this.cleanupCode.push(`components[${counter}] = null`)
 
   if (options.forloop) {
@@ -409,7 +502,7 @@ const generateForLoopCode = function (templateObject, parent) {
     .replace(')', '')
     .split(/\s*,\s*/)
 
-  const scopeRegex = new RegExp(`(scope\\.(?!${item}\\.|${index}|key)(\\w+))`, 'gi')
+  const scopeRegex = new RegExp(`(scope\\.(?!${item}\\.|${index}|key)([\\w$]+))`, 'gi')
 
   // local context
   const ctx = {
@@ -434,6 +527,8 @@ const generateForLoopCode = function (templateObject, parent) {
     }
   }
 
+  const invalidateSelectCache = 'ref' in templateObject
+
   ctx.renderCode.push(`
     created[${forStartCounter}] = []
     effects[${forStartCounter}] = []
@@ -442,6 +537,7 @@ const generateForLoopCode = function (templateObject, parent) {
     let to${forStartCounter}
 
     forloops[${forStartCounter}] = (collection = [], elms, created) => {
+      ${invalidateSelectCache ? "rootComponent && rootComponent[Symbol.for('invalidateSelectCache')]()" : ''}
       const rawCollection = getRaw(collection)
       const keys = new Set()
       let l = rawCollection.length
@@ -469,6 +565,7 @@ const generateForLoopCode = function (templateObject, parent) {
           keys.add('' +  ${interpolate(key, '') || 'l'})
         }
       }
+
   `)
 
   // keep track of the index in the render code so we can inject
@@ -480,12 +577,18 @@ const generateForLoopCode = function (templateObject, parent) {
       created.length = 0
       const length = rawCollection.length
 
-      component !== null && component[Symbol.for('removeGlobalEffects')](effects[${forStartCounter}])
+      component !== null && component[Symbol.for('removeEffects')](effects[${forStartCounter}])
 
-      for(let i = 0; i < effects[${forStartCounter}].length; i++) {
-        const value = effects[${forStartCounter}][i]
-        const index = component[Symbol.for('effects')].indexOf(value)
-        if (index > -1) component[Symbol.for('effects')].splice(index, 1)
+      const effectsToRemove = new Set(effects[${forStartCounter}])
+      if (effectsToRemove.size > 0) {
+        const componentEffects = component?.[Symbol.for('effects')] || []
+        let writeIndex = 0
+        for (let readIndex = 0; readIndex < componentEffects.length; readIndex++) {
+          if (!effectsToRemove.has(componentEffects[readIndex])) {
+            componentEffects[writeIndex++] = componentEffects[readIndex]
+          }
+        }
+        componentEffects.length = writeIndex
       }
 
       effects[${forStartCounter}].length = 0
@@ -519,10 +622,15 @@ const generateForLoopCode = function (templateObject, parent) {
   if (
     templateObject[Symbol.for('componentType')] === 'Element' ||
     templateObject[Symbol.for('componentType')] === 'Slot' ||
-    templateObject[Symbol.for('componentType')] === 'Text'
+    templateObject[Symbol.for('componentType')] === 'Text' ||
+    templateObject[Symbol.for('componentType')] === 'Sprite' ||
+    templateObject[Symbol.for('componentType')] === 'Layout'
   ) {
     if (templateObject[Symbol.for('componentType')] === 'Text') {
       templateObject.__textnode = 'true'
+    }
+    if (templateObject[Symbol.for('componentType')] === 'Layout') {
+      templateObject.__layout = 'true'
     }
     generateElementCode.call(ctx, templateObject, parent, {
       key: 'scope.key',
@@ -540,9 +648,9 @@ const generateForLoopCode = function (templateObject, parent) {
   }
 
   // separate effects that only rely on variables in the itteration
-  const innerScopeEffects = ctx.effectsCode.filter(
-    (effect) => [...effect.matchAll(scopeRegex)].length === 0
-  )
+  const innerScopeEffects = ctx.effectsCode.filter((effect) => {
+    return [...effect.matchAll(scopeRegex)].length === 0
+  })
 
   // separate effects that (also) rely on variables in the outer scope
   const outerScopeEffects = ctx.effectsCode.filter(
@@ -591,11 +699,21 @@ const generateForLoopCode = function (templateObject, parent) {
   const forEndCounter = counter
 
   for (let i = forStartCounter; i <= forEndCounter; i++) {
-    destroyCode.push(`
+    if (i == forStartCounter) {
+      destroyCode.push(`
         elms[${i}][key] && elms[${i}][key].destroy()
         elms[${i}][key] = null
         delete elms[${i}][key]
     `)
+    } else {
+      destroyCode.push(`
+        if (elms[${i}][key] && elms[${i}][key].$componentId !== undefined) {
+          elms[${i}][key] && elms[${i}][key].destroy()
+        }
+        elms[${i}][key] = null
+        delete elms[${i}][key]
+      `)
+    }
   }
   destroyCode.push(`
       }
@@ -686,7 +804,8 @@ const generateCode = function (templateObject, parent = false, options = {}) {
           childTemplateObject[Symbol.for('componentType')] === 'Element' ||
           childTemplateObject[Symbol.for('componentType')] === 'Slot' ||
           childTemplateObject[Symbol.for('componentType')] === 'Text' ||
-          childTemplateObject[Symbol.for('componentType')] === 'Layout'
+          childTemplateObject[Symbol.for('componentType')] === 'Layout' ||
+          childTemplateObject[Symbol.for('componentType')] === 'Sprite'
         ) {
           if (childTemplateObject[Symbol.for('componentType')] === 'Text') {
             childTemplateObject.__textnode = 'true'
@@ -760,12 +879,12 @@ const cast = (val = '', key = false, component = 'component.') => {
     castedValue = parseFloat(val)
     if (val.endsWith('%')) {
       const map = {
-        w: 'width',
-        width: 'width',
-        x: 'width',
-        h: 'height',
-        height: 'height',
-        y: 'height',
+        w: 'w',
+        width: 'w',
+        x: 'w',
+        h: 'h',
+        height: 'h',
+        y: 'h',
       }
       const base = map[key]
       if (base) {
@@ -783,8 +902,13 @@ const cast = (val = '', key = false, component = 'component.') => {
   }
   // @-listener
   else if (key.startsWith('@') && val) {
-    const c = component.slice(0, -1)
-    castedValue = `${c}['${val.replace('$', '')}'] && ${c}['${val.replace('$', '')}'].bind(${c})`
+    const trimmed = val.trim()
+    if (/^\$?\w+$/.test(trimmed)) {
+      const c = component.slice(0, -1)
+      castedValue = `${c}['${trimmed.replace('$', '')}'] && ${c}['${trimmed.replace('$', '')}'].bind(${c})`
+    } else {
+      castedValue = interpolate(trimmed, component)
+    }
   }
   // dynamic value
   else if (val.startsWith('$')) {
@@ -811,6 +935,65 @@ const cast = (val = '', key = false, component = 'component.') => {
   }
 
   return castedValue
+}
+
+function escapeSingleQuotes(str) {
+  return str.replace(/(\\*)'/g, (match, backslashes) => {
+    // If the number of backslashes is odd, quote is already escaped
+    if (backslashes.length % 2 === 1) {
+      return match
+    }
+    // Otherwise, escape the quote
+    return backslashes + "\\'"
+  })
+}
+
+const parseTagContent = (val = '', component = 'component.') => {
+  // unescaped single quotes must be escaped while preserving escaped backslashes
+  let escapedVal = escapeSingleQuotes(val)
+
+  const dynamicParts = /\{\{\s*.+?\s*\}\}/g
+  const matches = [...escapedVal.matchAll(dynamicParts)]
+
+  if (matches.length > 0) {
+    const isValStartsWithBrace = escapedVal.startsWith('{{')
+    const isValEndsWithBrace = escapedVal.endsWith('}}')
+    for (let matchObj of matches) {
+      const { 0: match, index } = matchObj
+      const isMatchAtStart = index === 0
+      const isMatchAtLast = val[index + match.length] === undefined ? true : false
+
+      let parsedMatch = match
+
+      const replaceDollar = /\$(\$(?=\$)|\$?)/g
+      const dollarMatches = [...parsedMatch.matchAll(replaceDollar)]
+      if (dollarMatches.length > 0) {
+        parsedMatch = parsedMatch.replace(replaceDollar, (match, group1) => {
+          if (group1 === '') {
+            return component
+          } else if (group1 === '$') {
+            return component + '$'
+          }
+        })
+      }
+
+      parsedMatch = parsedMatch.replace('{{', '(').replace('}}', ')')
+      if (isMatchAtStart === false) {
+        parsedMatch = `"+${parsedMatch}`
+      }
+      if (isMatchAtLast === false) {
+        parsedMatch = `${parsedMatch}+"`
+      }
+      escapedVal = escapedVal.replace(match, parsedMatch)
+    }
+    if (isValStartsWithBrace === false) {
+      escapedVal = '"' + escapedVal
+    }
+    if (isValEndsWithBrace === false) {
+      escapedVal = escapedVal + '"'
+    }
+  }
+  return escapedVal
 }
 
 const isReactiveKey = (str) => str.startsWith(':')

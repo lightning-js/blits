@@ -38,10 +38,18 @@ import { plugins } from './plugin.js'
 
 // object to store global components
 let globalComponents
+let devMode = false
+
+export const setDevMode = (enabled) => {
+  devMode = enabled === true
+}
 
 const required = (name) => {
   throw new Error(`Parameter ${name} is required`)
 }
+
+// map that holds component to their holder node
+export const componentMap = new WeakMap()
 
 /**
  * @typedef {function} BlitsComponentFactory
@@ -89,10 +97,14 @@ const required = (name) => {
  * @typedef {Object} BlitsElement
  * @property {BlitsComponent} component - Reference to the owning Blits component.
  * @property {BlitsElementConfig} config - Configuration object for the element.
+ * @property {boolean} eol - Indicates when the element is end-of-life (destroyed).
  * @property {number} counter - Unique counter used for shader workarounds. FIXME?
  * @property {string[]} effectNames - Names of active shader effects.
  * @property {any} node - The underlying renderer node (e.g., WebGL node or text node).
  * @property {BlitsElementProps} props - Proxy-like object containing transformed props.
+ * @property {Object<string, any>} scheduledTransitions - Tracks transitions by property name.
+ * @property {Object<string, ReturnType<typeof setTimeout>>} debounceTimeouts - Pending animation debounce timers.
+ * @property {any} [_spriteState] - Native Sprite texture cache (L3 only).
  * @property {any[]} children - WVB I cant see this populated? Filtered list of children owned by this element. FIXME?
  * @property {any} parent - WVB Shortcut to the parent CoreNode?
  * @property {number} nodeId - ID of the CoreNode, if available.
@@ -102,6 +114,9 @@ const required = (name) => {
  * @property {function(string, any, Object):void} animate - Animates a property with transition options.
  * @property {function():void} destroy - Destroys the underlying node and cancels transitions.
  * @property {function(any): any} triggerLayout - Triggers a layout update for the element.
+ * @property {function(Object):void} setInspectorMetadata - Merges inspector metadata onto the node.
+ * @property {function():void} _scheduleNativeSpriteSync - Queues a coalesced native Sprite texture sync.
+ * @property {function():void} _syncNativeSprite - Resolves and applies the native Sprite texture.
  *
  * @typedef {Object} BlitsLifecycle
  * @property {BlitsComponent} component - The Blits comonent instance this lifecycle belongs to.
@@ -135,7 +150,7 @@ const required = (name) => {
  * @property {any[]} [stateKeys] - The keys of the state of the component instance
  * Single props:
  * @property {object} activeView - The active view of the component instance
- * @property {boolean} hasFocus - Indicates if the component has focus
+ * @property {boolean} $hasFocus - Indicates if the component has focus
  * @property {string} ref - The reference name of the component instance
  * @property {number|undefined} index - The index in a for loop
  * @property {number|undefined} activeRow - The active row in a for loop
@@ -194,27 +209,32 @@ const Component = (name = required('name'), config = required('config')) => {
 
   const component = function (opts, parentEl, parentComponent, rootComponent) {
     // generate a human readable ID for the component instance (i.e. Blits::ComponentName1)
-    this.componentId = createHumanReadableId(name)
+    this.$componentId = createHumanReadableId(name)
+
+    this[symbols.effects] = []
 
     this[symbols.effects] = []
 
     // instantiate a lifecycle object for this instance
-    this.lifecycle = Object.assign(Object.create(Lifecycle), {
+    this[symbols.lifecycle] = Object.assign(Object.create(Lifecycle), {
       component: this,
       previous: null,
       current: null,
     })
 
     // set a reference to the parent component
-    this.parent = parentComponent
+    this[symbols.parent] = parentComponent
 
-    //
-    this.rootParent = rootComponent
+    this[symbols.rootParent] = rootComponent
 
     // set a reference to the holder / parentElement
     // Components are wrapped in a holder node (used to apply positioning and transforms
     // such as rotation and scale to components)
     this[symbols.holder] = parentEl
+
+    if (parentEl !== undefined && parentEl.node !== undefined) {
+      componentMap.set(parentEl.node, this)
+    }
 
     // generate an internal id (simple counter)
     this[symbols.id] = createInternalId()
@@ -228,23 +248,29 @@ const Component = (name = required('name'), config = required('config')) => {
     // create an empty array for storing intervals created by this component (via this.$setInterval)
     this[symbols.intervals] = []
 
+    // create a Map for storing debounced functions (via this.$debounce)
+    this[symbols.debounces] = new Map()
+
     // apply the state function (passing in the this reference to utilize configured props)
     // and store a reference to this original state
     this[symbols.originalState] =
       (config.state && typeof config.state === 'function' && config.state.apply(this)) || {}
-    // add hasFocus key in
-    this[symbols.originalState]['hasFocus'] = false
+    // add $hasFocus key in
+    this[symbols.originalState]['$hasFocus'] = false
+
+    // add $isHovered key in
+    this[symbols.originalState]['$isHovered'] = false
 
     // generate a reactive state (using the result of previously execute state function)
     // and store it
     this[symbols.state] = reactive(this[symbols.originalState], Settings.get('reactivityMode'))
 
     // all basic setup has been done now, set the lifecycle to state 'init'
-    this.lifecycle.state = 'init'
+    this[symbols.lifecycle].state = 'init'
 
     // execute the render code that constructs the initial state of the component
     // and store the children result (a flat map of elements and components)
-    const { elms, cleanup } = config.code.render.apply(stage, [
+    const { elms, cleanup, skips } = config.code.render.apply(stage, [
       parentEl,
       this,
       config,
@@ -264,61 +290,85 @@ const Component = (name = required('name'), config = required('config')) => {
     this[symbols.slots] = this[symbols.children].filter((child) => child[symbols.isSlot])
 
     this[symbols.rendererEventListeners] = []
+
+    if (this[symbols.holder] !== undefined && Settings.get('inspector', false)) {
+      this[symbols.holder].setInspectorMetadata({ 'blits-hasFocus': false })
+    }
+
+    // setup inspector data for render state
+    if (name === 'App' && Settings.get('inspector', false)) {
+      this.$setTimeout(() => {
+        const wrapperEl = this[symbols.wrapper]
+        const idleCb = () => {
+          wrapperEl.setInspectorMetadata({ 'blits-renderState': 'idle' })
+        }
+        const activeCb = () => {
+          wrapperEl.setInspectorMetadata({ 'blits-renderState': 'active' })
+        }
+        renderer.on('idle', idleCb)
+        renderer.on('active', activeCb)
+        this[symbols.rendererEventListeners].push({ event: 'idle', cb: idleCb })
+        this[symbols.rendererEventListeners].push({ event: 'active', cb: activeCb })
+      })
+    }
+
     // register hooks if component has hooks specified
     if (config.hooks) {
-      // push to next tick to ensure
-      setTimeout(() => {
-        // frame tick event
-        if (config.hooks.frameTick) {
-          const cb = (r, data) => emit('frameTick', this[symbols.identifier], this, [data])
-          this[symbols.rendererEventListeners].push({ event: 'frameTick', cb })
-          renderer.on('frameTick', cb)
-        }
+      // frame tick event
+      if (config.hooks.frameTick) {
+        const cb = (_r, data) => emit('frameTick', this[symbols.identifier], this, [data])
+        renderer.on('frameTick', cb)
+        this[symbols.rendererEventListeners].push({ event: 'frameTick', cb })
+      }
 
-        // idle event
-        if (config.hooks.idle) {
-          const cb = () => {
-            emit('idle', this[symbols.identifier], this)
-          }
-          this[symbols.rendererEventListeners].push({ event: 'idle', cb })
-          renderer.on('idle', cb)
+      // idle event
+      if (config.hooks.idle) {
+        const idleCb = () => {
+          emit('idle', this[symbols.identifier], this, [true])
         }
+        const activeCb = () => {
+          emit('idle', this[symbols.identifier], this, [false])
+        }
+        renderer.on('idle', idleCb)
+        renderer.on('active', activeCb)
+        this[symbols.rendererEventListeners].push({ event: 'idle', cb: idleCb })
+        this[symbols.rendererEventListeners].push({ event: 'active', cb: activeCb })
+      }
 
-        // fpsUpdate event
-        if (config.hooks.fpsUpdate) {
-          const cb = (r, data) => {
-            emit('fpsUpdate', this[symbols.identifier], this, [data.fps])
-          }
-          this[symbols.rendererEventListeners].push({ event: 'fpsUpdate', cb })
-          renderer.on('fpsUpdate', cb)
+      // fpsUpdate event
+      if (config.hooks.fpsUpdate) {
+        const cb = (_r, data) => {
+          emit('fpsUpdate', this[symbols.identifier], this, [data.fps, data.frameCount])
         }
-      })
+        renderer.on('fpsUpdate', cb)
+        this[symbols.rendererEventListeners].push({ event: 'fpsUpdate', cb })
+      }
 
       // inBounds event emiting a lifecycle attach event
       if (config.hooks.attach) {
         this[symbols.wrapper].node.on('inBounds', () => {
-          this.lifecycle.state = 'attach'
+          this[symbols.lifecycle].state = 'attach'
         })
       }
 
       // outOfBounds event emiting a lifeycle detach event
       if (config.hooks.detach) {
         this[symbols.wrapper].node.on('outOfBounds', (node, { previous }) => {
-          if (previous > 0) this.lifecycle.state = 'detach'
+          if (previous > 0) this[symbols.lifecycle].state = 'detach'
         })
       }
 
       // inViewport event emiting a lifecycle enter event
       if (config.hooks.enter) {
         this[symbols.wrapper].node.on('inViewport', () => {
-          this.lifecycle.state = 'enter'
+          this[symbols.lifecycle].state = 'enter'
         })
       }
 
       // outOfViewport event emitting a lifecycle exit event
       if (config.hooks.exit) {
         this[symbols.wrapper].node.on('outOfBounds', () => {
-          this.lifecycle.state = 'exit'
+          this[symbols.lifecycle].state = 'exit'
         })
       }
     }
@@ -328,7 +378,15 @@ const Component = (name = required('name'), config = required('config')) => {
     const effects = config.code.effects
     for (let i = 0; i < effects.length; i++) {
       const eff = () => {
-        effects[i](this, this[symbols.children], config, globalComponents, rootComponent, effect)
+        effects[i](
+          this,
+          this[symbols.children],
+          config,
+          globalComponents,
+          rootComponent,
+          skips,
+          effect
+        )
       }
       // store reference to the effect
       this[symbols.effects].push(eff)
@@ -352,7 +410,7 @@ const Component = (name = required('name'), config = required('config')) => {
           }
         }
 
-        let old = this[key]
+        let old = target[key]
 
         const eff = (force = false) => {
           const newValue = target[key]
@@ -369,7 +427,7 @@ const Component = (name = required('name'), config = required('config')) => {
     }
 
     // finaly set the lifecycle state to ready (in the next tick)
-    setTimeout(() => (this.lifecycle.state = 'ready'))
+    setTimeout(() => (this[symbols.lifecycle].state = 'ready'))
 
     // and return this
     return this
@@ -386,6 +444,10 @@ const Component = (name = required('name'), config = required('config')) => {
    */
   const factory = (options = {}, parentEl, parentComponent, rootComponent) => {
     if (Base[symbols['launched']] === false) {
+      // create a context with shared properties so this.$reactive (etc.)
+      // is available during plugin initialization
+      const pluginContext = Object.defineProperties({}, shared)
+
       // Register user defined plugins once on the Base object (after launch)
       const pluginKeys = Object.keys(plugins)
       const pluginKeysLength = pluginKeys.length
@@ -403,8 +465,8 @@ const Component = (name = required('name'), config = required('config')) => {
         const plugin = plugins[pluginName]
 
         pluginInstances[prefixedPluginName] = {
-          // instantiate the plugin, passing in provided options
-          value: Object.defineProperties(plugin.plugin(plugin.options), shared),
+          // instantiate the plugin with shared context, then apply shared to the result
+          value: Object.defineProperties(plugin.plugin.call(pluginContext, plugin.options), shared),
           writable: false,
           enumerable: true,
           configurable: true,
@@ -436,7 +498,7 @@ const Component = (name = required('name'), config = required('config')) => {
     // one time code generation (only if precompilation is turned off)
     if (config.code === undefined) {
       Log.debug(`Generating code for ${name} component`)
-      config.code = codegenerator.call(config, parser(config.template, name))
+      config.code = codegenerator.call(config, parser(config.template, name), devMode)
     }
 
     // create an instance of the component, using base as the prototype (which contains Base)
@@ -446,6 +508,9 @@ const Component = (name = required('name'), config = required('config')) => {
   // store the config on the factory, in order to access the config
   // during the code generation step
   factory[Symbol.for('config')] = config
+
+  // Display name for inspector
+  factory[Symbol.for('componentType')] = name
 
   // To determine whether dynamic component is actual Blits component or not
   factory[symbols.isComponent] = true

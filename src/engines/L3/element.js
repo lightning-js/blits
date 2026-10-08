@@ -16,11 +16,26 @@
  */
 
 import { renderer } from './launch.js'
+import {
+  parseToObject,
+  isObjectString,
+  isArrayString,
+  isTransition,
+  isZeroDurationTransition,
+} from '../../lib/utils.js'
 import colors from '../../lib/colors/colors.js'
 
 import { Log } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import Settings from '../../settings.js'
+import shaders from '../../lib/shaders/shaders.js'
+import { resolveSpriteTexture } from './spriteTexture.js'
+
+const holderComponentMap = new WeakMap()
+
+/** @param {any} frame */
+const spriteFrameKey = (frame) =>
+  typeof frame === 'object' && frame !== null ? JSON.stringify(frame) : frame
 
 /**
  * Creates a padding object from a value and direction.
@@ -75,12 +90,16 @@ const createPaddingObject = (padding, direction) => {
  * @param {object} config - The layout configuration object.
  * @this {import('../../component.js').BlitsElement}
  */
+
 const layoutFn = function (config) {
+  const w = this.node.w
+  const h = this.node.h
+
   const position = config.direction === 'vertical' ? 'y' : 'x'
   const oppositePosition = config.direction === 'vertical' ? 'x' : 'y'
   const oppositeMount = config.direction === 'vertical' ? 'mountX' : 'mountY'
-  const dimension = config.direction === 'vertical' ? 'height' : 'width'
-  const oppositeDimension = config.direction === 'vertical' ? 'width' : 'height'
+  const dimension = config.direction === 'vertical' ? 'h' : 'w'
+  const oppositeDimension = config.direction === 'vertical' ? 'w' : 'h'
   const padding = createPaddingObject(config.padding, config.direction)
 
   let offset = padding.start
@@ -88,6 +107,7 @@ const layoutFn = function (config) {
   const children = this.node.children
   const childrenLength = children.length
   const elementChildren = this.children
+
   let otherDimension = 0
   const gap = config.gap || 0
   for (let i = 0; i < childrenLength; i++) {
@@ -98,17 +118,10 @@ const layoutFn = function (config) {
     node[position] = offset
     node[oppositePosition] = padding.oppositeStart
     // todo: temporary text check, due to 1px width of empty text node
-    if (dimension === 'width') {
-      offset += node.width + (node.width !== ('text' in node ? 1 : 0) ? gap : 0)
+    if (dimension === 'w') {
+      offset += node.w + (node.w !== ('text' in node ? 1 : 0) ? gap : 0)
     } else {
-      offset +=
-        'text' in node
-          ? node.width > 1
-            ? node.height + gap
-            : 0
-          : node.height !== 0
-            ? node.height + gap
-            : 0
+      offset += 'text' in node ? (node.w > 1 ? node.h + gap : 0) : node.h !== 0 ? node.h + gap : 0
     }
     otherDimension = Math.max(
       otherDimension,
@@ -134,41 +147,18 @@ const layoutFn = function (config) {
   }
 
   // emit an updated event
-  if (config['@updated'] !== undefined) {
-    config['@updated']({ w: this.node.width, h: this.node.height }, this)
+  if ((config['@updated'] !== undefined) & (this.node.w !== w || this.node.h !== h)) {
+    config['@updated']({ w: this.node.w, h: this.node.h }, this)
   }
 
   // trigger layout on parent if parent is a layout
-  if (this.config.parent && this.config.parent.props.__layout === true) {
+  if (
+    this.config.parent &&
+    this.config.parent.eol !== true &&
+    this.config.parent.props.__layout === true
+  ) {
     this.config.parent.triggerLayout(this.config.parent.props)
   }
-}
-
-/**
- * Checks if a value is a transition object.
- * @param {any} value - The value to check.
- * @returns {boolean} True if the value is a transition object, false otherwise.
- */
-const isTransition = (value) => {
-  return value !== null && typeof value === 'object' && 'transition' in value === true
-}
-
-/**
- * Checks if a string is an object string (starts and ends with curly braces).
- * @param {string} str - The string to check.
- * @returns {boolean} True if the string is an object string, false otherwise.
- */
-const isObjectString = (str) => {
-  return typeof str === 'string' && str.startsWith('{') && str.endsWith('}')
-}
-
-/**
- * Parses a string into an object, converting single quotes to double and adding quotes to keys.
- * @param {string} str - The string to parse.
- * @returns {object} The parsed object.
- */
-const parseToObject = (str) => {
-  return JSON.parse(str.replace(/'/g, '"').replace(/([\w-_]+)\s*:/g, '"$1":'))
 }
 
 /**
@@ -216,6 +206,15 @@ const colorMap = {
   right: 'colorRight',
 }
 
+const setTextureOption = (target, key, value) => {
+  const opts =
+    target.props['textureOptions'] ||
+    (target.element.node && target.element.node.textureOptions) ||
+    {}
+  opts[key] = value
+  target.props['textureOptions'] = opts
+}
+
 /**
  * Default text settings for text nodes (initialized on first use).
  * @type {object|null}
@@ -241,23 +240,36 @@ const propsTransformer = {
   set rotation(v) {
     this.props['rotation'] = v * (Math.PI / 180)
   },
-  set w(v) {
-    this.props['width'] = parsePercentage.call(this, v, 'width')
+  set rich(v) {
+    this.props['richText'] = v
   },
-  set width(v) {
-    this.props['width'] = parsePercentage.call(this, v, 'width')
+  set w(v) {
+    const parsed = parsePercentage.call(this, v, 'w')
+    this.props['w'] = parsed
+    if (
+      this.___wrapper === true &&
+      this.element.component.eol !== true &&
+      this.element.component[symbols.holder] !== undefined
+    ) {
+      this.element.component[symbols.holder].set('w', parsed)
+    }
   },
   set h(v) {
-    this.props['height'] = parsePercentage.call(this, v, 'height')
-  },
-  set height(v) {
-    this.props['height'] = parsePercentage.call(this, v, 'height')
+    const parsed = parsePercentage.call(this, v, 'h')
+    this.props['h'] = parsed
+    if (
+      this.___wrapper === true &&
+      this.element.component.eol !== true &&
+      this.element.component[symbols.holder] !== undefined
+    ) {
+      this.element.component[symbols.holder].set('h', parsed)
+    }
   },
   set x(v) {
-    this.props['x'] = parsePercentage.call(this, v, 'width')
+    this.props['x'] = parsePercentage.call(this, v, 'w')
   },
   set y(v) {
-    this.props['y'] = parsePercentage.call(this, v, 'height')
+    this.props['y'] = parsePercentage.call(this, v, 'h')
   },
   set z(v) {
     this.props['zIndex'] = v
@@ -266,7 +278,9 @@ const propsTransformer = {
     this.props['zIndex'] = v
   },
   set color(v) {
-    if (typeof v === 'string' && v.startsWith('{') === false) {
+    if (typeof v === 'number') {
+      this.props['color'] = v
+    } else if (typeof v === 'string' && v.startsWith('{') === false) {
       this.props['color'] = colors.normalize(v)
     } else if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
       this.props['color'] = 0
@@ -276,12 +290,21 @@ const propsTransformer = {
     }
   },
   set src(v) {
-    this.props['src'] = v
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      this.props['src'] = v.src
+      this.props['imageType'] = v.type
+      if ('keepAlive' in v) {
+        setTextureOption(this, 'preventCleanup', v.keepAlive === true)
+      }
+    } else {
+      this.props['src'] = v
+    }
+
     if (this.raw['color'] === undefined) {
       this.props['color'] = this.props['src'] ? 0xffffffff : 0x00000000
     }
     // apply auto sizing when no width or height specified
-    if (!('w' in this.raw) && !('w' in this.raw) && !('h' in this.raw) && !('height' in this.raw)) {
+    if (!('w' in this.raw) && !('h' in this.raw)) {
       this.props['autosize'] = true
     }
   },
@@ -294,11 +317,29 @@ const propsTransformer = {
       this.props['color'] = 0xffffffff
     }
   },
+  set image(v) {
+    this.raw['image'] = v
+    if (this.element[symbols.isSprite] === true && this.element.node) {
+      this.element._scheduleNativeSpriteSync()
+    }
+  },
+  set map(v) {
+    this.raw['map'] = v
+    if (this.element[symbols.isSprite] === true && this.element.node) {
+      this.element._scheduleNativeSpriteSync()
+    }
+  },
+  set frame(v) {
+    this.raw['frame'] = v
+    if (this.element[symbols.isSprite] === true && this.element.node) {
+      this.element._scheduleNativeSpriteSync()
+    }
+  },
   set fit(v) {
     const resizeMode = {}
 
     if (v === 'cover' || v === 'contain') {
-      this.props['textureOptions'] = { resizeMode: { type: v } }
+      setTextureOption(this, 'resizeMode', { type: v })
       return
     }
 
@@ -313,7 +354,7 @@ const propsTransformer = {
         resizeMode['clipX'] = 'x' in v.position === true ? v.position.x : null
         resizeMode['clipY'] = 'y' in v.position === true ? v.position.y : null
       }
-      this.props['textureOptions'] = { resizeMode }
+      setTextureOption(this, 'resizeMode', resizeMode)
     }
   },
   set rtt(v) {
@@ -373,29 +414,82 @@ const propsTransformer = {
       this.props['alpha'] = v
     }
   },
-  set shader(v) {
-    if (v !== null) {
-      this.props['shader'] = renderer.createShader(v.type, v.props)
-    } else {
-      this.props['shader'] = renderer.createShader('DefaultShader')
-    }
-  },
-  set effects(v) {
-    for (let i = 0; i < v.length; i++) {
-      if (v[i].props && v[i].props.color) {
-        v[i].props.color = colors.normalize(v[i].props.color)
+  set rounded(v) {
+    this.props['rounded'] = v
+    if (this.element.node !== undefined && this.elementShader === true) {
+      if (
+        Array.isArray(v) === false &&
+        (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v))))
+      ) {
+        this.element.node.props['shader'].props = v
+      } else {
+        if (isArrayString(v) === true) {
+          v = JSON.parse(v)
+        }
+        this.element.node.props['shader'].props.radius = v
       }
     }
-    if (this.element.node === undefined) {
-      this.props['shader'] = renderer.createShader('DynamicShader', {
-        effects: v.map((effect) => {
-          return renderer.createEffect(effect.type, effect.props)
-        }),
-      })
+  },
+  set border(v) {
+    this.props['border'] = v
+
+    if (
+      this.element.node !== undefined &&
+      this.elementShader === true &&
+      (typeof v === 'object' || isObjectString(v) === true)
+    ) {
+      v = shaders.parseProps(v)
+      const shader = this.element.node.props['shader']
+      let prefix = shader.shaderKey.startsWith('rounded') ? 'border-' : ''
+      for (const key in v) {
+        this.element.node.props['shader'].props[prefix + key] = v[key]
+      }
     }
+  },
+  set shadow(v) {
+    this.props['shadow'] = v
+    if (
+      this.element.node !== undefined &&
+      this.elementShader === true &&
+      (typeof v === 'object' || isObjectString(v) === true)
+    ) {
+      v = shaders.parseProps(v)
+      const shader = this.element.node.props['shader']
+      let prefix = shader.shaderKey.startsWith('rounded') ? 'shadow-' : ''
+      for (const key in v) {
+        this.element.node.props['shader'].props[prefix + key] = v[key]
+      }
+    }
+  },
+  set shader(v) {
+    let type = v
+    if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
+      type = v.type
+      v = shaders.parseProps(v)
+    }
+    const target = this.element.node !== undefined ? this.element.node : this.props
+    //if v remains a string we can change shader types
+    if (typeof v === 'string') {
+      target['shader'] = renderer.createShader(type)
+      return
+    }
+
+    //check again if v is an object since it could have been an object string
+    if (typeof v === 'object') {
+      if (target.shader !== undefined && type === target.shader.shaderKey) {
+        target['shader'].props = v
+        return
+      }
+      target['shader'] = renderer.createShader(type, v)
+      return
+    }
+    target['shader'] = renderer.createShader('DefaultShader')
   },
   set clipping(v) {
     this.props['clipping'] = v
+  },
+  set clipradius(v) {
+    this.props['clipRadius'] = v
   },
   set overflow(v) {
     this.props['clipping'] = !!!v
@@ -406,21 +500,27 @@ const propsTransformer = {
   set size(v) {
     this.props['fontSize'] = v
   },
-  set wordwrap(v) {
-    Log.warn('The wordwrap attribute is deprecated, use maxwidth instead')
-    this.props['width'] = v
-    this.props['contain'] = 'width'
-  },
   set maxwidth(v) {
-    this.props['width'] = v
+    this.props['maxWidth'] = v
+    if (this.manualTextContain === true) {
+      return
+    }
+    if (this.props['contain'] === 'height') {
+      this.props['contain'] = 'both'
+      return
+    }
     this.props['contain'] = 'width'
   },
   set maxheight(v) {
-    this.props['height'] = v
-    this.props['contain'] = 'both'
-  },
-  set contain(v) {
-    this.props['contain'] = v
+    this.props['maxHeight'] = v
+    if (this.manualTextContain === true) {
+      return
+    }
+    if (this.props['contain'] === 'width') {
+      this.props['contain'] = 'both'
+      return
+    }
+    this.props['contain'] = 'height'
   },
   set maxlines(v) {
     this.props['maxLines'] = v
@@ -433,6 +533,10 @@ const propsTransformer = {
   },
   set lineheight(v) {
     this.props['lineHeight'] = v
+  },
+  set contain(v) {
+    this.props['contain'] = v
+    this.manualTextContain = true
   },
   set align(v) {
     this.props['textAlign'] = v
@@ -481,19 +585,39 @@ const propsTransformer = {
       this.props['data'] = v
     }
   },
+  set holder(v) {
+    this.props['interactive'] = v
+  },
 }
+
+export const elementAttributes = Object.keys(propsTransformer)
 
 const Element = {
   /**
    * Populates the element with data
-   * @param {import('../../component.js').BlitsElementProps} data
+   * @this {import('../../component.js').BlitsElement}
+   * @param {import('../../component.js').BlitsElementProps} props
    */
-  populate(data) {
-    const props = data
+  populate(props) {
     props['node'] = this.config.node
 
     if (props[symbols.isSlot] === true) {
       this[symbols.isSlot] = true
+    }
+
+    if (props[symbols.isSprite] === true) {
+      this[symbols.isSprite] = true
+      this._spriteState = {
+        spriteTexture: null,
+        currentSrc: null,
+        _loadedCb: null,
+        _failedCb: null,
+        _syncScheduled: false,
+        lastTexture: null,
+        lastImage: null,
+        lastMap: null,
+        lastFrameKey: undefined,
+      }
     }
 
     this.props.element = this
@@ -502,10 +626,21 @@ const Element = {
     //@ts-ignore This might be a left over from the old code?
     delete props.parent
 
-    this.props.raw = data
+    this.props.raw = props
+    this.props.elementShader = false
 
     const propKeys = Object.keys(props)
     const length = propKeys.length
+
+    if (
+      props['shader'] === undefined &&
+      (props['rounded'] !== undefined ||
+        props['border'] !== undefined ||
+        props['shadow'] !== undefined)
+    ) {
+      this.props.elementShader = true
+      this.props.props['shader'] = shaders.createElementShader(props)
+    }
 
     for (let i = 0; i < length; i++) {
       const key = propKeys[i]
@@ -519,21 +654,30 @@ const Element = {
     if (this.props.props['color'] === undefined && '__textnode' in props === false) {
       this.props.props['color'] = 0
     }
+    const isTextNode = props.__textnode
+    this.node =
+      isTextNode === true
+        ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
+        : renderer.createNode(this.props.props)
 
-    this.node = props.__textnode
-      ? renderer.createTextNode({ ...textDefaults, ...this.props.props })
-      : renderer.createNode(this.props.props)
-
-    if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
-      this.node.on('loaded', (el, { type, dimensions }) => {
-        props['@loaded']({ w: dimensions.width, h: dimensions.height, type }, this)
-      })
+    if (this.props['holder'] === true) {
+      holderComponentMap.set(this.node, this.component)
     }
 
-    if (props['@error'] !== undefined && typeof props['@error'] === 'function') {
-      this.node.on('failed', (el, error) => {
-        props['@error'](error, this)
-      })
+    if (this[symbols.isSprite] === true) {
+      this._syncNativeSprite()
+    } else {
+      if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
+        this.node.on('loaded', (el, { type, dimensions }) => {
+          props['@loaded']({ w: dimensions.w, h: dimensions.h, type }, this)
+        })
+      }
+
+      if (props['@error'] !== undefined && typeof props['@error'] === 'function') {
+        this.node.on('failed', (el, error) => {
+          props['@error'](error, this)
+        })
+      }
     }
 
     if (props.__layout === true) {
@@ -542,9 +686,117 @@ const Element = {
 
     if (this.config.parent.props !== undefined && this.config.parent.props.__layout === true) {
       this.config.parent.triggerLayout(this.config.parent.props)
-      this.node.on('loaded', () => {
+
+      this.node.on(isTextNode === true ? 'textCalculated' : 'loaded', () => {
+        if (this.eol === true) return
         this.config.parent.triggerLayout(this.config.parent.props)
       })
+    }
+  },
+  /**
+   * Sets framework-provided inspector metadata
+   * Only sets if inspector is enabled and in dev mode
+   * @param {Object} data - Framework inspector metadata to merge
+   */
+  setInspectorMetadata(data) {
+    if (this.eol === true) return
+    // Early return if inspector not enabled (performance optimization)
+    if (inspectorEnabled !== true) {
+      return
+    }
+
+    // Early return if element is destroyed (props.props is null)
+    if (this.props.props === undefined || this.props.props === null) {
+      return
+    }
+
+    // Initialize data object if it doesn't exist
+    if (this.props['data'] === undefined) {
+      this.props['data'] = {}
+    }
+    if (this.props.props['data'] === undefined) {
+      this.props.props['data'] = {}
+    }
+
+    // Merge framework data (blits-* keys data attributes)
+    Object.assign(this.props['data'], data)
+    Object.assign(this.props.props['data'], data)
+
+    // Sync to renderer node so inspector can see it
+    if (this.node !== undefined && this.node !== null) {
+      this.node.data = { ...this.props.props['data'] }
+    }
+  },
+  /**
+   * @this {import('../../component.js').BlitsElement}
+   */
+  _scheduleNativeSpriteSync() {
+    if (this[symbols.isSprite] !== true || !this.node || this.eol === true) return
+    const st = this._spriteState
+    if (st === undefined) return
+    if (st._syncScheduled === true) return
+    st._syncScheduled = true
+    queueMicrotask(() => {
+      st._syncScheduled = false
+      if (this.eol === true || !this.node) return
+      this._syncNativeSprite()
+    })
+  },
+  /**
+   * @this {import('../../component.js').BlitsElement}
+   */
+  _syncNativeSprite() {
+    if (this[symbols.isSprite] !== true || !this.node) return
+    const st = this._spriteState
+    if (st === undefined) return
+
+    const raw = this.props.raw
+    const image = raw['image']
+    const map = raw['map']
+    const frameKey = spriteFrameKey(raw['frame'])
+
+    if (
+      st.lastTexture != null &&
+      image === st.lastImage &&
+      map === st.lastMap &&
+      frameKey === st.lastFrameKey
+    ) {
+      return
+    }
+
+    const imageChanged = image !== st.lastImage
+    st.lastImage = image
+    st.lastMap = map
+    st.lastFrameKey = frameKey
+
+    const texture = resolveSpriteTexture(this, renderer, st)
+    if (texture === st.lastTexture) return
+
+    st.lastTexture = texture
+    this.set('texture', texture)
+
+    if (imageChanged !== true) return
+
+    const prevL = st._loadedCb
+    const prevF = st._failedCb
+    st._loadedCb =
+      raw['@loaded'] && typeof raw['@loaded'] === 'function'
+        ? (payload) => {
+            const d = payload?.dimensions
+            const w = payload?.w ?? payload?.width ?? d?.width ?? d?.w
+            const h = payload?.h ?? payload?.height ?? d?.height ?? d?.h
+            raw['@loaded']({ w, h }, this)
+          }
+        : null
+    st._failedCb =
+      raw['@error'] && typeof raw['@error'] === 'function'
+        ? (payload) => raw['@error'](payload, this)
+        : null
+    if (st.spriteTexture) {
+      if (prevL) st.spriteTexture.off('loaded', prevL)
+      if (prevF) st.spriteTexture.off('failed', prevF)
+      if (st._loadedCb) st.spriteTexture.on('loaded', st._loadedCb)
+      if (st._failedCb) st.spriteTexture.on('failed', st._failedCb)
     }
   },
   /**
@@ -557,11 +809,26 @@ const Element = {
    * @returns {void}
    */
   set(prop, value) {
+    if (this.eol === true) return
     if (value === undefined) return
     // @ts-ignore
     if (this.props.raw[prop] === value) return
     // @ts-ignore
     this.props.raw[prop] = value
+
+    if (prop === 'color' && typeof value === 'number') {
+      // A gradient can share its base color with the new solid color (notably zero).
+      // The renderer skips equal base colors, so reset its sides in that case.
+      if (this.node.color === value) {
+        this.node.colorTop = value
+        this.node.colorBottom = value
+        this.node.colorLeft = value
+        this.node.colorRight = value
+      }
+      // Use the renderer setter to invalidate colors, including text colors.
+      this.node.color = value
+      return
+    }
 
     this.props.props = {}
     // @ts-ignore
@@ -570,7 +837,7 @@ const Element = {
     const propsKeys = Object.keys(this.props.props)
 
     if (propsKeys.length === 1) {
-      if (isTransition(value) === true) {
+      if (isTransition(value) === true && isZeroDurationTransition(value) === false) {
         return this.animate(propsKeys[0], this.props.props[propsKeys[0]], value.transition)
       }
       // set the prop to the value on the node
@@ -578,7 +845,7 @@ const Element = {
     } else {
       for (let i = 0; i < propsKeys.length; i++) {
         // todo: fix code duplication
-        if (isTransition(value) === true) {
+        if (isTransition(value) === true && isZeroDurationTransition(value) === false) {
           this.animate(propsKeys[i], this.props.props[propsKeys[i]], value.transition)
         } else {
           // set the prop to the value on the node
@@ -592,13 +859,33 @@ const Element = {
     }
   },
   animate(prop, value, transition) {
+    if (this.eol === true) return
+
+    // Clear any existing debounce timeout for this property
+    if (this.debounceTimeouts[prop] !== undefined) {
+      clearTimeout(this.debounceTimeouts[prop])
+      Log.debug(`Cleared debounce timeout for property "${prop}"`)
+    }
+
+    // Debounce the animation execution
+    this.debounceTimeouts[prop] = setTimeout(() => {
+      delete this.debounceTimeouts[prop]
+      this._executeAnimation(prop, value, transition)
+    }, 0)
+  },
+  _executeAnimation(prop, value, transition) {
     // check if a transition is already scheduled to run on the same prop
     // and cancels it if it does
+    const stateOfAnimation =
+      this.scheduledTransitions[prop] !== undefined
+        ? this.scheduledTransitions[prop].f.state
+        : undefined
+
     if (
-      this.scheduledTransitions[prop] !== undefined &&
-      this.scheduledTransitions[prop].f.state === 'scheduled'
+      stateOfAnimation !== undefined &&
+      (stateOfAnimation === 'scheduled' || stateOfAnimation === 'running')
     ) {
-      this.scheduledTransitions[prop].f.stop()
+      this.scheduledTransitions[prop].f.stop(stateOfAnimation === 'running' ? false : true)
     }
 
     // if current value is the same as the value to animate to, instantly resolve
@@ -634,15 +921,22 @@ const Element = {
       f,
     }
 
+    // Update inspector metadata when transition starts
+    if (inspectorEnabled === true) {
+      this.setInspectorMetadata({ 'blits-isTransitioning': true })
+    }
+
     if (transition.start !== undefined && typeof transition.start === 'function') {
       // fire transition start callback when animation really starts (depending on specified delay)
       f.once('animating', () => {
+        if (this.eol === true) return
         transition.start.call(this.component, this, prop, startValue)
       })
     }
 
     if (this.config.parent.props && this.config.parent.props.__layout === true) {
       f.on('tick', () => {
+        if (this.eol === true || !this.config) return
         this.config.parent.triggerLayout(this.config.parent.props)
       })
     }
@@ -650,12 +944,14 @@ const Element = {
     if (transition.progress !== undefined && typeof transition.progress === 'function') {
       let prevProgress = 0
       f.on('tick', (_node, { progress }) => {
+        if (this.eol === true || !this.config) return
         transition.progress.call(this.component, this, prop, progress, prevProgress)
         prevProgress = progress
       })
     }
 
     f.once('stopped', () => {
+      if (this.eol === true) return
       if (
         this.scheduledTransitions[prop] !== undefined &&
         this.scheduledTransitions[prop].canceled === true
@@ -663,20 +959,47 @@ const Element = {
         return
       }
       // fire transition end callback when animation ends (if specified)
-      if (this.node !== undefined && transition.end && typeof transition.end === 'function') {
+      if (transition.end && typeof transition.end === 'function') {
         transition.end.call(this.component, this, prop, this.node[prop])
       }
       // remove the prop from scheduled transitions
       delete this.scheduledTransitions[prop]
+      // Update inspector metadata when transition ends
+      if (inspectorEnabled === true) {
+        this.setInspectorMetadata({
+          'blits-isTransitioning': Object.keys(this.scheduledTransitions).length > 0,
+        })
+      }
     })
 
     // start animation
     f.start()
   },
   destroy() {
+    if (this.eol === true) return
+    this.eol = true
+
     if (this.node === null) return
 
     Log.debug('Deleting Node', this.nodeId)
+
+    if (this[symbols.isSprite] === true && this._spriteState) {
+      const st = this._spriteState
+      if (st.spriteTexture) {
+        if (st._loadedCb) st.spriteTexture.off('loaded', st._loadedCb)
+        if (st._failedCb) st.spriteTexture.off('failed', st._failedCb)
+      }
+      if (st.subTextures) st.subTextures.clear()
+      this._spriteState = null
+    }
+
+    // Clear all pending debounce timeouts
+    const debounceProps = Object.keys(this.debounceTimeouts)
+    for (let i = 0; i < debounceProps.length; i++) {
+      clearTimeout(this.debounceTimeouts[debounceProps[i]])
+    }
+    this.debounceTimeouts = null
+
     // Clearing transition end callback functions
     const transitionProps = Object.keys(this.scheduledTransitions)
     for (let i = 0; i < transitionProps.length; i++) {
@@ -710,7 +1033,7 @@ const Element = {
     delete this.forComponent
 
     this.node.destroy()
-    this.node = null
+    this.node = undefined
   },
   get nodeId() {
     return this.node && this.node.id
@@ -757,8 +1080,10 @@ export default (config, component) => {
     inspectorEnabled = Settings.get('inspector', false)
   }
   return Object.assign(Object.create(Element), {
+    eol: false,
     props: Object.assign(Object.create(propsTransformer), { props: {} }),
     scheduledTransitions: {},
+    debounceTimeouts: {},
     config,
     component,
   })

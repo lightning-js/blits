@@ -17,8 +17,9 @@
 
 import fs from 'fs'
 import path from 'path'
+import { fileURLToPath } from 'url'
 import compiler from '../src/lib/precompiler/precompiler.js'
-import { exec } from 'child_process'
+import childProcess from 'child_process'
 
 const currentDir = process.cwd()
 const componentDirs = ['src/components']
@@ -55,11 +56,14 @@ function processFile(filePath) {
   fs.copyFileSync(filePath, backupFilePath)
 
   const source = fs.readFileSync(filePath, 'utf-8')
-  const newSource = compiler(source, filePath)
+  const result = compiler(source, filePath)
+
+  // Handle both string and object return types
+  const newSource = typeof result === 'object' && result.code ? result.code : result
   fs.writeFileSync(filePath, newSource)
 
-  // only format the file if it was changed
-  if (source !== newSource) {
+  // only format the file if it was changed (compiler returns undefined for non-Blits files)
+  if (newSource !== undefined && source !== newSource) {
     formatFileWithESLint(filePath)
   }
 }
@@ -67,7 +71,7 @@ function processFile(filePath) {
 function formatFileWithESLint(filePath) {
   const command = `eslint "${filePath}" --fix`
 
-  exec(command, (error, stdout, stderr) => {
+  childProcess.exec(command, (error, stdout, stderr) => {
     if (error) {
       console.error(`Execution Error: ${error.message}`)
       console.error(`Exit Code: ${error.code}`)
@@ -81,4 +85,9 @@ function formatFileWithESLint(filePath) {
   })
 }
 
-precompileComponents()
+// Only run if this file is executed directly (not imported)
+if (fileURLToPath(import.meta.url) === process.argv[1]) {
+  precompileComponents()
+}
+
+export { precompileComponents, processDirectory, processFile, formatFileWithESLint }

@@ -1,5 +1,326 @@
 # Changelog
 
+## 2.12.0
+
+_8 oct 2026_
+
+- Added support for rich text using _bb-code_-style formatting
+- Capped default number of webworkers at 2 for faster App startup time
+- Added selective instantiation of _only_ the relevant text renders based on the registered fonts
+- Bumped renderer to 3.6.0 with latest rich text enhancements
+
+## 2.11.0
+
+_28 sep 2026_
+
+- Improved `$select()` method by adding caching
+- Upgraded several dependencies
+- Bumped renderer to 3.5.1
+
+## 2.10.0
+
+_21 sep 2026_
+
+- Fixed / improved type definitions
+- Fixed issue with accidental sideeffect running when `$hasFocus` triggers after destroy
+- Fixed issue where an error in an effect can break execution of other effects
+- Added support for reactivity of `array.length`
+- Improved reactivity in the case of nested array operations
+- Fixed case where transition callbacks could run after destroy
+- Fixed case where keyup callback could fire after component destroy
+- Improved error handling and parse rejection for fetchJson method
+- Fixed typing of `fpsUpdate`
+- Added textCalculated listener to trigger layout changes
+- Added `mouseMoveThrottle` setting to configure responsiveness of mouse movements
+- Fixed issue where hover is not recognized after keyboard use
+- Added support for numeric rgba colors
+- Bumped renderer to 3.5.0
+
+## 2.9.0
+
+_9 sep 2026_
+
+- Added DOM based Aria announcer implementation
+
+
+## 2.8.9
+
+_12 aug 2026_
+
+- Fixed focus issue related to multiple named router views
+
+## 2.8.8
+
+_11 aug 2026_
+
+- Bumped renderer to 3.3.1
+
+## 2.8.7
+
+_07 aug 2026_
+
+- Added `clipradius` attribute for rounded-corner clipping
+- Fixed memory leak in delete children method
+- Early cleanup of effects in destroy sequence
+- Added `framecount` to fpsUpdate emit
+- Bumped renderer to 3.1.6
+
+## 2.8.6
+
+_30 jul 2026_
+
+- Fixed destroying orphaned views when keepAlive is true but route is not in history
+
+## 2.8.5
+
+_29 jul 2026_
+
+- Fixed EOL issue in transition progress callback
+
+
+## 2.8.4
+
+_23 jul 2026_
+
+- Fixed issues with navigating when using multiple RouterViews
+
+
+## 2.8.3
+
+_23 jul 2026_
+
+- Added end of life guard to layout retrigger on node tick event
+
+## 2.8.2
+
+_22 jul 2026_
+
+- Added end of life guard to layout retrigger
+
+## 2.8.1
+
+_22 jul 2026_
+
+- Fixed cleanup of reactive effects with multiple dependencies
+- Fixed stale reactive effects when removing items from (nested) loops
+
+## 2.8.0
+
+_16 jul 2026_
+
+- Bumped renderer to 3.1.3
+- Disabled caching of msdf fonts during dev
+
+## 2.7.0
+
+_2 jul 2026_
+
+- Added `keepAlive` option to `src`-object to prevent a texture from being cleaned up by the renderer
+- Abstracted announcer (and speechSynthesis) to be platform provided (with speechSynthesis as the built-in default)
+- Added dedicated findByData methods to testing harness to select specific nodes in the tree
+- Improved test cases around frameTick cleanup
+
+## 2.6.0
+
+_25 jun 2026_
+
+- Added platform layer for browser API abstraction (passed as a launch option)
+- Improved reactivity guard vite plugin
+- Added testing harness to support Blits component testing
+
+## 2.5.0
+
+_11 jun 2026_
+
+- Improved performance of Sprites
+- Fixed correct typing of computed props
+- Bumped renderer to 3.0.6
+- Added re-export of platforms from renderer
+
+## v2.4.1
+
+_02 jun 2026_
+
+- Fixed router issue with initial redirect
+
+## v2.4.0
+
+_1 june 2026_
+
+- Improved correct registration of reactivity in computed props
+- Added named router views to enable multiple nested router views
+
+## v2.3.0
+
+_20 may 2026_
+
+- Refactored router functionality
+- Replaced `window` reference with `self` reference in announcer
+
+## v2.2.0
+
+_11 may 2026_
+
+- Exposed built-in reactivity to be used in custom Blits plugins
+- Cleaned up unused key names from default key mapping
+- Improved documentation
+- Fixed reactive color not working for components
+- Added EOL guard for Blits elements to prevent potential race conditions
+- Updated MSDF generator version in boilerplate
+- Fixed / improved GH workflow for automated tests
+- Upgraded renderer to 3.0.3
+
+
+## v2.1.3
+
+_16 apr 2026_
+
+- Bumped renderer to 3.0.2
+
+
+## v2.1.2
+
+_10 apr 2026_
+
+- Bumped renderer to 3.0.1
+- Removed `@updated`-calls for Layout when dimensions haven't changed
+
+## v2.1.1
+
+_9 apr 2026_
+
+- Fixed import file extension issue
+
+## v2.1.0
+
+_9 apr 2026_
+
+- Fixed left over `KeyboardEvent.code` references
+- Fixed issue with allowing $-prefix to be used as text content
+- Fixed issue with internal keyboard event not working on older browsers
+- Added tests to router hooks
+- Fixed issue with transitions not being skipped when duration is set to `0`
+- Added `this.$nextTick` utility helper
+- Fixed issue with transitioning colours in `border`-attribute
+
+## v2.0.1
+
+_23 mar 2026_
+
+- Fixed issue with height dimension of router view
+- Fixed issue with array or rounded corners not being reactive
+- Fixed issue with font not being mapped correctly when using `png` in the font config
+- Removed obsolete key config
+- Fixed reactivity guard in computed props to handle deep nested references more safely
+
+## v2.0.0
+
+_20 mar 2026_
+
+**Blits v2 as part of the Lightning 3.1 release**
+
+- Upgraded to Lightning renderer v3
+- Prefixed built-in variables with `$` (i.e. `hasFocus` => `$hasFocus`)
+- Changed array based props to object based props
+- Removed several deprecated methods and variables (`focus`, `select`, `trigger`, `wordwrap`, `width`, `height`)
+- Removed `effects` attribute and replaced for `border`, `rounded` and `shadow`
+- Changed handling of props with the same name as know Element attributes
+- Removed MSDF font generator as a blits dependency
+- Updated key mapping to rely only on `keyCode`
+
+
+## v1.51.0
+
+_04 mar 2026_
+
+- Fixed wrong message from being interrupted in announcer
+- Added `@loaded` and `@error` callbacks to Sprites
+
+## v1.50.0
+
+_27 feb 2026_
+
+- Fixed issue with router navigation options not properly being overriden
+- Fixed FPS counter component and made it into a separate importable component (`import { FPScounter } from @lightningjs/blits/components`)
+- Added mouse (magic wand) support (including new `hover` lifecycle hook and `isHovered` state indicator)
+- Updated template attributes for VScode extension
+
+
+## v1.49.0
+
+_20 feb 2026_
+
+- Added `data-blits-renderstate` inspector attribute
+- Fixed `data-blits-hasfocus` inspector attribute to always be available
+- Added boolean attribute to `idle` lifecycle hook to indicate `idle` or `active` state
+- Fixed type definitions for router beforeEach hooks
+- Fixed double processing of reactivity guard
+
+## v1.48.0
+
+_10 feb 2026_
+
+- Improved cleanup of for-loop effects
+- Fixed router issue with params not being reset
+- Added next tick debouncing for transitions on multiple props
+- Bumped renderer to 2.21.0
+- Added support for using function-notation in `@loaded`, `@error` and `@updated` callbacks
+- Added displaying of correct component type in inspector data when using `is`-attribute
+- Replaced `$`-prefix for automatic inspector data with `blits-` prefix (fixes fatal error in Safari)
+
+
+## v1.47.0
+
+_26 jan 2026_
+
+- Fixed issue with reactivity guard vite plugin failing for commented-out code
+- Fixed issue with autosizing of holder node by adding extra `eol` check
+- Added support for _variants_ to the Theme plugin
+
+## v1.46.0
+
+_22 jan 2026_
+
+- Improved Announcer on Comcast devices
+- Added new `afterEach` router hook
+- Added router option to dynamically disable `back`-key handling by the router
+- Added `this.$debounce`-method
+- Added automatic inspector data items (`$componentType`, `$hasFocus` and `$isTransitioning`)
+- Added functionality to auto size the holder node of a Component when the wrapper Element has dimensions
+- Bumped Lightning renderer to v2.20.4 with correct handling of failed textures
+
+## v1.45.2
+
+_13 jan 2026_
+
+- Updated renderer to v2.20.2
+
+## v1.45.1
+
+_29 dec 2025_
+
+- fixed issue `magic-string` package being a dev dependency
+
+## v1.45.0
+
+_29 dec 2025_
+
+- Added support for defining types for custom plugins on the Blits component definitions
+- Added importable type definitions for built-in plugins
+- Added support for JS sourcemaps
+- Added reactivity for shader props (individual shaders, not effects via dynamic shader)
+- Fixed issue with usage of Blits plugins not working in for loops
+- Improved test coverage
+
+## v1.44.0
+
+_20 Nov 2025_
+
+- Added `$input` method to facilitate key handling _without_ also passing focus
+- Added support for passing `type` of image in the `src`-attribute (`regular`, `svg`, `compressed` for cases the file type can't be derived from the file name)
+- Bumped Lightning renderer to v2.20.0 with improved support for compressed textures
+
+
 ## v1.43.2
 
 _13 Nov 2025_

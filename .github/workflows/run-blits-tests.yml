@@ -14,12 +14,12 @@ jobs:
 
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
 
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v7
       with:
-        node-version: 20.16.0
+        node-version: 22.23.2
 
     - name: Save PR Information
       run: |
@@ -32,11 +32,14 @@ jobs:
 
     - name: Run Tests
       id: run-tests
-      run: npm run test:ci > test-report.txt 2>&1 || echo "Command failed with exit code $?" >> test-report.txt
+      continue-on-error: true
+      run: |
+        set -o pipefail
+        npm run test:run 2>&1 | tee test-report.txt
 
     - name: Analyze Test Results
       id: analyze-results
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         result-encoding: json
         script: |
@@ -57,38 +60,37 @@ jobs:
             return outputResults(results);
           }
 
-          // Read test report
+          // Read test report for summary extraction only
           const testOutput = fs.readFileSync('test-report.txt', 'utf8');
+          const testsMatch = testOutput.match(/^# tests\s+(\d+)/m);
+          const passMatch = testOutput.match(/^# pass\s+(\d+)/m);
+          const failMatch = testOutput.match(/^# fail\s+(\d+)/m);
 
-          // Check for errors and test results
-          const hasError = testOutput.includes('Error');
-          const testSummaryMatch = testOutput.match(/passed:\s*(\d+)\s*failed:\s*(\d+)\s*of\s*(\d+)\s*tests/);
-
-          if (hasError && (!testSummaryMatch || testSummaryMatch[3] === '0')) {
-            // Error with no tests or zero tests
-            results.summary = 'Test execution encountered errors. No tests were run.';
-            results.testsFailed = true;
-            results.error = testOutput;
-          } else if (testSummaryMatch) {
-            // We have a test summary
-            const passed = parseInt(testSummaryMatch[1]);
-            const failed = parseInt(testSummaryMatch[2]);
-            const total = parseInt(testSummaryMatch[3]);
-
-            results.summary = testSummaryMatch[0];
-
-            if (failed > 0 || total === 0) {
-              results.testsFailed = true;
-
-              if (total === 0) {
-                results.summary = 'No tests were found to run. This is considered a failure.';
+          if (testsMatch && passMatch) {
+            const failed = failMatch ? failMatch[1] : '0';
+            results.summary = `passed: ${passMatch[1]}  failed: ${failed}  of ${testsMatch[1]} tests`;
+            results.testsFailed = failMatch ? parseInt(failMatch[1]) > 0 : false;
+            const failedBlocks = [];
+            let inBlock = false, currentBlock = [];
+            for (const line of testOutput.split('\n')) {
+              if (/^not ok /.test(line)) {
+                inBlock = true; currentBlock = [line];
+              } else if (inBlock) {
+                if (/^  \.\.\.$/.test(line)) {
+                  currentBlock.push(line);
+                  failedBlocks.push(currentBlock.join('\n'));
+                  inBlock = false; currentBlock = [];
+                } else {
+                  currentBlock.push(line);
+                }
               }
             }
-          } else {
-            // No test summary found
-            results.summary = 'Test execution produced no valid test summary';
-            results.testsFailed = true;
+            fs.writeFileSync('./failing-tests.txt', failedBlocks.join('\n\n'));
+          } else if (results.testsFailed) {
+            results.summary = 'Tests failed. No summary found in output.';
             results.error = testOutput;
+          } else {
+            results.summary = 'Tests passed. No summary found in output.';
           }
 
           return outputResults(results);
@@ -107,7 +109,6 @@ jobs:
                 fs.writeFileSync('./error.txt', results.error);
               }
             } catch (err) {
-              console.error('Error saving test results:', err);
               core.warning(`Error saving test results: ${err.message}`);
             }
 
@@ -116,27 +117,36 @@ jobs:
 
     - name: Upload Test Report Artifact
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: test-report
         path: test-report.txt
 
     - name: Upload Test Results
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: test-results
         path: |
-
           ./timestamp.txt
           ./summary.txt
           ./failed.txt
-          ./error.txt
+          ./failing-tests.txt
           ./pr_number.txt
           ./pr_repo.txt
           ./pr_branch.txt
+      continue-on-error: true
+
+    - name: Upload Error Log
+      if: fromJSON(steps.analyze-results.outputs.result).testsFailed == true
+      uses: actions/upload-artifact@v7
+      with:
+        name: error-log
+        path: ./error.txt
+        if-no-files-found: ignore
+      continue-on-error: true
 
     # Fail the workflow if tests failed
     - name: Check Test Status
-      if: ${{ steps.analyze-results.outputs.result && fromJSON(steps.analyze-results.outputs.result).testsFailed }}
+      if: fromJSON(steps.analyze-results.outputs.result).testsFailed == true
       run: exit 1

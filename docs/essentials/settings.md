@@ -58,11 +58,13 @@ Example font object:
 
 ## Input & Focus
 
-| Setting         | Type      | Description |
-|----------------|-----------|-------------|
-| `keymap`       | `object`  | Custom key mapping for input events |
-| `holdTimeout`  | `number`  | Time (ms) to consider a key press as hold |
-| `inputThrottle`| `number`  | Input throttle time (ms) to prevent rapid successive inputs |
+| Setting             | Type      | Description                                                                                                      |
+|---------------------|-----------|------------------------------------------------------------------------------------------------------------------|
+| `keymap`            | `object`  | Custom key mapping for input events                                                                              |
+| `holdTimeout`       | `number`  | Time (ms) to consider a key press as hold                                                                        |
+| `inputThrottle`     | `number`  | Input throttle time (ms) to prevent rapid successive inputs                                                      |
+| `enableMouse`       | `boolean` | Enable mouse support (hover and click-to-focus). Defaults to false.                                              |
+| `mouseMoveThrottle` | `number`  | Minimum time (ms) between pointer moves processed for hover; moves arriving sooner are dropped. Defaults to 100. |
 
 ## Renderer
 
@@ -70,12 +72,109 @@ Example font object:
 |----------------|-----------|-------------|
 | `renderMode`   | `'webgl' \| 'canvas'` | Renderer mode (default: 'webgl') |
 | `canvas`       | `HTMLCanvasElement` | Custom canvas to render to |
+| `rendererPlatform` | `object` | Custom platform configuration passed to the renderer |
+
+## Platform
+
+| Setting         | Type      | Description |
+|----------------|-----------|-------------|
+| `platform`     | `function` | Custom platform capabilities used by Blits |
+
+The `platform` setting can be used when Blits is not running in a regular browser environment, or when you want to provide custom platform specific implementations.
+
+The function receives the default browser platform as first argument, and should return the platform parts you want to override. All other platform functions will keep using the default browser implementation.
+
+```js
+Blits.Launch(App, 'app', {
+  platform: (defaults) => ({
+    screenHeight: screen.height,
+    input: {
+      addEventListener(type, listener, options) {
+        if (type === 'keydown') {
+          myInput.on('keydown', listener)
+          return
+        }
+
+        defaults.input.addEventListener(type, listener, options)
+      },
+      removeEventListener(type, listener, options) {
+        if (type === 'keydown') {
+          myInput.off('keydown', listener)
+          return
+        }
+
+        defaults.input.removeEventListener(type, listener, options)
+      },
+    },
+  }),
+})
+```
+
+Common platform properties that can be overwritten are `input`, `viewport`, `dispatchEvent`, `localStorage`, `getCookie`, `setCookie`, `historyBack`, `screenHeight`, `hardwareConcurrency`, `userAgent`, `KeyboardEvent`, `isKeyboardEvent`, `createKeyboardEvent`, `announcer`, and `now`.
+
+The `announcer` platform property can be used to provide a custom text-to-speech driver. When set, Blits keeps using the built-in announcer queue and calls the custom driver's `speak(options)` and `cancel()` methods instead of the default Web Speech implementation.
+
+```js
+Blits.Launch(App, 'app', {
+  announcer: true,
+  platform: (defaults) => ({
+    announcer: {
+      speak(options) {
+        return myPlatformSpeech.speak(options.message)
+      },
+      cancel() {
+        myPlatformSpeech.cancel()
+      },
+    },
+  }),
+})
+```
+
+For LG webOS apps, Blits provides a webOS announcer factory that calls the platform TTS service.
+
+```js
+import createAnnouncer from '@lightningjs/blits/platforms/webOS/announcer'
+
+Blits.Launch(App, 'app', {
+  announcer: true,
+  platform: () => ({
+    announcer: createAnnouncer(),
+  }),
+})
+```
+
+For platforms with a screen reader, Blits also provides a DOM announcer. It maintains a single
+visually hidden `aria-live="assertive"` region and updates its text for every announcement. The
+live region does not take DOM focus.
+
+```js
+import createAnnouncer from '@lightningjs/blits/platforms/dom/announcer'
+
+Blits.Launch(App, 'app', {
+  announcer: true,
+  platform: () => ({
+    announcer: createAnnouncer(),
+  }),
+})
+```
+
+For example, a focused component can announce its label through the platform screen reader:
+
+```js
+hooks: {
+  focus() {
+    this.$announcer.speak(this.label)
+  },
+}
+```
+
+The `rendererPlatform` setting is separate from `platform`. It is only passed to the renderer, and should be used for renderer specific platform configuration.
 
 ## Effects & Shaders
 
 | Setting         | Type      | Description |
 |----------------|-----------|-------------|
-| `effects`      | `ShaderEffect[]` | Effects for DynamicShader |
+| ~~`effects`~~  | `ShaderEffect[]` | Effects for DynamicShader. **Removed in Blits v2.** Use the `shaders` setting instead. |
 | `shaders`      | `Shader[]` | Custom shaders |
 
 ## Inspector & Debugging
@@ -116,5 +215,11 @@ Blits.Launch(App, 'app', {
   },
   inspector: false,
   announcer: true,
+  enableMouse: false, // set true for hover + click-to-focus on canvas
+  mouseMoveThrottle: 100, // lower (e.g. 16) for hover that tracks the pointer more closely
+  platform: (defaults) => ({
+    screenHeight: 720,
+    input: myInputTarget,
+  }),
 })
 ```

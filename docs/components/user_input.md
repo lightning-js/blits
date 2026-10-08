@@ -4,6 +4,8 @@ In order to allow users to interact with your app, you will want to capture and 
 
 Blits offers an intuitive and straightforward interface to handle key input in Components.
 
+**Mouse and pointer:** To enable mouse support (hover state and click-to-focus on the canvas), set `enableMouse: true` in the settings object passed to `Blits.Launch()`. When enabled, pointer movement updates component hover state and a click focuses the component under the cursor and dispatches Enter key input. For full details, see [Mouse support](./mouse_support.md).
+
 ## Focus
 
 Before diving into the specifics of key handling, it is important to understand the basic concept of _focus_.
@@ -55,18 +57,30 @@ To allow a focused component to respond to any key and act as a _catch-all_, you
 
 If the currently focused component does not handle a key press, Blits will traverse up the component hierarchy, checking for any _parent_ component that does have a function defined for that key press in the `input`-key. This input event handling chain continues until it reaches the root Application component.
 
-When a component handles a key press by having a corresponding function specified, said component receives focus, and the event handling chain stops by default. However, if you want the input event to propagate up the hierarchy further, you can move the focus to the parent element and pass the `InputEvent` object on in that function call.
+When a component handles a key press by having a corresponding function specified, said component receives focus, and the event handling chain stops by default. However, if you want the input event to propagate up the hierarchy further, you have three options:
+
+1. **Change focus only (no bubbling)**: Use `this.$parent.$focus()` without the event parameter. This only changes focus to the parent and does not bubble the event.
+2. **Change focus and bubble the event**: Use `this.$parent.$focus(e)` with the event parameter. This changes focus to the parent AND bubbles the event to the parent's input handler.
+3. **Handle input without changing focus**: Use `this.$parent.$input(e)`. This handles the input event on the parent WITHOUT changing focus. You can also use `this.$select('ref').$input(e)` to handle input on any component selected by ref.
+
+**Note**: Both `this.$parent.$focus(e)` and `this.$parent.$input(e)` process events on the parent. The difference is that `$focus()` changes focus, while `$input()` only handles the input event.
+
+> **v2**: `this.parent` was renamed to `this.$parent` in Blits v2.
 
 ```javascript
 {
   input: {
     enter() {
-      // Give focus to the parent
-      this.parent.focus();
+      // Give focus to the parent (without bubbling the event)
+      this.$parent.$focus();
     },
     back(e) {
       // Give focus to the parent and let the user input event bubble
-      this.parent.focus(e);
+      this.$parent.$focus(e);
+    },
+    escape(e) {
+      // Handle input on parent but keep focus on current component
+      this.$parent.$input(e);
     },
   }
 }
@@ -126,7 +140,7 @@ Blits.Component('MyComponent', {
       this.leftHold = false
     }
   }
-}
+})
 ```
 
 ## Custom Keycode mapping
@@ -137,9 +151,9 @@ But it's possible that the keycodes and mapping of your target device are slight
 
 In Blits, you can easily configure the key mapping to match your needs. In the `src/index.js` file where we instantiate the App via the `Blits.Launch` function, we can add an extra key, called `keymap`, to the _settings object_.
 
-The `keymap` should contain an object literal, where you map a `key` or `keyCode` (from the `KeyboardEvent`) to an event name that you can use in your Components.
+The `keymap` should contain an object literal, where you map a `keyCode` (from the `KeyboardEvent`) to an event name that you can use in your Components.
 
-> You can use a site like [keyjs.dev](https://keyjs.dev/) to find the appropriate key and keyCode for your device
+> You can use [this page](https://blits-demo.lightningjs.io/#/examples/keycodes) in the Blits Example app to find the appropriate keyCode for your device
 
 ```js
 // src/index.js
@@ -148,14 +162,11 @@ Blits.Launch(App, 'app', {
   h: 1080,
   //...
   keymap: {
-    // switch left and right using the key
-    ArrowLeft: 'right',
-    ArrowRight: 'left',
-    // switch up and down using the keyCode
+    // switch up and down
     38: 'down',
     40: 'up',
     // register new handlers
-    '.': 'dot', // dot() can now be used in the input object
+    190: 'dot', // dot() can now be used in the input object
     // key code for letter 's'
     83: 'search' // search() can now be used in the input object
   }

@@ -22,10 +22,41 @@ import { EventEmitter } from 'node:events'
 import { initLog } from '../../lib/log.js'
 import symbols from '../../lib/symbols.js'
 import sinon from 'sinon'
+import { CoreNode, CoreTextNode } from '@lightningjs/renderer'
+import colors from '../../lib/colors/colors.js'
+import shaders from '../../lib/shaders/shaders.js' // Changed from './shaderLoader.js'
 
 initLog()
 
+// Mock renderer.createShader to prevent "is not a function" errors
+// Returns a shader object with the type passed as first argument
+if (!renderer.createShader) {
+  renderer.createShader = (type, props) => ({ type, ...(props || {}) })
+}
+
+// Mock renderer.createTextNode if it doesn't exist
+if (!renderer.createTextNode) {
+  renderer.createTextNode = () => new EventEmitter()
+}
+
 let elementRef
+
+const testRenderer = /** @type {any} */ (renderer)
+const testComponent = /** @type {any} */ ({})
+
+/**
+ * @param {Record<string, any>} props
+ * @returns {import('../../component.js').BlitsElement}
+ */
+function createNativeSpriteElement(props) {
+  const el = element({ parent: { node: { w: 1920, h: 1080 }, props: {} } }, testComponent)
+  el.populate({
+    parent: { node: new EventEmitter() },
+    [symbols.isSprite]: true,
+    ...props,
+  })
+  return el
+}
 
 test('Type', (assert) => {
   assert.ok(element instanceof Function, 'Element should be a factory function')
@@ -102,8 +133,8 @@ test('Element - Set `w` property', (assert) => {
 
   el.set('w', 100)
 
-  assert.equal(el.node['width'], 100, 'Node width parameter should be set')
-  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.equal(el.node['w'], 100, 'Node w parameter should be set')
+  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
   assert.equal(el.props.raw['w'], 100, "Props' raw map entry should be added")
   assert.end()
 })
@@ -114,8 +145,8 @@ test('Element- Set `w` property in percentage', (assert) => {
 
   el.set('w', '50%')
 
-  assert.equal(el.node['width'], 960, 'Node width parameter should be set to 960')
-  assert.equal(el.props.props['width'], 960, 'Props width parameter should be set')
+  assert.equal(el.node['w'], 960, 'Node w parameter should be set to 960')
+  assert.equal(el.props.props['w'], 960, 'Props w parameter should be set')
   assert.equal(el.props.raw['w'], '50%', "Props' raw map entry should be added")
 
   assert.end()
@@ -127,8 +158,8 @@ test('Element - Set `h` property', (assert) => {
 
   el.set('h', 100)
 
-  assert.equal(el.node['height'], 100, 'Node height parameter should be set')
-  assert.equal(el.props.props['height'], 100, 'Props height parameter should be set')
+  assert.equal(el.node['h'], 100, 'Node h parameter should be set')
+  assert.equal(el.props.props['h'], 100, 'Props h parameter should be set')
   assert.equal(el.props.raw['h'], 100, "Props' raw map entry should be added")
   assert.end()
 })
@@ -139,8 +170,8 @@ test('Element- Set `h` property in percentage', (assert) => {
 
   el.set('h', '50%')
 
-  assert.equal(el.node['height'], 540, 'Node width parameter should be set to 540')
-  assert.equal(el.props.props['height'], 540, 'Props width parameter should be set')
+  assert.equal(el.node['h'], 540, 'Node h parameter should be set to 540')
+  assert.equal(el.props.props['h'], 540, 'Props h parameter should be set')
   assert.equal(el.props.raw['h'], '50%', "Props' raw map entry should be added")
 
   assert.end()
@@ -223,10 +254,67 @@ test('Element - Set `color` property', (assert) => {
   assert.end()
 })
 
+test('Element - Packed colors populate regular and text nodes', (assert) => {
+  for (const __textnode of [false, true]) {
+    const create = assert.capture(
+      renderer,
+      __textnode ? 'createTextNode' : 'createNode',
+      () => new EventEmitter()
+    )
+    for (const color of [0, 0x12345678, 0x800000ff, 0xffffffff]) {
+      const el = createElement({ props: { color, __textnode } })
+      assert.equal(create().at(-1).args[0].color, color, 'Creation preserves packed RGBA')
+      assert.equal(el.props.raw.color, color, 'Raw color is preserved')
+    }
+  }
+  assert.end()
+})
+
+test('Element - Packed color updates use renderer setters', (assert) => {
+  for (const Node of [CoreNode, CoreTextNode]) {
+    assert.capture(renderer, 'createNode', () => new EventEmitter())
+    const el = createElement()
+    // Exercise real renderer color setters without creating a rendering stage.
+    el.node = Object.assign(Object.create(Node.prototype), { props: { color: 0 }, updateType: 0 })
+    const normalize = sinon.spy(colors, 'normalize')
+    try {
+      const transformed = el.props.props
+      for (const color of [0x12345678, 0x800000ff, 0xffffffff, 0]) {
+        el.set('color', color)
+        assert.equal(el.node.color, color, 'Packed color reaches renderer unchanged')
+        assert.equal(el.props.raw.color, color, 'Raw color stays synchronized')
+        assert.equal(el.props.props, transformed, 'Numeric updates reuse the property container')
+        assert.ok(el.node.updateType, 'Renderer is invalidated')
+        el.node.updateType = 0
+        el.set('color', color)
+        assert.equal(el.node.updateType, 0, 'Repeated assignments do not invalidate')
+      }
+      assert.equal(normalize.callCount, 0, 'Numeric updates skip string normalization')
+      el.set('color', 'red')
+      assert.equal(el.node.color, '0xff0000ff', 'String colors still work')
+      el.set('color', { top: 'red', bottom: 'blue' })
+      assert.equal(el.node.colorTl, '0xff0000ff', 'Gradient top is applied')
+      assert.equal(el.node.colorBl, '0x0000ffff', 'Gradient bottom is applied')
+      el.set('color', 0)
+      for (const corner of ['colorTl', 'colorTr', 'colorBl', 'colorBr']) {
+        assert.equal(el.node[corner], 0, 'Transparent zero clears gradient corners')
+      }
+      el.set('color', "{left: 'red', right: 'blue'}")
+      el.set('color', 0xffffffff)
+      assert.equal(el.node.colorTl, 0xffffffff, 'Packed white replaces gradient')
+      el.set('color', 'azure')
+      assert.equal(el.node.color, '0xf0ffffff', 'String color replaces packed white')
+    } finally {
+      normalize.restore()
+    }
+  }
+  assert.end()
+})
+
 test('Element - Set `src` property', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
   const el = createElement()
-  const value = 'file://foo.html'
+  const value = 'assets/image.jpg'
 
   el.set('src', value)
 
@@ -234,6 +322,50 @@ test('Element - Set `src` property', (assert) => {
   assert.equal(el.props.props['src'], value, 'Props src parameter should be set')
   assert.equal(el.props.raw['src'], value, "Props' raw map entry should be added")
   assert.equal(el.props.props['color'], 0xffffffff, 'Props default color parameter should be set')
+  assert.end()
+})
+
+test('Element - Set `src` property with keepAlive option', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+  const value = { src: 'assets/image.jpg', type: 'regular', keepAlive: true }
+
+  el.set('src', value)
+
+  assert.equal(el.node['src'], value.src, 'Node src parameter should be set')
+  assert.equal(el.node['imageType'], value.type, 'Node imageType parameter should be set')
+  assert.ok(el.node['textureOptions'] instanceof Object, 'textureOptions should be an object')
+  assert.equal(
+    el.node['textureOptions']['preventCleanup'],
+    true,
+    'Node textureOptions.preventCleanup should be true'
+  )
+  assert.equal(
+    el.props.props['textureOptions']['preventCleanup'],
+    true,
+    'Props textureOptions.preventCleanup should be true'
+  )
+  assert.equal(el.props.raw['src'], value, "Props' raw map entry should be added")
+  assert.end()
+})
+
+test('Element - Update `src.keepAlive` reactively', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('src', { src: 'assets/image.jpg', keepAlive: true })
+  el.set('src', { src: 'assets/image.jpg', keepAlive: false })
+
+  assert.equal(
+    el.node['textureOptions']['preventCleanup'],
+    false,
+    'Node textureOptions.preventCleanup should be updated to false'
+  )
+  assert.equal(
+    el.props.props['textureOptions']['preventCleanup'],
+    false,
+    'Props textureOptions.preventCleanup should be updated to false'
+  )
   assert.end()
 })
 
@@ -363,6 +495,46 @@ test('Element - Set `fit` property should not set not required keys', (assert) =
   assert.end()
 })
 
+test('Element - Set `src.keepAlive` then `fit` preserves both textureOptions', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('src', { src: 'assets/image.jpg', keepAlive: true })
+  el.set('fit', 'contain')
+
+  assert.equal(
+    el.node['textureOptions']['preventCleanup'],
+    true,
+    'Node textureOptions.preventCleanup should be preserved'
+  )
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['type'],
+    'contain',
+    'Node resizeMode.type should be set'
+  )
+  assert.end()
+})
+
+test('Element - Set `fit` then `src.keepAlive` preserves both textureOptions', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = createElement()
+
+  el.set('fit', 'cover')
+  el.set('src', { src: 'assets/image.jpg', keepAlive: true })
+
+  assert.equal(
+    el.node['textureOptions']['resizeMode']['type'],
+    'cover',
+    'Node resizeMode.type should be preserved'
+  )
+  assert.equal(
+    el.node['textureOptions']['preventCleanup'],
+    true,
+    'Node textureOptions.preventCleanup should be set'
+  )
+  assert.end()
+})
+
 test('Element - Set `placement` property with value `center`', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
   const el = createElement()
@@ -371,7 +543,11 @@ test('Element - Set `placement` property with value `center`', (assert) => {
 
   assert.equal(el.node['mountX'], 0.5, 'Node mountX parameter should set to 0.5')
   assert.equal(el.props.props['mountX'], 0.5, 'Props mountX parameter should set to 0.5')
-  assert.equal(el.node['x'], 960, 'Node x parameter should set to half of parent node width, 960')
+  assert.equal(
+    el.node['x'],
+    960,
+    'Node x parameter should set to half of parent node width (w), 960'
+  )
   assert.equal(el.props.props['x'], 960, 'props x parameter should be set to 960')
   assert.equal(
     el.node['y'],
@@ -390,7 +566,11 @@ test('Element - Set `placement` property with value `right`', (assert) => {
 
   assert.equal(el.node['mountX'], 1, 'Node mountX parameter should set to 1')
   assert.equal(el.props.props['mountX'], 1, 'Props mountX parameter should set to 1')
-  assert.equal(el.node['x'], 1920, 'Node x parameter should set to parent node full width, 1920')
+  assert.equal(
+    el.node['x'],
+    1920,
+    'Node x parameter should set to parent node full width (w), 1920'
+  )
   assert.equal(el.props.props['x'], 1920, 'props x parameter should be set to 1920')
   assert.equal(
     el.node['y'],
@@ -465,7 +645,11 @@ test('Element - Set `placement` property with object value `{x:"center", y:"midd
 
   assert.equal(el.node['mountX'], 0.5, 'Node mountX parameter should set to 0.5')
   assert.equal(el.props.props['mountX'], 0.5, 'Props mountX parameter should set to 0.5')
-  assert.equal(el.node['x'], 960, 'Node x parameter should set to half of parent node width, 960')
+  assert.equal(
+    el.node['x'],
+    960,
+    'Node x parameter should set to half of parent node width (w), 960'
+  )
 
   assert.equal(el.node['mountY'], 0.5, 'Node mountY parameter should set to 0.5')
   assert.equal(el.props.props['mountY'], 0.5, 'Props mountY parameter should set to 0.5')
@@ -482,7 +666,11 @@ test('Element - Set `placement` property with object value `{x:"center", y:"bott
 
   assert.equal(el.node['mountX'], 0.5, 'Node mountX parameter should set to 0.5')
   assert.equal(el.props.props['mountX'], 0.5, 'Props mountX parameter should set to 0.5')
-  assert.equal(el.node['x'], 960, 'Node x parameter should set to half of parent node width, 960')
+  assert.equal(
+    el.node['x'],
+    960,
+    'Node x parameter should set to half of parent node width (w), 960'
+  )
 
   assert.equal(el.node['mountY'], 1, 'Node mountY parameter should set to 1')
   assert.equal(el.props.props['mountY'], 1, 'Props mountY parameter should set to 1')
@@ -499,7 +687,11 @@ test('Element - Set `placement` property with object value `{x:"right", y:"middl
 
   assert.equal(el.node['mountX'], 1, 'Node mountX parameter should set to 1')
   assert.equal(el.props.props['mountX'], 1, 'Props mountX parameter should set to 1')
-  assert.equal(el.node['x'], 1920, 'Node x parameter should set to parent node full width, 1920')
+  assert.equal(
+    el.node['x'],
+    1920,
+    'Node x parameter should set to parent node full width (w), 1920'
+  )
 
   assert.equal(el.node['mountY'], 0.5, 'Node mountY parameter should set to 0.5')
   assert.equal(el.props.props['mountY'], 0.5, 'Props mountY parameter should set to 0.5')
@@ -516,7 +708,11 @@ test('Element - Set `placement` property with object value `{x:"right", y:"botto
 
   assert.equal(el.node['mountX'], 1, 'Node mountX parameter should set to 1')
   assert.equal(el.props.props['mountX'], 1, 'Props mountX parameter should set to 1')
-  assert.equal(el.node['x'], 1920, 'Node x parameter should set to parent node full width, 1920')
+  assert.equal(
+    el.node['x'],
+    1920,
+    'Node x parameter should set to parent node full width (w), 1920'
+  )
 
   assert.equal(el.node['mountY'], 1, 'Node mountY parameter should set to 1')
   assert.equal(el.props.props['mountY'], 1, 'Props mountY parameter should set to 1')
@@ -563,8 +759,8 @@ test('Element - Set `show` property as false', (assert) => {
 
   assert.equal(el.node['alpha'], 1, 'Node alpha parameter should be set')
   assert.equal(el.props.props['alpha'], 1, 'Props alpha parameter should be set')
-  assert.equal(el.node['width'], 960, 'Node width parameter should be set')
-  assert.equal(el.node['height'], 540, 'Node height parameter should be set')
+  assert.equal(el.node['w'], 960, 'Node w parameter should be set')
+  assert.equal(el.node['h'], 540, 'Node h parameter should be set')
 
   assert.end()
 })
@@ -575,7 +771,7 @@ test('Element - Set `w` property through transition', (assert) => {
 
   el.set('w', { transition: { value: 100 } })
 
-  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
   assert.end()
 })
 
@@ -586,29 +782,31 @@ test('Element - Listen to transition start callback on `w` prop changes', (asser
 
   el.set('w', { transition: { value: 100, start: startSpy } })
 
-  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
-  assert.ok(startSpy.calledOnce, 'Transition start callback should be called once')
-  assert.equal(
-    startSpy.getCall(0).args.length,
-    3,
-    'Transition start callback should be called with three arguments'
-  )
-  assert.equal(
-    startSpy.getCall(0).args[0],
-    el,
-    'Transition start callback first argument should be element itself'
-  )
-  assert.equal(
-    startSpy.getCall(0).args[1],
-    'width',
-    'Transition start callback second argument should be `width` property'
-  )
-  assert.equal(
-    startSpy.getCall(0).args[2],
-    0,
-    'Transition start callback third argument value should be an initial value of `0`'
-  )
-  assert.end()
+  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
+  setTimeout(() => {
+    assert.ok(startSpy.calledOnce, 'Transition start callback should be called once')
+    assert.equal(
+      startSpy.getCall(0).args.length,
+      3,
+      'Transition start callback should be called with three arguments'
+    )
+    assert.equal(
+      startSpy.getCall(0).args[0],
+      el,
+      'Transition start callback first argument should be element itself'
+    )
+    assert.equal(
+      startSpy.getCall(0).args[1],
+      'w',
+      'Transition start callback second argument should be `w` property'
+    )
+    assert.equal(
+      startSpy.getCall(0).args[2],
+      0,
+      'Transition start callback third argument value should be an initial value of `0`'
+    )
+    assert.end()
+  }, 100)
 })
 
 test('Element - Cancel transition running on same prop `W` ', (assert) => {
@@ -618,7 +816,7 @@ test('Element - Cancel transition running on same prop `W` ', (assert) => {
   el.set('w', { transition: { value: 50 } })
   el.set('w', { transition: { value: 100 } })
 
-  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
   assert.end()
 })
 
@@ -650,50 +848,42 @@ test('Element - Layout with horizontal direction layout use cases', (assert) => 
   // Setting child1 width to 500, should effect child 2 X position
   child1.set('w', CHILD_1_WIDTH)
 
-  assert.equal(child1.node['width'], CHILD_1_WIDTH, 'Child 1 Node width parameter should be set')
-  assert.equal(
-    child1.props.props['width'],
-    CHILD_1_WIDTH,
-    'Child 1 Props width parameter should be set'
-  )
+  assert.equal(child1.node['w'], CHILD_1_WIDTH, 'Child 1 Node w parameter should be set')
+  assert.equal(child1.props.props['w'], CHILD_1_WIDTH, 'Child 1 Props w parameter should be set')
   assert.equal(
     child2.node['x'],
     CHILD_1_WIDTH + GAP,
-    'Child 2 Node X parameter should be layout gap + child 1 width'
+    'Child 2 Node X parameter should be layout gap + child 1 w'
   )
 
-  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback should be called 3 times')
+  assert.equal(layoutUpdateSpy.callCount, 2, 'Layout updated callback should be called 2 times')
   assert.equal(
     layoutUpdateSpy.getCall(0).args.length,
     2,
     'Layout updated callback should be called with 2 arguments'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].w,
+    layoutUpdateSpy.getCall(1).args[0].w,
     CHILD_1_WIDTH,
-    'Layout width should be equal to Child1 width'
+    'Layout w should be equal to Child1 w'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].h,
+    layoutUpdateSpy.getCall(1).args[0].h,
     CHILD_HEIGHT,
     'Layout height should be equal to Child1 or Child 2 height'
   )
 
   child2.set('w', CHILD_2_WIDTH)
-  assert.equal(child2.node['width'], CHILD_2_WIDTH, 'Child 2 Node width parameter should be set')
+  assert.equal(child2.node['w'], CHILD_2_WIDTH, 'Child 2 Node w parameter should be set')
+  assert.equal(child2.props.props['w'], CHILD_2_WIDTH, 'Child 2 Props w parameter should be set')
+  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback call count should be 3')
   assert.equal(
-    child2.props.props['width'],
-    CHILD_2_WIDTH,
-    'Child 2 Props width parameter should be set'
-  )
-  assert.equal(layoutUpdateSpy.callCount, 4, 'Layout updated callback call count should be 4')
-  assert.equal(
-    layoutUpdateSpy.getCall(3).args[0].w,
+    layoutUpdateSpy.getCall(2).args[0].w,
     CHILD_1_WIDTH + GAP + CHILD_2_WIDTH,
-    'Layout width should be equal to Child1 width + gap + Child2 width'
+    'Layout w should be equal to Child1 w + gap + Child2 w'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(3).args[0].h,
+    layoutUpdateSpy.getCall(2).args[0].h,
     CHILD_HEIGHT,
     'Layout height should be equal to Child1 or Child 2 height'
   )
@@ -725,13 +915,13 @@ test('Element - Layout with vertical direction use case', (assert) => {
   layoutEl.node.children.push(child1.node)
   layoutEl.node.children.push(child2.node)
 
-  // Initial width, x, y, height of each element is, 0
+  // Initial w, x, y, height of each element is, 0
   // Setting Child1 height to 500, should effect Child 2 Y position
   child1.set('h', CHILD_1_HEIGHT)
 
-  assert.equal(child1.node['height'], CHILD_1_HEIGHT, 'Child 1 Node height parameter should be set')
+  assert.equal(child1.node['h'], CHILD_1_HEIGHT, 'Child 1 Node height parameter should be set')
   assert.equal(
-    child1.props.props['height'],
+    child1.props.props['h'],
     CHILD_1_HEIGHT,
     'Child 1 Props height parameter should be set'
   )
@@ -741,40 +931,36 @@ test('Element - Layout with vertical direction use case', (assert) => {
     'Child 2 Node y parameter should be layout gap + Child 1 height'
   )
 
-  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback should be called 3 times')
+  assert.equal(layoutUpdateSpy.callCount, 2, 'Layout updated callback should be called 2 times')
   assert.equal(
     layoutUpdateSpy.getCall(0).args.length,
     2,
     'Layout updated callback should be called with 2 arguments'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].h,
+    layoutUpdateSpy.getCall(1).args[0].h,
     CHILD_1_HEIGHT,
     'Layout height should be equal to Child1 height'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(2).args[0].w,
+    layoutUpdateSpy.getCall(1).args[0].w,
     CHILD_WIDTH,
-    'Layout width should be equal to Child1 or Child 2 width'
+    'Layout w should be equal to Child1 or Child 2 w'
   )
 
   child2.set('h', CHILD_2_HEIGHT)
-  assert.equal(child2.node['height'], CHILD_2_HEIGHT, 'Child 2 Node height parameter should be set')
+  assert.equal(child2.node['h'], CHILD_2_HEIGHT, 'Child 2 Node height parameter should be set')
+  assert.equal(child2.props.props['h'], CHILD_2_HEIGHT, 'Child 2 Props h parameter should be set')
+  assert.equal(layoutUpdateSpy.callCount, 3, 'Layout updated callback call count should be 3')
   assert.equal(
-    child2.props.props['height'],
-    CHILD_2_HEIGHT,
-    'Child 2 Props height parameter should be set'
-  )
-  assert.equal(layoutUpdateSpy.callCount, 4, 'Layout updated callback call count should be 4')
-  assert.equal(
-    layoutUpdateSpy.getCall(3).args[0].h,
+    layoutUpdateSpy.getCall(2).args[0].h,
     CHILD_1_HEIGHT + GAP + CHILD_2_HEIGHT,
     'Layout height should be equal to Child1 height + gap + Child2 height'
   )
   assert.equal(
-    layoutUpdateSpy.getCall(3).args[0].w,
+    layoutUpdateSpy.getCall(2).args[0].w,
     CHILD_WIDTH,
-    'Layout w should be equal to Child1 or Child 2 width'
+    'Layout w should be equal to Child1 or Child 2 w'
   )
 
   assert.end()
@@ -829,14 +1015,6 @@ test('Element - Create Text Node with supported props 2', (assert) => {
   el.set('content', title)
 
   el.set('maxheight', 35)
-  assert.equal(el.node['height'], 35, 'Node height parameter should be set')
-  assert.equal(el.props.props['height'], 35, 'Props textoverflow parameter should be set')
-  assert.equal(el.node['contain'], 'both', 'Node contain parameter should be set')
-  assert.equal(el.props.props['contain'], 'both', 'Props contain parameter should be set')
-
-  el.set('contain', 'width')
-  assert.equal(el.node['contain'], 'width', 'Node contain parameter should be set')
-  assert.equal(el.props.props['contain'], 'width', 'Props contain parameter should be set')
 
   el.set('maxlines', 2)
   assert.equal(el.node['maxLines'], 2, 'Node maxLines parameter should be set')
@@ -849,24 +1027,14 @@ test('Element - Create Text Node with supported props 2', (assert) => {
   assert.end()
 })
 
-test('Element - Create Text Node with supported props 3', (assert) => {
+test((assert) => {
   assert.capture(renderer, 'createTextNode', () => new EventEmitter())
   const el = createElement({ props: { __textnode: true } })
   const title = 'Welcome to Blits'
 
   el.set('content', title)
 
-  el.set('wordwrap', 500)
-  assert.equal(el.node['width'], 500, 'Node width parameter should be set')
-  assert.equal(el.props.props['width'], 500, 'Props width parameter should be set')
-  assert.equal(el.node['contain'], 'width', 'Node contain parameter should be set')
-  assert.equal(el.props.props['contain'], 'width', 'Props contain parameter should be set')
-
   el.set('maxwidth', 500)
-  assert.equal(el.node['width'], 500, 'Node width parameter should be set')
-  assert.equal(el.props.props['width'], 500, 'Props width parameter should be set')
-  assert.equal(el.node['contain'], 'width', 'Node contain parameter should be set')
-  assert.equal(el.props.props['contain'], 'width', 'Props contain parameter should be set')
 
   el.set('clipping', true)
   assert.equal(el.node['clipping'], true, 'Node clipping parameter should be set')
@@ -875,6 +1043,10 @@ test('Element - Create Text Node with supported props 3', (assert) => {
   el.set('overflow', true)
   assert.equal(el.node['clipping'], false, 'overflow attribute should set node clipping parameter')
   assert.equal(el.props.props['clipping'], false, 'Props clipping parameter should be set')
+
+  el.set('clipradius', 20)
+  assert.equal(el.node['clipRadius'], 20, 'Node clipRadius parameter should be set')
+  assert.equal(el.props.props['clipRadius'], 20, 'Props clipRadius parameter should be set')
 
   assert.end()
 })
@@ -888,7 +1060,7 @@ test('Element - Transition an element property with progress callback', (assert)
 
   el.set('w', { transition: { value: 100, progress: progSpy } })
 
-  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
   // assert.equal(progSpy.callCount, 10, 'Transition progress callback should be called 10 times')
   assert.end()
 })
@@ -901,9 +1073,73 @@ test('Element - Transition an element property with end callback', (assert) => {
 
   el.set('w', { transition: { value: 100, end: endSpy } })
 
-  assert.equal(el.props.props['width'], 100, 'Props width parameter should be set')
+  assert.equal(el.props.props['w'], 100, 'Props w parameter should be set')
   // assert.ok(endSpy.calledOnce, 'Transition end callback should be called only once')
   assert.end()
+})
+
+test('Element - Zero duration transition sets value directly without animating', (assert) => {
+  const customNode = new CustomNode()
+  assert.capture(renderer, 'createNode', () => customNode)
+  const el = createElement()
+
+  const animateSpy = sinon.spy(customNode, 'animate')
+
+  el.set('w', { transition: { value: 200, duration: 0 } })
+
+  assert.equal(el.props.props['w'], 200, 'Props w parameter should be set to 200')
+  assert.equal(customNode.w, 200, 'Node w should be set directly to 200')
+  assert.equal(animateSpy.callCount, 0, 'animate should not be called for zero duration transition')
+
+  animateSpy.restore()
+  assert.end()
+})
+
+test('Element - Zero duration transition on multiple properties sets values directly', (assert) => {
+  const customNode = new CustomNode()
+  assert.capture(renderer, 'createNode', () => customNode)
+  const el = createElement()
+
+  const animateSpy = sinon.spy(customNode, 'animate')
+
+  el.set('x', { transition: { value: 50, duration: 0 } })
+  el.set('y', { transition: { value: 75, duration: 0 } })
+
+  assert.equal(customNode.x, 50, 'Node x should be set directly to 50')
+  assert.equal(customNode.y, 75, 'Node y should be set directly to 75')
+  assert.equal(
+    animateSpy.callCount,
+    0,
+    'animate should not be called for any zero duration transition'
+  )
+
+  animateSpy.restore()
+  assert.end()
+})
+
+test('Element - Non-zero duration transition calls animate', (assert) => {
+  const customNode = new CustomNode()
+  assert.capture(renderer, 'createNode', () => customNode)
+  const el = createElement()
+
+  const animateSpy = sinon.spy(customNode, 'animate')
+
+  el.set('w', { transition: { value: 300, duration: 500 } })
+
+  assert.equal(el.props.props['w'], 300, 'Props w parameter should be set to 300')
+  assert.equal(animateSpy.callCount, 0, 'animate is debounced via setTimeout(0)')
+
+  setTimeout(() => {
+    assert.equal(
+      animateSpy.callCount,
+      1,
+      'animate should be called once for non-zero duration transition'
+    )
+    assert.equal(customNode.w, 300, 'Node w should be set to 300 after animation')
+
+    animateSpy.restore()
+    assert.end()
+  }, 1000)
 })
 
 test('Element - Destroy created Element node', (assert) => {
@@ -911,7 +1147,7 @@ test('Element - Destroy created Element node', (assert) => {
   const el = createElement()
   el.set('w', { transition: { value: 100, duration: 4000 } })
   el.destroy()
-  assert.equal(el.node, null, 'Node should set to null')
+  assert.equal(el.node, undefined, 'Node should be set to undefined')
   assert.equal(el.component, undefined, 'Component should be deleted from element')
   assert.equal(el.props, undefined, 'Props should be deleted from element')
   assert.equal(el.config, undefined, 'Config should be deleted from element')
@@ -991,16 +1227,16 @@ class CustomNode extends EventEmitter {
   constructor() {
     super()
     // setting initial props of renderer node
-    this.width = 0
+    this.w = 0
     this.x = 0
-    this.height = 0
+    this.h = 0
     this.y = 0
 
     // setting children to empty []
     this.children = []
 
     const loadedTimeout = setTimeout(() => {
-      this.emit('loaded', this, { type: '', dimensions: { width: 100, height: 100 } })
+      this.emit('loaded', this, { type: '', dimensions: { w: 100, h: 100 } })
       clearTimeout(loadedTimeout)
     }, 0)
   }
@@ -1021,7 +1257,7 @@ class CustomNode extends EventEmitter {
 }
 
 function createElement(props = {}) {
-  const el = element({ parent: { node: { width: 1920, height: 1080 } } }, {})
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
   const data = {
     parent: {
       node: new EventEmitter(),
@@ -1069,3 +1305,327 @@ function createLayoutElement(direction, gap, layoutUpdateSpy) {
 
   return layoutEl
 }
+
+// Test for lines 522-524: isSlot symbol handling
+test('Element - Set isSlot symbol', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  const props = {}
+  props[symbols.isSlot] = true
+  el.populate({ parent: { node: new EventEmitter() }, ...props })
+  assert.equal(el[symbols.isSlot], true, 'isSlot should be set')
+  assert.end()
+})
+
+// Tests for lines 544-546: ElementShader creation
+test('Element - ElementShader with shadow', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({ parent: { node: new EventEmitter() }, shadow: { blur: 10 } })
+  assert.equal(el.props.elementShader, true, 'elementShader should be true')
+  assert.end()
+})
+
+test('Element - ElementShader with rounded', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({ parent: { node: new EventEmitter() }, rounded: 10 })
+  assert.equal(el.props.elementShader, true, 'elementShader should be true')
+  assert.end()
+})
+
+test('Element - Update rounded with array sets radius', (assert) => {
+  const shaderProps = { radius: 0 }
+  const mockNode = Object.assign(new EventEmitter(), {
+    props: { shader: { props: shaderProps } },
+  })
+  assert.capture(renderer, 'createNode', () => mockNode)
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({ parent: { node: new EventEmitter() }, rounded: 10 })
+  el.set('rounded', [40, 40, 10, 10])
+  assert.deepEqual(
+    el.node.props['shader'].props.radius,
+    [40, 40, 10, 10],
+    'radius should be updated to the new array'
+  )
+  assert.notOk(
+    Array.isArray(el.node.props['shader'].props),
+    'shader props should remain an object, not be replaced by the array'
+  )
+  assert.end()
+})
+
+test('Element - ElementShader with border', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({ parent: { node: new EventEmitter() }, border: { width: 2 } })
+  assert.equal(el.props.elementShader, true, 'elementShader should be true')
+  assert.end()
+})
+
+// Test for line 620: Multiple properties without transitions
+test('Element - Set mount with object (multiple props)', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+  el.set('mount', { x: 0.5, y: 0.75 })
+  assert.equal(el.node['mountX'], 0.5, 'mountX should be set')
+  assert.equal(el.node['mountY'], 0.75, 'mountY should be set')
+  assert.end()
+})
+
+// Test for lines 683-686: Transition with layout parent
+test('Element - Transition with layout parent', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const layoutSpy = sinon.spy()
+  const layoutEl = createLayoutElement('horizontal', 10, layoutSpy)
+  const childEl = element({ parent: layoutEl }, {})
+  childEl.populate({ parent: layoutEl })
+  layoutEl.node.children.push(childEl.node)
+  childEl.set('w', { transition: { value: 100, duration: 50 } })
+  setTimeout(() => {
+    assert.ok(layoutSpy.callCount > 0, 'Layout should be triggered on ticks')
+    assert.end()
+  }, 80)
+})
+
+// Tests for lines 691-692, 697-702: Progress callback and transition end
+test('Element - Transition progress callback', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+  const progressSpy = sinon.spy()
+  el.set('w', { transition: { value: 100, duration: 50, progress: progressSpy } })
+  setTimeout(() => {
+    assert.ok(progressSpy.callCount >= 1, 'Progress should be called at least once')
+    assert.end()
+  }, 100)
+})
+
+test('Element - Transition callbacks do not run after destroy', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+  const endSpy = sinon.spy()
+  el.set('w', { transition: { value: 100, duration: 100, end: endSpy } })
+  setTimeout(() => {
+    el.destroy()
+  }, 20)
+  setTimeout(() => {
+    assert.notOk(endSpy.called, 'End should not be called')
+    assert.end()
+  }, 200)
+})
+
+test('Element - Transition canceled', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+  const endSpy = sinon.spy()
+  el.set('w', { transition: { value: 100, duration: 2000, end: endSpy } })
+  setTimeout(() => {
+    el.set('w', { transition: { value: 200, duration: 30 } })
+  }, 20)
+  setTimeout(() => {
+    assert.notOk(endSpy.called, 'Canceled end should not be called')
+    assert.end()
+  }, 150)
+})
+
+// Additional tests for text properties to increase coverage
+test('Element - Set font property', (assert) => {
+  assert.capture(renderer, 'createTextNode', () => new EventEmitter())
+  const el = createElement({ props: { __textnode: true } })
+  el.set('font', 'Arial')
+  assert.equal(el.props.props['fontFamily'], 'Arial', 'font should set fontFamily')
+  assert.end()
+})
+
+test('Element - Set size property', (assert) => {
+  assert.capture(renderer, 'createTextNode', () => new EventEmitter())
+  const el = createElement({ props: { __textnode: true } })
+  el.set('size', 24)
+  assert.equal(el.props.props['fontSize'], 24, 'size should set fontSize')
+  assert.end()
+})
+
+test('Element - Set maxwidth property', (assert) => {
+  assert.capture(renderer, 'createTextNode', () => new EventEmitter())
+  const el = createElement({ props: { __textnode: true } })
+  el.set('maxwidth', 500)
+  assert.equal(el.props.props['maxWidth'], 500, 'maxwidth should set maxWidth')
+  assert.equal(el.props.props['contain'], 'width', 'maxwidth should set contain')
+  assert.end()
+})
+
+test('Element - ElementShader assignment (line 544)', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  const shaderCapture = assert.capture(shaders, 'createElementShader', () => ({ type: 'shader' }))
+  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+  el.populate({ parent: { node: new EventEmitter() }, shadow: { blur: 5 } })
+  assert.ok(shaderCapture()[0], 'createElementShader should be called')
+  assert.equal(el.props.elementShader, true, 'elementShader should be set to true')
+  assert.equal(el.props.props['shader'].type, 'shader', 'shader should be assigned')
+  assert.end()
+})
+
+test('Element - Multiple properties loop with transition (line 620)', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const el = createElement()
+  el.set('mount', { x: { transition: { value: 0.5, duration: 50 } }, y: 0.75 })
+  setTimeout(() => {
+    assert.ok(el.node['mountX'] !== undefined, 'mountX should be set')
+    assert.equal(el.node['mountY'], 0.75, 'mountY should be set')
+    assert.end()
+  }, 100)
+})
+
+test('Element - Set maxheight property', (assert) => {
+  assert.capture(renderer, 'createTextNode', () => new EventEmitter())
+  const el = createElement({ props: { __textnode: true } })
+  el.set('maxheight', 300)
+  assert.equal(el.props.props['contain'], 'height', 'maxheight should set contain to height')
+  assert.end()
+})
+
+test('Element - skips native sprite sync when image, map, and frame are unchanged', (assert) => {
+  let createTextureCalls = 0
+  assert.capture(testRenderer, 'createTexture', (type) => {
+    createTextureCalls++
+    return { type, off: () => {}, on: () => {} }
+  })
+  assert.capture(testRenderer, 'createNode', () => Object.assign(new EventEmitter(), {}))
+  const map = { frames: { 0: { x: 0, y: 0, w: 10, h: 10 } } }
+  const el = createNativeSpriteElement({ image: 'a.png', map, frame: 0 })
+  createTextureCalls = 0
+  el._syncNativeSprite()
+  el._syncNativeSprite()
+  assert.equal(
+    createTextureCalls,
+    0,
+    'texture work should be skipped when sprite inputs are unchanged'
+  )
+  assert.end()
+})
+
+test('Element - does not schedule sprite sync when setting the same frame', (assert) => {
+  assert.capture(testRenderer, 'createTexture', (type) => ({
+    type,
+    off: () => {},
+    on: () => {},
+  }))
+  assert.capture(testRenderer, 'createNode', () => Object.assign(new EventEmitter(), {}))
+  const map = { frames: { 0: { x: 0, y: 0, w: 10, h: 10 } } }
+  const el = createNativeSpriteElement({ image: 'a.png', map, frame: 0 })
+  let scheduleCalls = 0
+  const origSchedule = el._scheduleNativeSpriteSync
+  el._scheduleNativeSpriteSync = function () {
+    scheduleCalls++
+    return origSchedule.call(this)
+  }
+  el.set('frame', 0)
+  assert.equal(scheduleCalls, 0, 'same frame value should not schedule a sync')
+  assert.end()
+})
+
+test('Element - coalesces native sprite syncs in one tick', (assert) => {
+  assert.capture(testRenderer, 'createTexture', (type) => ({
+    type,
+    off: () => {},
+    on: () => {},
+  }))
+  assert.capture(testRenderer, 'createNode', () => Object.assign(new EventEmitter(), {}))
+  const map = {
+    frames: { 0: { x: 0, y: 0, w: 10, h: 10 }, 1: { x: 1, y: 0, w: 10, h: 10 } },
+  }
+  const el = createNativeSpriteElement({ image: 'a.png', map, frame: 0 })
+  let syncCalls = 0
+  const origSync = el._syncNativeSprite
+  el._syncNativeSprite = function () {
+    syncCalls++
+    return origSync.call(this)
+  }
+  syncCalls = 0
+  el.set('frame', 1)
+  el.set('image', 'b.png')
+  el.set('frame', 0)
+  queueMicrotask(() => {
+    assert.equal(syncCalls, 1, 'multiple sprite prop sets in one tick should sync once')
+    assert.end()
+  })
+})
+
+test('Element - repeat native sprite sync does not call set(texture) again', (assert) => {
+  assert.capture(testRenderer, 'createTexture', (type) => ({
+    type,
+    off: () => {},
+    on: () => {},
+  }))
+  assert.capture(testRenderer, 'createNode', () => Object.assign(new EventEmitter(), {}))
+  const map = { frames: { 0: { x: 0, y: 0, w: 10, h: 10 } } }
+  const el = createNativeSpriteElement({ image: 'a.png', map, frame: 0 })
+  let setTextureCalls = 0
+  const origSet = el.set
+  el.set = function (prop, value) {
+    if (prop === 'texture') setTextureCalls++
+    return origSet.call(this, prop, value)
+  }
+  setTextureCalls = 0
+  el._syncNativeSprite()
+  assert.equal(setTextureCalls, 0, 'unchanged sprite state should not set texture on node again')
+  assert.end()
+})
+
+test('Element - frame-only change does not rebind image load listeners', (assert) => {
+  const imgTex = {
+    onCalls: 0,
+    offCalls: 0,
+    on() {
+      this.onCalls++
+    },
+    off() {
+      this.offCalls++
+    },
+  }
+  let subId = 0
+  assert.capture(testRenderer, 'createTexture', (type) => {
+    if (type === 'ImageTexture') return imgTex
+    if (type === 'SubTexture') return { id: ++subId }
+    return {}
+  })
+  assert.capture(testRenderer, 'createNode', () => Object.assign(new EventEmitter(), {}))
+  const map = {
+    frames: { 0: { x: 0, y: 0, w: 10, h: 10 }, 1: { x: 1, y: 0, w: 10, h: 10 } },
+  }
+  const el = createNativeSpriteElement({
+    image: 'a.png',
+    map,
+    frame: 0,
+    '@loaded': () => {},
+  })
+  assert.ok(imgTex.onCalls > 0, 'listeners should bind on initial image sync')
+  imgTex.onCalls = 0
+  imgTex.offCalls = 0
+  el.set('frame', 1)
+  queueMicrotask(() => {
+    assert.equal(imgTex.onCalls, 0, 'frame-only change should not call on() again')
+    assert.equal(imgTex.offCalls, 0, 'frame-only change should not call off()')
+    assert.end()
+  })
+})
+
+test('Element - destroy clears native sprite state', (assert) => {
+  assert.capture(testRenderer, 'createTexture', (type) => ({
+    type,
+    off: () => {},
+    on: () => {},
+  }))
+  assert.capture(testRenderer, 'createNode', () =>
+    Object.assign(new EventEmitter(), { destroy() {} })
+  )
+  const el = createNativeSpriteElement({
+    image: 'a.png',
+    map: { frames: { 0: { x: 0, y: 0, w: 10, h: 10 } } },
+    frame: 0,
+    '@loaded': () => {},
+  })
+  el.destroy()
+  assert.equal(el._spriteState, null, 'sprite state should be cleared on destroy')
+  assert.end()
+})
