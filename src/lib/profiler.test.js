@@ -18,6 +18,56 @@
 import test from 'tape'
 import profiler, { profile, profileBegin, profileEnd } from './profiler.js'
 
+test('Profiler - rejects measurements from outside the current session', (assert) => {
+  const disabled = profileBegin()
+  profiler.start()
+  profileEnd('disabled', disabled)
+  const previous = profileBegin()
+  profiler.start()
+  profileEnd('previous', previous)
+  const stopped = profileBegin()
+  profiler.stop()
+  profileEnd('stopped', stopped)
+  profiler.start()
+  profileEnd('restarted', stopped)
+  assert.deepEqual(profiler.stop(), {}, 'only current-session spans may be recorded')
+  assert.end()
+})
+
+test('Profiler - reset invalidates pending spans and preserves enabled state', (assert) => {
+  profiler.start()
+  const pending = profileBegin()
+  profiler.mark('named')
+  profiler.mark('named')
+  profile('recorded', () => 42)
+  profiler.reset()
+  profileEnd('pending', pending)
+  profiler.markEnd('named')
+  profiler.markEnd('named')
+  assert.equal(profiler.enabled, true)
+  assert.deepEqual(profiler.snapshot(), {}, 'reset clears results and all pending spans')
+  profileEnd('fresh', profileBegin())
+  assert.equal(profiler.stop().fresh.calls, 1, 'new spans still record')
+  profiler.reset()
+  assert.equal(profiler.enabled, false, 'reset does not enable a stopped profiler')
+  assert.end()
+})
+
+test('Profiler - wrappers cannot record across session boundaries', (assert) => {
+  for (const changeSession of [() => profiler.start(), () => profiler.reset()]) {
+    profiler.start()
+    assert.equal(
+      profile('stale', () => {
+        changeSession()
+        return 42
+      }),
+      42
+    )
+    assert.deepEqual(profiler.stop(), {}, 'finally ignores a stale session token')
+  }
+  assert.end()
+})
+
 test('Profiler - disabled by default', (assert) => {
   assert.equal(profiler.enabled, false, 'profiler should be disabled')
   assert.equal(profileBegin(), 0, 'profileBegin should return 0 when disabled')

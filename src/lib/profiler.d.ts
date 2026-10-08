@@ -19,17 +19,23 @@ import type { Profiler, ProfilerEntry } from '@lightningjs/blits'
 
 export type { Profiler, ProfilerEntry }
 
+/** Session-bound measurement token. Pass unchanged to profileEnd. */
+export interface ProfileToken {
+  readonly sessionId: number
+  readonly startTime: number
+}
+
 /**
  * Marks the start of a measurement.
  *
  * Returns `0` when the profiler is disabled.
  */
-export function profileBegin(): number
+export function profileBegin(): ProfileToken | 0
 
 /**
  * Records a measurement started with `profileBegin`
  */
-export function profileEnd(name: string, start: number): void
+export function profileEnd(name: string, start: ProfileToken | 0): void
 
 /**
  * Measures the execution time of a (synchronous) function

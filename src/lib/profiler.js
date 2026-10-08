@@ -26,6 +26,7 @@
 const stats = new Map()
 const activeMarks = new Map()
 let enabled = false
+let sessionId = 0
 
 const hasPerformance = typeof globalThis.performance === 'object'
 
@@ -37,19 +38,19 @@ const now = () => (hasPerformance === true ? globalThis.performance.now() : Date
  * Returns `0` when the profiler is disabled, which keeps the overhead
  * down to a single boolean check.
  *
- * @returns {number} Timestamp to pass into {@link profileEnd}
+ * @returns {{sessionId: number, startTime: number} | 0} Token to pass into {@link profileEnd}
  */
-export const profileBegin = () => (enabled === true ? now() : 0)
+export const profileBegin = () => (enabled === true ? { sessionId, startTime: now() } : 0)
 
 /**
  * Records a measurement started with {@link profileBegin}.
  *
  * @param {string} name - Label the measurement is aggregated under
- * @param {number} start - Timestamp returned by {@link profileBegin}
+ * @param {{sessionId: number, startTime: number} | 0} start - Token returned by {@link profileBegin}
  * @returns {void}
  */
 export const profileEnd = (name, start) => {
-  if (enabled !== true) return
+  if (enabled !== true || !start || start.sessionId !== sessionId) return
 
   let entry = stats.get(name)
   if (entry === undefined) {
@@ -57,7 +58,7 @@ export const profileEnd = (name, start) => {
     stats.set(name, entry)
   }
 
-  const elapsed = now() - start
+  const elapsed = now() - start.startTime
   entry.calls++
   entry.totalMs += elapsed
   if (elapsed > entry.maxMs) entry.maxMs = elapsed
@@ -71,7 +72,7 @@ const mark = (name) => {
     marks = []
     activeMarks.set(name, marks)
   }
-  marks.push(now())
+  marks.push(profileBegin())
 }
 
 const markEnd = (name) => {
@@ -95,7 +96,7 @@ const markEnd = (name) => {
  */
 export const profile = (name, fn) => {
   if (enabled !== true) return fn()
-  const start = now()
+  const start = profileBegin()
   try {
     return fn()
   } finally {
@@ -118,6 +119,7 @@ const profiler = {
    * @returns {void}
    */
   start() {
+    sessionId++
     stats.clear()
     activeMarks.clear()
     enabled = true
@@ -144,11 +146,13 @@ const profiler = {
     return snapshot()
   },
   /**
-   * Clears all collected measurements, without changing the enabled state
+   * Clears collected measurements and pending spans, without changing the enabled state
    * @returns {void}
    */
   reset() {
+    sessionId++
     stats.clear()
+    activeMarks.clear()
   },
   /**
    * Returns the measurements collected so far
