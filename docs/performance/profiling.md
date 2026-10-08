@@ -77,4 +77,4 @@ The frame report helps distinguish a marker that is expensive per call from one 
 
 ## Browser console
 
-In development, Blits exposes the profiler as `__BLITS_PROFILER__` in the browser console. This is useful when you want to start, stop or report on a recording without adding temporary App code.
+In development, Blits exposes the profiler as `__BLITS_PROFILER__` in the browser console. This is useful when you want to start, stop or report on a recording without adding temporary App code for that. The markers will need to be in the actual app code, of course.
