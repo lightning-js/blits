@@ -1505,6 +1505,40 @@ declare module '@lightningjs/blits' {
     averageMs: number
   }
 
+  export interface ProfilerFrameSummary {
+    medianMs: number,
+    p95Ms: number,
+    p99Ms: number,
+    maxMs: number
+  }
+
+  export interface ProfilerFrameLabel {
+    calls: number,
+    totalMs: number
+  }
+
+  export interface ProfilerFrameSnapshot {
+    frameCount: number,
+    retainedFrameLimit: number,
+    frameInterval: ProfilerFrameSummary,
+    instrumentedTime: ProfilerFrameSummary,
+    slowFramePercent: number,
+    slowestFrames: Array<{
+      intervalMs: number,
+      instrumentedMs: number,
+      labels: Record<string, ProfilerFrameLabel>
+    }>,
+    labels: Record<string, ProfilerFrameLabel & {
+      callsPerFrame: number,
+      averageMsPerFrame: number
+    }>
+  }
+
+  export interface ProfilerSnapshot {
+    measurements: Record<string, ProfilerEntry>,
+    frames: ProfilerFrameSnapshot
+  }
+
   export interface Profiler {
     /**
      * Marks the start of a measurement
@@ -1521,7 +1555,7 @@ declare module '@lightningjs/blits' {
     /**
      * Stops recording and returns the collected measurements
      */
-    stop(): { measurements: Record<string, ProfilerEntry>, frames: object },
+    stop(): ProfilerSnapshot,
     /**
      * Clears all collected measurements, without changing the enabled state
      */
@@ -1529,15 +1563,15 @@ declare module '@lightningjs/blits' {
     /**
      * Returns the measurements collected so far
      */
-    snapshot(): { measurements: Record<string, ProfilerEntry>, frames: object },
+    snapshot(): ProfilerSnapshot,
     /**
      * Returns frame-oriented results collected by default or with start({ frames: true })
      */
-    frameSnapshot(): object,
+    frameSnapshot(): ProfilerFrameSnapshot,
     /**
      * Logs marker and frame results as console tables and returns the combined snapshot
      */
-    report(): { measurements: Record<string, ProfilerEntry>, frames: object },
+    report(): ProfilerSnapshot,
     /**
      * Whether the profiler is currently recording
      */

@@ -15,9 +15,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Profiler, ProfilerEntry } from '@lightningjs/blits'
+import type { Profiler } from '@lightningjs/blits'
 
-export type { Profiler, ProfilerEntry }
+export type {
+  Profiler,
+  ProfilerEntry,
+  ProfilerFrameLabel,
+  ProfilerFrameSummary,
+  ProfilerFrameSnapshot,
+  ProfilerSnapshot,
+} from '@lightningjs/blits'
 
 /** Session-bound measurement token. Pass unchanged to profileEnd. */
 export interface ProfileToken {
@@ -29,11 +36,6 @@ export interface ProfilerFrameOptions {
   frames?: boolean
   maxFrames?: number
   targetFps?: number
-}
-
-export interface ProfilerSnapshot {
-  measurements: Record<string, ProfilerEntry>
-  frames: object
 }
 
 /**
