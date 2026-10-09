@@ -137,6 +137,7 @@ export const profileEnd = (name, start) => {
   }
 
   const elapsed = now() - start.startTime
+  start.closed = true
   entry.calls++
   entry.totalMs += elapsed
   if (elapsed > entry.maxMs) entry.maxMs = elapsed
@@ -153,7 +154,10 @@ export const profileEnd = (name, start) => {
       start.frame.totalMs += elapsed
   }
 
-  if (activeSpan === start) activeSpan = start.parent
+  if (activeSpan === start) {
+    activeSpan = start.parent
+    while (activeSpan !== undefined && activeSpan.closed === true) activeSpan = activeSpan.parent
+  }
 }
 
 const mark = (name) => {

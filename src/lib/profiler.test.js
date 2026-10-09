@@ -263,3 +263,25 @@ test('Profiler - frame analysis records bounded complete frames', (assert) => {
   profiler.setRenderer(undefined)
   assert.end()
 })
+
+test('Profiler - out-of-order marks do not hide later frame totals', (assert) => {
+  const renderer = fakeRenderer()
+  profiler.setRenderer(renderer)
+  profiler.start()
+  renderer.frame(100, 16)
+
+  profiler.mark('first')
+  profiler.mark('second')
+  profiler.markEnd('first')
+  profiler.markEnd('second')
+  profiler.mark('independent')
+  setTimeout(() => {
+    profiler.markEnd('independent')
+    renderer.frame(120, 20)
+    const frame = profiler.frameSnapshot().slowestFrames[0]
+    assert.ok(frame.instrumentedMs >= 10, 'includes work after the out-of-order marks close')
+    assert.ok(frame.labels.independent.totalMs >= 10, 'records the independent marker in the frame')
+    profiler.stop()
+    assert.end()
+  }, 20)
+})
