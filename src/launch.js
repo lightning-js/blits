@@ -156,5 +156,7 @@ export default (App, target, settings) => {
   stage.element = engine.Element
 
   renderer = engine.Launch(App, target, settings)
-  profiler.setRenderer(renderer)
+  if (isDev === true) {
+    profiler.setRenderer(renderer)
+  }
 }
