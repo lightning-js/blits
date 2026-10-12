@@ -563,6 +563,17 @@ declare module '@lightningjs/blits' {
     $announcer: Announcer
 
     /**
+     * Read settings and change a subset of them at runtime
+     *
+     * @example
+     * ```js
+     * this.$settings.get('renderMode')
+     * this.$settings.set('canvasColor', 'darkblue')
+     * ```
+     */
+    $settings: SettingsApi
+
+    /**
      * Triggers a forced update on state variables.
      */
     $trigger: (key: string) => void
@@ -1102,6 +1113,22 @@ declare module '@lightningjs/blits' {
      */
     now?: () => number,
     [key: string]: any,
+  }
+
+  /**
+   * Settings that can be changed at runtime via `this.$settings.set()`
+   */
+  export type ChangeableSettingKeys = 'canvasColor' | 'fpsInterval' | 'pixelRatio'
+
+  export interface SettingsApi {
+    /**
+     * Returns the value of a setting (any launch setting can be read)
+     */
+    get<K extends keyof Settings>(key: K, defaultValue?: Settings[K]): Settings[K]
+    /**
+     * Changes a setting at runtime (only `ChangeableSettingKeys` are allowed)
+     */
+    set<K extends ChangeableSettingKeys>(key: K, value: Settings[K]): void
   }
 
     /**
