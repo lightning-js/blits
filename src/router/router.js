@@ -590,9 +590,16 @@ export const getSingleRegisteredRouterView = () => {
   return singleRouterView
 }
 
-export const back = function () {
+export const back = function (steps = 1) {
   if (this.history === undefined) return
+  if (steps < 1) steps = 1
   const viewState = getViewState(this.name)
+
+  // discard the intermediate history entries when navigating back more than 1 step
+  for (let i = 1; i < steps && this.history.length > 0; i++) {
+    this.history.pop()
+  }
+
   const route = this.history.pop()
   if (route && this.currentRoute !== route) {
     // set indicator that we are navigating back (to prevent adding page to history stack)

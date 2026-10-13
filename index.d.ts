@@ -361,9 +361,11 @@ declare module '@lightningjs/blits' {
     get(name: string): Router;
 
     /**
-     * Navigate to the previous location
+     * Navigate back one or more locations in the history stack
+     *
+     * @param {number} [steps=1] - Number of entries to navigate back (like `history.go(-steps)`)
     */
-    back(): boolean;
+    back(steps?: number): boolean;
 
     /**
      * Enable or disable RouterView history navigation on Back input
@@ -384,6 +386,12 @@ declare module '@lightningjs/blits' {
      * Get navigating state
     */
     readonly navigating: boolean;
+
+    /**
+     * Get a read-only snapshot of the history stack, ordered oldest to most recent.
+     * The last entry is the route that `back()` will navigate to first.
+    */
+    readonly history: Route[];
 
     /**
      * Reactive router state
