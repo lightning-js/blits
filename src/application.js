@@ -233,8 +233,9 @@ const Application = (config) => {
       }
     }
 
-    // next tick
-    setTimeout(() => Focus.set(this))
+    // focus once the component tree is built (microtask: runs right after the
+    // current instantiation finishes, without yielding to render-loop frames)
+    Promise.resolve().then(() => Focus.set(this))
   }
 
   return Component('App', config)
