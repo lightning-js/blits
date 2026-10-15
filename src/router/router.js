@@ -597,7 +597,12 @@ export const back = function (steps = 1) {
 
   // discard the intermediate history entries when navigating back more than 1 step
   for (let i = 1; i < steps && this.history.length > 0; i++) {
-    this.history.pop()
+    const poppedRoute = this.history.pop()
+    // if skipped history item is configured as keepAlive true then invoke destroy on view
+    if (poppedRoute.view !== undefined && poppedRoute.view !== null) {
+      poppedRoute.view.destroy()
+      poppedRoute.focus = null
+    }
   }
 
   const route = this.history.pop()
