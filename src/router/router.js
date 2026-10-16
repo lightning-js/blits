@@ -593,10 +593,11 @@ export const getSingleRegisteredRouterView = () => {
 export const back = function (steps = 1) {
   if (this.history === undefined) return
   if (steps < 1) steps = 1
+  if (steps > this.history.length) steps = this.history.length
   const viewState = getViewState(this.name)
 
   // discard the intermediate history entries when navigating back more than 1 step
-  for (let i = 1; i < steps && this.history.length > 0; i++) {
+  for (let i = 1; i < steps; i++) {
     const poppedRoute = this.history.pop()
     // if skipped history item is configured as keepAlive true then invoke destroy on view
     if (poppedRoute.view !== undefined && poppedRoute.view !== null) {
