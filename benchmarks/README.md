@@ -10,9 +10,11 @@ From the repository root:
 npm run bench
 npm run bench -- --size 100 --samples 5 --warmup 2
 npm run bench -- --headed
-npm run bench -- --output benchmarks/results/benchmark.json
+npm run bench -- --output results/benchmark.json
 npm run bench:serve
 ```
+
+Relative `--output` paths resolve from the `benchmarks/` directory, so the example saves to `benchmarks/results/benchmark.json`.
 
 For browser inspection, open the URL printed by `bench:serve` and press **Enter**. The loop is cleared and recreated on every repetition, and the final sample stays visible. Results are logged in the browser console. Options can be supplied in the URL:
 

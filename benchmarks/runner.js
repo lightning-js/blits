@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { appendFile, mkdir, writeFile } from 'node:fs/promises'
-import { dirname } from 'node:path'
+import { dirname, resolve } from 'node:path'
 import { build, preview } from 'vite'
 import { chromium } from 'playwright'
 import { formatSummary } from './summary.js'
@@ -56,8 +56,10 @@ const run = async () => {
     const json = `${JSON.stringify(report, null, 2)}\n`
     console.log(json)
     if (output) {
-      await mkdir(dirname(output), { recursive: true })
-      await writeFile(output, json)
+      const outputPath = resolve(benchmarkRoot, output)
+      await mkdir(dirname(outputPath), { recursive: true })
+      await writeFile(outputPath, json)
+      console.log(`Results saved to ${outputPath}`)
     }
     if (process.env.GITHUB_STEP_SUMMARY) {
       await appendFile(process.env.GITHUB_STEP_SUMMARY, formatSummary(report))
