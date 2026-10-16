@@ -39,7 +39,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run benchmark and write workflow summary
-        run: npm run bench -- --output benchmarks/results/benchmark.json
+        run: npm run bench -- --output results/benchmark.json
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v7
