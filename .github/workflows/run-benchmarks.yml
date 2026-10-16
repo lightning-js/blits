@@ -1,0 +1,50 @@
+name: Run Benchmarks
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: benchmarks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.23.2
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            benchmarks/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install benchmark dependencies
+        run: npm ci --prefix benchmarks
+
+      - name: Install Chromium
+        working-directory: benchmarks
+        run: npx playwright install --with-deps chromium
+
+      - name: Run benchmark and write workflow summary
+        run: npm run bench -- --output results/benchmark.json
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-results
+          path: benchmarks/results/benchmark.json
+          if-no-files-found: error
+          retention-days: 30

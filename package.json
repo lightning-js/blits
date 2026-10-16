@@ -66,6 +66,9 @@
     "postpublish": "node scripts/postpublish.js",
     "prepare": "husky",
     "pack-preview": "npm pack --dry-run",
+    "bench": "npm --prefix benchmarks run bench --",
+    "bench:profile": "npm --prefix benchmarks run bench:profile --",
+    "bench:serve": "npm --prefix benchmarks run serve",
     "release": "npm publish --access public"
   },
   "types": "./index.d.ts",
@@ -82,6 +85,7 @@
     "@babel/plugin-syntax-import-assertions": "^7.28.6",
     "@eslint/eslintrc": "^3.3.4",
     "@eslint/js": "^9.39.3",
+    "@lightningjs/msdf-generator": "^1.4.0",
     "c8": "^12.0.0",
     "eslint": "^9.39.3",
     "eslint-config-prettier": "^10.1.8",
