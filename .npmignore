@@ -5,6 +5,7 @@ coverage
 src/components/*.orig.js
 
 # Development files
+benchmarks/
 .editorconfig
 .eslintignore
 .eslintrc.cjs
