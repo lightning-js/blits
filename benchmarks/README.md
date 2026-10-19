@@ -59,3 +59,7 @@ npm run bench:compare -- --base HEAD --candidate HEAD
 The Run Benchmarks workflow compares the PR head SHA with the target branch's base SHA from the PR event, sequentially in the same job. It uses the PR's benchmark harness. For manual runs, supply a baseline branch or commit; the candidate is the selected workflow commit.
 
 It uploads a `benchmark-results` artifact containing `comparison.json` and writes configuration, aggregate comparison, and per-pair tables to the workflow summary. Results are informational without performance thresholds; build or benchmark execution errors still fail the job.
+
+After a successful PR run, Publish Benchmark Results saves a rendered Markdown report and JSON under `runs/<run-id>-<attempt>/` on the separate `benchmark-reports` branch. The branch is created automatically with report files only. Reports are publicly readable on GitHub while the repository is public and remain available after the Actions artifact expires.
+
+One PR comment is created and updated with the synchronous generation and time-to-idle percentage changes, plus an immutable full-report link. Outdated head/base results are skipped. Publishing runs from the default branch with write permissions, reads the benchmark artifact as data, and never executes PR code. The publisher must be merged into the default branch before it can run; repository rules must allow Actions to write the report branch and PR comments. No extra hosting or secrets are needed. Manual benchmark runs still produce an artifact and workflow summary but do not publish a PR comment.
