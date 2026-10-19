@@ -1,5 +1,12 @@
 # Changelog
 
+# 2.14.0
+
+_19 oct 2026_
+
+- Added built-in profiler support to for both internal and app dev use
+- Added benchmark for performance comparison (and GitHub workflow to run on PRs)
+
 ## 2.13.0
 
 _13 oct 2026_
