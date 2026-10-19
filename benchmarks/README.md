@@ -12,6 +12,7 @@ npm run bench -- --size 100 --samples 5 --warmup 2
 npm run bench -- --headed
 npm run bench -- --output results/benchmark.json
 npm run bench:serve
+npm run bench:compare -- --base master
 ```
 
 Relative `--output` paths resolve from the `benchmarks/` directory, so the example saves to `benchmarks/results/benchmark.json`.
@@ -28,4 +29,33 @@ Results include synchronous generation time (`generationSyncMs`) and elapsed tim
 
 `npm run bench:profile` enables development profiling while running this workload. Profile timings should be compared separately from production benchmark timings.
 
-The Run Benchmarks workflow runs on pull requests and can also be started manually. It uploads a `benchmark-results` JSON artifact and writes configuration and timing tables to the workflow summary. Results include individual samples, summary statistics, browser version, CPU slowdown, build mode, and the tested commit in GitHub Actions. The workflow reports timings without a base comparison or performance thresholds; benchmark execution errors still fail the job.
+## Compare versions
+
+From the repository root:
+
+```sh
+npm run bench:compare -- --base master
+npm run bench:compare -- --base origin/dev
+npm run bench:compare -- --base abc1234 --candidate def5678
+npm run bench:compare -- --base HEAD --size 100 --warmup 2 --samples 5 --pairs 2
+```
+
+`--base` accepts a locally available branch, remote branch, or commit. Without `--candidate`, the candidate is the current working tree, including uncommitted and untracked source files, excluding ignored files. With `--candidate`, it is that exact commit or branch. Fetch remote references first if needed. Temporary snapshots are removed on success or failure; your branch and working tree are not modified.
+
+Both snapshots use the current benchmark harness, Vite plugins, installed dependencies (including the renderer), and Chromium. This compares Blits source changes, not dependency or build-tool version changes. Baselines that are incompatible with the current harness fail rather than silently running a different workload.
+
+Both production builds finish before measurement begins. Each run uses a fresh browser and its own warmups, with the same viewport and 20× CPU slowdown. The default is two pairs: base → candidate, then candidate → base. Use `--pairs` to increase repetitions, and `--headed` to see the browser. Profiling is not supported for comparisons.
+
+The console prints a Markdown comparison table and saves `results/comparison.json` by default. Override the path with `--output`; relative paths resolve from `benchmarks/`. JSON includes commit identities, working-tree dirty status, execution order, all samples and statistics, and paired differences. Negative percentages mean faster. Summary columns show medians of run medians; differences and percentages are calculated within each pair and then summarized with a median. Per-pair percentages remain visible to expose inconsistent results. Percent changes from a zero baseline are reported as unavailable.
+
+To estimate comparison noise, run the same commit on both sides:
+
+```sh
+npm run bench:compare -- --base HEAD --candidate HEAD
+```
+
+## GitHub Actions
+
+The Run Benchmarks workflow compares the PR head SHA with the target branch's base SHA from the PR event, sequentially in the same job. It uses the PR's benchmark harness. For manual runs, supply a baseline branch or commit; the candidate is the selected workflow commit.
+
+It uploads a `benchmark-results` artifact containing `comparison.json` and writes configuration, aggregate comparison, and per-pair tables to the workflow summary. Results are informational without performance thresholds; build or benchmark execution errors still fail the job.

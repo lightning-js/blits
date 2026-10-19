@@ -67,6 +67,7 @@
     "prepare": "husky",
     "pack-preview": "npm pack --dry-run",
     "bench": "npm --prefix benchmarks run bench --",
+    "bench:compare": "npm --prefix benchmarks run bench:compare --",
     "bench:profile": "npm --prefix benchmarks run bench:profile --",
     "bench:serve": "npm --prefix benchmarks run serve",
     "release": "npm publish --access public"

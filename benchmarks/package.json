@@ -6,6 +6,7 @@
     "build": "vite build --mode production",
     "serve": "vite dev --host",
     "bench": "node runner.js",
+    "bench:compare": "node compare.js",
     "bench:profile": "node runner.js --profile"
   },
   "devDependencies": {
