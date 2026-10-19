@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.13.0
+
+_13 oct 2026_
+
+- Bumped renderer to 3.7.0
+
+
 ## 2.12.0
 
 _8 oct 2026_
