@@ -1,0 +1,1069 @@
+{
+  "title": "Element generation benchmark",
+  "size": 1000,
+  "warmup": 5,
+  "samples": 20,
+  "base": {
+    "ref": "6b67468a4e1ea4042573c0c31457295086938881",
+    "commit": "6b67468a4e1ea4042573c0c31457295086938881"
+  },
+  "candidate": {
+    "ref": "4ace7d54eeded0f618d72822e0c12655a8863c5e",
+    "commit": "4ace7d54eeded0f618d72822e0c12655a8863c5e",
+    "dirty": false
+  },
+  "cpuSlowdown": 20,
+  "browserVersion": "156.0.8078.4",
+  "pairs": [
+    {
+      "order": [
+        "base",
+        "candidate"
+      ],
+      "base": {
+        "title": "Element generation benchmark",
+        "size": 1000,
+        "warmup": 5,
+        "samples": 20,
+        "medianGenerationSyncMs": 110.10000000002037,
+        "averageGenerationSyncMs": 118.20000000000292,
+        "minGenerationSyncMs": 82.10000000000582,
+        "maxGenerationSyncMs": 174.60000000000582,
+        "medianTotalToIdleMs": 815.75,
+        "averageTotalToIdleMs": 838.6849999999977,
+        "minTotalToIdleMs": 695.5999999999767,
+        "maxTotalToIdleMs": 1042.3999999999942,
+        "results": [
+          {
+            "generationSyncMs": 174.60000000000582,
+            "totalToIdleMs": 851.8000000000175
+          },
+          {
+            "generationSyncMs": 135.70000000001164,
+            "totalToIdleMs": 961.5
+          },
+          {
+            "generationSyncMs": 156.5,
+            "totalToIdleMs": 994.2999999999884
+          },
+          {
+            "generationSyncMs": 119.29999999998836,
+            "totalToIdleMs": 856.6999999999825
+          },
+          {
+            "generationSyncMs": 82.10000000000582,
+            "totalToIdleMs": 904.1999999999825
+          },
+          {
+            "generationSyncMs": 135.39999999999418,
+            "totalToIdleMs": 1037.7999999999884
+          },
+          {
+            "generationSyncMs": 172.89999999999418,
+            "totalToIdleMs": 1042.3999999999942
+          },
+          {
+            "generationSyncMs": 92.39999999999418,
+            "totalToIdleMs": 753.7000000000116
+          },
+          {
+            "generationSyncMs": 101.5,
+            "totalToIdleMs": 767.1000000000058
+          },
+          {
+            "generationSyncMs": 119.80000000001746,
+            "totalToIdleMs": 808.3000000000175
+          },
+          {
+            "generationSyncMs": 106.30000000001746,
+            "totalToIdleMs": 766.8999999999942
+          },
+          {
+            "generationSyncMs": 93,
+            "totalToIdleMs": 830.1000000000058
+          },
+          {
+            "generationSyncMs": 151.20000000001164,
+            "totalToIdleMs": 812.2999999999884
+          },
+          {
+            "generationSyncMs": 95.20000000001164,
+            "totalToIdleMs": 762
+          },
+          {
+            "generationSyncMs": 113.90000000002328,
+            "totalToIdleMs": 819.2000000000116
+          },
+          {
+            "generationSyncMs": 103.79999999998836,
+            "totalToIdleMs": 766.6999999999825
+          },
+          {
+            "generationSyncMs": 127.10000000000582,
+            "totalToIdleMs": 735.8000000000175
+          },
+          {
+            "generationSyncMs": 98.79999999998836,
+            "totalToIdleMs": 763.0999999999767
+          },
+          {
+            "generationSyncMs": 98.60000000000582,
+            "totalToIdleMs": 844.2000000000116
+          },
+          {
+            "generationSyncMs": 85.89999999999418,
+            "totalToIdleMs": 695.5999999999767
+          }
+        ],
+        "cpuSlowdown": 20,
+        "browserVersion": "156.0.8078.4",
+        "mode": "production"
+      },
+      "candidate": {
+        "title": "Element generation benchmark",
+        "size": 1000,
+        "warmup": 5,
+        "samples": 20,
+        "medianGenerationSyncMs": 101.14999999999418,
+        "averageGenerationSyncMs": 116.35000000000146,
+        "minGenerationSyncMs": 81.20000000001164,
+        "maxGenerationSyncMs": 201.29999999998836,
+        "medianTotalToIdleMs": 739.6000000000058,
+        "averageTotalToIdleMs": 767.0199999999983,
+        "minTotalToIdleMs": 661.6999999999825,
+        "maxTotalToIdleMs": 937,
+        "results": [
+          {
+            "generationSyncMs": 201.29999999998836,
+            "totalToIdleMs": 937
+          },
+          {
+            "generationSyncMs": 123.80000000001746,
+            "totalToIdleMs": 790.5
+          },
+          {
+            "generationSyncMs": 127.70000000001164,
+            "totalToIdleMs": 798.9000000000233
+          },
+          {
+            "generationSyncMs": 172.89999999999418,
+            "totalToIdleMs": 881.0999999999767
+          },
+          {
+            "generationSyncMs": 153.60000000000582,
+            "totalToIdleMs": 872.8999999999942
+          },
+          {
+            "generationSyncMs": 182,
+            "totalToIdleMs": 931.1000000000058
+          },
+          {
+            "generationSyncMs": 119.5,
+            "totalToIdleMs": 788.1999999999825
+          },
+          {
+            "generationSyncMs": 106.19999999998254,
+            "totalToIdleMs": 767.6999999999825
+          },
+          {
+            "generationSyncMs": 96.80000000001746,
+            "totalToIdleMs": 739.3000000000175
+          },
+          {
+            "generationSyncMs": 103.5,
+            "totalToIdleMs": 706.3999999999942
+          },
+          {
+            "generationSyncMs": 90.20000000001164,
+            "totalToIdleMs": 721.5
+          },
+          {
+            "generationSyncMs": 87,
+            "totalToIdleMs": 708.6000000000058
+          },
+          {
+            "generationSyncMs": 98.10000000000582,
+            "totalToIdleMs": 756.7000000000116
+          },
+          {
+            "generationSyncMs": 91.39999999999418,
+            "totalToIdleMs": 718.2000000000116
+          },
+          {
+            "generationSyncMs": 81.20000000001164,
+            "totalToIdleMs": 685.3999999999942
+          },
+          {
+            "generationSyncMs": 84.29999999998836,
+            "totalToIdleMs": 671.2999999999884
+          },
+          {
+            "generationSyncMs": 123,
+            "totalToIdleMs": 730.5
+          },
+          {
+            "generationSyncMs": 92.40000000002328,
+            "totalToIdleMs": 733.5
+          },
+          {
+            "generationSyncMs": 98.79999999998836,
+            "totalToIdleMs": 739.8999999999942
+          },
+          {
+            "generationSyncMs": 93.29999999998836,
+            "totalToIdleMs": 661.6999999999825
+          }
+        ],
+        "cpuSlowdown": 20,
+        "browserVersion": "156.0.8078.4",
+        "mode": "production"
+      }
+    },
+    {
+      "order": [
+        "candidate",
+        "base"
+      ],
+      "candidate": {
+        "title": "Element generation benchmark",
+        "size": 1000,
+        "warmup": 5,
+        "samples": 20,
+        "medianGenerationSyncMs": 101,
+        "averageGenerationSyncMs": 110.65000000000146,
+        "minGenerationSyncMs": 79.90000000002328,
+        "maxGenerationSyncMs": 183.79999999998836,
+        "medianTotalToIdleMs": 764.1999999999971,
+        "averageTotalToIdleMs": 768.1300000000003,
+        "minTotalToIdleMs": 669.2999999999884,
+        "maxTotalToIdleMs": 868.1999999999825,
+        "results": [
+          {
+            "generationSyncMs": 182.30000000001746,
+            "totalToIdleMs": 820.2000000000116
+          },
+          {
+            "generationSyncMs": 109.69999999998254,
+            "totalToIdleMs": 767.7999999999884
+          },
+          {
+            "generationSyncMs": 110.40000000002328,
+            "totalToIdleMs": 816.2000000000116
+          },
+          {
+            "generationSyncMs": 102.79999999998836,
+            "totalToIdleMs": 717.2999999999884
+          },
+          {
+            "generationSyncMs": 98.70000000001164,
+            "totalToIdleMs": 801
+          },
+          {
+            "generationSyncMs": 183.79999999998836,
+            "totalToIdleMs": 837
+          },
+          {
+            "generationSyncMs": 129.69999999998254,
+            "totalToIdleMs": 868.1999999999825
+          },
+          {
+            "generationSyncMs": 167.39999999999418,
+            "totalToIdleMs": 824.2999999999884
+          },
+          {
+            "generationSyncMs": 83.60000000000582,
+            "totalToIdleMs": 763.8999999999942
+          },
+          {
+            "generationSyncMs": 79.90000000002328,
+            "totalToIdleMs": 741.6000000000058
+          },
+          {
+            "generationSyncMs": 82.30000000001746,
+            "totalToIdleMs": 713.8000000000175
+          },
+          {
+            "generationSyncMs": 101,
+            "totalToIdleMs": 768.3999999999942
+          },
+          {
+            "generationSyncMs": 101,
+            "totalToIdleMs": 750.8999999999942
+          },
+          {
+            "generationSyncMs": 96.30000000001746,
+            "totalToIdleMs": 721.6000000000058
+          },
+          {
+            "generationSyncMs": 90.70000000001164,
+            "totalToIdleMs": 712.9000000000233
+          },
+          {
+            "generationSyncMs": 101.70000000001164,
+            "totalToIdleMs": 761.1000000000058
+          },
+          {
+            "generationSyncMs": 119.60000000000582,
+            "totalToIdleMs": 779
+          },
+          {
+            "generationSyncMs": 93.79999999998836,
+            "totalToIdleMs": 763.6000000000058
+          },
+          {
+            "generationSyncMs": 91.59999999997672,
+            "totalToIdleMs": 764.5
+          },
+          {
+            "generationSyncMs": 86.69999999998254,
+            "totalToIdleMs": 669.2999999999884
+          }
+        ],
+        "cpuSlowdown": 20,
+        "browserVersion": "156.0.8078.4",
+        "mode": "production"
+      },
+      "base": {
+        "title": "Element generation benchmark",
+        "size": 1000,
+        "warmup": 5,
+        "samples": 20,
+        "medianGenerationSyncMs": 95.5,
+        "averageGenerationSyncMs": 113.69499999999971,
+        "minGenerationSyncMs": 83.20000000001164,
+        "maxGenerationSyncMs": 195.19999999998254,
+        "medianTotalToIdleMs": 746,
+        "averageTotalToIdleMs": 763.5799999999988,
+        "minTotalToIdleMs": 659.8999999999942,
+        "maxTotalToIdleMs": 917.3999999999942,
+        "results": [
+          {
+            "generationSyncMs": 195.19999999998254,
+            "totalToIdleMs": 917.3999999999942
+          },
+          {
+            "generationSyncMs": 151.90000000002328,
+            "totalToIdleMs": 859.2000000000116
+          },
+          {
+            "generationSyncMs": 114.89999999999418,
+            "totalToIdleMs": 790.2000000000116
+          },
+          {
+            "generationSyncMs": 115.20000000001164,
+            "totalToIdleMs": 793.8999999999942
+          },
+          {
+            "generationSyncMs": 166.09999999997672,
+            "totalToIdleMs": 890.2999999999884
+          },
+          {
+            "generationSyncMs": 165.39999999999418,
+            "totalToIdleMs": 772.1000000000058
+          },
+          {
+            "generationSyncMs": 90.60000000000582,
+            "totalToIdleMs": 721.7000000000116
+          },
+          {
+            "generationSyncMs": 175.30000000001746,
+            "totalToIdleMs": 854
+          },
+          {
+            "generationSyncMs": 95.5,
+            "totalToIdleMs": 772.6000000000058
+          },
+          {
+            "generationSyncMs": 95.5,
+            "totalToIdleMs": 742.8000000000175
+          },
+          {
+            "generationSyncMs": 103.39999999999418,
+            "totalToIdleMs": 809.1000000000058
+          },
+          {
+            "generationSyncMs": 88.5,
+            "totalToIdleMs": 747
+          },
+          {
+            "generationSyncMs": 107.89999999999418,
+            "totalToIdleMs": 704.2999999999884
+          },
+          {
+            "generationSyncMs": 86.20000000001164,
+            "totalToIdleMs": 745
+          },
+          {
+            "generationSyncMs": 91.69999999998254,
+            "totalToIdleMs": 694.5999999999767
+          },
+          {
+            "generationSyncMs": 87.29999999998836,
+            "totalToIdleMs": 677
+          },
+          {
+            "generationSyncMs": 84.20000000001164,
+            "totalToIdleMs": 659.8999999999942
+          },
+          {
+            "generationSyncMs": 83.20000000001164,
+            "totalToIdleMs": 664.7999999999884
+          },
+          {
+            "generationSyncMs": 88.60000000000582,
+            "totalToIdleMs": 730.5
+          },
+          {
+            "generationSyncMs": 87.29999999998836,
+            "totalToIdleMs": 725.1999999999825
+          }
+        ],
+        "cpuSlowdown": 20,
+        "browserVersion": "156.0.8078.4",
+        "mode": "production"
+      }
+    },
+    {
+      "order": [
+        "base",
+        "candidate"
+      ],
+      "base": {
+        "title": "Element generation benchmark",
+        "size": 1000,
+        "warmup": 5,
+        "samples": 20,
+        "medianGenerationSyncMs": 97.69999999998254,
+        "averageGenerationSyncMs": 112.16499999999505,
+        "minGenerationSyncMs": 83.79999999998836,
+        "maxGenerationSyncMs": 194,
+        "medianTotalToIdleMs": 745.7000000000116,
+        "averageTotalToIdleMs": 759.0249999999942,
+        "minTotalToIdleMs": 646.8999999999942,
+        "maxTotalToIdleMs": 881.3000000000175,
+        "results": [
+          {
+            "generationSyncMs": 194,
+            "totalToIdleMs": 881.3000000000175
+          },
+          {
+            "generationSyncMs": 115.39999999999418,
+            "totalToIdleMs": 828.6000000000058
+          },
+          {
+            "generationSyncMs": 116.19999999998254,
+            "totalToIdleMs": 765.3999999999942
+          },
+          {
+            "generationSyncMs": 159.20000000001164,
+            "totalToIdleMs": 815
+          },
+          {
+            "generationSyncMs": 109.89999999999418,
+            "totalToIdleMs": 804.0999999999767
+          },
+          {
+            "generationSyncMs": 166.60000000000582,
+            "totalToIdleMs": 850.2000000000116
+          },
+          {
+            "generationSyncMs": 103.79999999998836,
+            "totalToIdleMs": 809.2999999999884
+          },
+          {
+            "generationSyncMs": 156.19999999998254,
+            "totalToIdleMs": 810.8999999999942
+          },
+          {
+            "generationSyncMs": 83.79999999998836,
+            "totalToIdleMs": 703.7999999999884
+          },
+          {
+            "generationSyncMs": 94.5,
+            "totalToIdleMs": 721.7999999999884
+          },
+          {
+            "generationSyncMs": 94.80000000001746,
+            "totalToIdleMs": 696.8000000000175
+          },
+          {
+            "generationSyncMs": 86.70000000001164,
+            "totalToIdleMs": 646.8999999999942
+          },
+          {
+            "generationSyncMs": 87.59999999997672,
+            "totalToIdleMs": 722
+          },
+          {
+            "generationSyncMs": 95.19999999998254,
+            "totalToIdleMs": 719.0999999999767
+          },
+          {
+            "generationSyncMs": 91.79999999998836,
+            "totalToIdleMs": 698.3999999999651
+          },
+          {
+            "generationSyncMs": 106.30000000004657,
+            "totalToIdleMs": 763
+          },
+          {
+            "generationSyncMs": 99.70000000001164,
+            "totalToIdleMs": 728.4000000000233
+          },
+          {
+            "generationSyncMs": 93,
+            "totalToIdleMs": 704.5999999999767
+          },
+          {
+            "generationSyncMs": 92.89999999996508,
+            "totalToIdleMs": 728.2000000000116
+          },
+          {
+            "generationSyncMs": 95.69999999995343,
+            "totalToIdleMs": 782.6999999999534
+          }
+        ],
+        "cpuSlowdown": 20,
+        "browserVersion": "156.0.8078.4",
+        "mode": "production"
+      },
+      "candidate": {
+        "title": "Element generation benchmark",
+        "size": 1000,
+        "warmup": 5,
+        "samples": 20,
+        "medianGenerationSyncMs": 106.04999999998836,
+        "averageGenerationSyncMs": 122.74999999999417,
+        "minGenerationSyncMs": 93,
+        "maxGenerationSyncMs": 201.10000000003492,
+        "medianTotalToIdleMs": 802.1000000000058,
+        "averageTotalToIdleMs": 802.2099999999976,
+        "minTotalToIdleMs": 706.5,
+        "maxTotalToIdleMs": 905.4000000000233,
+        "results": [
+          {
+            "generationSyncMs": 201.10000000003492,
+            "totalToIdleMs": 897.8000000000466
+          },
+          {
+            "generationSyncMs": 153.79999999998836,
+            "totalToIdleMs": 837.3999999999651
+          },
+          {
+            "generationSyncMs": 122.60000000003492,
+            "totalToIdleMs": 834.6000000000349
+          },
+          {
+            "generationSyncMs": 112.69999999995343,
+            "totalToIdleMs": 753.0999999999767
+          },
+          {
+            "generationSyncMs": 151.5,
+            "totalToIdleMs": 905.4000000000233
+          },
+          {
+            "generationSyncMs": 198.40000000002328,
+            "totalToIdleMs": 838.7000000000116
+          },
+          {
+            "generationSyncMs": 93,
+            "totalToIdleMs": 730.5999999999767
+          },
+          {
+            "generationSyncMs": 105.19999999995343,
+            "totalToIdleMs": 757.5999999999767
+          },
+          {
+            "generationSyncMs": 101.59999999997672,
+            "totalToIdleMs": 764
+          },
+          {
+            "generationSyncMs": 100.29999999998836,
+            "totalToIdleMs": 768
+          },
+          {
+            "generationSyncMs": 176.5,
+            "totalToIdleMs": 870.7000000000116
+          },
+          {
+            "generationSyncMs": 110.5,
+            "totalToIdleMs": 808.7999999999884
+          },
+          {
+            "generationSyncMs": 106.90000000002328,
+            "totalToIdleMs": 795.4000000000233
+          },
+          {
+            "generationSyncMs": 94.90000000002328,
+            "totalToIdleMs": 791.5999999999767
+          },
+          {
+            "generationSyncMs": 94.89999999996508,
+            "totalToIdleMs": 761.7999999999884
+          },
+          {
+            "generationSyncMs": 100.60000000003492,
+            "totalToIdleMs": 842
+          },
+          {
+            "generationSyncMs": 134.69999999995343,
+            "totalToIdleMs": 819.6999999999534
+          },
+          {
+            "generationSyncMs": 100.29999999998836,
+            "totalToIdleMs": 835.7999999999884
+          },
+          {
+            "generationSyncMs": 96.79999999998836,
+            "totalToIdleMs": 724.7000000000116
+          },
+          {
+            "generationSyncMs": 98.69999999995343,
+            "totalToIdleMs": 706.5
+          }
+        ],
+        "cpuSlowdown": 20,
+        "browserVersion": "156.0.8078.4",
+        "mode": "production"
+      }
+    },
+    {
+      "order": [
+        "candidate",
+        "base"
+      ],
+      "candidate": {
+        "title": "Element generation benchmark",
+        "size": 1000,
+        "warmup": 5,
+        "samples": 20,
+        "medianGenerationSyncMs": 102.64999999999418,
+        "averageGenerationSyncMs": 120.49999999999709,
+        "minGenerationSyncMs": 89.39999999996508,
+        "maxGenerationSyncMs": 181.29999999998836,
+        "medianTotalToIdleMs": 795.4499999999825,
+        "averageTotalToIdleMs": 803.5149999999936,
+        "minTotalToIdleMs": 716.5,
+        "maxTotalToIdleMs": 894.8999999999651,
+        "results": [
+          {
+            "generationSyncMs": 176.59999999997672,
+            "totalToIdleMs": 883.5
+          },
+          {
+            "generationSyncMs": 152,
+            "totalToIdleMs": 874.3999999999651
+          },
+          {
+            "generationSyncMs": 113.80000000004657,
+            "totalToIdleMs": 767.3000000000466
+          },
+          {
+            "generationSyncMs": 117.39999999996508,
+            "totalToIdleMs": 789.3999999999651
+          },
+          {
+            "generationSyncMs": 154.20000000001164,
+            "totalToIdleMs": 894.8999999999651
+          },
+          {
+            "generationSyncMs": 181.29999999998836,
+            "totalToIdleMs": 784.9000000000233
+          },
+          {
+            "generationSyncMs": 95.10000000003492,
+            "totalToIdleMs": 757.6000000000349
+          },
+          {
+            "generationSyncMs": 95.09999999997672,
+            "totalToIdleMs": 726.3999999999651
+          },
+          {
+            "generationSyncMs": 101.40000000002328,
+            "totalToIdleMs": 804.8000000000466
+          },
+          {
+            "generationSyncMs": 97.90000000002328,
+            "totalToIdleMs": 844.7999999999884
+          },
+          {
+            "generationSyncMs": 175.89999999996508,
+            "totalToIdleMs": 877.8999999999651
+          },
+          {
+            "generationSyncMs": 99.40000000002328,
+            "totalToIdleMs": 805.9000000000233
+          },
+          {
+            "generationSyncMs": 103.89999999996508,
+            "totalToIdleMs": 869.2999999999884
+          },
+          {
+            "generationSyncMs": 108.09999999997672,
+            "totalToIdleMs": 799.2999999999884
+          },
+          {
+            "generationSyncMs": 101,
+            "totalToIdleMs": 791.5999999999767
+          },
+          {
+            "generationSyncMs": 97.39999999996508,
+            "totalToIdleMs": 771.5
+          },
+          {
+            "generationSyncMs": 158.70000000001164,
+            "totalToIdleMs": 826.2999999999884
+          },
+          {
+            "generationSyncMs": 100.09999999997672,
+            "totalToIdleMs": 761.5999999999767
+          },
+          {
+            "generationSyncMs": 89.39999999996508,
+            "totalToIdleMs": 722.3999999999651
+          },
+          {
+            "generationSyncMs": 91.30000000004657,
+            "totalToIdleMs": 716.5
+          }
+        ],
+        "cpuSlowdown": 20,
+        "browserVersion": "156.0.8078.4",
+        "mode": "production"
+      },
+      "base": {
+        "title": "Element generation benchmark",
+        "size": 1000,
+        "warmup": 5,
+        "samples": 20,
+        "medianGenerationSyncMs": 97.89999999999418,
+        "averageGenerationSyncMs": 111.51999999999535,
+        "minGenerationSyncMs": 84.59999999997672,
+        "maxGenerationSyncMs": 196.59999999997672,
+        "medianTotalToIdleMs": 766.3500000000058,
+        "averageTotalToIdleMs": 780.595000000007,
+        "minTotalToIdleMs": 683.7999999999884,
+        "maxTotalToIdleMs": 932.2000000000116,
+        "results": [
+          {
+            "generationSyncMs": 185.5,
+            "totalToIdleMs": 874.7000000000116
+          },
+          {
+            "generationSyncMs": 97.70000000001164,
+            "totalToIdleMs": 773.1000000000349
+          },
+          {
+            "generationSyncMs": 104.70000000001164,
+            "totalToIdleMs": 763.4000000000233
+          },
+          {
+            "generationSyncMs": 126.79999999998836,
+            "totalToIdleMs": 826
+          },
+          {
+            "generationSyncMs": 196.59999999997672,
+            "totalToIdleMs": 886.5
+          },
+          {
+            "generationSyncMs": 151.40000000002328,
+            "totalToIdleMs": 903.4000000000233
+          },
+          {
+            "generationSyncMs": 162.09999999997672,
+            "totalToIdleMs": 932.2000000000116
+          },
+          {
+            "generationSyncMs": 100.19999999995343,
+            "totalToIdleMs": 769.2999999999884
+          },
+          {
+            "generationSyncMs": 89.20000000001164,
+            "totalToIdleMs": 749.2999999999884
+          },
+          {
+            "generationSyncMs": 98.09999999997672,
+            "totalToIdleMs": 746
+          },
+          {
+            "generationSyncMs": 98.09999999997672,
+            "totalToIdleMs": 734.2999999999884
+          },
+          {
+            "generationSyncMs": 84.70000000001164,
+            "totalToIdleMs": 692.7000000000116
+          },
+          {
+            "generationSyncMs": 97.59999999997672,
+            "totalToIdleMs": 769.5999999999767
+          },
+          {
+            "generationSyncMs": 84.59999999997672,
+            "totalToIdleMs": 719.9000000000233
+          },
+          {
+            "generationSyncMs": 92.10000000003492,
+            "totalToIdleMs": 712.2000000000116
+          },
+          {
+            "generationSyncMs": 92.40000000002328,
+            "totalToIdleMs": 760.7999999999884
+          },
+          {
+            "generationSyncMs": 86.79999999998836,
+            "totalToIdleMs": 780.9000000000233
+          },
+          {
+            "generationSyncMs": 100.5,
+            "totalToIdleMs": 827.5
+          },
+          {
+            "generationSyncMs": 86.20000000001164,
+            "totalToIdleMs": 706.3000000000466
+          },
+          {
+            "generationSyncMs": 95.09999999997672,
+            "totalToIdleMs": 683.7999999999884
+          }
+        ],
+        "cpuSlowdown": 20,
+        "browserVersion": "156.0.8078.4",
+        "mode": "production"
+      }
+    },
+    {
+      "order": [
+        "base",
+        "candidate"
+      ],
+      "base": {
+        "title": "Element generation benchmark",
+        "size": 1000,
+        "warmup": 5,
+        "samples": 20,
+        "medianGenerationSyncMs": 106,
+        "averageGenerationSyncMs": 118.44999999999709,
+        "minGenerationSyncMs": 88.5,
+        "maxGenerationSyncMs": 187,
+        "medianTotalToIdleMs": 801.1000000000058,
+        "averageTotalToIdleMs": 798.6399999999878,
+        "minTotalToIdleMs": 727.5,
+        "maxTotalToIdleMs": 881.8999999999651,
+        "results": [
+          {
+            "generationSyncMs": 187,
+            "totalToIdleMs": 859.0999999999767
+          },
+          {
+            "generationSyncMs": 118.29999999998836,
+            "totalToIdleMs": 851.5999999999767
+          },
+          {
+            "generationSyncMs": 128.20000000001164,
+            "totalToIdleMs": 774.7999999999884
+          },
+          {
+            "generationSyncMs": 150.09999999997672,
+            "totalToIdleMs": 841.5999999999767
+          },
+          {
+            "generationSyncMs": 110.70000000001164,
+            "totalToIdleMs": 797.7000000000116
+          },
+          {
+            "generationSyncMs": 184.09999999997672,
+            "totalToIdleMs": 881.8999999999651
+          },
+          {
+            "generationSyncMs": 103.29999999998836,
+            "totalToIdleMs": 840.0999999999767
+          },
+          {
+            "generationSyncMs": 172,
+            "totalToIdleMs": 857.9000000000233
+          },
+          {
+            "generationSyncMs": 97.5,
+            "totalToIdleMs": 729
+          },
+          {
+            "generationSyncMs": 88.5,
+            "totalToIdleMs": 767.8999999999651
+          },
+          {
+            "generationSyncMs": 101.89999999996508,
+            "totalToIdleMs": 748.5999999999767
+          },
+          {
+            "generationSyncMs": 90.29999999998836,
+            "totalToIdleMs": 741.5
+          },
+          {
+            "generationSyncMs": 117.30000000004657,
+            "totalToIdleMs": 788.7000000000116
+          },
+          {
+            "generationSyncMs": 96.29999999998836,
+            "totalToIdleMs": 817.8999999999651
+          },
+          {
+            "generationSyncMs": 93.20000000001164,
+            "totalToIdleMs": 727.5
+          },
+          {
+            "generationSyncMs": 117.19999999995343,
+            "totalToIdleMs": 822.8999999999651
+          },
+          {
+            "generationSyncMs": 107.69999999995343,
+            "totalToIdleMs": 812.6999999999534
+          },
+          {
+            "generationSyncMs": 101.70000000001164,
+            "totalToIdleMs": 804.5
+          },
+          {
+            "generationSyncMs": 104.30000000004657,
+            "totalToIdleMs": 768.8000000000466
+          },
+          {
+            "generationSyncMs": 99.40000000002328,
+            "totalToIdleMs": 738.0999999999767
+          }
+        ],
+        "cpuSlowdown": 20,
+        "browserVersion": "156.0.8078.4",
+        "mode": "production"
+      },
+      "candidate": {
+        "title": "Element generation benchmark",
+        "size": 1000,
+        "warmup": 5,
+        "samples": 20,
+        "medianGenerationSyncMs": 104.70000000001164,
+        "averageGenerationSyncMs": 113.94999999999709,
+        "minGenerationSyncMs": 83.39999999996508,
+        "maxGenerationSyncMs": 177.09999999997672,
+        "medianTotalToIdleMs": 794.1999999999825,
+        "averageTotalToIdleMs": 795.2700000000011,
+        "minTotalToIdleMs": 704.3999999999651,
+        "maxTotalToIdleMs": 863.5,
+        "results": [
+          {
+            "generationSyncMs": 175.59999999997672,
+            "totalToIdleMs": 863.5
+          },
+          {
+            "generationSyncMs": 117.39999999996508,
+            "totalToIdleMs": 795.2999999999884
+          },
+          {
+            "generationSyncMs": 117.59999999997672,
+            "totalToIdleMs": 748.2999999999884
+          },
+          {
+            "generationSyncMs": 104.70000000001164,
+            "totalToIdleMs": 762.4000000000233
+          },
+          {
+            "generationSyncMs": 111.09999999997672,
+            "totalToIdleMs": 804.8999999999651
+          },
+          {
+            "generationSyncMs": 177.09999999997672,
+            "totalToIdleMs": 817.2999999999884
+          },
+          {
+            "generationSyncMs": 121.70000000001164,
+            "totalToIdleMs": 846
+          },
+          {
+            "generationSyncMs": 161.10000000003492,
+            "totalToIdleMs": 857.5
+          },
+          {
+            "generationSyncMs": 92.5,
+            "totalToIdleMs": 857
+          },
+          {
+            "generationSyncMs": 83.39999999996508,
+            "totalToIdleMs": 704.3999999999651
+          },
+          {
+            "generationSyncMs": 86.5,
+            "totalToIdleMs": 786.7000000000116
+          },
+          {
+            "generationSyncMs": 87.70000000001164,
+            "totalToIdleMs": 730.7000000000116
+          },
+          {
+            "generationSyncMs": 102.70000000001164,
+            "totalToIdleMs": 765.9000000000233
+          },
+          {
+            "generationSyncMs": 104.70000000001164,
+            "totalToIdleMs": 780.6000000000349
+          },
+          {
+            "generationSyncMs": 102.10000000003492,
+            "totalToIdleMs": 769.2000000000116
+          },
+          {
+            "generationSyncMs": 97.89999999996508,
+            "totalToIdleMs": 793.0999999999767
+          },
+          {
+            "generationSyncMs": 127.70000000001164,
+            "totalToIdleMs": 761.1000000000349
+          },
+          {
+            "generationSyncMs": 105.20000000001164,
+            "totalToIdleMs": 832
+          },
+          {
+            "generationSyncMs": 99.09999999997672,
+            "totalToIdleMs": 822.0999999999767
+          },
+          {
+            "generationSyncMs": 103.20000000001164,
+            "totalToIdleMs": 807.4000000000233
+          }
+        ],
+        "cpuSlowdown": 20,
+        "browserVersion": "156.0.8078.4",
+        "mode": "production"
+      }
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "medianGenerationSyncMs",
+      "baseMs": 97.89999999999418,
+      "candidateMs": 102.64999999999418,
+      "differenceMs": 4.75,
+      "changePercent": 4.851889683350645,
+      "pairChangesPercent": [
+        -8.128973660331097,
+        5.7591623036649215,
+        8.5465711361385,
+        4.851889683350645,
+        -1.22641509432864
+      ]
+    },
+    {
+      "metric": "medianTotalToIdleMs",
+      "baseMs": 766.3500000000058,
+      "candidateMs": 794.1999999999825,
+      "differenceMs": 18.19999999999709,
+      "changePercent": 2.4396782841819156,
+      "pairChangesPercent": [
+        -9.334967821022884,
+        2.4396782841819156,
+        7.56336328282061,
+        3.797220591110654,
+        -0.8613156909278783
+      ]
+    }
+  ]
+}
