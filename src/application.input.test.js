@@ -24,7 +24,7 @@ import symbols from './lib/symbols.js'
 
 initLog()
 
-test.only('Key-up clears hold even when the release callback throws', (assert) => {
+test('Key-up clears hold even when the release callback throws', (assert) => {
   const config = {}
   const app = {
     $componentId: 'App',
