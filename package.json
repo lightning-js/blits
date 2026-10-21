@@ -70,7 +70,7 @@
     "bench:compare": "npm --prefix benchmarks run bench:compare --",
     "bench:profile": "npm --prefix benchmarks run bench:profile --",
     "bench:serve": "npm --prefix benchmarks run serve",
-    "release": "npm publish --access public"
+    "release": "node scripts/release.js"
   },
   "types": "./index.d.ts",
   "lint-staged": {
