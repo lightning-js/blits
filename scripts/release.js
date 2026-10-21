@@ -18,9 +18,8 @@
 import { execSync } from 'child_process'
 
 // Stash any new (untracked) and modified files so they are not accidentally
-// included in the published package, then publish, then pop the stash back only
-// when the publish succeeded. If publish fails, the stash is left in place so
-// nothing is lost.
+// included in the published package, publish, then always pop the stash back so
+// the working tree is restored whether the publish succeeded or failed.
 
 // Stash new and modified files, reporting whether a stash entry was created
 function stashChanges() {
@@ -46,16 +45,11 @@ try {
   console.log('\nPackage published successfully.')
 } catch (err) {
   console.error(`\nnpm publish failed. The release did not complete.\n${err.message}`)
+  process.exitCode = 1
+} finally {
+  // Always restore the stashed files, whether the publish succeeded or failed
   if (didStash) {
-    console.error(
-      'Your files are safely stashed and were not restored. Run "git stash pop" to restore them.'
-    )
+    console.log('Restoring stashed files...')
+    execSync('git stash pop', { stdio: 'inherit' })
   }
-  process.exit(1)
-}
-
-// Pop the stash back after a successful publish
-if (didStash) {
-  console.log('Restoring stashed files...')
-  execSync('git stash pop', { stdio: 'inherit' })
 }
