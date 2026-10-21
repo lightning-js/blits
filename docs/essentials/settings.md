@@ -200,15 +200,7 @@ this.$settings.set('fpsInterval', 500)
 this.$settings.set('pixelRatio', 0.66666667)
 ```
 
-The following settings can be changed at runtime:
-
-| Setting | Description |
-|---------|-------------|
-| `canvasColor` | Background color of the canvas (color names, hex, rgb(a) and `0xRRGGBBAA` are supported) |
-| `fpsInterval` | Interval (ms) for FPS updates (0 disables) |
-| `pixelRatio`  | Custom pixel ratio of the device |
-
-All other settings (such as `renderMode`, `fonts` and `platform`) are only applied at launch and can't be changed at runtime. Trying to do so logs a warning.
+Only a subset of settings can be changed at runtime. For the full list and usage examples, see [`docs/essentials/runtime_settings.md`](./runtime_settings.md).
 
 ## Example Usage
 

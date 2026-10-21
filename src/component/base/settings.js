@@ -19,8 +19,29 @@ import Settings from '../../settings.js'
 import engine from '../../engine.js'
 import { Log } from '../../lib/log.js'
 
-// settings that can be changed at runtime
-const changeableKeys = ['canvasColor', 'fpsInterval', 'pixelRatio']
+// Settings that can be changed at runtime via `this.$settings.set()`.
+const blitsKeys = [
+  'keymap',
+  'debugLevel',
+  'inputThrottle',
+  'announcerOptions',
+  'enableMouse',
+  'mouseMoveThrottle',
+]
+
+const rendererKeys = [
+  'w',
+  'h',
+  'screenResolution',
+  'renderQuality',
+  'pixelRatio',
+  'canvasColor',
+  'viewportMargin',
+  'maxFPS',
+  'fpsInterval',
+]
+
+const changeableKeys = [...blitsKeys, ...rendererKeys]
 
 export default {
   $settings: {
@@ -34,7 +55,10 @@ export default {
           return
         }
         Settings.set(key, value)
-        engine.updateSetting(key, value)
+
+        if (rendererKeys.includes(key)) {
+          engine.updateSetting(key, value)
+        }
       },
     },
     writable: false,

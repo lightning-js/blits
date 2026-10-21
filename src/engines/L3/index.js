@@ -18,6 +18,7 @@
 import Element from './element.js'
 import Launch, { renderer } from './launch.js'
 import colors from '../../lib/colors/colors.js'
+import { SCREEN_RESOLUTIONS, RENDER_QUALITIES } from '../../constants.js'
 
 /**
  * Maps Blits setting keys to renderer runtime options
@@ -26,9 +27,19 @@ import colors from '../../lib/colors/colors.js'
  */
 const rendererOptions = {
   // defaults to transparent (same as on launch) for empty or invalid colors
+  w: (v) => ({ appWidth: v }),
+  h: (v) => ({ appHeight: v }),
+  screenResolution: (v) => ({
+    deviceLogicalPixelRatio: typeof v === 'string' ? (SCREEN_RESOLUTIONS[v] ?? 1) : v,
+  }),
+  renderQuality: (v) => ({
+    devicePhysicalPixelRatio: RENDER_QUALITIES[v] ?? v ?? 1,
+  }),
   canvasColor: (v) => ({ clearColor: Number(colors.normalize(v ?? '', '0x00000000')) }),
   fpsInterval: (v) => ({ fpsUpdateInterval: v }),
   pixelRatio: (v) => ({ deviceLogicalPixelRatio: v }),
+  viewportMargin: (v) => ({ boundsMargin: v }),
+  maxFPS: (v) => ({ targetFPS: v }),
 }
 
 /**

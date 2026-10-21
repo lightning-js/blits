@@ -33,12 +33,44 @@ test('$settings - get returns launch settings', (assert) => {
 })
 
 test('$settings - set updates changeable settings', (assert) => {
+  $settings.set('w', 1280)
+  $settings.set('h', 720)
+  $settings.set('screenResolution', 'hd')
+  $settings.set('renderQuality', 'retina')
   $settings.set('canvasColor', 'red')
   $settings.set('fpsInterval', 500)
   $settings.set('pixelRatio', 2)
+  $settings.set('viewportMargin', [10, 20, 30, 40])
+  $settings.set('maxFPS', 30)
+  assert.equal(Settings.get('w'), 1280, 'Should update w')
+  assert.equal(Settings.get('h'), 720, 'Should update h')
+  assert.equal(Settings.get('screenResolution'), 'hd', 'Should update screenResolution')
+  assert.equal(Settings.get('renderQuality'), 'retina', 'Should update renderQuality')
   assert.equal(Settings.get('canvasColor'), 'red', 'Should update canvasColor')
   assert.equal(Settings.get('fpsInterval'), 500, 'Should update fpsInterval')
   assert.equal(Settings.get('pixelRatio'), 2, 'Should update pixelRatio')
+  assert.deepEqual(Settings.get('viewportMargin'), [10, 20, 30, 40], 'Should update viewportMargin')
+  assert.equal(Settings.get('maxFPS'), 30, 'Should update maxFPS')
+  assert.end()
+})
+
+test('$settings - set accepts Blits runtime settings', (assert) => {
+  $settings.set('keymap', { left: 'left' })
+  $settings.set('debugLevel', 2)
+  $settings.set('inputThrottle', 25)
+  $settings.set('announcerOptions', { rate: 1.5 })
+  $settings.set('enableMouse', true)
+  $settings.set('mouseMoveThrottle', 16)
+  assert.deepEqual(Settings.get('keymap'), { left: 'left' }, 'Should update keymap')
+  assert.equal(Settings.get('debugLevel'), 2, 'Should update debugLevel')
+  assert.equal(Settings.get('inputThrottle'), 25, 'Should update inputThrottle')
+  assert.deepEqual(
+    Settings.get('announcerOptions'),
+    { rate: 1.5 },
+    'Should update announcerOptions'
+  )
+  assert.equal(Settings.get('enableMouse'), true, 'Should update enableMouse')
+  assert.equal(Settings.get('mouseMoveThrottle'), 16, 'Should update mouseMoveThrottle')
   assert.end()
 })
 

@@ -1115,20 +1115,16 @@ declare module '@lightningjs/blits' {
     [key: string]: any,
   }
 
-  /**
-   * Settings that can be changed at runtime via `this.$settings.set()`
-   */
-  export type ChangeableSettingKeys = 'canvasColor' | 'fpsInterval' | 'pixelRatio'
-
   export interface SettingsApi {
     /**
      * Returns the value of a setting (any launch setting can be read)
      */
     get<K extends keyof Settings>(key: K, defaultValue?: Settings[K]): Settings[K]
     /**
-     * Changes a setting at runtime (only `ChangeableSettingKeys` are allowed)
+     * Changes a setting at runtime (only a subset of settings can be changed at runtime,
+     * see docs/essentials/runtime_settings.md)
      */
-    set<K extends ChangeableSettingKeys>(key: K, value: Settings[K]): void
+    set<K extends keyof Settings>(key: K, value: Settings[K]): void
   }
 
     /**

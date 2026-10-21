@@ -46,6 +46,10 @@
       {
         "text": "Application settings",
         "link": "/essentials/settings"
+      },
+      {
+        "text": "Runtime settings (detailed reference)",
+        "link": "/essentials/runtime_settings"
       }
     ]
   },

@@ -25,12 +25,62 @@ import { DEFAULT_HOLD_TIMEOUT_MS, DEFAULT_KEYMAP } from './constants.js'
 import { renderer } from './launch.js'
 import { platform } from './platform.js'
 
+// Reacts to Blits-only settings changed at runtime via `this.$settings.set()`.
+Settings.onRuntimeSettingChange = (key, value) => {
+  if (key === 'keymap') {
+    initKeyMap()
+    return
+  }
+
+  if (
+    key === 'announcerOptions' &&
+    liveAppInstance &&
+    liveAppInstance.$announcer &&
+    value &&
+    typeof value === 'object'
+  ) {
+    liveAppInstance.$announcer.configure(value)
+    return
+  }
+
+  if (key === 'enableMouse' && liveInput !== null && liveViewport !== null) {
+    if (value === true && mouseListenersAttached === false) {
+      liveInput.addEventListener('mousemove', mouseMoveHandlerRef)
+      liveInput.addEventListener('click', mouseClickHandlerRef)
+      liveViewport.addEventListener('resize', updateCanvasRectRef)
+      liveViewport.addEventListener('scroll', updateCanvasRectRef)
+      mouseListenersAttached = true
+    } else if (value === false && mouseListenersAttached === true) {
+      liveInput.removeEventListener('mousemove', mouseMoveHandlerRef)
+      liveInput.removeEventListener('click', mouseClickHandlerRef)
+      liveViewport.removeEventListener('resize', updateCanvasRectRef)
+      liveViewport.removeEventListener('scroll', updateCanvasRectRef)
+      mouseListenersAttached = false
+      Hover.clear()
+    }
+  }
+}
+
 /**
  * Merged keyMap (default + custom settings).
  * Initialized once during application init.
  * @type {Object<string, string>}
  */
 export let keyMap = {}
+
+/** @type {any} Active App component instance, set during App init */
+let liveAppInstance = null
+/** @type {any} Platform input target, set during App init */
+let liveInput = null
+/** @type {any} Platform viewport target, set during App init */
+let liveViewport = null
+let mouseListenersAttached = false
+/** @type {((e: any) => void)|null} */
+let mouseMoveHandlerRef = null
+/** @type {(() => void)|null} */
+let mouseClickHandlerRef = null
+/** @type {(() => void)|null} */
+let updateCanvasRectRef = null
 
 export const initKeyMap = () => {
   keyMap = { ...DEFAULT_KEYMAP, ...Settings.get('keymap', {}) }
@@ -66,6 +116,7 @@ const Application = (config) => {
   }
 
   config.hooks[symbols.init] = function () {
+    liveAppInstance = this
     // set the initial activation state of the announcer based on launch setting
     this.$announcer.toggle(Settings.get('announcer', false))
     // configure global default utterance options if provided in settings
@@ -75,16 +126,13 @@ const Application = (config) => {
     }
     // Initialize merged keyMap once during application init
     initKeyMap()
-
-    /** @type {number} Input throttle time in milliseconds (0 = disabled) */
-    const throttleMs = Settings.get('inputThrottle', 0)
-
-    const mouseEnabled = Settings.get('enableMouse', false)
-    const mouseMoveThrottle = Settings.get('mouseMoveThrottle', 100)
     const { createKeyboardEvent, input, isKeyboardEvent, now = Date.now, viewport } = platform
+    liveInput = input
+    liveViewport = viewport
 
-    keyDownHandler = async (e) => {
+    keyDownHandler = async (/** @type {any} */ e) => {
       const currentTime = now()
+      const throttleMs = Settings.get('inputThrottle', 0)
 
       const key = keyMap[e.keyCode] || e.keyCode
       const sameKey = lastInputKey === key
@@ -115,7 +163,7 @@ const Application = (config) => {
       }
 
       Focus.input(key, e)
-      if (mouseEnabled === true) {
+      if (Settings.get('enableMouse', false) === true) {
         Hover.clear()
         // forget the node under the pointer too, so moving on it hovers it again
         currentNode = undefined
@@ -154,6 +202,7 @@ const Application = (config) => {
 
     // limit the amount of move events per time frame
     mouseMoveHandler = (e) => {
+      const mouseMoveThrottle = Settings.get('mouseMoveThrottle', 100)
       if (e.timeStamp - lastMoved < mouseMoveThrottle) return
       lastMoved = e.timeStamp
 
@@ -166,7 +215,7 @@ const Application = (config) => {
         return
       }
 
-      const stage = renderer.stage
+      const stage = /** @type {any} */ (renderer).stage
       if (stage == null) {
         return
       }
@@ -215,16 +264,25 @@ const Application = (config) => {
       input.addEventListener('keydown', keyDownHandler)
       input.addEventListener('keyup', keyUpHandler)
       inputCleanup = () => {
-        input.removeEventListener('keydown', keyDownHandler)
-        input.removeEventListener('keyup', keyUpHandler)
+        input.removeEventListener('keydown', /** @type {any} */ (keyDownHandler))
+        input.removeEventListener('keyup', /** @type {any} */ (keyUpHandler))
       }
     }
-    if (mouseEnabled === true && input !== undefined && viewport !== undefined) {
+    mouseMoveHandlerRef = mouseMoveHandler
+    mouseClickHandlerRef = mouseClickHandler
+    updateCanvasRectRef = updateCanvasRect
+
+    if (
+      Settings.get('enableMouse', false) === true &&
+      input !== undefined &&
+      viewport !== undefined
+    ) {
       updateCanvasRect()
       input.addEventListener('mousemove', mouseMoveHandler)
       input.addEventListener('click', mouseClickHandler)
       viewport.addEventListener('resize', updateCanvasRect)
       viewport.addEventListener('scroll', updateCanvasRect)
+      mouseListenersAttached = true
       mouseCleanup = () => {
         input.removeEventListener('mousemove', mouseMoveHandler)
         input.removeEventListener('click', mouseClickHandler)
