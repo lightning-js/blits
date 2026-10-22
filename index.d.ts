@@ -361,9 +361,11 @@ declare module '@lightningjs/blits' {
     get(name: string): Router;
 
     /**
-     * Navigate to the previous location
+     * Navigate back one or more locations in the history stack
+     *
+     * @param {number} [steps=1] - Number of entries to navigate back (like `history.go(-steps)`)
     */
-    back(): boolean;
+    back(steps?: number): boolean;
 
     /**
      * Enable or disable RouterView history navigation on Back input
@@ -384,6 +386,12 @@ declare module '@lightningjs/blits' {
      * Get navigating state
     */
     readonly navigating: boolean;
+
+    /**
+     * Get a read-only snapshot of the history stack, ordered oldest to most recent.
+     * The last entry is the route that `back()` will navigate to first.
+    */
+    readonly history: Route[];
 
     /**
      * Reactive router state
@@ -1112,6 +1120,15 @@ declare module '@lightningjs/blits' {
    */
   export interface Settings {
     /**
+     * Start the performance profiler when the App launches
+     *
+     * The profiler is also available on `globalThis.__BLITS_PROFILER__`, so it
+     * can be started and stopped from the devtools console
+     *
+     * @default false
+     */
+    profiler?: boolean,
+    /**
      * Width of the Application
      */
     w?: number,
@@ -1224,8 +1241,9 @@ declare module '@lightningjs/blits' {
     * Maximum number of web workers to spin up simultaneously for offloading functionality such
     * as image loading to separate threads (when supported by the browser)
     *
-    * If not specified defaults to the number of logical processers available as reported by
-    * `navigator.hardwareConcurrency` (or 2 if `navigator.hardwareConcurrency` is not supported)
+    * If not specified defaults to the number of logical processers available on the device, as reported by
+    * `navigator.hardwareConcurrency`, with a maximum of 2. If `navigator.hardwareConcurrency` is
+    * not supported the default value will be 2
     */
     webWorkersLimit?: number
     /**
@@ -1475,6 +1493,98 @@ declare module '@lightningjs/blits' {
     plugin: (options?: any) => any
   }
 
+
+  export interface ProfilerEntry {
+    /**
+     * Number of times the measurement was recorded
+     */
+    calls: number,
+    /**
+     * Total time spent, in milliseconds
+     */
+    totalMs: number,
+    /**
+     * Slowest single measurement, in milliseconds
+     */
+    maxMs: number,
+    /**
+     * Average time per call, in milliseconds
+     */
+    averageMs: number
+  }
+
+  export interface ProfilerFrameSummary {
+    medianMs: number,
+    p95Ms: number,
+    p99Ms: number,
+    maxMs: number
+  }
+
+  export interface ProfilerFrameLabel {
+    calls: number,
+    totalMs: number
+  }
+
+  export interface ProfilerFrameSnapshot {
+    frameCount: number,
+    retainedFrameLimit: number,
+    frameInterval: ProfilerFrameSummary,
+    instrumentedTime: ProfilerFrameSummary,
+    slowFramePercent: number,
+    slowestFrames: Array<{
+      intervalMs: number,
+      instrumentedMs: number,
+      labels: Record<string, ProfilerFrameLabel>
+    }>,
+    labels: Record<string, ProfilerFrameLabel & {
+      callsPerFrame: number,
+      averageMsPerFrame: number
+    }>
+  }
+
+  export interface ProfilerSnapshot {
+    measurements: Record<string, ProfilerEntry>,
+    frames: ProfilerFrameSnapshot
+  }
+
+  export interface Profiler {
+    /**
+     * Marks the start of a measurement
+     */
+    mark(name: string): void,
+    /**
+     * Ends the most recent measurement started with the same name
+     */
+    markEnd(name: string): void,
+    /**
+     * Clears previously collected measurements and starts recording
+     */
+    start(options?: { frames?: boolean, maxFrames?: number, targetFps?: number }): void,
+    /**
+     * Stops recording and returns the collected measurements
+     */
+    stop(): ProfilerSnapshot,
+    /**
+     * Clears all collected measurements, without changing the enabled state
+     */
+    reset(): void,
+    /**
+     * Returns the measurements collected so far
+     */
+    snapshot(): ProfilerSnapshot,
+    /**
+     * Returns frame-oriented results collected by default or with start({ frames: true })
+     */
+    frameSnapshot(): ProfilerFrameSnapshot,
+    /**
+     * Logs marker and frame results as console tables and returns the combined snapshot
+     */
+    report(): ProfilerSnapshot,
+    /**
+     * Whether the profiler is currently recording
+     */
+    readonly enabled: boolean
+  }
 
   /**
    * Blits App Framework

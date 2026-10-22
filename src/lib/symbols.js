@@ -144,4 +144,6 @@ export default {
   removeEffects: Symbol.for('removeEffects'),
   // Symbol 'tagContent' utilized within generated code
   tagContent: Symbol.for('tagContent'),
+  // Symbol used by generated loops to invalidate cached ref lookups
+  invalidateSelectCache: Symbol.for('invalidateSelectCache'),
 }

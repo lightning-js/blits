@@ -1,0 +1,18 @@
+{
+  "name": "@lightningjs/blits-benchmarks",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build --mode production",
+    "serve": "vite dev --host",
+    "bench": "node runner.js",
+    "bench:compare": "node compare.js",
+    "bench:profile": "node runner.js --profile"
+  },
+  "devDependencies": {
+    "@lightningjs/blits": "file:..",
+    "@lightningjs/msdf-generator": "^1.4.0",
+    "playwright": "^1.62.1",
+    "vite": "^8.2.2"
+  }
+}

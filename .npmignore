@@ -5,6 +5,7 @@ coverage
 src/components/*.orig.js
 
 # Development files
+benchmarks/
 .editorconfig
 .eslintignore
 .eslintrc.cjs
@@ -22,6 +23,7 @@ docs/
 test/
 tests/
 scripts/runTests.js
+scripts/release.js
 
 # Misc
 banner.png

@@ -1,0 +1,43 @@
+name: Publish Benchmark Results
+
+on:
+  workflow_run:
+    workflows: [Run Benchmarks]
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: read
+  pull-requests: write
+
+concurrency:
+  group: publish-benchmark-reports
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Only execute trusted default-branch code, never the PR checkout/artifact.
+      - name: Checkout report publisher
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Download benchmark data
+        uses: actions/download-artifact@v8
+        with:
+          name: benchmark-results
+          path: benchmark-data
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish report and update PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const publish = require('./.github/scripts/publish-benchmark.cjs');
+            await publish({ github, context, core });

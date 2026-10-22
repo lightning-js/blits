@@ -1,0 +1,69 @@
+name: Run Benchmarks
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Baseline branch or commit
+        required: true
+        default: master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: benchmarks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Fetch PR base commit
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: git fetch origin "$BASE_SHA"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.23.2
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            benchmarks/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install benchmark dependencies
+        run: npm ci --prefix benchmarks
+
+      - name: Install Chromium
+        working-directory: benchmarks
+        run: npx playwright install --with-deps chromium
+
+      - name: Compare benchmarks and write workflow summary
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base }}
+          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: npm run bench:compare -- --base "$BASE_REF" --candidate "$CANDIDATE_SHA" --output results/comparison.json --pairs 5
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-results
+          path: benchmarks/results/comparison.json
+          if-no-files-found: error
+          retention-days: 30

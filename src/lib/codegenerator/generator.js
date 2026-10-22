@@ -223,6 +223,9 @@ const generateElementCode = function (
 
     if (key === 'key') return
 
+    // a ref on a component belongs to the component itself, not to its holder element
+    if (options.holder === true && (key === 'ref' || key === ':ref')) return
+
     // Skip inspector-data in production builds for performance optimization
     if (key === 'inspector-data' && !isDev) return
 
@@ -524,6 +527,8 @@ const generateForLoopCode = function (templateObject, parent) {
     }
   }
 
+  const invalidateSelectCache = 'ref' in templateObject
+
   ctx.renderCode.push(`
     created[${forStartCounter}] = []
     effects[${forStartCounter}] = []
@@ -532,6 +537,7 @@ const generateForLoopCode = function (templateObject, parent) {
     let to${forStartCounter}
 
     forloops[${forStartCounter}] = (collection = [], elms, created) => {
+      ${invalidateSelectCache ? "rootComponent && rootComponent[Symbol.for('invalidateSelectCache')]()" : ''}
       const rawCollection = getRaw(collection)
       const keys = new Set()
       let l = rawCollection.length
