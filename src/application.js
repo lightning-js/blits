@@ -32,6 +32,16 @@ Settings.onRuntimeSettingChange = (key, value) => {
     return
   }
 
+  if (key === 'inputThrottle') {
+    inputThrottleMs = value
+    return
+  }
+
+  if (key === 'mouseMoveThrottle') {
+    mouseMoveThrottleMs = value
+    return
+  }
+
   if (
     key === 'announcerOptions' &&
     liveAppInstance &&
@@ -43,20 +53,23 @@ Settings.onRuntimeSettingChange = (key, value) => {
     return
   }
 
-  if (key === 'enableMouse' && liveInput !== null && liveViewport !== null) {
-    if (value === true && mouseListenersAttached === false) {
-      liveInput.addEventListener('mousemove', mouseMoveHandlerRef)
-      liveInput.addEventListener('click', mouseClickHandlerRef)
-      liveViewport.addEventListener('resize', updateCanvasRectRef)
-      liveViewport.addEventListener('scroll', updateCanvasRectRef)
-      mouseListenersAttached = true
-    } else if (value === false && mouseListenersAttached === true) {
-      liveInput.removeEventListener('mousemove', mouseMoveHandlerRef)
-      liveInput.removeEventListener('click', mouseClickHandlerRef)
-      liveViewport.removeEventListener('resize', updateCanvasRectRef)
-      liveViewport.removeEventListener('scroll', updateCanvasRectRef)
-      mouseListenersAttached = false
-      Hover.clear()
+  if (key === 'enableMouse') {
+    enableMouseFlag = value
+    if (liveInput !== null && liveViewport !== null) {
+      if (value === true && mouseListenersAttached === false) {
+        liveInput.addEventListener('mousemove', mouseMoveHandlerRef)
+        liveInput.addEventListener('click', mouseClickHandlerRef)
+        liveViewport.addEventListener('resize', updateCanvasRectRef)
+        liveViewport.addEventListener('scroll', updateCanvasRectRef)
+        mouseListenersAttached = true
+      } else if (value === false && mouseListenersAttached === true) {
+        liveInput.removeEventListener('mousemove', mouseMoveHandlerRef)
+        liveInput.removeEventListener('click', mouseClickHandlerRef)
+        liveViewport.removeEventListener('resize', updateCanvasRectRef)
+        liveViewport.removeEventListener('scroll', updateCanvasRectRef)
+        mouseListenersAttached = false
+        Hover.clear()
+      }
     }
   }
 }
@@ -81,6 +94,10 @@ let mouseMoveHandlerRef = null
 let mouseClickHandlerRef = null
 /** @type {(() => void)|null} */
 let updateCanvasRectRef = null
+
+let inputThrottleMs = 0
+let mouseMoveThrottleMs = 100
+let enableMouseFlag = false
 
 export const initKeyMap = () => {
   keyMap = { ...DEFAULT_KEYMAP, ...Settings.get('keymap', {}) }
@@ -126,24 +143,27 @@ const Application = (config) => {
     }
     // Initialize merged keyMap once during application init
     initKeyMap()
+    // Initialize fast-path cached settings once during application init
+    inputThrottleMs = Settings.get('inputThrottle', 0)
+    mouseMoveThrottleMs = Settings.get('mouseMoveThrottle', 100)
+    enableMouseFlag = Settings.get('enableMouse', false)
     const { createKeyboardEvent, input, isKeyboardEvent, now = Date.now, viewport } = platform
     liveInput = input
     liveViewport = viewport
 
     keyDownHandler = async (/** @type {any} */ e) => {
       const currentTime = now()
-      const throttleMs = Settings.get('inputThrottle', 0)
 
       const key = keyMap[e.keyCode] || e.keyCode
       const sameKey = lastInputKey === key
       lastInputKey = key
       // execute immediately when no throttle is specified or event is internal (bubbled up by focus manager)
       // or key is different from the last used key
-      if (throttleMs === 0 || e[symbols.internalEvent] === true || sameKey === false) {
+      if (inputThrottleMs === 0 || e[symbols.internalEvent] === true || sameKey === false) {
         return await processInput.call(this, e, key)
       }
 
-      if (currentTime - lastInputTime < throttleMs) {
+      if (currentTime - lastInputTime < inputThrottleMs) {
         return
       }
 
@@ -163,7 +183,7 @@ const Application = (config) => {
       }
 
       Focus.input(key, e)
-      if (Settings.get('enableMouse', false) === true) {
+      if (enableMouseFlag === true) {
         Hover.clear()
         // forget the node under the pointer too, so moving on it hovers it again
         currentNode = undefined
@@ -202,8 +222,7 @@ const Application = (config) => {
 
     // limit the amount of move events per time frame
     mouseMoveHandler = (e) => {
-      const mouseMoveThrottle = Settings.get('mouseMoveThrottle', 100)
-      if (e.timeStamp - lastMoved < mouseMoveThrottle) return
+      if (e.timeStamp - lastMoved < mouseMoveThrottleMs) return
       lastMoved = e.timeStamp
 
       this.$emit('mouse::move', e)
@@ -272,11 +291,7 @@ const Application = (config) => {
     mouseClickHandlerRef = mouseClickHandler
     updateCanvasRectRef = updateCanvasRect
 
-    if (
-      Settings.get('enableMouse', false) === true &&
-      input !== undefined &&
-      viewport !== undefined
-    ) {
+    if (enableMouseFlag === true && input !== undefined && viewport !== undefined) {
       updateCanvasRect()
       input.addEventListener('mousemove', mouseMoveHandler)
       input.addEventListener('click', mouseClickHandler)
