@@ -15,16 +15,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ThemePlugin } from '@lightningjs/blits'
+export interface ThemePlugin {
+  get<T = unknown>(key: string): T | undefined
+  get<T>(key: string, fallback: T): T
+  /**
+   * @deprecated
+   * Deprecated:  use `$theme.current()` instead
+   */
+  set(theme: string): void
+  current(theme: string): void
+  variant(theme: string): void
+}
 
 export interface ThemePluginConfig {
   themes?: Record<string, Record<string, unknown>>
   current?: string
   base?: string
+  variant?: string
 }
-
-// Re-export ThemePlugin for direct imports
-export type { ThemePlugin }
 
 declare const theme: {
   readonly name: 'theme'

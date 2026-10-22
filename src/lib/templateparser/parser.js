@@ -143,7 +143,7 @@ export default (template = '', componentName, parentComponent, filePath = null) 
       if (currentTag[symbols.type] === 'opening') {
         const tagContent = template.slice(cursor, template.indexOf('<', cursor))
         if (tagContent) {
-          currentTag.content = tagContent
+          currentTag[Symbol.for('tagContent')] = tagContent
           cursor += tagContent.length
         }
       }
@@ -189,7 +189,11 @@ export default (template = '', componentName, parentComponent, filePath = null) 
     }
 
     // process color values
-    if (['color', ':color', ':effects', 'effects'].includes(name)) {
+    if (
+      ['color', ':color', ':border', 'border', 'shadow', ':shadow', 'shader', ':shader'].includes(
+        name
+      )
+    ) {
       return processColors(name, value)
     }
     return { name, value }

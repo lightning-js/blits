@@ -50,7 +50,7 @@ Reactive arguments also support _interpolation_. This enables the use of simple 
 
 For more complex logic, it's recommended to abstract this into a [Component method](../components/methods.md) or a [Computed property](../components/computed_properties.md).
 
-# Abstracting template portions to custom components
+## Abstracting template portions to custom components
 
 As your template grows in complexity, you may want to organize your codebase with custom components, abstracting a complex template into smaller, reusable pieces.
 

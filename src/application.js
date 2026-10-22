@@ -15,12 +15,64 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import Component from './component.js'
-import { default as Focus, keyUpCallbacks } from './focus.js'
-import Settings from './settings.js'
+import { componentMap, default as Component } from './component.js'
+import { default as Focus, keyUpCallbacks } from './focus/focus.js'
+import Hover from './focus/hover.js'
 
+import Settings from './settings.js'
 import symbols from './lib/symbols.js'
 import { DEFAULT_HOLD_TIMEOUT_MS, DEFAULT_KEYMAP } from './constants.js'
+import { renderer } from './launch.js'
+import { platform } from './platform.js'
+
+// Reacts to Blits-only settings changed at runtime via `this.$settings.set()`.
+Settings.onRuntimeSettingChange = (key, value) => {
+  if (key === 'keymap') {
+    initKeyMap()
+    return
+  }
+
+  if (key === 'inputThrottle') {
+    inputThrottleMs = value
+    return
+  }
+
+  if (key === 'mouseMoveThrottle') {
+    mouseMoveThrottleMs = value
+    return
+  }
+
+  if (
+    key === 'announcerOptions' &&
+    liveAppInstance &&
+    liveAppInstance.$announcer &&
+    value &&
+    typeof value === 'object'
+  ) {
+    liveAppInstance.$announcer.configure(value)
+    return
+  }
+
+  if (key === 'enableMouse') {
+    enableMouseFlag = value
+    if (liveInput !== null && liveViewport !== null) {
+      if (value === true && mouseListenersAttached === false) {
+        liveInput.addEventListener('mousemove', mouseMoveHandlerRef)
+        liveInput.addEventListener('click', mouseClickHandlerRef)
+        liveViewport.addEventListener('resize', updateCanvasRectRef)
+        liveViewport.addEventListener('scroll', updateCanvasRectRef)
+        mouseListenersAttached = true
+      } else if (value === false && mouseListenersAttached === true) {
+        liveInput.removeEventListener('mousemove', mouseMoveHandlerRef)
+        liveInput.removeEventListener('click', mouseClickHandlerRef)
+        liveViewport.removeEventListener('resize', updateCanvasRectRef)
+        liveViewport.removeEventListener('scroll', updateCanvasRectRef)
+        mouseListenersAttached = false
+        Hover.clear()
+      }
+    }
+  }
+}
 
 /**
  * Merged keyMap (default + custom settings).
@@ -29,21 +81,59 @@ import { DEFAULT_HOLD_TIMEOUT_MS, DEFAULT_KEYMAP } from './constants.js'
  */
 export let keyMap = {}
 
+/** @type {any} Active App component instance, set during App init */
+let liveAppInstance = null
+/** @type {any} Platform input target, set during App init */
+let liveInput = null
+/** @type {any} Platform viewport target, set during App init */
+let liveViewport = null
+let mouseListenersAttached = false
+/** @type {((e: any) => void)|null} */
+let mouseMoveHandlerRef = null
+/** @type {(() => void)|null} */
+let mouseClickHandlerRef = null
+/** @type {(() => void)|null} */
+let updateCanvasRectRef = null
+
+let inputThrottleMs = 0
+let mouseMoveThrottleMs = 100
+let enableMouseFlag = false
+
+export const initKeyMap = () => {
+  keyMap = { ...DEFAULT_KEYMAP, ...Settings.get('keymap', {}) }
+}
+
 const Application = (config) => {
   config.hooks = config.hooks || {}
 
   let keyDownHandler
   let keyUpHandler
+  let mouseMoveHandler
+  let mouseClickHandler
+  let updateCanvasRect
+  let inputCleanup
+  let mouseCleanup
   let holdTimeout
   let lastInputTime = 0
   let lastInputKey = null
 
   config.hooks[symbols.destroy] = function () {
-    document.removeEventListener('keydown', keyDownHandler)
-    document.removeEventListener('keyup', keyUpHandler)
+    // Cancel pending key-hold timeout and reset hold state so focus is not left in hold mode after teardown
+    clearTimeout(holdTimeout)
+    Focus.hold = false
+    if (typeof inputCleanup === 'function') {
+      inputCleanup()
+      inputCleanup = undefined
+    }
+    if (typeof mouseCleanup === 'function') {
+      mouseCleanup()
+      mouseCleanup = undefined
+      Hover.clear()
+    }
   }
 
   config.hooks[symbols.init] = function () {
+    liveAppInstance = this
     // set the initial activation state of the announcer based on launch setting
     this.$announcer.toggle(Settings.get('announcer', false))
     // configure global default utterance options if provided in settings
@@ -52,24 +142,28 @@ const Application = (config) => {
       this.$announcer.configure(announcerOptions)
     }
     // Initialize merged keyMap once during application init
-    keyMap = { ...DEFAULT_KEYMAP, ...Settings.get('keymap', {}) }
+    initKeyMap()
+    // Initialize fast-path cached settings once during application init
+    inputThrottleMs = Settings.get('inputThrottle', 0)
+    mouseMoveThrottleMs = Settings.get('mouseMoveThrottle', 100)
+    enableMouseFlag = Settings.get('enableMouse', false)
+    const { createKeyboardEvent, input, isKeyboardEvent, now = Date.now, viewport } = platform
+    liveInput = input
+    liveViewport = viewport
 
-    /** @type {number} Input throttle time in milliseconds (0 = disabled) */
-    const throttleMs = Settings.get('inputThrottle', 0)
+    keyDownHandler = async (/** @type {any} */ e) => {
+      const currentTime = now()
 
-    keyDownHandler = async (e) => {
-      const currentTime = performance.now()
-
-      const key = keyMap[e.key] || keyMap[e.keyCode] || e.key || e.keyCode
+      const key = keyMap[e.keyCode] || e.keyCode
       const sameKey = lastInputKey === key
       lastInputKey = key
       // execute immediately when no throttle is specified or event is internal (bubbled up by focus manager)
       // or key is different from the last used key
-      if (throttleMs === 0 || e[symbols.internalEvent] === true || sameKey === false) {
+      if (inputThrottleMs === 0 || e[symbols.internalEvent] === true || sameKey === false) {
         return await processInput.call(this, e, key)
       }
 
-      if (currentTime - lastInputTime < throttleMs) {
+      if (currentTime - lastInputTime < inputThrottleMs) {
         return
       }
 
@@ -85,10 +179,15 @@ const Application = (config) => {
       ) {
         e = await this[symbols.inputEvents].intercept.call(this, e)
         // only pass on the key press to focused component when keyboard event is returned
-        if (e instanceof KeyboardEvent === false) return
+        if (isKeyboardEvent && isKeyboardEvent(e) === false) return
       }
 
       Focus.input(key, e)
+      if (enableMouseFlag === true) {
+        Hover.clear()
+        // forget the node under the pointer too, so moving on it hovers it again
+        currentNode = undefined
+      }
       clearTimeout(holdTimeout)
       holdTimeout = setTimeout(
         () => {
@@ -99,20 +198,118 @@ const Application = (config) => {
     }
 
     keyUpHandler = (e) => {
-      const cb = keyUpCallbacks.get(e.code)
-      if (cb !== undefined && typeof cb === 'function') {
-        keyUpCallbacks.delete(e.code)
-        cb()
-      }
       clearTimeout(holdTimeout)
       Focus.hold = false
+
+      const entry = keyUpCallbacks.get(e.keyCode)
+      if (entry !== undefined) {
+        keyUpCallbacks.delete(e.keyCode)
+        if (entry.component.eol !== true && typeof entry.callback === 'function') {
+          entry.callback()
+        }
+      }
     }
 
-    document.addEventListener('keydown', keyDownHandler)
-    document.addEventListener('keyup', keyUpHandler)
+    let lastMoved = 0
+    let currentNode = undefined
+    let currentComponent = undefined
+    let canvasRect = null
 
-    // next tick
-    setTimeout(() => Focus.set(this))
+    updateCanvasRect = () => {
+      if (renderer.canvas !== undefined) {
+        canvasRect = renderer.canvas.getBoundingClientRect()
+      }
+    }
+
+    // limit the amount of move events per time frame
+    mouseMoveHandler = (e) => {
+      if (e.timeStamp - lastMoved < mouseMoveThrottleMs) return
+      lastMoved = e.timeStamp
+
+      this.$emit('mouse::move', e)
+
+      if (canvasRect === null && renderer.canvas != null) {
+        updateCanvasRect()
+      }
+      if (canvasRect === null) {
+        return
+      }
+
+      const stage = /** @type {any} */ (renderer).stage
+      if (stage == null) {
+        return
+      }
+
+      // Convert viewport → canvas display coordinates
+      const x = e.clientX - canvasRect.left
+      const y = e.clientY - canvasRect.top
+
+      const node = stage.getNodeFromPosition({ x, y })
+
+      if (node === null) {
+        currentComponent = undefined
+        Hover.clear()
+        return
+      }
+      if (node === currentNode) return
+
+      currentNode = node
+      currentComponent = componentMap.get(currentNode)
+
+      if (currentComponent === undefined) {
+        Hover.clear()
+        return
+      }
+      Hover.set(currentComponent)
+    }
+
+    mouseClickHandler = () => {
+      if (currentComponent === undefined || currentComponent.eol === true) return
+
+      if (createKeyboardEvent === undefined) return
+
+      const e = createKeyboardEvent('keydown', {
+        key: 'Enter',
+        code: 'Enter',
+        keyCode: 13,
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+      })
+      currentComponent.$focus()
+      currentComponent.$input(e)
+    }
+
+    if (input !== undefined) {
+      input.addEventListener('keydown', keyDownHandler)
+      input.addEventListener('keyup', keyUpHandler)
+      inputCleanup = () => {
+        input.removeEventListener('keydown', /** @type {any} */ (keyDownHandler))
+        input.removeEventListener('keyup', /** @type {any} */ (keyUpHandler))
+      }
+    }
+    mouseMoveHandlerRef = mouseMoveHandler
+    mouseClickHandlerRef = mouseClickHandler
+    updateCanvasRectRef = updateCanvasRect
+
+    if (enableMouseFlag === true && input !== undefined && viewport !== undefined) {
+      updateCanvasRect()
+      input.addEventListener('mousemove', mouseMoveHandler)
+      input.addEventListener('click', mouseClickHandler)
+      viewport.addEventListener('resize', updateCanvasRect)
+      viewport.addEventListener('scroll', updateCanvasRect)
+      mouseListenersAttached = true
+      mouseCleanup = () => {
+        input.removeEventListener('mousemove', mouseMoveHandler)
+        input.removeEventListener('click', mouseClickHandler)
+        viewport.removeEventListener('resize', updateCanvasRect)
+        viewport.removeEventListener('scroll', updateCanvasRect)
+      }
+    }
+
+    // focus once the component tree is built (microtask: runs right after the
+    // current instantiation finishes, without yielding to render-loop frames)
+    Promise.resolve().then(() => Focus.set(this))
   }
 
   return Component('App', config)

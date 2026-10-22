@@ -17,11 +17,11 @@
 
 import localCookie from './localCookie.js'
 
-let lc = new localCookie()
-
 export default {
   name: 'storage',
   plugin() {
+    const lc = new localCookie()
+
     return {
       get(key) {
         try {

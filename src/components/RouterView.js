@@ -16,46 +16,92 @@
  */
 
 import Component from '../component.js'
-import Router from '../router/router.js'
+import Router, {
+  registerRouterView,
+  state as routerState,
+  unregisterRouterView,
+} from '../router/router.js'
 import symbols from '../lib/symbols.js'
-import Focus from '../focus.js'
+import Focus from '../focus/focus.js'
+import { platform } from '../platform.js'
 
-let hashchangeHandler = null
+/** @typedef {{ $input?: (event: any) => boolean, $focus?: (event: any) => void }} RouterViewParent */
 
 export default () =>
-  Component('RouterView', {
-    template: `
-      <Element w="100%" height="100%"></Element>
-    `,
-    state() {
-      return {
-        activeView: null,
-      }
-    },
-    hooks: {
-      async ready() {
-        if (this.parent[symbols.routerHooks] && this.parent[symbols.routerHooks].init) {
-          await this.parent[symbols.routerHooks].init.apply(this.parent)
-        }
-        hashchangeHandler = () => Router.navigate.apply(this)
-        Router.navigate.apply(this)
-        window.addEventListener('hashchange', hashchangeHandler)
+  Component(
+    'RouterView',
+    /** @type {any} */ ({
+      template: `
+        <Element w="100%" h="100%"></Element>
+      `,
+      props: {
+        name: '',
+        active: true,
       },
-      destroy() {
-        window.removeEventListener('hashchange', hashchangeHandler, false)
-      },
-      focus() {
-        if (this.activeView && Focus.get() === this) {
-          this.activeView.$focus()
+      state() {
+        return {
+          activeView: null,
+          history: [],
         }
       },
-    },
-    input: {
-      back(e) {
-        const navigating = Router.back.call(this)
-        if (navigating === false) {
-          this.parent.$focus(e)
-        }
+      watch: {
+        active(v, old) {
+          if (v === true && old === false) {
+            Router.navigate.apply(this)
+          }
+        },
       },
-    },
-  })
+      hooks: {
+        async ready() {
+          registerRouterView(this)
+
+          const parent = this[symbols.parent]
+          if (parent && parent[symbols.routerHooks] && parent[symbols.routerHooks].init) {
+            await parent[symbols.routerHooks].init.apply(parent)
+          }
+          this.hashchangeHandler = () => Router.navigate.apply(this)
+
+          if (this.active === true) {
+            Router.navigate.apply(this)
+          }
+
+          const viewport = platform.viewport
+          if (viewport !== undefined) {
+            this.hashchangeViewport = viewport
+            viewport.addEventListener('hashchange', this.hashchangeHandler)
+          }
+        },
+        destroy() {
+          unregisterRouterView(this)
+          if (this.hashchangeViewport !== undefined) {
+            this.hashchangeViewport.removeEventListener('hashchange', this.hashchangeHandler, false)
+            this.hashchangeViewport = undefined
+          }
+        },
+        focus() {
+          if (this.active && this.activeView && Focus.get() === this) {
+            this.activeView.$focus()
+          }
+        },
+      },
+      input: {
+        back(e) {
+          const parent = this[symbols.parent]
+
+          if (routerState.backNavigation === false) {
+            if (parent && parent.$input) {
+              parent.$input(e)
+            }
+            return
+          }
+
+          const navigating = Router.back.call(this)
+          if (navigating === false) {
+            if (parent && parent.$focus) {
+              parent.$focus(e)
+            }
+          }
+        },
+      },
+    })
+  )

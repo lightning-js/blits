@@ -16,7 +16,7 @@
  */
 
 import { Log } from '../lib/log.js'
-import speechSynthesis from './speechSynthesis.js'
+import { platform } from '../platform.js'
 
 let active = false
 let count = 0
@@ -26,7 +26,23 @@ let currentId = null
 let debounce = null
 
 // Global default utterance options
-let globalDefaultOptions = {}
+let globalDefaultOptions = {
+  enableUtteranceKeepAlive: !/android/i.test(platform.userAgent || ''),
+}
+
+const getDriver = () => {
+  const driver = platform.announcer
+  if (driver && typeof driver.speak === 'function') {
+    return driver
+  }
+}
+
+const cancelDriver = () => {
+  const driver = getDriver()
+  if (driver && typeof driver.cancel === 'function') {
+    driver.cancel()
+  }
+}
 
 const noopAnnouncement = {
   then() {},
@@ -50,7 +66,6 @@ const toggle = (v) => {
 
 const speak = (message, politeness = 'off', options = {}) => {
   if (active === false) return noopAnnouncement
-
   return addToQueue(message, politeness, false, options)
 }
 
@@ -66,15 +81,30 @@ const addToQueue = (message, politeness, delay = false, options = {}) => {
 
   // setup a promise to allow developer to chain functionality
   // when specific utterances are done
-  let resolveFn
+  let resolvePromise
+  let settled = false
   const done = new Promise((resolve) => {
-    resolveFn = resolve
+    resolvePromise = resolve
   })
+
+  const resolveFn = (status) => {
+    if (settled === true) return
+    settled = true
+    resolvePromise(status)
+  }
 
   // augment the promise with a cancel / remove function
   done.remove = done.cancel = () => {
     const index = queue.findIndex((item) => item.id === id)
-    if (index !== -1) queue.splice(index, 1)
+    if (index !== -1) {
+      queue.splice(index, 1)
+    } else if (id === currentId && debounce !== null) {
+      clearDebounceTimer()
+      currentId = null
+      currentResolveFn = null
+      isProcessing = false
+      processQueue()
+    }
     Log.debug(`Announcer - removed from queue: "${message}" (id: ${id})`)
     resolveFn('canceled')
   }
@@ -82,9 +112,9 @@ const addToQueue = (message, politeness, delay = false, options = {}) => {
   // augment the promise with a stop function
   done.stop = () => {
     if (id === currentId) {
-      speechSynthesis.cancel()
+      cancelDriver()
       isProcessing = false
-      resolveFn('interupted')
+      resolveFn('interrupted')
     }
   }
 
@@ -106,6 +136,8 @@ const addToQueue = (message, politeness, delay = false, options = {}) => {
   return done
 }
 
+let currentResolveFn = null
+
 const processQueue = async () => {
   if (isProcessing === true || queue.length === 0) return
   isProcessing = true
@@ -113,11 +145,13 @@ const processQueue = async () => {
   const { message, resolveFn, delay, id, options = {} } = queue.shift()
 
   currentId = id
+  currentResolveFn = resolveFn
 
   if (delay) {
     setTimeout(() => {
       isProcessing = false
       currentId = null
+      currentResolveFn = null
       resolveFn('finished')
       processQueue()
     }, delay)
@@ -127,7 +161,17 @@ const processQueue = async () => {
     debounce = setTimeout(() => {
       Log.debug(`Announcer - speaking: "${message}" (id: ${id})`)
 
-      speechSynthesis
+      const driver = getDriver()
+      if (driver === undefined) {
+        currentId = null
+        currentResolveFn = null
+        isProcessing = false
+        resolveFn('unavailable')
+        processQueue()
+        return
+      }
+
+      driver
         .speak({
           message,
           id,
@@ -138,19 +182,23 @@ const processQueue = async () => {
           Log.debug(`Announcer - finished speaking: "${message}" (id: ${id})`)
 
           currentId = null
+          currentResolveFn = null
           isProcessing = false
           resolveFn('finished')
           processQueue()
         })
         .catch((e) => {
-          currentId = null
-          isProcessing = false
+          if (id === currentId) {
+            currentId = null
+            currentResolveFn = null
+            isProcessing = false
+          }
           Log.debug(`Announcer - error ("${e.error}") while speaking: "${message}" (id: ${id})`)
           resolveFn(e.error)
           processQueue()
         })
       debounce = null
-    }, 200)
+    }, 300)
   }
 }
 
@@ -158,13 +206,52 @@ const polite = (message, options = {}) => speak(message, 'polite', options)
 
 const assertive = (message, options = {}) => speak(message, 'assertive', options)
 
+// Clear debounce timer
+const clearDebounceTimer = () => {
+  if (debounce !== null) {
+    clearTimeout(debounce)
+    debounce = null
+  }
+}
+
 const stop = () => {
-  speechSynthesis.cancel()
+  // Clear debounce timer if speech hasn't started yet
+  clearDebounceTimer()
+
+  // Always cancel the platform announcer to ensure clean state
+  cancelDriver()
+
+  // Store resolve function before resetting state
+  const resolveFn = currentResolveFn
+
+  // Reset state
+  currentId = null
+  currentResolveFn = null
+  isProcessing = false
+
+  // Resolve promise if there was an active utterance
+  if (resolveFn !== null) {
+    resolveFn('interrupted')
+  }
 }
 
 const clear = () => {
+  // Clear debounce timer
+  clearDebounceTimer()
+
+  // Resolve all pending items in queue
+  while (queue.length > 0) {
+    const item = queue.shift()
+    if (item.resolveFn) {
+      Log.debug(`Announcer - clearing queued item: "${item.message}" (id: ${item.id})`)
+      item.resolveFn('cleared')
+    }
+  }
+
+  // Reset state
+  currentId = null
+  currentResolveFn = null
   isProcessing = false
-  queue.length = 0
 }
 
 const configure = (options = {}) => {

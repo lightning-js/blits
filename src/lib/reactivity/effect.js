@@ -18,35 +18,37 @@
 let currentEffect = null
 let currentKey = null
 
-let paused = false
+// counter that tracks all pauseTracking invocations
+// to ensure nested array operations don't prematurely
+// resume before all operations have completed
+let pauseCounter = 0
 
 export const pauseTracking = () => {
-  paused = true
+  pauseCounter++
 }
 
 export const resumeTracking = () => {
-  paused = false
+  if (pauseCounter > 0) pauseCounter--
 }
 
 const objectMap = new WeakMap()
-const globalEffectsMap = new Map()
+const effectDependenciesMap = new WeakMap()
 
-export const removeGlobalEffects = (effectsToRemove) => {
-  if (globalEffectsMap.size === 0) return
-  for (const [effect, target] of globalEffectsMap) {
-    if (effectsToRemove.indexOf(effect) === -1) continue
-    const effectsSet = objectMap.get(target)
-    if (effectsSet === undefined) continue
-    for (const set of effectsSet.values()) {
-      set.delete(effect)
-      globalEffectsMap.delete(effect)
+export const removeEffects = (effectsToRemove) => {
+  for (let i = 0; i < effectsToRemove.length; i++) {
+    const effect = effectsToRemove[i]
+    const dependencies = effectDependenciesMap.get(effect)
+    if (dependencies === undefined) continue
+    for (let j = 0; j < dependencies.length; j++) {
+      dependencies[j].delete(effect)
     }
+    effectDependenciesMap.delete(effect)
   }
 }
 
-export const track = (target, key, global = false) => {
+export const track = (target, key) => {
   if (currentEffect !== null) {
-    if (paused) {
+    if (pauseCounter > 0) {
       return
     }
     // note: nesting the conditions like this seems to perform better ¯\_(ツ)_/¯
@@ -64,14 +66,20 @@ export const track = (target, key, global = false) => {
       effects = new Set()
       effectsMap.set(key, effects)
     }
-    effects.add(currentEffect)
-
-    if (global === true) globalEffectsMap.set(currentEffect, target)
+    if (effects.has(currentEffect) === false) {
+      let dependencies = effectDependenciesMap.get(currentEffect)
+      if (dependencies === undefined) {
+        dependencies = []
+        effectDependenciesMap.set(currentEffect, dependencies)
+      }
+      dependencies.push(effects)
+      effects.add(currentEffect)
+    }
   }
 }
 
 export const trigger = (target, key, force = false) => {
-  if (paused === true) return
+  if (pauseCounter > 0) return
   const effectsMap = objectMap.get(target)
   if (effectsMap === undefined) {
     return
@@ -84,10 +92,17 @@ export const trigger = (target, key, force = false) => {
   }
 }
 
-export const effect = (effect, key = null) => {
-  currentEffect = effect
+export const effect = (effectFn, key = null) => {
+  const previousEffect = currentEffect
+  const previousKey = currentKey
+
+  currentEffect = effectFn
   currentKey = key
-  currentEffect()
-  currentEffect = null
-  currentKey = null
+
+  try {
+    effectFn()
+  } finally {
+    currentEffect = previousEffect
+    currentKey = previousKey
+  }
 }

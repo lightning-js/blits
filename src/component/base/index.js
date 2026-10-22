@@ -21,9 +21,25 @@ import events from './events.js'
 import router from './router.js'
 import announcer from './announcer.js'
 import utils from './utils.js'
+import settings from './settings.js'
 import symbols from '../../lib/symbols.js'
+import { reactive } from '../../lib/reactivity/reactive.js'
+import Settings from '../../settings.js'
 
-export const shared = { ...events, ...router, ...announcer }
+export const shared = {
+  ...events,
+  ...router,
+  ...announcer,
+  ...settings,
+  $reactive: {
+    value: function (target) {
+      return reactive(target, Settings.get('reactivityMode'), true)
+    },
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
+}
 
 export default Object.defineProperties(
   {

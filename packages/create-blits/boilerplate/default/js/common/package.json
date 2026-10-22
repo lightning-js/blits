@@ -1,0 +1,22 @@
+{
+  "name": "{$appPackage}",
+  "version": "0.1.0",
+  "description": "{$appName}",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite dev --host",
+    "format": "prettier --write .",
+    "lint": "eslint '**/*.?(c|m)[jt]s'",
+    "lint:fix": "eslint '**/*.?(c|m)[jt]s' --fix",
+    "start": "npm run dev"
+  },
+  "devDependencies": {
+    "@lightningjs/msdf-generator": "^1.2.1",
+    "vite": "^6.4.3"
+  },
+  "dependencies": {
+    "@lightningjs/blits": "{$blitsVersion}"
+  }
+}

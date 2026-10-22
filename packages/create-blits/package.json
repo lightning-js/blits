@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/create-blits",
-  "version": "1.4.1",
+  "version": "2.0.0",
   "description": "Create a new Lightning 3 Blits App",
   "bin": "bin/index.js",
   "scripts": {

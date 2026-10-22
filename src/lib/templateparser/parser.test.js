@@ -18,7 +18,7 @@
 import test from 'tape'
 import parser from './parser.js'
 import symbols from '../symbols.js'
-const { componentType } = symbols
+const { componentType, tagContent } = symbols
 import { initLog } from '../log.js'
 initLog()
 
@@ -682,23 +682,12 @@ test('Parse template with attributes with values spread over multiple lines', (a
   const template = `
   <Component>
     <Element
-      w="160" h="160" x="40" y="40" color="#fb923c"
-      :effects="[$shader(
-        'radius',
-        {radius: 44}
-      )]"
+      w="160" h="160" x="40" y="40" color="#fb923c" rounded="44"
     />
     <Element
       w="120" h="120"
       x="100" y="100"
-      :effects="[
-        $shader(
-          'radius',
-          {
-            radius: 45
-          }
-        )
-      ]"
+      rounded="45"
     />
   </Component>`
 
@@ -714,7 +703,7 @@ test('Parse template with attributes with values spread over multiple lines', (a
             x: '40',
             y: '40',
             color: '0xfb923cff',
-            ':effects': "[$shader( 'radius', {radius: 44} )]",
+            rounded: '44',
           },
           {
             [componentType]: 'Element',
@@ -722,7 +711,7 @@ test('Parse template with attributes with values spread over multiple lines', (a
             h: '120',
             x: '100',
             y: '100',
-            ':effects': "[ $shader( 'radius', { radius: 45 } ) ]",
+            rounded: '45',
           },
         ],
       },
@@ -753,7 +742,7 @@ test('Parse template with inline text between tags', (assert) => {
             x: '40',
             y: '40',
             color: '0xfb923cff',
-            content: 'Lorem ipsum',
+            [tagContent]: 'Lorem ipsum',
           },
         ],
       },
@@ -792,29 +781,89 @@ test('Parse template with multiple inline texts between different tags', (assert
             x: '40',
             y: '40',
             color: '0xfb923cff',
-            content: 'Lorem ipsum',
+            [tagContent]: 'Lorem ipsum',
           },
           {
             [componentType]: 'Element',
-            content: 'dolor sit amet',
+            [tagContent]: 'dolor sit amet',
           },
           {
             [componentType]: 'Element',
             children: [
               {
                 [componentType]: 'Text',
-                content: 'consectetur adipiscing elit',
+                [tagContent]: 'consectetur adipiscing elit',
               },
               {
                 [componentType]: 'Element',
                 children: [
                   {
                     [componentType]: 'Text',
-                    content: 'sed do eiusmod tempor',
+                    [tagContent]: 'sed do eiusmod tempor',
                   },
                 ],
               },
             ],
+          },
+        ],
+      },
+    ],
+  }
+
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with dynamic variable as inline text', (assert) => {
+  const template = `
+  <Element>
+    <Text x="90" y="200" size="32">{{$title}}</Text>
+  </Element>
+  `
+
+  const expected = {
+    children: [
+      {
+        [componentType]: 'Element',
+        children: [
+          {
+            [componentType]: 'Text',
+            x: '90',
+            y: '200',
+            size: '32',
+            [tagContent]: '{{$title}}',
+          },
+        ],
+      },
+    ],
+  }
+
+  const actual = parser(template)
+
+  assert.deepEqual(actual, expected, 'Parser should return object representation of template')
+  assert.end()
+})
+
+test('Parse template with dynamic variable and additional string as inline text', (assert) => {
+  const template = `
+  <Element>
+    <Text x="90" y="200" size="32">Welcome to Blits {{$version}}</Text>
+  </Element>
+  `
+
+  const expected = {
+    children: [
+      {
+        [componentType]: 'Element',
+        children: [
+          {
+            [componentType]: 'Text',
+            x: '90',
+            y: '200',
+            size: '32',
+            [tagContent]: 'Welcome to Blits {{$version}}',
           },
         ],
       },
@@ -863,22 +912,12 @@ test('Parse template with attribute values with delimited either single or doubl
   <Component>
     <Element
       w='160' h="160" x='40' y='40' color="#fb923c"
-      :effects='[$shader(
-        "radius",
-        {radius: 44}
-      )]'
+      rounded="44"
     />
     <Element
       w='120' h="120"
       x='100' y="100"
-      :effects="[
-        $shader(
-          'radius',
-          {
-            radius: 45
-          }
-        )
-      ]"
+      rounded="45"
     />
   </Component>`
 
@@ -894,7 +933,7 @@ test('Parse template with attribute values with delimited either single or doubl
             x: '40',
             y: '40',
             color: '0xfb923cff',
-            ':effects': '[$shader( "radius", {radius: 44} )]',
+            rounded: '44',
           },
           {
             [componentType]: 'Element',
@@ -902,7 +941,7 @@ test('Parse template with attribute values with delimited either single or doubl
             h: '120',
             x: '100',
             y: '100',
-            ':effects': "[ $shader( 'radius', { radius: 45 } ) ]",
+            rounded: '45',
           },
         ],
       },
@@ -920,24 +959,14 @@ test('Parse template with multiple top level elements and parsing should fail', 
   <Component>
     <Element
       w='160' h="160" x='40' y='40' color="#fb923c"
-      :effects='[$shader(
-        "radius",
-        {radius: 44}
-      )]'
+      rounded="44"
     />
   </Component>
   <Component>
     <Element
       w='120' h="120"
       x='100' y="100"
-      :effects="[
-        $shader(
-          'radius',
-          {
-            radius: 45
-          }
-        )
-      ]"
+      rounded="45"
     />
   </Component>`
 
@@ -1257,9 +1286,10 @@ test('Parse template with color and effects attributes and parsing should conver
       <Element :color="$backgroundColor">
         <Element color="{top: '#44037a', bottom: '#240244'}" />
         <Element color="#44037a" />
-        <Element color="{top: '#44037a'}" :effects="[$shader('radius', {radius: $radius})]" />
-        <Element :color="$colors.color2" :effects="[$shader('radius', {radius: $radius / 2})]" />
-        <Element color="transparent" :effects="[$shader('radius', {radius: 10}), $shader('border', {width: 20, color: '#60a5fa'})]" />
+        <Element color="{top: '#44037a'}" :rounded="$radius" />
+        <Element :color="$colors.color2" :rounded="$radius / 2" />
+        <Element color="transparent" rounded="10" border="{width: 20, color: '#60a5fa'}" />
+        <Element color="blue" rounded="10" shadow="{blur: 20, spread: 10, color: '#60a5fa'}" />
         <Element color="#fba" />
         <Element color="#23dd21" />
         <Element color="#993322ff" />
@@ -1295,18 +1325,24 @@ test('Parse template with color and effects attributes and parsing should conver
           },
           {
             color: "{top: '0x44037aff'}",
-            ':effects': "[$shader('radius', {radius: $radius})]",
+            ':rounded': '$radius',
             [componentType]: 'Element',
           },
           {
             ':color': '$colors.color2',
-            ':effects': "[$shader('radius', {radius: $radius / 2})]",
+            ':rounded': '$radius / 2',
             [componentType]: 'Element',
           },
           {
             color: '0x00000000',
-            ':effects':
-              "[$shader('radius', {radius: 10}), $shader('border', {width: 20, color: '0x60a5faff'})]",
+            rounded: '10',
+            border: "{width: 20, color: '0x60a5faff'}",
+            [componentType]: 'Element',
+          },
+          {
+            color: '0x0000ffff',
+            rounded: '10',
+            shadow: "{blur: 20, spread: 10, color: '0x60a5faff'}",
             [componentType]: 'Element',
           },
           {

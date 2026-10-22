@@ -1,10 +1,6 @@
 /*
- * If not stated otherwise in this file or this component's LICENSE file the
- * following copyright and licenses apply:
- *
- * Copyright 2023 Comcast
- *
- * Licensed under the Apache License, Version 2.0 (the License);
+ * Copyright 2025 Comcast Cable Communications Management, LLC
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -15,6 +11,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import { execSync } from 'child_process'
@@ -69,7 +67,6 @@ try {
   // Run ESLint on the changed files
   execSync(`npx eslint ${fileList.join(' ')}`, { stdio: 'inherit' })
   console.log('Linting passed successfully!\n')
-  process.exit(0)
 } catch (error) {
   console.log('\n==========================================================================')
   console.log('ESLint found issues in your code. Please fix them before pushing.')
@@ -78,4 +75,25 @@ try {
   console.log('on the specific files to automatically fix some issues.')
   console.log('==========================================================================\n')
   process.exit(1)
+}
+
+// By default, always run tests unless RUN_TEST=skip
+const runTestsFlag = process.env.RUN_TEST || ''
+
+if (runTestsFlag.toLowerCase() === 'skip') {
+  console.log('Skipping tests due to RUN_TEST=skip. Proceeding with push.')
+  process.exit(0)
+} else {
+  // For any other value (including empty or unknown), run tests
+  try {
+    console.log('Running tests...\n')
+    execSync('npm run test', { stdio: 'inherit' })
+    console.log('Tests passed successfully!\n')
+    process.exit(0)
+  } catch (error) {
+    console.log('\n==========================================================================')
+    console.log('Some tests failed. Please fix them before pushing.')
+    console.log('==========================================================================\n')
+    process.exit(1)
+  }
 }

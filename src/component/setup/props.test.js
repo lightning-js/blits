@@ -43,7 +43,7 @@ test('Pass props as an array', (assert) => {
   const props = ['index', 'img', 'url']
   propsFn(component, props)
 
-  assert.equal(props.length, component[symbols.propKeys].length, 'All passed props should be stored on propKeys')
+  assert.equal(props.length, component[symbols.propKeys].length - 1, 'All passed props should be stored on propKeys')
   assert.equal(props.length, props.map(prop => component[symbols.propKeys].indexOf(prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on propKeys')
 
   props.forEach((prop) => {
@@ -84,124 +84,15 @@ test('Get value of props', (assert) => {
 })
 
 test('Passing props as an object', (assert) => {
-
+  initLogTest(assert)
+  const capture = assert.capture(console, 'error')
   const component = new Function()
   const props = [{key: 'index'}, {key: 'img'}, {key: 'url'}]
   propsFn(component, props)
 
-  assert.equal(props.length, component[symbols.propKeys].length, 'All passed props should be stored on propKeys')
-  assert.equal(props.length, props.map(prop => component[symbols.propKeys].indexOf(typeof prop === 'object' ? prop.key : prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on propKeys')
-
-  props.forEach((prop) => {
-    assert.true(typeof Object.getOwnPropertyDescriptor(component, typeof prop === 'object' ? prop.key : prop).get === 'function', `A getter should have been created for property ${prop}`)
-  })
-
-  assert.end()
-})
-
-test('Passing props as an object mixed with single keys', (assert) => {
-
-  const component = new Function()
-  const props = [{key: 'index'}, 'img', {key: 'url'}]
-  propsFn(component, props)
-
-  assert.equal(props.length, component[symbols.propKeys].length, 'All passed props should be stored on propKeys')
-  assert.equal(props.length, props.map(prop => component[symbols.propKeys].indexOf(typeof prop === 'object' ? prop.key : prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on propKeys')
-
-  props.forEach((prop) => {
-    assert.true(typeof Object.getOwnPropertyDescriptor(component, typeof prop === 'object' ? prop.key : prop).get === 'function', `A getter should have been created for property ${prop}`)
-  })
-
-  assert.end()
-})
-
-test('Casting props to a type', (assert) => {
-  const component = new Function()
-
-  const componentInstance = Object.create(component)
-  componentInstance[symbols.props] = {
-    number: '1',
-    string: 100,
-    boolean: true,
-    image: 'my_image.jpg'
-  }
-
-  const props = [{
-    key: 'number',
-    cast: Number
-  }, {
-    key: 'string',
-    cast: String
-  }, {
-    key: 'boolean',
-    cast: Boolean
-  },{
-    key: 'image',
-    cast(v) {
-      return `http://localhost/${v}`
-    }
-  }]
-  propsFn(component, props)
-
-  assert.equal(typeof componentInstance.number, 'number', 'Should cast prop value to a Number')
-  assert.equal(typeof componentInstance.string, 'string', 'Should cast prop value to a String')
-  assert.equal(typeof componentInstance.boolean, 'boolean', 'Should cast prop value to a Boolean')
-  assert.equal(componentInstance.image, 'http://localhost/my_image.jpg','Should cast according to a custom function')
-
-  assert.end()
-})
-
-test('Setting default value for undefined props', (assert) => {
-  const component = new Function()
-
-  const componentInstance = Object.create(component)
-
-  const props = [{
-    key: 'missing',
-    default: 'I am missing'
-  }]
-  propsFn(component, props)
-
-  assert.equal(componentInstance.missing, 'I am missing','Should return default prop value when undefined')
-
-  assert.end()
-})
-
-test('Required props with default', (assert) => {
-  const component = new Function()
-
-  const componentInstance = Object.create(component)
-
-  const props = [{
-    key: 'missing',
-    default: 'I am missing',
-    required: true
-  }]
-  propsFn(component, props)
-
-  assert.equal(componentInstance.missing, 'I am missing', 'Should return default prop value when undefined')
-
-  assert.end()
-})
-
-test('Required props without default', (assert) => {
-  initLogTest(assert)
-  const capture = assert.capture(console, 'warn')
-  const component = new Function()
-
-  const componentInstance = Object.create(component)
-
-  const props = [{
-    key: 'missing',
-    required: true
-  }]
-  propsFn(component, props)
-
-  assert.equal(componentInstance.missing, undefined, 'Should return undefined prop value when undefined')
-  const logs = capture()
+  let logs = capture()
   assert.equal(logs.length, 1)
-  assert.equal(logs[0].args.pop(), 'missing is required', 'Should log warning message')
-
+  assert.equal(logs[0].args.pop(), 'Defining props as an array of objects is no longer supported. Please use the new format: an object with key-value pairs.')
   assert.end()
 })
 
@@ -209,21 +100,71 @@ test('Setting prop value directly', (assert) => {
   initLogTest(assert)
   const capture = assert.capture(console, 'warn')
   const component = new Function()
+  component.componentId = 'Test_1'
   const componentInstance = Object.create(component)
   componentInstance[symbols.props] = {
     property: 'foo'
   }
-  const props = [{
-    key: 'property',
-  }]
+  const props = ['property']
 
   propsFn(component, props)
   componentInstance.property = 'bar'
 
   assert.equal(componentInstance[symbols.props].property, 'bar', 'Should be possible to mutate the property')
   let logs = capture()
-  assert.equal(logs.length, 1)
-  assert.equal(logs[0].args.pop(), `Warning! Avoid mutating props directly (prop "${props[0].key}" in component "${componentInstance.componentId}")`, 'Should log warning message')
+  assert.equal(logs.length, 2)
+  assert.equal(logs[0].args[logs[0].args.length - 2], `Defining props as an Array has been deprecated and will stop working in future versions. Please use the new notation instead (an object with key values pairs).`, 'Should log warning message for old array way of props defintion')
+  assert.equal(logs[1].args.pop(), `Warning! Avoid mutating props directly (prop "${props[0]}" in component "${componentInstance.componentId}")`, 'Should log warning message')
+
+  assert.end()
+})
+
+
+test('Setting props as a single object', (assert) => {
+  const component = new Function()
+
+  const componentInstance = Object.create(component)
+
+  const props = {
+    size: 100,
+    position: 200
+  }
+  const propKeysArr = Object.keys(props)
+
+  propsFn(component, props)
+
+  assert.equal(propKeysArr.length, component[symbols.propKeys].length - 1, 'All passed props should be stored on propKeys')
+  assert.equal(propKeysArr.length, propKeysArr.map(prop => component[symbols.propKeys].indexOf(prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on propKeys')
+
+  propKeysArr.forEach((prop) => {
+    assert.true(typeof Object.getOwnPropertyDescriptor(component, prop).get === 'function', `A getter should have been created for property ${prop}`)
+  })
+  assert.end()
+})
+
+test('Setting props as a single object without defaults', (assert) => {
+  const component = new Function()
+
+  const componentInstance = Object.create(component)
+
+  const props = {
+    size: undefined,
+    position: undefined
+  }
+  const propKeysArr = Object.keys(props)
+
+  propsFn(component, props)
+
+  assert.equal(propKeysArr.length, component[symbols.propKeys].length - 1, 'All passed props should be stored on propKeys')
+  assert.equal(propKeysArr.length, propKeysArr.map(prop => component[symbols.propKeys].indexOf(prop) > -1).filter(prop => prop === true).length, 'All passed props should be stored on propKeys')
+
+  propKeysArr.forEach((prop) => {
+    assert.true(typeof Object.getOwnPropertyDescriptor(component, prop).get === 'function', `A getter should have been created for property ${prop}`)
+  })
+
+  propKeysArr.forEach((prop) => {
+    assert.equal(component[prop], undefined, `${prop} property value should be undefined on component`)
+  })
 
   assert.end()
 })

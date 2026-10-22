@@ -18,8 +18,7 @@
 import path from 'path'
 import * as fs from 'fs'
 import { createHash } from 'crypto'
-import { genFont, setGeneratePaths } from '@lightningjs/msdf-generator'
-import { adjustFont } from '@lightningjs/msdf-generator/adjustFont'
+import { createRequire } from 'module'
 
 class TaskQueue {
   constructor() {
@@ -41,6 +40,48 @@ const fontGenerationQueue = new TaskQueue()
 let config
 let checksumPaths = []
 let checksumData = []
+
+let msdfLoaded = false
+let genFont, setGeneratePaths, adjustFont
+async function loadMsdfModules() {
+  // do not try to load it repeatedly
+  if (msdfLoaded) return true
+
+  try {
+    // Create a require function that resolves from the app's working directory
+    // This ensures the msdf-generator is resolved from the app's node_modules
+    const userRequire = createRequire(process.cwd() + '/')
+
+    const msdfGeneratorPath = userRequire.resolve('@lightningjs/msdf-generator')
+    const msdfGeneratorUrl = new URL(`file:///${msdfGeneratorPath.replace(/\\/g, '/')}`).href
+    const msdfGenerator = await import(msdfGeneratorUrl)
+    genFont = msdfGenerator.genFont
+    setGeneratePaths = msdfGenerator.setGeneratePaths
+
+    const adjustFontPath = userRequire.resolve('@lightningjs/msdf-generator/adjustFont')
+    const adjustFontUrl = new URL(`file:///${adjustFontPath.replace(/\\/g, '/')}`).href
+    const adjustFontModule = await import(adjustFontUrl)
+    adjustFont = adjustFontModule.adjustFont
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function getMsdfReady() {
+  msdfLoaded = await loadMsdfModules()
+
+  if (!msdfLoaded) {
+    console.error('\n\x1b[31mError: @lightningjs/msdf-generator package is not installed.\x1b[0m')
+    console.error(
+      'This package is required for generating MSDF fonts during development and build.\n'
+    )
+    console.error('\nPlease install it as a dev dependency in your project:\n')
+    console.error('   \x1b[33mnpm install --save-dev @lightningjs/msdf-generator\x1b[0m\n')
+
+    process.exit(1)
+  }
+}
 
 export default function () {
   let msdfOutputDir = ''
@@ -104,12 +145,20 @@ export default function () {
 
               if (fs.existsSync(generatedFontFile)) {
                 const fileContent = fs.readFileSync(generatedFontFile)
+                const etag = `"${generateHash(generatedFontFile)}"`
 
                 // Check if headers have already been sent
                 if (!res.headersSent) {
                   res.setHeader('Content-Type', mimeType)
-                  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
-                  res.end(fileContent)
+                  res.setHeader('Cache-Control', 'no-cache')
+                  res.setHeader('ETag', etag)
+
+                  if (req.headers['if-none-match'] === etag) {
+                    res.statusCode = 304
+                    res.end()
+                  } else {
+                    res.end(fileContent)
+                  }
                 } else {
                   // this should never happen except some edge cases
                   console.error(`ERROR: Headers already sent for ${req.url}`, res.getHeaders())
@@ -156,15 +205,20 @@ export default function () {
 }
 
 const generateSDF = async (inputFilePath, outputDirPath, configFilePath) => {
+  // plugin only required if there is a msdf conversion
+  // so it is better to check when generateSDF is called
+  await getMsdfReady()
+
   // Ensure the destination directory exists
   fs.mkdirSync(outputDirPath, { recursive: true })
-
   setGeneratePaths(path.dirname(inputFilePath), outputDirPath, configFilePath)
 
   let font = await genFont(path.basename(inputFilePath), 'msdf')
-
-  if (font) await adjustFont(font)
-  else console.error('Failed to generate MSDF file')
+  if (font) {
+    await adjustFont(font)
+  } else {
+    console.error('Failed to generate MSDF file')
+  }
 }
 
 // Finds all font files (.ttf, .otf, .woff) in a directory
