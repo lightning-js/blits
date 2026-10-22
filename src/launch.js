@@ -155,8 +155,17 @@ export default (App, target, settings) => {
 
   stage.element = engine.Element
 
-  renderer = engine.Launch(App, target, settings)
+  renderer = engine.Launch(target, settings)
   if (isDev === true) {
     profiler.setRenderer(renderer)
+  }
+
+  // Instantiate the app and wire up the quit function
+  let app = App()
+  app.quit = () => {
+    Log.info('Closing App')
+    app.destroy()
+    app = null
+    renderer = null
   }
 }

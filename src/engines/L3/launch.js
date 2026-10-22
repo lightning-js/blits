@@ -20,7 +20,6 @@ import { WebGlCoreRenderer, SdfTextRenderer } from '@lightningjs/renderer/webgl'
 import { CanvasCoreRenderer, CanvasTextRenderer } from '@lightningjs/renderer/canvas'
 import { Inspector } from '@lightningjs/renderer/inspector'
 
-import { Log } from '../../lib/log.js'
 import { SCREEN_RESOLUTIONS, RENDER_QUALITIES } from '../../constants.js'
 import colors from '../../lib/colors/colors.js'
 import fontLoader from './fontLoader.js'
@@ -85,7 +84,7 @@ const textureMemorySettings = (settings) => {
  * @param {Partial<import('../../launch.js').BlitsSettings>} [settings] - The settings for the renderer
  *
  */
-export default (App, target, settings = {}) => {
+export default (target, settings = {}) => {
   const screenHeight = settings.platform ? settings.platform.screenHeight : platform.screenHeight
   const hardwareConcurrency = settings.platform
     ? settings.platform.hardwareConcurrency
@@ -125,22 +124,8 @@ export default (App, target, settings = {}) => {
     target
   )
 
-  const initApp = () => {
-    let app = App()
-    app.quit = () => {
-      Log.info('Closing App')
-      app.destroy()
-      app = null
-      renderer = null
-    }
-  }
-
   shaderLoader()
   fontLoader()
-  // Initialize the app synchronously: renderer setup above is fully synchronous,
-  // so there is no need to yield before creating components (yielding only lets
-  // the render loop's first frames jump ahead of app readiness)
-  initApp()
 
   return renderer
 }
