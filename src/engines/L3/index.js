@@ -48,7 +48,7 @@ const rendererOptions = {
  * @param {string} key - Blits setting key (validated by $settings)
  * @param {any} value - New value
  */
-const updateSetting = (key, value) => renderer?.setOptions?.(rendererOptions[key](value))
+const updateSetting = (key, value) => renderer.setOptions(rendererOptions[key](value))
 
 export default {
   Element,

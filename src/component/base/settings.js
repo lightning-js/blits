@@ -56,7 +56,7 @@ export default {
         }
         Settings.set(key, value)
 
-        if (rendererKeys.includes(key)) {
+        if (rendererKeys.indexOf(key) !== -1) {
           engine.updateSetting(key, value)
         }
       },
