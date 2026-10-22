@@ -234,7 +234,7 @@ You can also use built-in shader attributes in combination with eachother f.e;
 
 ### Adding a Referance
 
-You can add a reference to an element by using the `ref` attribute.
+You can add a reference to an Element or Component by using the `ref` attribute.
 
 ```xml
 <Element w="200" h="200" x="20" y="100" ref="myElement" />
@@ -242,7 +242,7 @@ You can add a reference to an element by using the `ref` attribute.
 <MyComponent ref="MyComponent">
 ```
 
-With a `ref` setup you can use it the `$select` method inside the same component where the element is referenced in its template. For more information follow this [link](https://lightningjs.io/v3-docs/blits/components/utility_methods.html#select)
+With a `ref` setup you can use it the `$select` method inside the same Component where the Element is referenced in its template. For more information follow view [Utility Methods](../components/utility_methods.md#select) or for similar but more advanced built-in features view [Directives](../built-in/directives.md)
 
 ### Using shader attribute
 > [!WARNING]
