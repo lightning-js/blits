@@ -130,6 +130,9 @@ const Application = (config) => {
     }
 
     keyUpHandler = (e) => {
+      clearTimeout(holdTimeout)
+      Focus.hold = false
+
       const entry = keyUpCallbacks.get(e.keyCode)
       if (entry !== undefined) {
         keyUpCallbacks.delete(e.keyCode)
@@ -137,8 +140,6 @@ const Application = (config) => {
           entry.callback()
         }
       }
-      clearTimeout(holdTimeout)
-      Focus.hold = false
     }
 
     let lastMoved = 0
