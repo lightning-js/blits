@@ -189,6 +189,19 @@ The `rendererPlatform` setting is separate from `platform`. It is only passed to
 |----------------|-----------|-------------|
 | `announcer`    | `boolean` | Enable/disable text-to-speech announcer |
 
+## Runtime Settings
+
+Every component has access to `this.$settings`. Any launch setting can be read, and a subset of settings can be changed while the App is running.
+
+```js
+this.$settings.get('renderMode') // 'webgl'
+this.$settings.set('canvasColor', 'darkblue')
+this.$settings.set('fpsInterval', 500)
+this.$settings.set('pixelRatio', 0.66666667)
+```
+
+Only a subset of settings can be changed at runtime. For the full list and usage examples, see [`docs/essentials/runtime_settings.md`](./runtime_settings.md).
+
 ## Example Usage
 
 ```js
