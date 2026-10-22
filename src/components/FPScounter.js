@@ -20,6 +20,11 @@ import fps_sprite from '../../public/assets/fps_sprite.base64.js'
 
 // exporting as named export to allow selective importing
 export const FPScounter = Blits.Component('FPScounter', {
+  props: {
+    active: true,
+    show: true,
+    alpha: 1,
+  },
   template: `
     <Element>
       <Element y="15" x="20">
@@ -104,10 +109,12 @@ export const FPScounter = Blits.Component('FPScounter', {
   },
   hooks: {
     /**
-     * @this {{ data: { minFps: number, maxFps: number, totalFps: number, fpsUpdateCounter: number, avgFps: number }, fps: string, avgFps: string, minFps: string, maxFps: string }}
      * @param {number} fps
      */
     fpsUpdate(fps) {
+      // early return when not active or hidden
+      if (!this.active || !this.show || this.alpha === 0) return
+
       this.data.minFps = Math.min(fps, this.data.minFps)
       this.data.maxFps = Math.max(fps, this.data.maxFps)
       this.data.totalFps += fps
