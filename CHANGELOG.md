@@ -1,5 +1,28 @@
 # Changelog
 
+# 2.14.0
+
+_19 oct 2026_
+
+- Added built-in profiler support to for both internal and app dev use
+- Added benchmark for performance comparison (and GitHub workflow to run on PRs)
+
+## 2.13.0
+
+_13 oct 2026_
+
+- Bumped renderer to 3.7.0
+
+
+## 2.12.0
+
+_8 oct 2026_
+
+- Added support for rich text using _bb-code_-style formatting
+- Capped default number of webworkers at 2 for faster App startup time
+- Added selective instantiation of _only_ the relevant text renders based on the registered fonts
+- Bumped renderer to 3.6.0 with latest rich text enhancements
+
 ## 2.11.0
 
 _28 sep 2026_

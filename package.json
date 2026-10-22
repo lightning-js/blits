@@ -1,6 +1,6 @@
 {
   "name": "@lightningjs/blits",
-  "version": "2.11.0",
+  "version": "2.14.0",
   "description": "Blits: The Lightning 3 App Development Framework",
   "bin": "bin/index.js",
   "exports": {
@@ -49,6 +49,10 @@
       "default": "./src/testing/index.js"
     },
     "./symbols": "./src/lib/symbols.js",
+    "./profiler": {
+      "types": "./src/lib/profiler.d.ts",
+      "default": "./src/lib/profiler.js"
+    },
     "./blitsFileConverter": "./src/lib/blitsfileconverter/blitsfileconverter.js",
     "./components": "./src/components/FPScounter.js"
   },
@@ -62,7 +66,11 @@
     "postpublish": "node scripts/postpublish.js",
     "prepare": "husky",
     "pack-preview": "npm pack --dry-run",
-    "release": "npm publish --access public"
+    "bench": "npm --prefix benchmarks run bench --",
+    "bench:compare": "npm --prefix benchmarks run bench:compare --",
+    "bench:profile": "npm --prefix benchmarks run bench:profile --",
+    "bench:serve": "npm --prefix benchmarks run serve",
+    "release": "node scripts/release.js"
   },
   "types": "./index.d.ts",
   "lint-staged": {
@@ -95,7 +103,7 @@
     "tape": "^5.9.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "3.5.1",
+    "@lightningjs/renderer": "^3.7.0",
     "magic-string": "^1.4.1"
   },
   "repository": {
