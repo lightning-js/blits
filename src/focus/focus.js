@@ -68,6 +68,10 @@ export default {
         while (i--) {
           // don't unfocus when part of the new focus chain
           if (newFocusChain.indexOf(focusChain[i]) > -1) break
+          // only unfocus components that actually have focus
+          // ($hasFocus, not the lifecycle state which is shared with hover/enter/exit)
+          const componentState = focusChain[i][symbols.state]
+          if (componentState !== undefined && componentState.$hasFocus === false) continue
           focusChain[i][symbols.lifecycle].state = 'unfocus'
         }
         focusChain = newFocusChain
