@@ -372,6 +372,122 @@ test('renderComponent setState updates state and reactive attributes in snapshot
   assert.end()
 })
 
+test('renderComponent combines reactive attributes of one element into a single effect', (assert) => {
+  const Button = Component('CombinedButton', {
+    template: `
+      <Element :x="$x" :y="$y">
+        <Text :content="$label" />
+      </Element>
+    `,
+    props: {
+      label: '',
+      x: 0,
+      y: 0,
+    },
+    state() {
+      return {
+        count: 1,
+      }
+    },
+  })
+
+  const fixture = renderComponent(Button, {
+    props: {
+      label: 'Play',
+      x: 20,
+      y: 30,
+    },
+  })
+
+  assert.equal(
+    fixture.component[symbols.effects].length,
+    2,
+    'Three bindings across two elements should register two effects'
+  )
+
+  fixture.setProps({
+    label: 'Pause',
+    x: 40,
+    y: 50,
+  })
+
+  assert.deepEqual(
+    fixture.snapshot().tree.attributes,
+    { x: 40, y: 50 },
+    'Combined effect should update every attribute of the element'
+  )
+  assert.equal(
+    fixture.snapshot().tree.children[0].attributes.content,
+    'Pause',
+    'Other elements keep their own effects'
+  )
+
+  fixture.destroy()
+  assert.end()
+})
+
+test('renderComponent updates mixed inner and outer loop bindings independently', (assert) => {
+  const List = Component('MixedLoopBindings', {
+    template: `
+      <Element>
+        <Element :for="item in $items" key="$item.id" :x="$item.x" :color="$selected" />
+      </Element>
+    `,
+    state() {
+      return {
+        items: [
+          { id: 'a', x: 1 },
+          { id: 'b', x: 2 },
+        ],
+        selected: 'red',
+      }
+    },
+  })
+
+  const fixture = renderComponent(List)
+
+  const children = () => fixture.snapshot().tree.children
+
+  assert.deepEqual(
+    children().map((child) => child.attributes),
+    [
+      { x: 1, color: 'red' },
+      { x: 2, color: 'red' },
+    ],
+    'Loop items should render inner and outer bindings'
+  )
+
+  fixture.setState({
+    items: [
+      { id: 'a', x: 99 },
+      { id: 'b', x: 2 },
+    ],
+  })
+
+  assert.deepEqual(
+    children().map((child) => child.attributes),
+    [
+      { x: 99, color: 'red' },
+      { x: 2, color: 'red' },
+    ],
+    'Replaced collection should re-render inner bindings per item'
+  )
+
+  fixture.setState({ selected: 'blue' })
+
+  assert.deepEqual(
+    children().map((child) => child.attributes),
+    [
+      { x: 99, color: 'blue' },
+      { x: 2, color: 'blue' },
+    ],
+    'Outer binding change should update every item'
+  )
+
+  fixture.destroy()
+  assert.end()
+})
+
 test('renderComponent finds nodes by inspector data', (assert) => {
   const Menu = Component('InspectableMenu', {
     template: `

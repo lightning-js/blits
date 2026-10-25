@@ -160,6 +160,43 @@ const verifyVariables = function (value, renderCode, isContentKey = false, type 
   }
 }
 
+/**
+ * Push buffered per-element effect statements as a single combined entry.
+ * Inside `:for` loops statements are split by scope (iteration-only vs
+ * outer-scope) so the generated effects keep their inner/outer
+ * classification; everywhere else all statements merge into one entry.
+ * `this` is the codegen ctx holding `effectsCode` (and `scopeRegex` for loops).
+ *
+ * @param {string[]} statements - Effect statements for one element.
+ * @returns {void}
+ */
+const flushElementEffects = function (statements) {
+  if (statements.length === 0) {
+    return
+  }
+  const scopeRegex = this.scopeRegex
+  if (scopeRegex === undefined) {
+    this.effectsCode.push(statements.join('\n'))
+    return
+  }
+  let inner = ''
+  let outer = ''
+  for (let i = 0; i < statements.length; i++) {
+    const statement = statements[i]
+    if ([...statement.matchAll(scopeRegex)].length !== 0) {
+      outer += statement + '\n'
+    } else {
+      inner += statement + '\n'
+    }
+  }
+  if (inner !== '') {
+    this.effectsCode.push(inner)
+  }
+  if (outer !== '') {
+    this.effectsCode.push(outer)
+  }
+}
+
 const generateElementCode = function (
   templateObject,
   parent = false,
@@ -169,6 +206,10 @@ const generateElementCode = function (
   if (parent) {
     renderCode.push(`parent = ${parent}`)
   }
+
+  // buffer this element's reactive statements; flushed as one combined
+  // effect entry once the element's own bindings are generated
+  const elementEffects = []
 
   if ('key' in templateObject) options.key = interpolate(templateObject.key, options.component)
   const elm = options.key ? `elms[${counter}][${options.key}]` : `elms[${counter}]`
@@ -233,13 +274,13 @@ const generateElementCode = function (
 
     if (isReactiveKey(key)) {
       if (options.holder) {
-        this.effectsCode.push(`
+        elementEffects.push(`
         if(typeof skips === 'undefined' || (typeof skips[${counter}] === 'undefined' ||
           skips[${counter}].indexOf('${key.substring(1)}') === -1))
           ${elm}.set('${key.substring(1)}', ${interpolate(templateObject[key], options.component)})
         `)
       } else {
-        this.effectsCode.push(`
+        elementEffects.push(`
             ${elm}.set('${key.substring(1)}', ${interpolate(
               templateObject[key],
               options.component
@@ -284,12 +325,14 @@ const generateElementCode = function (
       // Check if the interpolation contains $ variable
       const isReactive = variableRegEx.test(val)
       if (isReactive === true) {
-        this.effectsCode.push(`
+        elementEffects.push(`
           ${elm}.set('content', ${output})
         `)
       }
     }
   }
+
+  flushElementEffects.call(this, elementEffects)
 
   if (options.holder === true) {
     renderCode.push(`
@@ -388,9 +431,13 @@ const generateComponentCode = function (
     renderCode.push(`if(${elm} === undefined) {`)
   }
 
+  // buffer this component's reactive prop assignments; flushed as one
+  // combined effect entry once all props are generated
+  const componentEffects = []
+
   Object.keys(templateObject).forEach((key) => {
     if (isReactiveKey(key)) {
-      this.effectsCode.push(`
+      componentEffects.push(`
         ${elm}[Symbol.for('props')]['${key.substring(1)}'] = ${interpolate(
           templateObject[key],
           options.component
@@ -407,6 +454,8 @@ const generateComponentCode = function (
       )
     }
   })
+
+  flushElementEffects.call(this, componentEffects)
 
   renderCode.push(`
     componentType = props[${counter}]['is'] || '${templateObject[Symbol.for('componentType')]}'
@@ -511,6 +560,11 @@ const generateForLoopCode = function (templateObject, parent) {
     cleanupCode: [],
     context: { props: [], components: this.components },
   }
+
+  // shared with the element/component generators: statements touching the
+  // outer scope are kept apart from iteration-only statements, so the
+  // generated per-element effects keep their inner/outer classification
+  ctx.scopeRegex = scopeRegex
 
   if (parent) {
     ctx.renderCode.push(`parent = ${parent}`)
