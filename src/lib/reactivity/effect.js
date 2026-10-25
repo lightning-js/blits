@@ -15,6 +15,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { queueJob, invalidateJob } from './scheduler.js'
+
 let currentEffect = null
 let currentKey = null
 
@@ -37,6 +39,7 @@ const effectDependenciesMap = new WeakMap()
 export const removeEffects = (effectsToRemove) => {
   for (let i = 0; i < effectsToRemove.length; i++) {
     const effect = effectsToRemove[i]
+    invalidateJob(effect)
     const dependencies = effectDependenciesMap.get(effect)
     if (dependencies === undefined) continue
     for (let j = 0; j < dependencies.length; j++) {
@@ -86,8 +89,11 @@ export const trigger = (target, key, force = false) => {
   }
   const effects = effectsMap.get(key)
   if (effects !== undefined) {
+    // Queue instead of running inline so N synchronous sets that
+    // touch the same effect collapse into a single microtask flush
+    // (Vue2 `queueWatcher`).
     for (let effect of effects) {
-      effect(force)
+      queueJob(effect, force)
     }
   }
 }

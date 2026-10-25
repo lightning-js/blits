@@ -18,12 +18,14 @@
 import test from 'tape'
 import { reactive } from './reactive.js'
 import { effect, pauseTracking, removeEffects, resumeTracking } from './effect.js'
+import { flushJobs } from './scheduler.js'
 import symbols from '../symbols.js'
 
 test('Type', (assert) => {
   const expected = 'function'
   const actual = typeof reactive
 
+  flushJobs()
   assert.equal(actual, expected, 'Reactive should be a function')
   assert.end()
 })
@@ -40,9 +42,11 @@ test('Reactive - Basic Object Reactivity', (assert) => {
   }
 
   effect(basicEffect)
+  flushJobs()
   assert.equal(counter, 1, 'Effect should run once initially and increment counter')
 
   data.foo = 'bar' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     2,
@@ -50,6 +54,7 @@ test('Reactive - Basic Object Reactivity', (assert) => {
   )
 
   data.foo = 'bar' // should NOT trigger effect since value did not change
+  flushJobs()
   assert.equal(
     counter,
     2,
@@ -57,6 +62,7 @@ test('Reactive - Basic Object Reactivity', (assert) => {
   )
 
   data.foo = 'baz' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     3,
@@ -82,15 +88,18 @@ test('Reactive - Nested Object Reactivity', (assert) => {
   }
 
   effect(basicEffect)
+  flushJobs()
   assert.equal(counter, 1, 'Effect should run once initially and increment counter')
 
   data.nested.foo = 'bar' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     2,
     'Effect should run again after modifying a nested property and increment counter'
   )
   data.nested.foo = 'bar' // should NOT trigger effect since value did not change
+  flushJobs()
   assert.equal(
     counter,
     2,
@@ -98,6 +107,7 @@ test('Reactive - Nested Object Reactivity', (assert) => {
   )
 
   data.nested.foo = 'baz' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     3,
@@ -121,18 +131,23 @@ test('Reactive - Array Reactivity', (assert) => {
   }
 
   effect(basicEffect)
+  flushJobs()
   assert.equal(counter, 1, 'Effect should run once initially and increment counter')
 
   data.list.push('four') // should trigger effect
+  flushJobs()
   assert.equal(counter, 2, 'Effect should run again after modifying an array and increment counter')
 
   data.list.push('four') // should trigger effect (arrays can have duplicate values)
+  flushJobs()
   assert.equal(counter, 3, 'Effect should run again after modifying an array and increment counter')
 
   data.list.splice(1, 1) // should trigger effect
+  flushJobs()
   assert.equal(counter, 4, 'Effect should run again after modifying an array and increment counter')
 
   data.list[0] = 'zero' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     5,
@@ -140,6 +155,7 @@ test('Reactive - Array Reactivity', (assert) => {
   )
 
   data.list[0] = 'zero' // should NOT trigger effect since value did not change
+  flushJobs()
   assert.equal(
     counter,
     5,
@@ -147,6 +163,7 @@ test('Reactive - Array Reactivity', (assert) => {
   )
 
   data.list = ['updated', 'updated'] // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     6,
@@ -178,6 +195,7 @@ test('Reactive - Track the length of a directly reactive array', (assert) => {
     })
 
     mutate(items)
+    flushJobs()
     assert.equal(length, expected, `Length should update after ${name}`)
   })
 
@@ -191,6 +209,7 @@ test('Reactive - Track the length of a directly reactive array', (assert) => {
   const runsBeforeSameLengthMutations = runs
   items.splice(0, 1, 'replacement')
   items.sort()
+  flushJobs()
   assert.equal(
     runs,
     runsBeforeSameLengthMutations,
@@ -210,6 +229,7 @@ test('Reactive - Track nested array length through its parent', (assert) => {
 
   data.items.push('one')
 
+  flushJobs()
   assert.equal(runs, 2, 'Effect should run once after nested array length changes')
   assert.end()
 })
@@ -228,9 +248,11 @@ test('Reactive - Effect with specific keys', (assert) => {
 
   // effect should only tracked on data.foo
   effect(basicEffect, 'foo')
+  flushJobs()
   assert.equal(counter, 1, 'Effect should run once initially and increment counter')
 
   data.foo = 'bar' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     2,
@@ -238,9 +260,11 @@ test('Reactive - Effect with specific keys', (assert) => {
   )
 
   data.bar = 'baz' // should NOT trigger effect since bar is not tracked
+  flushJobs()
   assert.equal(counter, 2, 'Effect should NOT run again after modifying an untracked property')
 
   data.foo = 'baz' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     3,
@@ -268,9 +292,11 @@ test('Reactive - Multiple effects Tracking & Triggering for same object', (asser
 
   effect(basicEffect)
   effect(anotherEffect)
+  flushJobs()
   assert.equal(counter, 11, 'Both effects should run once initially and increment counter')
 
   data.foo = 'bar' // should trigger both effects
+  flushJobs()
   assert.equal(
     counter,
     22,
@@ -296,6 +322,7 @@ test('Reactive - Removing an effect tracked by multiple reactive targets', (asse
   first.value = 2
   second.value = 3
 
+  flushJobs()
   assert.equal(calls, 1, 'Changing tracked targets should not run the removed effect')
   assert.end()
 })
@@ -316,6 +343,7 @@ test('Reactive - Removing an effect tracked by multiple keys on one target', (as
   data.first = 2
   data.second = 3
 
+  flushJobs()
   assert.equal(calls, 1, 'Changing tracked keys should not run the removed effect')
   assert.end()
 })
@@ -334,6 +362,7 @@ test('Reactive - Tracking the same dependency more than once', (assert) => {
   removeEffects([globalEffect])
   data.value = 2
 
+  flushJobs()
   assert.equal(calls, 1, 'A duplicated dependency should be removed correctly')
   assert.end()
 })
@@ -357,7 +386,9 @@ test('Reactive - Removing only the requested effect', (assert) => {
   removeEffects([removedEffect])
   data.value = 2
 
+  flushJobs()
   assert.equal(removedCalls, 1, 'The removed effect should not run')
+  flushJobs()
   assert.equal(retainedCalls, 2, 'An effect not selected for removal should still run')
 
   removeEffects([retainedEffect])
@@ -380,6 +411,7 @@ test('Reactive - Removing an effect in defineProperty mode', (assert) => {
   data.first = 2
   data.second = 3
 
+  flushJobs()
   assert.equal(calls, 1, 'Changing tracked keys should not run the removed effect')
   assert.end()
 })
@@ -397,6 +429,7 @@ test('Reactive - Removing an effect for a destroyed keyed loop item', (assert) =
   removeEffects([loopEffect])
   item.data = 'loaded asynchronously'
 
+  flushJobs()
   assert.equal(calls, 1, 'A late item update should not run the removed loop effect')
   assert.end()
 })
@@ -428,6 +461,7 @@ test('Reactive - Removing effects for a destroyed nested loop subtree', (assert)
   childItem.title = 'Updated child'
   grandchildItem.data = 'loaded asynchronously'
 
+  flushJobs()
   assert.deepEqual(calls, [1, 1, 1], 'Late updates should not run removed subtree effects')
   assert.end()
 })
@@ -444,9 +478,11 @@ test('Reactive - Assign new object to reactive property', (assert) => {
   }
 
   effect(basicEffect)
+  flushJobs()
   assert.equal(counter, 1, 'Effect should run once initially and increment counter')
 
   data.nested = { foo: 'bar' } // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     2,
@@ -459,12 +495,14 @@ test('Reactive - Get raw object from proxy', (assert) => {
   const originalObj = { a: 100, b: 200 }
   const proxiedObj = reactive(originalObj)
 
+  flushJobs()
   assert.deepEqual(
     proxiedObj[symbols.raw],
     originalObj,
     'Should return the original object from the proxy using the raw symbol'
   )
 
+  flushJobs()
   assert.notEqual(originalObj, proxiedObj, 'Original object should not be equal to proxied object')
   assert.end()
 })
@@ -472,6 +510,7 @@ test('Reactive - Get raw object from proxy', (assert) => {
 test('Reactive - Check reactive object is a proxy or not', (assert) => {
   const proxiedObj = reactive({ a: 100, b: 200 })
 
+  flushJobs()
   assert.deepEqual(proxiedObj[symbols.isProxy], true, 'Reactive object should be a proxy')
   assert.end()
 })
@@ -481,6 +520,7 @@ test('Reactive - Non object prototype should not be converted to Proxy', (assert
   const originalObj = date
   const proxiedObj = reactive(originalObj)
 
+  flushJobs()
   assert.equal(proxiedObj, originalObj, 'Reactive should return the original object')
   assert.end()
 })
@@ -497,9 +537,11 @@ test('Reactive - Effect with multiple specific keys', (assert) => {
     counter++
   }
   effect(basicEffect, ['foo', 'bar'])
+  flushJobs()
   assert.equal(counter, 1, 'Effect should run once initially and increment counter')
 
   data.foo = 'bar' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     2,
@@ -507,6 +549,7 @@ test('Reactive - Effect with multiple specific keys', (assert) => {
   )
 
   data.bar = 'baz' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     3,
@@ -514,9 +557,11 @@ test('Reactive - Effect with multiple specific keys', (assert) => {
   )
 
   data.count = 1 // should NOT trigger effect since count is not tracked
+  flushJobs()
   assert.equal(counter, 3, 'Effect should NOT run again after modifying an untracked property')
 
   data.foo = 'baz' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     4,
@@ -537,9 +582,11 @@ test('Reactive- Pause/Resume Tracking', (assert) => {
   }
 
   effect(basicEffect)
+  flushJobs()
   assert.equal(counter, 1, 'Effect should run once initially and increment counter')
 
   data.foo = 'bar' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     2,
@@ -549,6 +596,7 @@ test('Reactive- Pause/Resume Tracking', (assert) => {
   pauseTracking()
 
   data.foo = 'baz' // should NOT trigger effect since tracking is paused
+  flushJobs()
   assert.equal(
     counter,
     2,
@@ -559,6 +607,7 @@ test('Reactive- Pause/Resume Tracking', (assert) => {
   resumeTracking()
 
   data.foo = 'qux' // should trigger effect since tracking is resumed
+  flushJobs()
   assert.equal(
     counter,
     3,
@@ -579,9 +628,11 @@ test('Reactive - Basic object reactivity using defineProperty mode', (assert) =>
   }
 
   effect(basicEffect)
+  flushJobs()
   assert.equal(counter, 1, 'Effect should run once initially and increment counter')
 
   data.foo = 'bar' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     2,
@@ -589,12 +640,14 @@ test('Reactive - Basic object reactivity using defineProperty mode', (assert) =>
   )
 
   data.foo = 'bar' // should NOT trigger effect since value did not change
+  flushJobs()
   assert.equal(
     counter,
     2,
     'Effect should NOT run again after modifying a property to the same value'
   )
   data.foo = 'baz' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     3,
@@ -621,9 +674,11 @@ test('Reactive - Array reactivity using defineProperty mode', (assert) => {
   }
 
   effect(basicEffect)
+  flushJobs()
   assert.equal(counter, 1, 'Effect should run once initially and increment counter')
 
   data.list.push('four') // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     2,
@@ -631,6 +686,7 @@ test('Reactive - Array reactivity using defineProperty mode', (assert) => {
   )
 
   data.list.push('four') // should trigger effect (arrays can have duplicate values)
+  flushJobs()
   assert.equal(
     counter,
     3,
@@ -638,6 +694,7 @@ test('Reactive - Array reactivity using defineProperty mode', (assert) => {
   )
 
   data.list.splice(1, 1) // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     4,
@@ -665,21 +722,25 @@ test('Reactive - Nested object reactivity using defineProperty mode', (assert) =
   }
 
   effect(basicEffect)
+  flushJobs()
   assert.equal(counter, 1, 'Effect should run once initially and increment counter')
 
   data.nested.foo = 'bar' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     2,
     'Effect should run again after modifying a nested property and increment counter'
   )
   data.nested.foo = 'bar' // should NOT trigger effect since value did not change
+  flushJobs()
   assert.equal(
     counter,
     2,
     'Effect should NOT run again after modifying a nested property to the same value'
   )
   data.nested.foo = 'baz' // should trigger effect
+  flushJobs()
   assert.equal(
     counter,
     3,
