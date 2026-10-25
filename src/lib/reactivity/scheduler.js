@@ -26,6 +26,8 @@
 // The queue stays ordered (parents before children, by `job.id`) through
 // sorted insertion on enqueue — no `Array.sort` pass on flush.
 
+import { runEffect } from './effect.js'
+
 const queue = []
 const has = new Set()
 let waiting = false
@@ -51,7 +53,7 @@ export const flushJobs = () => {
     for (index = 0; index < queue.length; index++) {
       const entry = queue[index]
       has.delete(entry.job)
-      entry.job(entry.arg)
+      runEffect(entry.job, entry.arg)
     }
   } finally {
     queue.length = 0

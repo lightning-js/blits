@@ -236,3 +236,36 @@ test('Caches are isolated per instance', (t) => {
   t.equal(evaluations, 2, 'One evaluation per instance, not per read')
   t.end()
 })
+
+test('Computed drops stale branch dependencies', (t) => {
+  const state = reactive({ cond: true, a: 1, b: 2 })
+  let evaluations = 0
+  const component = setup({
+    picked() {
+      evaluations++
+      return state.cond ? state.a : state.b
+    },
+  })
+
+  t.equal(component.picked, 1, 'Computed reads the taken branch')
+  t.equal(evaluations, 1, 'Computed evaluated once')
+
+  state.cond = false
+  flushJobs()
+
+  t.equal(component.picked, 2, 'Computed reads the new branch')
+  t.equal(evaluations, 2, 'Computed re-evaluated after the branch switch')
+
+  state.a = 10
+  flushJobs()
+
+  t.equal(component.picked, 2, 'Stale branch change does not invalidate the cache')
+  t.equal(evaluations, 2, 'Computed not re-evaluated for the untaken branch')
+
+  state.b = 20
+  flushJobs()
+
+  t.equal(component.picked, 20, 'Taken branch change invalidates the cache')
+  t.equal(evaluations, 3, 'Computed re-evaluated for the taken branch')
+  t.end()
+})
