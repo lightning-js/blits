@@ -17,7 +17,65 @@
 
 import { Log } from '../../lib/log.js'
 
+import { track, trigger, withTracking } from '../../lib/reactivity/effect.js'
+
 import symbols from '../../lib/symbols.js'
+
+// Per-instance computed caches. Setup runs once per component type while the
+// defined getters execute on instances (`this`), so cached values and dirty
+// flags live here keyed by instance instead of on the shared base.
+const caches = new WeakMap()
+
+/**
+ * Get (creating on first use) the cache entry for a computed key on an instance.
+ *
+ * @param {object} instance - Component instance reading the computed.
+ * @param {string} key - Computed key.
+ * @returns {{value: *, dirty: boolean, invalidate: Function}} Cache entry.
+ */
+const getEntry = (instance, key) => {
+  let entries = caches.get(instance)
+  if (entries === undefined) {
+    entries = new Map()
+    caches.set(instance, entries)
+  }
+  let entry = entries.get(key)
+  if (entry === undefined) {
+    entry = { value: undefined, dirty: true, invalidate: null }
+    entry.invalidate = () => {
+      entry.dirty = true
+      trigger(entry, 'value')
+    }
+    entries.set(key, entry)
+    // register for cleanup with the instance effects so destroy unsubscribes
+    const effects = instance[symbols.effects]
+    if (effects !== undefined) {
+      effects.push(entry.invalidate)
+    }
+  }
+  return entry
+}
+
+/**
+ * Read a computed value, evaluating the user function at most once per
+ * dependency change and subscribing the reader to future invalidations.
+ *
+ * @param {object} instance - Component instance reading the computed.
+ * @param {string} key - Computed key.
+ * @param {Function} userFn - User supplied computed function.
+ * @returns {*} Cached (or freshly evaluated) computed value.
+ */
+const readComputed = (instance, key, userFn) => {
+  const entry = getEntry(instance, key)
+  if (entry.dirty === true) {
+    withTracking(entry.invalidate, null, () => {
+      entry.value = userFn.apply(instance)
+    })
+    entry.dirty = false
+  }
+  track(entry, 'value')
+  return entry.value
+}
 
 export default (component, computeds) => {
   component[symbols.computedKeys] = []
@@ -37,10 +95,12 @@ export default (component, computeds) => {
       if (typeof computeds[computed] !== 'function') {
         Log.warn(`${computed} is not a function`)
       }
+      const key = computed
+      const userFn = computeds[computed]
       component[symbols.computedKeys].push(computed)
       Object.defineProperty(component, computed, {
         get() {
-          return computeds[computed].apply(this)
+          return readComputed(this, key, userFn)
         },
       })
     }
