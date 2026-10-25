@@ -872,3 +872,92 @@ test('Reactive - Effect unsubscribes from untaken branches', (assert) => {
   assert.deepEqual(seen, [1, 2, 20], 'Effect should read the updated branch value')
   assert.end()
 })
+
+test('Reactive - Reversing a nested array triggers effects', (assert) => {
+  const data = reactive({ items: [1, 2, 3] })
+
+  let counter = 0
+
+  const basicEffect = () => {
+    data.items.length // track length
+    counter++
+  }
+
+  effect(basicEffect)
+  flushJobs()
+  assert.equal(counter, 1, 'Effect should run once initially and increment counter')
+
+  data.items.reverse() // order changed, should trigger parent key
+  flushJobs()
+  assert.equal(counter, 2, 'Effect should run again after reversing a nested array')
+  assert.deepEqual([...data.items], [3, 2, 1], 'Reverse should reorder the array in place')
+  assert.end()
+})
+
+test('Reactive - Reversing a root array without length change is silent', (assert) => {
+  const items = reactive([1, 2, 3])
+
+  let counter = 0
+
+  const basicEffect = () => {
+    items.length // track length
+    counter++
+  }
+
+  effect(basicEffect)
+  flushJobs()
+  assert.equal(counter, 1, 'Effect should run once initially and increment counter')
+
+  items.reverse() // length unchanged, should NOT trigger length-only effect
+  flushJobs()
+  assert.equal(counter, 1, 'Effect should NOT run again after a length-preserving reverse')
+  assert.end()
+})
+
+test('Reactive - Replacing a nested object notifies whole-object readers', (assert) => {
+  const data = reactive({ obj: { foo: 'foo' } })
+
+  let counter = 0
+
+  const basicEffect = () => {
+    data.obj // track whole object
+    counter++
+  }
+
+  effect(basicEffect)
+  flushJobs()
+  assert.equal(counter, 1, 'Effect should run once initially and increment counter')
+
+  data.obj = { foo: 'bar' } // replace, should trigger effect
+  flushJobs()
+  assert.equal(counter, 2, 'Effect should run again after replacing the nested object')
+
+  data.obj.foo = 'baz' // leaf mutation notifies its own key precisely
+  flushJobs()
+  assert.equal(
+    counter,
+    2,
+    'Effect should NOT run again after mutating a leaf of the tracked object'
+  )
+  assert.end()
+})
+
+test('Reactive - Root array element object replacement notifies readers', (assert) => {
+  const list = reactive([{ name: 'one' }])
+
+  let counter = 0
+
+  const basicEffect = () => {
+    list[0] // track first element
+    counter++
+  }
+
+  effect(basicEffect)
+  flushJobs()
+  assert.equal(counter, 1, 'Effect should run once initially and increment counter')
+
+  list[0] = { name: 'two' } // should trigger effect through the index subscription
+  flushJobs()
+  assert.equal(counter, 2, 'Effect should run again after replacing the tracked element')
+  assert.end()
+})

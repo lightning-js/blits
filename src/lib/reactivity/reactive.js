@@ -19,7 +19,7 @@ import { track, trigger, pauseTracking, resumeTracking } from './effect.js'
 import symbols from '../symbols.js'
 import deepEqualArray from '../../helpers/deepEqualArray.js'
 
-const arrayPatchMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort']
+const arrayPatchMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse']
 
 const proxyMap = new WeakMap()
 
@@ -68,9 +68,9 @@ const reactiveProxy = (original, _parent = null, _key) => {
       // handling arrays
       if (Array.isArray(target) === true) {
         if (typeof target[key] === 'object' && target[key] !== null) {
-          if (Array.isArray(target[key]) === true) {
-            track(target, key)
-          }
+          // track every nested object/array read so replacing it re-runs
+          // the reader (leaf mutations notify their own key precisely)
+          track(target, key)
           // create a new reactive proxy
           return reactiveProxy(getRaw(target[key]), target, key)
         }
@@ -86,8 +86,9 @@ const reactiveProxy = (original, _parent = null, _key) => {
               resumeTracking()
             }
             // trigger a change when the length of the array has changed
-            // by the array operation
-            if (_parent === null && target.length !== oldLength) {
+            // by the array operation (queue dedupes readers subscribed to
+            // both the array and its parent key down to a single run)
+            if (target.length !== oldLength) {
               trigger(target, 'length')
             }
             // trigger a change on the parent object and the key
@@ -98,10 +99,7 @@ const reactiveProxy = (original, _parent = null, _key) => {
           }
         }
         if (key === 'length') {
-          // only track root level to prevent double reactive executions
-          if (_parent === null) {
-            track(target, 'length')
-          }
+          track(target, 'length')
           return original.length
         }
 
@@ -110,9 +108,9 @@ const reactiveProxy = (original, _parent = null, _key) => {
 
       // handling objects (but not null values, which have object type in JS)
       if (typeof target[key] === 'object' && target[key] !== null) {
-        if (Array.isArray(target[key]) === true) {
-          track(target, key)
-        }
+        // track every nested object/array read so replacing it re-runs
+        // the reader (leaf mutations notify their own key precisely)
+        track(target, key)
         // create a new reactive proxy
         return reactiveProxy(getRaw(target[key]), target, key)
       }
