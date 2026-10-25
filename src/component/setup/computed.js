@@ -17,7 +17,7 @@
 
 import { Log } from '../../lib/log.js'
 
-import { track, trigger, withTracking } from '../../lib/reactivity/effect.js'
+import { track, trigger, trackCollected } from '../../lib/reactivity/effect.js'
 
 import symbols from '../../lib/symbols.js'
 
@@ -68,7 +68,7 @@ const getEntry = (instance, key) => {
 const readComputed = (instance, key, userFn) => {
   const entry = getEntry(instance, key)
   if (entry.dirty === true) {
-    withTracking(entry.invalidate, null, () => {
+    trackCollected(entry.invalidate, null, () => {
       entry.value = userFn.apply(instance)
     })
     entry.dirty = false

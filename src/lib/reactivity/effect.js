@@ -34,18 +34,21 @@ export const resumeTracking = () => {
 }
 
 const objectMap = new WeakMap()
-const effectDependenciesMap = new WeakMap()
+const effectDeps = new WeakMap()
+const effectKeys = new WeakMap()
+const collecting = new Map()
 
 export const removeEffects = (effectsToRemove) => {
   for (let i = 0; i < effectsToRemove.length; i++) {
     const effect = effectsToRemove[i]
     invalidateJob(effect)
-    const dependencies = effectDependenciesMap.get(effect)
+    const dependencies = effectDeps.get(effect)
     if (dependencies === undefined) continue
-    for (let j = 0; j < dependencies.length; j++) {
-      dependencies[j].delete(effect)
+    for (const effects of dependencies) {
+      effects.delete(effect)
     }
-    effectDependenciesMap.delete(effect)
+    effectDeps.delete(effect)
+    effectKeys.delete(effect)
   }
 }
 
@@ -69,14 +72,22 @@ export const track = (target, key) => {
       effects = new Set()
       effectsMap.set(key, effects)
     }
-    if (effects.has(currentEffect) === false) {
-      let dependencies = effectDependenciesMap.get(currentEffect)
-      if (dependencies === undefined) {
-        dependencies = []
-        effectDependenciesMap.set(currentEffect, dependencies)
+    const collected = collecting.get(currentEffect)
+    if (collected !== undefined) {
+      if (collected.has(effects) === false) {
+        collected.add(effects)
+        effects.add(currentEffect)
       }
-      dependencies.push(effects)
+      return
+    }
+    if (effects.has(currentEffect) === false) {
       effects.add(currentEffect)
+      let dependencies = effectDeps.get(currentEffect)
+      if (dependencies === undefined) {
+        dependencies = new Set()
+        effectDeps.set(currentEffect, dependencies)
+      }
+      dependencies.add(effects)
     }
   }
 }
@@ -122,4 +133,49 @@ export const withTracking = (effectFn, key, fn) => {
   }
 }
 
-export const effect = (effectFn, key = null) => withTracking(effectFn, key, effectFn)
+/**
+ * Run `collectFn` with `fn` installed as the tracking target, collecting
+ * the touched dependency sets and unsubscribing `fn` from sets that were
+ * not touched (stale branches). Mirrors Vue2 `Watcher.get/cleanupDeps`.
+ *
+ * @param {Function} fn - Effect owning the collected dependencies.
+ * @param {string|string[]|null} key - Key filter for tracking, if any.
+ * @param {Function} collectFn - Function to run while collecting.
+ * @returns {*} The return value of `collectFn`.
+ */
+export const trackCollected = (fn, key, collectFn) => {
+  const previous = effectDeps.get(fn)
+  const collected = new Set()
+  collecting.set(fn, collected)
+  try {
+    return withTracking(fn, key, collectFn)
+  } finally {
+    collecting.delete(fn)
+    if (previous !== undefined) {
+      for (const effects of previous) {
+        if (collected.has(effects) === false) {
+          effects.delete(fn)
+        }
+      }
+    }
+    effectDeps.set(fn, collected)
+  }
+}
+
+/**
+ * Run a registered effect with its key filter, refreshing its dependency
+ * subscriptions. Used by the scheduler flush for re-runs.
+ *
+ * @param {Function} fn - Effect to run, previously registered via `effect`.
+ * @param {*} arg - Argument passed through to the effect (e.g. force flag).
+ * @returns {*} The return value of the effect.
+ */
+export const runEffect = (fn, arg) => {
+  const key = effectKeys.get(fn)
+  return trackCollected(fn, key === undefined ? null : key, () => fn(arg))
+}
+
+export const effect = (effectFn, key = null) => {
+  effectKeys.set(effectFn, key)
+  return runEffect(effectFn)
+}

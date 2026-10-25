@@ -840,3 +840,35 @@ test('Memo - NaN assignments do not trigger effects', (assert) => {
   assert.equal(counter, 2, 'Effect should run again after modifying the value')
   assert.end()
 })
+
+test('Reactive - Effect unsubscribes from untaken branches', (assert) => {
+  const data = reactive({ cond: true, a: 1, b: 2 })
+
+  let counter = 0
+  const seen = []
+
+  const basicEffect = () => {
+    counter++
+    seen.push(data.cond ? data.a : data.b)
+  }
+
+  effect(basicEffect)
+  flushJobs()
+  assert.equal(counter, 1, 'Effect should run once initially')
+  assert.deepEqual(seen, [1], 'Effect should read the taken branch')
+
+  data.cond = false // switch branches, should trigger effect
+  flushJobs()
+  assert.equal(counter, 2, 'Effect should run again after switching branches')
+  assert.deepEqual(seen, [1, 2], 'Effect should read the new branch')
+
+  data.a = 10 // stale branch, should NOT trigger effect
+  flushJobs()
+  assert.equal(counter, 2, 'Effect should NOT run again after modifying the untaken branch')
+
+  data.b = 20 // taken branch, should trigger effect
+  flushJobs()
+  assert.equal(counter, 3, 'Effect should run again after modifying the taken branch')
+  assert.deepEqual(seen, [1, 2, 20], 'Effect should read the updated branch value')
+  assert.end()
+})
