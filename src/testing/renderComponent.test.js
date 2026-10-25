@@ -421,6 +421,11 @@ test('renderComponent combines reactive attributes of one element into a single 
     'Pause',
     'Other elements keep their own effects'
   )
+  assert.deepEqual(
+    fixture.component[symbols.wrapper]._lastSet,
+    { x: 40, y: 50 },
+    'Combined effect should record last applied values on the element'
+  )
 
   fixture.destroy()
   assert.end()
