@@ -922,13 +922,8 @@ test('Generate code for a template with simple dynamic attributes', (assert) => 
   const expectedEffect1 = `
   function anonymous(component, elms, context, components, rootComponent, skips, effect) {
     elms[0].set('w', component.foo)
-  }
-  `
-
-  const expectedEffect2 = `
-  function anonymous(component, elms, context, components, rootComponent, skips, effect) {
     elms[0].set('h', component.test)
- }
+  }
   `
 
   const actual = generator.call(scope, templateObject)
@@ -939,18 +934,13 @@ test('Generate code for a template with simple dynamic attributes', (assert) => 
     'Generator should return a render function with the correct code'
   )
   assert.ok(
-    Array.isArray(actual.effects) && actual.effects.length === 2,
-    'Generator should return an effects array with 2 items'
+    Array.isArray(actual.effects) && actual.effects.length === 1,
+    'Generator should return an effects array with 1 combined item'
   )
   assert.equal(
     normalize(actual.effects[0].toString()),
     normalize(expectedEffect1),
     'Generator should return first render function with the correct code'
-  )
-  assert.equal(
-    normalize(actual.effects[1].toString()),
-    normalize(expectedEffect2),
-    'Generator should return second render function with the correct code'
   )
 
   assert.end()
@@ -1092,17 +1082,7 @@ test('Generate code for a template with dynamic attributes with code to be evalu
   const expectedEffect1 = `
   function anonymous(component, elms, context, components, rootComponent, skips, effect) {
     elms[0].set('attribute1', component.foo * 2)
-  }
-  `
-
-  const expectedEffect2 = `
-  function anonymous(component, elms, context, components, rootComponent, skips, effect) {
     elms[0].set('attribute2', component.ok ? 'Yes' : 'No')
-  }
-  `
-
-  const expectedEffect3 = `
-  function anonymous(component, elms, context, components, rootComponent, skips, effect) {
     elms[0].set('attribute3', component.text.split('').reverse().join(''))
   }
   `
@@ -1115,23 +1095,13 @@ test('Generate code for a template with dynamic attributes with code to be evalu
     'Generator should return a render function with the correct code'
   )
   assert.ok(
-    Array.isArray(actual.effects) && actual.effects.length === 3,
-    'Generator should return an effects array with 3 items'
+    Array.isArray(actual.effects) && actual.effects.length === 1,
+    'Generator should return an effects array with 1 combined item'
   )
   assert.equal(
     normalize(actual.effects[0].toString()),
     normalize(expectedEffect1),
     'Generator should return first effect function with the correct code'
-  )
-  assert.equal(
-    normalize(actual.effects[1].toString()),
-    normalize(expectedEffect2),
-    'Generator should return second effect function with the correct code'
-  )
-  assert.equal(
-    normalize(actual.effects[2].toString()),
-    normalize(expectedEffect3),
-    'Generator should return third effect function with the correct code'
   )
 
   assert.end()
@@ -3435,6 +3405,50 @@ test('Generate code for a template with a single element with attributes with pe
   assert.end()
 })
 
+test('Generate code combines per-element effects inside a for-loop by scope', (assert) => {
+  const templateObject = {
+    children: [
+      {
+        [Symbol.for('componentType')]: 'Element',
+        children: [
+          {
+            [Symbol.for('componentType')]: 'Element',
+            ':for': 'item in $items',
+            ':x': '$item.x',
+            ':y': '$item.y',
+            ':color': '$selected',
+          },
+        ],
+      },
+    ],
+  }
+
+  const actual = generator.call(scope, templateObject)
+  const rendered = normalize(actual.render.toString())
+
+  assert.ok(
+    Array.isArray(actual.effects) && actual.effects.length === 0,
+    'Generator should not return top-level effects for loop-only bindings'
+  )
+  assert.ok(
+    rendered.includes(
+      "elms[1][scope.key].set('x',scope.item.x)elms[1][scope.key].set('y',scope.item.y)"
+    ),
+    'Iteration-only bindings of one element should merge into a single inner effect'
+  )
+  assert.ok(
+    rendered.includes("elms[1][scope.key].set('color',component.selected)"),
+    'Outer-scope bindings should stay in the outer loop wrapper'
+  )
+  assert.equal(
+    rendered.split('effect(eff').length - 1,
+    3,
+    'Loop body should register one inner, one driver and one outer effect'
+  )
+
+  assert.end()
+})
+
 test('Generate code for a template with a simple for-loop on an Element', (assert) => {
   const templateObject = {
     children: [
@@ -4958,13 +4972,8 @@ test('Generate code for a template with verification of reactive attributes', (a
   const expectedEffect1 = `
   function anonymous(component, elms, context, components, rootComponent, skips, effect) {
     elms[0].set('w', component.eWidth)
-  }
-  `
-
-  const expectedEffect2 = `
-  function anonymous(component, elms, context, components, rootComponent, skips, effect) {
     elms[0].set('h', component.eHeight)
- }
+  }
   `
 
   const actual = generator.call(scope, templateObject, true)
@@ -4976,20 +4985,14 @@ test('Generate code for a template with verification of reactive attributes', (a
   )
 
   assert.ok(
-    Array.isArray(actual.effects) && actual.effects.length === 2,
-    'Generator should return an effects array with 2 item'
+    Array.isArray(actual.effects) && actual.effects.length === 1,
+    'Generator should return an effects array with 1 combined item'
   )
 
   assert.equal(
     normalize(actual.effects[0].toString()),
     normalize(expectedEffect1),
-    'Generator should return an effect function for the reactive eWidth attribute'
-  )
-
-  assert.equal(
-    normalize(actual.effects[1].toString()),
-    normalize(expectedEffect2),
-    'Generator should return an effect function for the reactive eHeight attribute'
+    'Generator should return a combined effect function for the reactive attributes'
   )
 
   assert.end()
@@ -5085,13 +5088,8 @@ test('Generate code for a template with attribute values verified against a nest
   const expectedEffect1 = `
   function anonymous(component, elms, context, components, rootComponent, skips, effect) {
     elms[0].set('w', component.size.w)
-  }
-  `
-
-  const expectedEffect2 = `
-  function anonymous(component, elms, context, components, rootComponent, skips, effect) {
     elms[0].set('h', component.size.h)
- }
+  }
   `
 
   const actual = generator.call(scope, templateObject, true)
@@ -5103,20 +5101,14 @@ test('Generate code for a template with attribute values verified against a nest
   )
 
   assert.ok(
-    Array.isArray(actual.effects) && actual.effects.length === 2,
-    'Generator should return an effects array with 2 item'
+    Array.isArray(actual.effects) && actual.effects.length === 1,
+    'Generator should return an effects array with 1 combined item'
   )
 
   assert.equal(
     normalize(actual.effects[0].toString()),
     normalize(expectedEffect1),
-    'Generator should return an effect function for the reactive eWidth attribute'
-  )
-
-  assert.equal(
-    normalize(actual.effects[1].toString()),
-    normalize(expectedEffect2),
-    'Generator should return an effect function for the reactive eHeight attribute'
+    'Generator should return a combined effect function for the reactive attributes'
   )
 
   assert.end()
@@ -5214,13 +5206,8 @@ test('Generate code for a template with verification of attributes with Math cal
   const expectedEffect1 = `
   function anonymous(component, elms, context, components, rootComponent, skips, effect) {
     elms[0].set('w', component.size.w * component.correction)
-  }
-  `
-
-  const expectedEffect2 = `
-  function anonymous(component, elms, context, components, rootComponent, skips, effect) {
     elms[0].set('h', component.size.h + component.borderY)
- }
+  }
   `
 
   const actual = generator.call(scope, templateObject, true)
@@ -5232,20 +5219,14 @@ test('Generate code for a template with verification of attributes with Math cal
   )
 
   assert.ok(
-    Array.isArray(actual.effects) && actual.effects.length === 2,
-    'Generator should return an effects array with 2 item'
+    Array.isArray(actual.effects) && actual.effects.length === 1,
+    'Generator should return an effects array with 1 combined item'
   )
 
   assert.equal(
     normalize(actual.effects[0].toString()),
     normalize(expectedEffect1),
-    'Generator should return an effect function for the reactive width attribute'
-  )
-
-  assert.equal(
-    normalize(actual.effects[1].toString()),
-    normalize(expectedEffect2),
-    'Generator should return an effect function for the reactive height attribute'
+    'Generator should return a combined effect function for the reactive attributes'
   )
 
   assert.end()
