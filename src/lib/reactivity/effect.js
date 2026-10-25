@@ -98,7 +98,16 @@ export const trigger = (target, key, force = false) => {
   }
 }
 
-export const effect = (effectFn, key = null) => {
+/**
+ * Run `fn` with `effectFn` (and `key` filter) installed as the tracking
+ * target, restoring the previous tracking state afterwards.
+ *
+ * @param {Function} effectFn - Effect to attribute tracked dependencies to.
+ * @param {string|string[]|null} key - Key filter for tracking, if any.
+ * @param {Function} fn - Function to run under the tracking context.
+ * @returns {*} The return value of `fn`.
+ */
+export const withTracking = (effectFn, key, fn) => {
   const previousEffect = currentEffect
   const previousKey = currentKey
 
@@ -106,9 +115,11 @@ export const effect = (effectFn, key = null) => {
   currentKey = key
 
   try {
-    effectFn()
+    return fn()
   } finally {
     currentEffect = previousEffect
     currentKey = previousKey
   }
 }
+
+export const effect = (effectFn, key = null) => withTracking(effectFn, key, effectFn)
