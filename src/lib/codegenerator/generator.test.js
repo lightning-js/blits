@@ -921,8 +921,30 @@ test('Generate code for a template with simple dynamic attributes', (assert) => 
 
   const expectedEffect1 = `
   function anonymous(component, elms, context, components, rootComponent, skips, effect) {
-    elms[0].set('w', component.foo)
-    elms[0].set('h', component.test)
+    {
+    const el = elms[0]
+    const v = component.foo
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
+    }
+    const last = el._lastSet
+    if (last['w'] !== v) {
+    last['w'] = v
+    el.set('w', v)
+    }
+    }
+    {
+    const el = elms[0]
+    const v = component.test
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
+    }
+    const last = el._lastSet
+    if (last['h'] !== v) {
+    last['h'] = v
+    el.set('h', v)
+    }
+    }
   }
   `
 
@@ -1081,9 +1103,42 @@ test('Generate code for a template with dynamic attributes with code to be evalu
 
   const expectedEffect1 = `
   function anonymous(component, elms, context, components, rootComponent, skips, effect) {
-    elms[0].set('attribute1', component.foo * 2)
-    elms[0].set('attribute2', component.ok ? 'Yes' : 'No')
-    elms[0].set('attribute3', component.text.split('').reverse().join(''))
+    {
+    const el = elms[0]
+    const v = component.foo * 2
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
+    }
+    const last = el._lastSet
+    if (last['attribute1'] !== v) {
+    last['attribute1'] = v
+    el.set('attribute1', v)
+    }
+    }
+    {
+    const el = elms[0]
+    const v = component.ok ? 'Yes' : 'No'
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
+    }
+    const last = el._lastSet
+    if (last['attribute2'] !== v) {
+    last['attribute2'] = v
+    el.set('attribute2', v)
+    }
+    }
+    {
+    const el = elms[0]
+    const v = component.text.split('').reverse().join('')
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
+    }
+    const last = el._lastSet
+    if (last['attribute3'] !== v) {
+    last['attribute3'] = v
+    el.set('attribute3', v)
+    }
+    }
   }
   `
 
@@ -2364,8 +2419,20 @@ test('Generate code for a template with custom components with reactive props', 
 
   const expectedEffect1 = `
    function anonymous(component, elms, context, components, rootComponent, skips, effect) {
-    if (typeof skips === 'undefined' || (typeof skips[1] === 'undefined' || skips[1].indexOf('img') === -1))
-        elms[1].set('img', component.image)
+    {
+    const el = elms[1]
+    const v = component.image
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
+    }
+    const last = el._lastSet
+    if(typeof skips === 'undefined' || (typeof skips[1] === 'undefined' || skips[1].indexOf('img') === -1)) {
+    if (last['img'] !== v) {
+    last['img'] = v
+    el.set('img', v)
+    }
+    }
+    }
   }
   `
 
@@ -2377,9 +2444,21 @@ test('Generate code for a template with custom components with reactive props', 
 
   const expectedEffect3 = `
   function anonymous(component, elms, context, components, rootComponent,skips, effect) {
-    if (typeof skips === 'undefined' || (typeof skips[3] === 'undefined' ||  skips[3].indexOf('img') === -1))
-        elms[3].set('img', component.image)
+    {
+    const el = elms[3]
+    const v = component.image
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
     }
+    const last = el._lastSet
+    if(typeof skips === 'undefined' || (typeof skips[3] === 'undefined' || skips[3].indexOf('img') === -1)) {
+    if (last['img'] !== v) {
+    last['img'] = v
+    el.set('img', v)
+    }
+    }
+    }
+  }
   `
 
   const expectedEffect4 = `
@@ -2663,7 +2742,18 @@ test('Generate code for a template with slot content', (assert) => {
 
   const expectedEffect1 = `
     function anonymous(component,elms,context,components,rootComponent, skips,effect){
-      elms[4].set('rotation', component.rotate)
+    {
+    const el = elms[4]
+    const v = component.rotate
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
+    }
+    const last = el._lastSet
+    if (last['rotation'] !== v) {
+    last['rotation'] = v
+    el.set('rotation', v)
+    }
+    }
     }
   `
 
@@ -3431,13 +3521,12 @@ test('Generate code combines per-element effects inside a for-loop by scope', (a
     'Generator should not return top-level effects for loop-only bindings'
   )
   assert.ok(
-    rendered.includes(
-      "elms[1][scope.key].set('x',scope.item.x)elms[1][scope.key].set('y',scope.item.y)"
-    ),
+    rendered.includes("vel.set('x',v)}}{constel=elms[1][scope.key]constv=scope.item.y"),
     'Iteration-only bindings of one element should merge into a single inner effect'
   )
   assert.ok(
-    rendered.includes("elms[1][scope.key].set('color',component.selected)"),
+    rendered.includes('constv=component.selected') &&
+      rendered.includes("last['color']=vel.set('color',v)"),
     'Outer-scope bindings should stay in the outer loop wrapper'
   )
   assert.equal(
@@ -4769,7 +4858,18 @@ test('Generate code for a template with double $$ (i.e. referencing a Blits plug
 
   const expectedEffect1 = `
   function anonymous(component, elms, context, components, rootComponent, skips, effect) {
-    elms[0].set('content', component.$language.translate('hello'))
+    {
+    const el = elms[0]
+    const v = component.$language.translate('hello')
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
+    }
+    const last = el._lastSet
+    if (last['content'] !== v) {
+    last['content'] = v
+    el.set('content', v)
+    }
+    }
   }
   `
 
@@ -4971,8 +5071,30 @@ test('Generate code for a template with verification of reactive attributes', (a
 
   const expectedEffect1 = `
   function anonymous(component, elms, context, components, rootComponent, skips, effect) {
-    elms[0].set('w', component.eWidth)
-    elms[0].set('h', component.eHeight)
+    {
+    const el = elms[0]
+    const v = component.eWidth
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
+    }
+    const last = el._lastSet
+    if (last['w'] !== v) {
+    last['w'] = v
+    el.set('w', v)
+    }
+    }
+    {
+    const el = elms[0]
+    const v = component.eHeight
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
+    }
+    const last = el._lastSet
+    if (last['h'] !== v) {
+    last['h'] = v
+    el.set('h', v)
+    }
+    }
   }
   `
 
@@ -5087,8 +5209,30 @@ test('Generate code for a template with attribute values verified against a nest
 
   const expectedEffect1 = `
   function anonymous(component, elms, context, components, rootComponent, skips, effect) {
-    elms[0].set('w', component.size.w)
-    elms[0].set('h', component.size.h)
+    {
+    const el = elms[0]
+    const v = component.size.w
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
+    }
+    const last = el._lastSet
+    if (last['w'] !== v) {
+    last['w'] = v
+    el.set('w', v)
+    }
+    }
+    {
+    const el = elms[0]
+    const v = component.size.h
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
+    }
+    const last = el._lastSet
+    if (last['h'] !== v) {
+    last['h'] = v
+    el.set('h', v)
+    }
+    }
   }
   `
 
@@ -5205,8 +5349,30 @@ test('Generate code for a template with verification of attributes with Math cal
 
   const expectedEffect1 = `
   function anonymous(component, elms, context, components, rootComponent, skips, effect) {
-    elms[0].set('w', component.size.w * component.correction)
-    elms[0].set('h', component.size.h + component.borderY)
+    {
+    const el = elms[0]
+    const v = component.size.w * component.correction
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
+    }
+    const last = el._lastSet
+    if (last['w'] !== v) {
+    last['w'] = v
+    el.set('w', v)
+    }
+    }
+    {
+    const el = elms[0]
+    const v = component.size.h + component.borderY
+    if (el._lastSet === undefined) {
+    el._lastSet = {}
+    }
+    const last = el._lastSet
+    if (last['h'] !== v) {
+    last['h'] = v
+    el.set('h', v)
+    }
+    }
   }
   `
 

@@ -161,32 +161,75 @@ const verifyVariables = function (value, renderCode, isContentKey = false, type 
 }
 
 /**
- * Push buffered per-element effect statements as a single combined entry.
- * Inside `:for` loops statements are split by scope (iteration-only vs
- * outer-scope) so the generated effects keep their inner/outer
- * classification; everywhere else all statements merge into one entry.
+ * Build a guarded set block for one element binding. The guard compares the
+ * freshly evaluated value against the last applied one and skips the
+ * `elm.set()` call (and its object churn) when nothing changed.
+ *
+ * @param {{elm: string, prop: string, value: string, holder: boolean, counter: number}} entry - Buffered binding.
+ * @returns {string} Guarded set block.
+ */
+const buildGuardedSet = (entry) => {
+  const setBlock = `if (last['${entry.prop}'] !== v) {
+last['${entry.prop}'] = v
+el.set('${entry.prop}', v)
+}`
+  const guarded =
+    entry.holder === true
+      ? `if(typeof skips === 'undefined' || (typeof skips[${entry.counter}] === 'undefined' || skips[${entry.counter}].indexOf('${entry.prop}') === -1)) {
+${setBlock}
+}`
+      : setBlock
+  return `{
+const el = ${entry.elm}
+const v = ${entry.value}
+if (el._lastSet === undefined) {
+el._lastSet = {}
+}
+const last = el._lastSet
+${guarded}
+}`
+}
+
+/**
+ * Push buffered per-element effect statements as combined entries. With
+ * `guard` each binding is wrapped in a last-value guard block; otherwise
+ * statements are joined as-is (plain reactive prop assignments, already
+ * guarded by the reactivity equality check). Inside `:for` loops statements
+ * are split by scope (iteration-only vs outer-scope) so the generated
+ * effects keep their inner/outer classification.
  * `this` is the codegen ctx holding `effectsCode` (and `scopeRegex` for loops).
  *
- * @param {string[]} statements - Effect statements for one element.
+ * @param {Array} statements - Buffered statements for one element.
+ * @param {boolean} guard - Whether to wrap statements in value guards.
  * @returns {void}
  */
-const flushElementEffects = function (statements) {
+const flushElementEffects = function (statements, guard) {
   if (statements.length === 0) {
     return
   }
   const scopeRegex = this.scopeRegex
   if (scopeRegex === undefined) {
-    this.effectsCode.push(statements.join('\n'))
+    if (guard === true) {
+      const blocks = []
+      for (let i = 0; i < statements.length; i++) {
+        blocks.push(buildGuardedSet(statements[i]))
+      }
+      this.effectsCode.push(blocks.join('\n'))
+    } else {
+      this.effectsCode.push(statements.join('\n'))
+    }
     return
   }
   let inner = ''
   let outer = ''
   for (let i = 0; i < statements.length; i++) {
     const statement = statements[i]
-    if ([...statement.matchAll(scopeRegex)].length !== 0) {
-      outer += statement + '\n'
+    const text = guard === true ? statement.value : statement
+    const block = guard === true ? buildGuardedSet(statement) : statement
+    if ([...text.matchAll(scopeRegex)].length !== 0) {
+      outer += block + '\n'
     } else {
-      inner += statement + '\n'
+      inner += block + '\n'
     }
   }
   if (inner !== '') {
@@ -273,20 +316,13 @@ const generateElementCode = function (
     const value = templateObject[key]
 
     if (isReactiveKey(key)) {
-      if (options.holder) {
-        elementEffects.push(`
-        if(typeof skips === 'undefined' || (typeof skips[${counter}] === 'undefined' ||
-          skips[${counter}].indexOf('${key.substring(1)}') === -1))
-          ${elm}.set('${key.substring(1)}', ${interpolate(templateObject[key], options.component)})
-        `)
-      } else {
-        elementEffects.push(`
-            ${elm}.set('${key.substring(1)}', ${interpolate(
-              templateObject[key],
-              options.component
-            )})
-          `)
-      }
+      elementEffects.push({
+        elm,
+        prop: key.substring(1),
+        value: interpolate(templateObject[key], options.component),
+        holder: options.holder === true,
+        counter,
+      })
       // value.includes('.') === false &&
       if (isDev === true && options.component !== 'scope.' && value.includes('$')) {
         verifyVariables(value, renderCode, key === ':content', 'reactive')
@@ -325,14 +361,18 @@ const generateElementCode = function (
       // Check if the interpolation contains $ variable
       const isReactive = variableRegEx.test(val)
       if (isReactive === true) {
-        elementEffects.push(`
-          ${elm}.set('content', ${output})
-        `)
+        elementEffects.push({
+          elm,
+          prop: 'content',
+          value: output,
+          holder: false,
+          counter,
+        })
       }
     }
   }
 
-  flushElementEffects.call(this, elementEffects)
+  flushElementEffects.call(this, elementEffects, true)
 
   if (options.holder === true) {
     renderCode.push(`
@@ -455,7 +495,7 @@ const generateComponentCode = function (
     }
   })
 
-  flushElementEffects.call(this, componentEffects)
+  flushElementEffects.call(this, componentEffects, false)
 
   renderCode.push(`
     componentType = props[${counter}]['is'] || '${templateObject[Symbol.for('componentType')]}'

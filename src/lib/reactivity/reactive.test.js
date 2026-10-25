@@ -16,7 +16,7 @@
  */
 
 import test from 'tape'
-import { reactive } from './reactive.js'
+import { reactive, memo } from './reactive.js'
 import { effect, pauseTracking, removeEffects, resumeTracking } from './effect.js'
 import { flushJobs } from './scheduler.js'
 import symbols from '../symbols.js'
@@ -746,5 +746,97 @@ test('Reactive - Nested object reactivity using defineProperty mode', (assert) =
     3,
     'Effect should run again after modifying a nested property and increment counter'
   )
+  assert.end()
+})
+
+test('Reactive - NaN assignments do not trigger effects', (assert) => {
+  const data = reactive({ value: NaN })
+
+  let counter = 0
+
+  const basicEffect = () => {
+    data.value // track value
+    counter++
+  }
+
+  effect(basicEffect)
+  flushJobs()
+  assert.equal(counter, 1, 'Effect should run once initially and increment counter')
+
+  data.value = NaN // should NOT trigger effect since NaN equals NaN
+  flushJobs()
+  assert.equal(counter, 1, 'Effect should NOT run again after assigning NaN over NaN')
+
+  data.value = 1 // should trigger effect
+  flushJobs()
+  assert.equal(
+    counter,
+    2,
+    'Effect should run again after modifying the property to a different value'
+  )
+  assert.end()
+})
+
+test('Reactive - Positive and negative zero trigger effects', (assert) => {
+  const data = reactive({ value: 0 })
+
+  let counter = 0
+
+  const basicEffect = () => {
+    data.value // track value
+    counter++
+  }
+
+  effect(basicEffect)
+  flushJobs()
+  assert.equal(counter, 1, 'Effect should run once initially and increment counter')
+
+  data.value = -0 // should trigger effect since +0 and -0 differ
+  flushJobs()
+  assert.equal(counter, 2, 'Effect should run again after changing +0 to -0')
+  assert.end()
+})
+
+test('Reactive - NaN assignments do not trigger effects in defineProperty mode', (assert) => {
+  const data = reactive({ value: NaN }, 'defineProperty')
+
+  let counter = 0
+
+  const basicEffect = () => {
+    data.value // track value
+    counter++
+  }
+
+  effect(basicEffect)
+  flushJobs()
+  assert.equal(counter, 1, 'Effect should run once initially and increment counter')
+
+  data.value = NaN // should NOT trigger effect since NaN equals NaN
+  flushJobs()
+  assert.equal(counter, 1, 'Effect should NOT run again after assigning NaN over NaN')
+  assert.end()
+})
+
+test('Memo - NaN assignments do not trigger effects', (assert) => {
+  const value = memo(NaN)
+
+  let counter = 0
+
+  const basicEffect = () => {
+    value.value // track value
+    counter++
+  }
+
+  effect(basicEffect)
+  flushJobs()
+  assert.equal(counter, 1, 'Effect should run once initially and increment counter')
+
+  value.value = NaN // should NOT trigger effect since NaN equals NaN
+  flushJobs()
+  assert.equal(counter, 1, 'Effect should NOT run again after assigning NaN over NaN')
+
+  value.value = 1 // should trigger effect
+  flushJobs()
+  assert.equal(counter, 2, 'Effect should run again after modifying the value')
   assert.end()
 })

@@ -23,6 +23,16 @@ const arrayPatchMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort']
 
 const proxyMap = new WeakMap()
 
+// Same semantics as Vue's `hasChanged` (`shared/util.ts`): `NaN` equals
+// `NaN` (no spurious trigger), while `+0` and `-0` differ.
+const hasChanged = (x, y) => {
+  if (x === y) {
+    return x === 0 && 1 / x !== 1 / y
+  } else {
+    return x === x || y === y
+  }
+}
+
 export const getRaw = (value) => {
   const raw = value && value[symbols.raw]
   return raw ? getRaw(raw) : value
@@ -124,8 +134,8 @@ const reactiveProxy = (original, _parent = null, _key) => {
       // We need to check that the oldRawValue is also an array before we do the deep equal check
       if (Array.isArray(rawValue) === true && Array.isArray(oldRawValue) === true) {
         isEqual = deepEqualArray(oldRawValue, rawValue)
-      } else if (oldRawValue === rawValue) {
-        isEqual = true
+      } else {
+        isEqual = hasChanged(oldRawValue, rawValue) === false
       }
 
       if (isEqual === false) {
@@ -187,8 +197,8 @@ const reactiveDefineProperty = (target) => {
       },
       set(newValue) {
         // todo: support assigning array (as we do with proxies)
-        let oldValue = internalValue
-        if (oldValue !== newValue) {
+        const oldValue = internalValue
+        if (hasChanged(oldValue, newValue) === true) {
           internalValue = newValue
           trigger(target, key)
         }
@@ -216,8 +226,10 @@ export const memo = (raw) => {
       return raw
     },
     set value(v) {
-      raw = v
-      trigger(r, 'value')
+      if (hasChanged(raw, v) === true) {
+        raw = v
+        trigger(r, 'value')
+      }
     },
   }
   return r
