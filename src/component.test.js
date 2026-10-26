@@ -111,13 +111,13 @@ test('Component - Instance should initiate lifecycle object', (assert) => {
   )
   assert.equal(
     foo[symbols.lifecycle].previous,
-    null,
-    'Lifecycle object should have previous state not initialized'
+    'init',
+    'Lifecycle object should have init as previous state'
   )
   assert.equal(
     foo[symbols.lifecycle].current,
-    'init',
-    'Lifecycle object should have initial current state'
+    'ready',
+    'Lifecycle object should have ready as current state'
   )
   assert.end()
 })
@@ -398,20 +398,6 @@ test('Component - Instance should have all symbols configured', (assert) => {
     assert.ok(descriptor.configurable === true, `${symbol.description} should be configurable`)
   })
   assert.end()
-})
-
-test('Component - Instance should have ready state after the next process tick', (assert) => {
-  assert.plan(1)
-
-  const foo = Component('Foo', {})()
-
-  setTimeout(() => {
-    assert.equal(
-      foo[symbols.lifecycle].state,
-      'ready',
-      'Foo component lifecycle should be eventually in a ready state'
-    )
-  })
 })
 
 test('Component - Configure input events', (assert) => {

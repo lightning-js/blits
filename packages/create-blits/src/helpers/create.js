@@ -97,17 +97,27 @@ export const addESlint = (config) => {
     path.join(config.targetDir, '.editorconfig')
   )
 
-  // Copy eslintrc.js from fixtured specific files
+  // TypeScript projects extend the shared configuration with their own rules.
+  const isTypeScript = config.projectType === 'ts'
   fs.copyFileSync(
     path.join(config.fixturesBase, 'common/eslint/eslint.config.cjs'),
-    path.join(config.targetDir, 'eslint.config.cjs')
+    path.join(config.targetDir, isTypeScript ? 'eslint.base.cjs' : 'eslint.config.cjs')
   )
+  if (isTypeScript) {
+    fs.copyFileSync(
+      path.join(config.fixturesBase, 'common/eslint/ts/eslint.config.cjs'),
+      path.join(config.targetDir, 'eslint.config.cjs')
+    )
+  }
 
   // Copy and merge fixture specific package.json
   const origPackageJson = JSON.parse(fs.readFileSync(path.join(config.targetDir, 'package.json')))
   const eslintPackageJson = JSON.parse(
     fs.readFileSync(path.join(config.fixturesBase, 'common/eslint/package.json'))
   )
+  const typeScriptPackageJson = isTypeScript
+    ? JSON.parse(fs.readFileSync(path.join(config.fixturesBase, 'common/eslint/ts/package.json')))
+    : {}
   fs.writeFileSync(
     path.join(config.targetDir, 'package.json'),
     JSON.stringify(
@@ -117,6 +127,7 @@ export const addESlint = (config) => {
         devDependencies: {
           ...(origPackageJson.devDependencies || {}),
           ...(eslintPackageJson.devDependencies || {}),
+          ...(typeScriptPackageJson.devDependencies || {}),
         },
         scripts: {
           ...(origPackageJson.scripts || {}),

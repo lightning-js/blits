@@ -10,6 +10,7 @@
   - [Displaying images](/essentials/displaying_images.md)
   - [Displaying text](/essentials/displaying_text.md)
   - [Application settings](/essentials/settings.md)
+  - [Runtime settings (detailed reference)](/essentials/runtime_settings.md)
 - Components
   - [State](/components/component_state.md)
   - [Props](/components/props.md)

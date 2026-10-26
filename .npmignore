@@ -23,6 +23,7 @@ docs/
 test/
 tests/
 scripts/runTests.js
+scripts/release.js
 
 # Misc
 banner.png

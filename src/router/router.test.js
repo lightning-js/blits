@@ -722,6 +722,68 @@ test('Router.back() pops history and navigates to previous route', async (assert
   stage.element = originalElement
 })
 
+test('Router.back(steps) navigates back multiple history entries at once', async (assert) => {
+  const originalElement = stage.element
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('TestComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/step-one',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/step-two',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/step-three',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/step-one')
+  await navigate.call(host)
+  to('/step-two')
+  await navigate.call(host)
+  to('/step-three')
+  await navigate.call(host)
+
+  assert.equal(state.path, '/step-three', 'Should be on third route before back')
+  assert.equal(host.history.length, 2, 'History should contain two previous entries')
+  assert.equal(back.call(host, 2), true, 'back(2) should return true and skip one history entry')
+  assert.ok(
+    window.location.hash.includes('step-one'),
+    'Should jump back two entries to the first route'
+  )
+  assert.equal(host.history.length, 0, 'History should be empty after navigating back two steps')
+
+  stage.element = originalElement
+})
+
 test('Router falls back to the restored view when cached focus has a destroyed ancestor', async (assert) => {
   const originalElement = stage.element
   const originalGetFocus = Focus.get
@@ -863,6 +925,69 @@ test('this.$router.back() uses the owning RouterView history', async (assert) =>
   assert.ok(
     window.location.hash.includes('router-back-first'),
     '$router.back() should use the RouterView history'
+  )
+
+  stage.element = originalElement
+})
+
+test('this.$router.history exposes a read-only snapshot of the history stack', async (assert) => {
+  const originalElement = stage.element
+
+  stage.element = ({ parent }) => ({
+    populate() {},
+    set(prop, value) {
+      if (value && value.transition && typeof value.transition.end === 'function') {
+        value.transition.end()
+      }
+    },
+    destroy() {},
+    parent,
+  })
+
+  const TestComponent = Component('RouterHistoryComponent', {
+    template: '<Element />',
+    code: { render: () => ({ elms: [], cleanup: () => {} }), effects: [] },
+  })
+
+  const host = {
+    [symbols.parent]: {
+      [symbols.routes]: [
+        {
+          path: '/router-history-first',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+        {
+          path: '/router-history-second',
+          component: TestComponent,
+          options: { inHistory: true, passFocus: false },
+        },
+      ],
+    },
+    [symbols.children]: [{}],
+    [symbols.props]: {},
+  }
+
+  to('/router-history-first')
+  await navigate.call(host)
+  to('/router-history-second')
+  await navigate.call(host)
+
+  const activeView = host[symbols.children][host[symbols.children].length - 1]
+
+  assert.equal(activeView.$router.history.length, 1, 'History should contain one previous entry')
+  assert.equal(
+    activeView.$router.history[0].path,
+    '/router-history-first',
+    'History entry should be the previous route'
+  )
+
+  // mutating the returned array should not affect the internal history stack
+  activeView.$router.history.push('tampered')
+  assert.equal(
+    activeView.$router.history.length,
+    1,
+    'history getter should return a defensive copy'
   )
 
   stage.element = originalElement
