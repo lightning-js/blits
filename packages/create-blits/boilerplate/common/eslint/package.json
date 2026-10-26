@@ -1,10 +1,12 @@
 {
   "lint-staged": {
-    "*.js": [
+    "*.?(c|m)[jt]s": [
+      "prettier --write",
       "eslint --fix"
     ]
   },
   "scripts": {
+    "format": "prettier --write .",
     "postinstall": "husky"
   },
   "devDependencies": {
