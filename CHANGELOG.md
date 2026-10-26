@@ -1,5 +1,20 @@
 # Changelog
 
+# 2.15.0
+
+_26 oct 2026_
+
+- Updated CI/CD benchmark runner
+- Bumped renderer to 3.7.0
+- Added release script with temporary stashing of changes
+- Exposed router history via `this.$router.history`
+- Fixed issue with keyup causing wrong app state in case of fatal error in callback
+- Added functionality to retrieve settings and to update certain settings runtime
+- Fixed module type definitions
+- Removed asynchronous App startup (app startup time improvement)
+- Improved FPS counter (using dedicated fpsUpdate hook)
+- Fixed timing issue where unfocus hook can be invoked for items without focus
+
 # 2.14.0
 
 _19 oct 2026_
