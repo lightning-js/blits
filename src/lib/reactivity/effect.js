@@ -33,10 +33,40 @@ export const resumeTracking = () => {
 
 const objectMap = new WeakMap()
 const effectDependenciesMap = new WeakMap()
+const computedEffects = new WeakMap()
+
+export const trackComputed = (getter, component) => {
+  if (currentEffect === null || currentKey === null || pauseCounter > 0) {
+    return getter.call(component)
+  }
+
+  const previousEffect = currentEffect
+  const previousKey = currentKey
+  let computedEffect = computedEffects.get(previousEffect)
+  if (computedEffect === undefined) {
+    // Only computed dependencies need a runner that restores tracking on updates.
+    computedEffect = (force) => effect(previousEffect, previousKey, force)
+    computedEffects.set(previousEffect, computedEffect)
+  }
+  currentEffect = computedEffect
+  currentKey = null
+  try {
+    return getter.call(component)
+  } finally {
+    currentEffect = previousEffect
+    currentKey = previousKey
+  }
+}
 
 export const removeEffects = (effectsToRemove) => {
   for (let i = 0; i < effectsToRemove.length; i++) {
     const effect = effectsToRemove[i]
+    const computedEffect = computedEffects.get(effect)
+    if (computedEffect !== undefined) {
+      // Computed dependencies subscribe the runner itself, so unsubscribe it separately.
+      removeEffects([computedEffect])
+      computedEffects.delete(effect)
+    }
     const dependencies = effectDependenciesMap.get(effect)
     if (dependencies === undefined) continue
     for (let j = 0; j < dependencies.length; j++) {
@@ -92,7 +122,7 @@ export const trigger = (target, key, force = false) => {
   }
 }
 
-export const effect = (effectFn, key = null) => {
+export const effect = (effectFn, key = null, force) => {
   const previousEffect = currentEffect
   const previousKey = currentKey
 
@@ -100,7 +130,7 @@ export const effect = (effectFn, key = null) => {
   currentKey = key
 
   try {
-    effectFn()
+    effectFn(force)
   } finally {
     currentEffect = previousEffect
     currentKey = previousKey
