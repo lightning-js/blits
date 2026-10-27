@@ -32,7 +32,7 @@ export const comparePairs = (pairs) => {
   })
 }
 
-export const formatComparison = (report) => {
+const formatComparisonSection = (report) => {
   const number = (value) => (value === null ? 'N/A' : value.toFixed(2))
   const labels = {
     medianGenerationSyncMs: 'Synchronous generation',
@@ -68,12 +68,17 @@ export const formatComparison = (report) => {
         `| ${index + 1} | ${pair.order.join(' → ')} | ${report.comparison.map((row) => number(row.pairChangesPercent[index])).join(' | ')} |`
     ),
     '',
-    'Negative changes mean faster. Differences and percentages are medians of paired comparisons; base and candidate columns are medians of run medians.',
-    '',
-    'Both versions use the current harness and installed dependencies. Warmups are excluded. Time to idle includes synchronous generation and frame scheduling, not GPU completion. Results are informational; no performance threshold is applied.',
-    '',
   ].join('\n')
 }
+
+const comparisonNotes = [
+  'Negative changes mean faster. Differences and percentages are medians of paired comparisons; base and candidate columns are medians of run medians.',
+  '',
+  'Both versions use the current harness and installed dependencies. Warmups are excluded. Time to idle includes synchronous generation and frame scheduling, not GPU completion. Results are informational; no performance threshold is applied.',
+  '',
+].join('\n')
+
+export const formatComparison = (report) => `${formatComparisonSection(report)}\n${comparisonNotes}`
 
 export const formatComparisonOverview = (reports) => {
   const change = (report, metric) => {
@@ -96,7 +101,8 @@ export const formatComparisonSuite = (report) =>
     '',
     formatComparisonOverview(report.benchmarks),
     '',
-    ...report.benchmarks.map(formatComparison),
+    ...report.benchmarks.map(formatComparisonSection),
+    comparisonNotes,
   ].join('\n')
 
 export const unsupportedReasons = (report) => [
