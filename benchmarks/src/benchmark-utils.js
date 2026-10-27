@@ -136,3 +136,9 @@ export const runBenchmark = async ({
     running = false
   }
 }
+
+export const validateCpuSlowdown = (rate) => {
+  if (!Number.isFinite(rate) || rate < 1) {
+    throw new Error('CPU slowdown must be a finite number greater than or equal to 1')
+  }
+}

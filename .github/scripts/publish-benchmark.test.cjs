@@ -253,3 +253,21 @@ test('rejects unsupported candidates and unsupported baselines without explicit 
     assert.ok(!mock.calls.some((call) => call.name === 'createTree'))
   }
 })
+
+test('preserves the measured CPU rate and rejects invalid rates', async () => {
+  const mock = await fixture({
+    mutate: (report) => {
+      report.cpuSlowdown = 4
+    },
+  })
+  await publish(mock)
+  const tree = mock.calls.find((call) => call.name === 'createTree').args.tree
+  assert.match(tree[0].content, /CPU slowdown \| 4×/)
+  assert.equal(JSON.parse(tree[1].content).cpuSlowdown, 4)
+  const invalid = await fixture({
+    mutate: (report) => {
+      report.cpuSlowdown = 0
+    },
+  })
+  await assert.rejects(publish(invalid), /Invalid CPU slowdown/)
+})

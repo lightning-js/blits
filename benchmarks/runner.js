@@ -5,8 +5,8 @@ import { build, preview } from 'vite'
 import { chromium } from 'playwright'
 import { requireBenchmarkSupport } from './src/support.js'
 import { runSuite } from './suite.js'
-import { validateOptions } from './src/benchmark-utils.js'
-import { formatSummary, formatSuiteSummary } from './summary.js'
+import { validateOptions, validateCpuSlowdown } from './src/benchmark-utils.js'
+import { formatSummary, formatSuiteSummary, formatShortSummary } from './summary.js'
 import { benchmarks, defaultBenchmark, validateBenchmark } from './benchmarks.js'
 import viteConfig from './vite.config.js'
 
@@ -43,6 +43,8 @@ export const buildBenchmark = async (sourceRoot, outDir) => {
 
 export const measureBenchmark = async (config, options, headed = false) => {
   const benchmark = validateBenchmark(options.benchmark ?? defaultBenchmark)
+  const cpuSlowdown = options.cpuSlowdown ?? 20
+  validateCpuSlowdown(cpuSlowdown)
   const server = await preview({
     ...config,
     preview: { host: '127.0.0.1', port: 0 },
@@ -55,7 +57,7 @@ export const measureBenchmark = async (config, options, headed = false) => {
     })
     page.on('pageerror', (error) => console.error(error))
     const client = await page.context().newCDPSession(page)
-    await client.send('Emulation.setCPUThrottlingRate', { rate: 20 })
+    await client.send('Emulation.setCPUThrottlingRate', { rate: cpuSlowdown })
     const url = new URL(server.resolvedUrls.local[0])
     url.searchParams.set('benchmark', benchmark)
     if (config.mode === 'development') url.searchParams.set('profile', '')
@@ -66,7 +68,7 @@ export const measureBenchmark = async (config, options, headed = false) => {
     return {
       ...results,
       benchmark,
-      cpuSlowdown: 20,
+      cpuSlowdown,
       browserVersion: browser.version(),
       mode: config.mode,
     }
@@ -79,9 +81,9 @@ export const measureBenchmark = async (config, options, headed = false) => {
   }
 }
 
-export const writeReport = async (report, output, summary) => {
+export const writeReport = async (report, output, summary, short = false) => {
   const json = `${JSON.stringify(report, null, 2)}\n`
-  console.log(json)
+  console.log(short ? formatShortSummary(report) : json)
   if (output) {
     const outputPath = resolve(benchmarkRoot, output)
     await mkdir(dirname(outputPath), { recursive: true })
@@ -97,6 +99,7 @@ const run = async () => {
   const args = process.argv.slice(2)
   const profile = args.includes('--profile')
   const headed = args.includes('--headed')
+  const short = args.includes('--short')
   const all = args.includes('--all')
   if (all && args.includes('--benchmark')) {
     throw new Error('Use either --all or --benchmark, not both')
@@ -111,11 +114,13 @@ const run = async () => {
   }
   const options = {
     benchmark: validateBenchmark(value('--benchmark', defaultBenchmark)),
+    cpuSlowdown: Number(value('--cpu-slowdown', 20)),
     size: Number(value('--size', 1000)),
     samples: Number(value('--samples', 20)),
     warmup: Number(value('--warmup', 5)),
   }
   validateOptions(options)
+  validateCpuSlowdown(options.cpuSlowdown)
   const output = value('--output', undefined)
   if (args.includes('--output') && (!output || output.startsWith('--'))) {
     throw new Error('--output requires a file path')
@@ -131,14 +136,14 @@ const run = async () => {
     )
     report.commit = process.env.GITHUB_SHA
     const summary = formatSuiteSummary(report)
-    console.log(summary)
-    await writeReport(report, output, summary)
+    if (!short) console.log(summary)
+    await writeReport(report, output, summary, short)
     if (report.status === 'failed') process.exitCode = 1
     return
   }
   const report = await measureBenchmark(config, options, headed)
   report.commit = process.env.GITHUB_SHA
-  await writeReport(report, output, formatSummary(report))
+  await writeReport(report, output, formatSummary(report), short)
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

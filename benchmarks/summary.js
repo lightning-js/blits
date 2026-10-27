@@ -1,3 +1,5 @@
+import { formatComparisonOverview, unsupportedReasons } from './comparison.js'
+
 export const formatSummary = (report) => {
   const timingRow = (label, metric) => {
     const values = ['median', 'average', 'min', 'max'].map((stat) =>
@@ -45,3 +47,45 @@ export const formatSuiteSummary = (report) =>
       result.error ? `## ${result.benchmark}: failed\n\n${result.error}\n` : formatSummary(result)
     ),
   ].join('\n')
+
+export const formatShortSummary = (report) => {
+  const reports = report.benchmarks ?? [report]
+  const comparison = reports.some((result) => result.comparison)
+  return [
+    ...(report.status ? [`Status: ${report.status}`, ''] : []),
+    ...reports.map((result) =>
+      result.error
+        ? `${result.benchmark}: failed — ${result.error}`
+        : `${result.title}: size ${result.size}, warmup ${result.warmup}, samples ${result.samples}, CPU ${result.cpuSlowdown ?? 20}×${result.pairs ? `, pairs ${result.pairs.length}` : ''}`
+    ),
+    '',
+    ...(comparison
+      ? [
+          formatComparisonOverview(reports),
+          '',
+          '| Benchmark | Metric | Base (ms) | Candidate (ms) | Pair changes (%) |',
+          '| --- | --- | ---: | ---: | --- |',
+          ...reports.flatMap((result) =>
+            result.comparison.map(
+              (row) =>
+                `| ${result.title} | ${row.metric === 'medianGenerationSyncMs' ? 'Generation' : 'Time to idle'} | ${row.baseMs === null ? 'N/A' : row.baseMs.toFixed(2)} | ${row.candidateMs.toFixed(2)} | ${row.pairChangesPercent.map((value, index) => `P${index + 1}: ${value === null ? 'N/A' : `${value > 0 ? '+' : ''}${value.toFixed(2)}%`}`).join(', ')} |`
+            )
+          ),
+          '',
+          'Pair order alternates: P1 base → candidate, P2 candidate → base, and so on.',
+          ...reports.flatMap((result) =>
+            unsupportedReasons(result).map((reason) => `${result.title}: N/A — ${reason}`)
+          ),
+        ]
+      : [
+          '| Benchmark | Median generation (ms) | Median time to idle (ms) |',
+          '| --- | ---: | ---: |',
+          ...reports
+            .filter((result) => !result.error)
+            .map(
+              (result) =>
+                `| ${result.benchmark ?? result.title} | ${result.medianGenerationSyncMs.toFixed(2)} | ${result.medianTotalToIdleMs.toFixed(2)} |`
+            ),
+        ]),
+  ].join('\n')
+}

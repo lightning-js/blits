@@ -95,7 +95,10 @@ module.exports = async ({ github, context, core }) => {
     }
     result.title = text(result.title)
     result.browserVersion = text(result.browserVersion)
-    result.cpuSlowdown = 20
+    result.cpuSlowdown ??= 20
+    if (!Number.isFinite(result.cpuSlowdown) || result.cpuSlowdown < 1) {
+      throw new Error('Invalid CPU slowdown')
+    }
     result.candidate.dirty = false
     result.comparison = comparePairs(result.pairs)
     if (

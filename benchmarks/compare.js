@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { buildBenchmark, measureBenchmark, writeReport } from './runner.js'
 import { comparePairs, formatComparison, formatComparisonSuite } from './comparison.js'
 import { benchmarks, defaultBenchmark, validateBenchmark } from './benchmarks.js'
-import { validateOptions } from './src/benchmark-utils.js'
+import { validateOptions, validateCpuSlowdown } from './src/benchmark-utils.js'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const args = process.argv.slice(2)
@@ -64,6 +64,7 @@ const snapshot = async (destination, sha, temporary) => {
 
 const run = async () => {
   const all = args.includes('--all')
+  const short = args.includes('--short')
   if (all && args.includes('--benchmark'))
     throw new Error('Use either --all or --benchmark, not both')
   const baseRef = value('--base')
@@ -73,11 +74,13 @@ const run = async () => {
   const pairCount = Number(value('--pairs', 2))
   const options = {
     benchmark: validateBenchmark(value('--benchmark', defaultBenchmark)),
+    cpuSlowdown: Number(value('--cpu-slowdown', 20)),
     size: Number(value('--size', 1000)),
     warmup: Number(value('--warmup', 5)),
     samples: Number(value('--samples', 20)),
   }
   validateOptions(options)
+  validateCpuSlowdown(options.cpuSlowdown)
   if (!Number.isSafeInteger(pairCount) || pairCount < 1)
     throw new Error('--pairs must be a positive integer')
   if (args.includes('--profile'))
@@ -123,7 +126,7 @@ const run = async () => {
         benchmark,
         base,
         candidate,
-        cpuSlowdown: 20,
+        cpuSlowdown: options.cpuSlowdown,
         browserVersion: pairs[0].candidate.browserVersion,
         pairs,
         comparison: comparePairs(pairs),
@@ -132,8 +135,8 @@ const run = async () => {
     }
     const report = all ? { base, candidate, benchmarks: reports } : reports[0]
     const summary = all ? formatComparisonSuite(report) : formatComparison(report)
-    console.log(summary)
-    await writeReport(report, output, summary)
+    if (!short) console.log(summary)
+    await writeReport(report, output, summary, short)
   } finally {
     await rm(temporary, { recursive: true, force: true })
   }
