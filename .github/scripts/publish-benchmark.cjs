@@ -4,7 +4,13 @@ const marker = '<!-- blits-benchmark-results -->'
 const branch = 'benchmark-reports'
 
 module.exports = async ({ github, context, core }) => {
-  const { comparePairs, formatComparison } = await import('../../benchmarks/comparison.js')
+  const {
+    comparePairs,
+    formatComparison,
+    formatComparisonSuite,
+    formatComparisonOverview,
+    unsupportedReasons,
+  } = await import('../../benchmarks/comparison.js')
   const repo = context.repo
   const run = context.payload.workflow_run
   let pulls = run.pull_requests
@@ -32,57 +38,82 @@ module.exports = async ({ github, context, core }) => {
     return
   }
 
-  // Artifacts are untrusted data. Validate numeric inputs and escape display text.
-  const positiveInteger = (value) => Number.isSafeInteger(value) && value > 0 && value <= 100_000
-  if (
-    !positiveInteger(report.size) ||
-    !positiveInteger(report.samples) ||
-    !Number.isSafeInteger(report.warmup) ||
-    report.warmup < 0 ||
-    report.warmup > 100_000 ||
-    !Array.isArray(report.pairs) ||
-    !report.pairs.length ||
-    report.pairs.length > 100
-  ) {
-    throw new Error('Invalid benchmark configuration')
+  const reports = Object.hasOwn(report, 'benchmarks') ? report.benchmarks : [report]
+  if (!Array.isArray(reports) || reports.length < 1 || reports.length > 100) {
+    throw new Error('Invalid benchmark suite')
   }
-  for (const pair of report.pairs) {
+  for (const result of reports) {
     if (
-      !Array.isArray(pair.order) ||
-      pair.order.length !== 2 ||
-      [...pair.order].sort().join(',') !== 'base,candidate'
+      result.base?.commit !== report.base.commit ||
+      result.candidate?.commit !== report.candidate.commit
     ) {
-      throw new Error('Invalid benchmark execution order')
+      throw new Error('Benchmark commit identities do not match the suite')
     }
-    for (const name of ['base', 'candidate']) {
-      for (const metric of ['medianGenerationSyncMs', 'medianTotalToIdleMs']) {
-        if (!Number.isFinite(pair[name]?.[metric]) || pair[name][metric] < 0) {
-          throw new Error('Invalid benchmark timing')
+    // Artifacts are untrusted data. Validate numeric inputs and escape display text.
+    const positiveInteger = (value) => Number.isSafeInteger(value) && value > 0 && value <= 100_000
+    if (
+      !positiveInteger(result.size) ||
+      !positiveInteger(result.samples) ||
+      !Number.isSafeInteger(result.warmup) ||
+      result.warmup < 0 ||
+      result.warmup > 100_000 ||
+      !Array.isArray(result.pairs) ||
+      !result.pairs.length ||
+      result.pairs.length > 100
+    ) {
+      throw new Error('Invalid benchmark configuration')
+    }
+    for (const pair of result.pairs) {
+      if (
+        !Array.isArray(pair.order) ||
+        pair.order.length !== 2 ||
+        [...pair.order].sort().join(',') !== 'base,candidate'
+      ) {
+        throw new Error('Invalid benchmark execution order')
+      }
+      for (const name of ['base', 'candidate']) {
+        if (name === 'base' && pair.base?.status === 'unsupported') {
+          if (typeof pair.base.reason !== 'string' || !pair.base.reason.trim()) {
+            throw new Error('Invalid unsupported baseline reason')
+          }
+          continue
+        }
+        if (pair[name]?.status === 'unsupported') throw new Error('Candidate benchmark unsupported')
+        for (const metric of ['medianGenerationSyncMs', 'medianTotalToIdleMs']) {
+          if (!Number.isFinite(pair[name]?.[metric]) || pair[name][metric] < 0) {
+            throw new Error('Invalid benchmark timing')
+          }
         }
       }
     }
-  }
-  const text = (value) =>
-    String(value)
-      .slice(0, 120)
-      .replace(/[\\`*_[\]<>|#\r\n]/g, ' ')
-  report.title = text(report.title)
-  report.browserVersion = text(report.browserVersion)
-  report.cpuSlowdown = 20
-  report.candidate.dirty = false
-  report.comparison = comparePairs(report.pairs)
-  if (
-    report.comparison.some(
-      (row) =>
-        !Number.isFinite(row.differenceMs) ||
-        (row.changePercent !== null && !Number.isFinite(row.changePercent))
-    )
-  ) {
-    throw new Error('Invalid benchmark comparison')
+    const text = (value) =>
+      String(value)
+        .slice(0, 120)
+        .replace(/[\\`*_[\]<>|#\r\n]/g, ' ')
+    for (const pair of result.pairs) {
+      if (pair.base.status === 'unsupported') pair.base.reason = text(pair.base.reason)
+    }
+    result.title = text(result.title)
+    result.browserVersion = text(result.browserVersion)
+    result.cpuSlowdown ??= 20
+    if (!Number.isFinite(result.cpuSlowdown) || result.cpuSlowdown < 1) {
+      throw new Error('Invalid CPU slowdown')
+    }
+    result.candidate.dirty = false
+    result.comparison = comparePairs(result.pairs)
+    if (
+      result.comparison.some(
+        (row) =>
+          (row.differenceMs !== null && !Number.isFinite(row.differenceMs)) ||
+          (row.changePercent !== null && !Number.isFinite(row.changePercent))
+      )
+    ) {
+      throw new Error('Invalid benchmark comparison')
+    }
   }
 
   const path = `runs/${run.id}-${run.run_attempt || 1}`
-  const markdown = `${formatComparison(report)}\n[JSON data](comparison.json) · [Workflow run](${run.html_url})\n`
+  const markdown = `${Object.hasOwn(report, 'benchmarks') ? formatComparisonSuite(report) : formatComparison(report)}\n[JSON data](comparison.json) · [Workflow run](${run.html_url})\n`
   let parent
   let baseTree
   try {
@@ -124,18 +155,22 @@ module.exports = async ({ github, context, core }) => {
   }
 
   const url = `${context.serverUrl}/${repo.owner}/${repo.repo}/blob/${commit.sha}/${path}/report.md`
-  const change = (metric) => {
-    const value = report.comparison.find((row) => row.metric === metric).changePercent
-    return value === null ? 'n/a' : `${value > 0 ? '+' : ''}${value.toFixed(2)}%`
-  }
   const body = [
     marker,
     '### Benchmark comparison',
     '',
-    '| Timing | Change |',
-    '| --- | ---: |',
-    `| Synchronous generation | ${change('medianGenerationSyncMs')} |`,
-    `| Total time to idle | ${change('medianTotalToIdleMs')} |`,
+    formatComparisonOverview(reports),
+    '',
+    ...reports.map(
+      (result) =>
+        `${result.title}: ${result.pairs.length} pairs, ${result.warmup} warmups and ${result.samples} samples per run.`
+    ),
+    '',
+    ...reports.flatMap((result) =>
+      unsupportedReasons(result).map(
+        (reason) => `${result.title}: N/A — unsupported by baseline: ${reason}`
+      )
+    ),
     '',
     'Negative means faster. Informational results; small changes can be measurement noise.',
     '',

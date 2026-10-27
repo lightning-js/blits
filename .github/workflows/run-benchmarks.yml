@@ -4,12 +4,21 @@ on:
   pull_request:
     paths:
       - 'src/**'
+      - 'benchmarks/**'
+      - '.github/workflows/run-benchmarks.yml'
+      - '.github/workflows/publish-benchmark-results.yml'
+      - '.github/scripts/publish-benchmark*'
   workflow_dispatch:
     inputs:
       base:
         description: Baseline branch or commit
         required: true
         default: master
+      pairs:
+        description: Base/candidate pairs per benchmark
+        required: true
+        default: '2'
+        type: string
 
 permissions:
   contents: read
@@ -57,8 +66,9 @@ jobs:
       - name: Compare benchmarks and write workflow summary
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base }}
+          PAIRS: ${{ inputs.pairs || '2' }}
           CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: npm run bench:compare -- --base "$BASE_REF" --candidate "$CANDIDATE_SHA" --output results/comparison.json --pairs 5
+        run: npm run bench:compare -- --base "$BASE_REF" --candidate "$CANDIDATE_SHA" --all --warmup 20 --output results/comparison.json --pairs "$PAIRS"
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v7
