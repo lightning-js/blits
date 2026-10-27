@@ -4,6 +4,7 @@ import { dirname, resolve } from 'node:path'
 import { build, preview } from 'vite'
 import { chromium } from 'playwright'
 import { formatSummary } from './summary.js'
+import { defaultBenchmark, validateBenchmark } from './benchmarks.js'
 import viteConfig from './vite.config.js'
 
 const benchmarkRoot = fileURLToPath(new URL('.', import.meta.url))
@@ -38,6 +39,7 @@ export const buildBenchmark = async (sourceRoot, outDir) => {
 }
 
 export const measureBenchmark = async (config, options, headed = false) => {
+  const benchmark = validateBenchmark(options.benchmark ?? defaultBenchmark)
   const server = await preview({
     ...config,
     preview: { host: '127.0.0.1', port: 0 },
@@ -51,12 +53,15 @@ export const measureBenchmark = async (config, options, headed = false) => {
     page.on('pageerror', (error) => console.error(error))
     const client = await page.context().newCDPSession(page)
     await client.send('Emulation.setCPUThrottlingRate', { rate: 20 })
-    const url = server.resolvedUrls.local[0]
-    await page.goto(config.mode === 'development' ? `${url}?profile` : url)
+    const url = new URL(server.resolvedUrls.local[0])
+    url.searchParams.set('benchmark', benchmark)
+    if (config.mode === 'development') url.searchParams.set('profile', '')
+    await page.goto(url.href)
     await page.waitForFunction(() => window.__BLITS_BENCH__?.ready === true)
     const results = await page.evaluate((options) => window.__BLITS_BENCH__.run(options), options)
     return {
       ...results,
+      benchmark,
       cpuSlowdown: 20,
       browserVersion: browser.version(),
       mode: config.mode,
@@ -93,6 +98,7 @@ const run = async () => {
     return index === -1 ? fallback : args[index + 1]
   }
   const options = {
+    benchmark: validateBenchmark(value('--benchmark', defaultBenchmark)),
     size: Number(value('--size', 1000)),
     samples: Number(value('--samples', 20)),
     warmup: Number(value('--warmup', 5)),

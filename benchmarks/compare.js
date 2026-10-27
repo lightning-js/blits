@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildBenchmark, measureBenchmark, writeReport } from './runner.js'
 import { comparePairs, formatComparison } from './comparison.js'
+import { defaultBenchmark, validateBenchmark } from './benchmarks.js'
 import { validateOptions } from './src/benchmark-utils.js'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
@@ -68,6 +69,7 @@ const run = async () => {
   const output = value('--output', 'results/comparison.json')
   const pairCount = Number(value('--pairs', 2))
   const options = {
+    benchmark: validateBenchmark(value('--benchmark', defaultBenchmark)),
     size: Number(value('--size', 1000)),
     warmup: Number(value('--warmup', 5)),
     samples: Number(value('--samples', 20)),

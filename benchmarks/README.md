@@ -1,6 +1,6 @@
-# Element generation benchmark
+# Benchmarks
 
-One workload: clear a keyed loop and generate Elements again. Data creation and clearing happen outside the measured generation time. The default run uses 1,000 Elements, five warmups, and 20 measured samples. Each sample verifies the number of live rendered Elements.
+Two independently selectable workloads clear a keyed loop and create it again: `element-creation` (the default) creates Elements with text; `component-creation` creates component instances with matching rectangles, text, dimensions, and alternating colors. Each item receives its text and color as props, adding a component boundary around the same content. Data creation and clearing happen outside the measured generation time. The default run uses 1,000 items, five warmups, and 20 measured samples. Each sample verifies the number of live Elements or component instances.
 
 Install dependencies in this folder with `npm install` and install Chromium with `npx playwright install chromium`.
 
@@ -8,6 +8,7 @@ From the repository root:
 
 ```sh
 npm run bench
+npm run bench -- --benchmark component-creation
 npm run bench -- --size 100 --samples 5 --warmup 2
 npm run bench -- --headed
 npm run bench -- --output results/benchmark.json
@@ -15,12 +16,16 @@ npm run bench:serve
 npm run bench:compare -- --base master
 ```
 
+Each CLI invocation runs only the selected benchmark in a fresh Chromium launch. Use `--benchmark element-creation` or `--benchmark component-creation` with `bench`, `bench:profile`, or `bench:compare`. In the browser, changing the `benchmark` query parameter and navigating launches a fresh application. Warmups and samples run within that launch.
+
+To add a workload, create a CamelCase definition in `src/benchmarks/` and register it in `benchmarks.js`. Each entry exports a `title` and a default `Blits.Component` with its template, state, and `setup`, `measure`, and `verify` methods under `methods`. The shared application renders the selected component and calls those methods on its instance, preserving Blits autocomplete and type inference within the workload. The application lifecycle, keyboard trigger, timing loop, reporting, and launch configuration are shared.
+
 Relative `--output` paths resolve from the `benchmarks/` directory, so the example saves to `benchmarks/results/benchmark.json`.
 
 For browser inspection, open the URL printed by `bench:serve` and press **Enter**. The loop is cleared and recreated on every repetition, and the final sample stays visible. Results are logged in the browser console. Options can be supplied in the URL:
 
 ```text
-http://localhost:5173/?size=1000&warmup=5&samples=20
+http://localhost:5173/?benchmark=element-creation&size=1000&warmup=5&samples=20
 ```
 
 Browser and CLI runs use the same workload. The CLI applies a 20x Chromium CPU slowdown; manual browser runs use the browser's current CPU settings. Use DevTools CPU throttling for a manual slowdown.
