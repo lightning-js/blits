@@ -6,6 +6,17 @@ const median = (values) => {
 
 export const comparePairs = (pairs) => {
   return ['medianGenerationSyncMs', 'medianTotalToIdleMs'].map((metric) => {
+    const unsupported = pairs.some((pair) => pair.base.status === 'unsupported')
+    if (unsupported) {
+      return {
+        metric,
+        baseMs: null,
+        candidateMs: median(pairs.map((pair) => pair.candidate[metric])),
+        differenceMs: null,
+        changePercent: null,
+        pairChangesPercent: pairs.map(() => null),
+      }
+    }
     const differences = pairs.map(({ base, candidate }) => candidate[metric] - base[metric])
     const percentages = pairs.map(({ base }, index) =>
       base[metric] === 0 ? null : (differences[index] / base[metric]) * 100
@@ -22,7 +33,7 @@ export const comparePairs = (pairs) => {
 }
 
 export const formatComparison = (report) => {
-  const number = (value) => (value === null ? 'n/a' : value.toFixed(2))
+  const number = (value) => (value === null ? 'N/A' : value.toFixed(2))
   const labels = {
     medianGenerationSyncMs: 'Synchronous generation',
     medianTotalToIdleMs: 'Total time to idle',
@@ -40,6 +51,8 @@ export const formatComparison = (report) => {
     `| CPU slowdown | ${report.cpuSlowdown}× |`,
     `| Chromium | ${report.browserVersion} |`,
     '| Mode | production |',
+    '',
+    ...unsupportedReasons(report).map((reason) => `N/A — unsupported by baseline: ${reason}`),
     '',
     '| Median timing | Base (ms) | Candidate (ms) | Difference (ms) | Change (%) |',
     '| --- | ---: | ---: | ---: | ---: |',
@@ -61,3 +74,35 @@ export const formatComparison = (report) => {
     '',
   ].join('\n')
 }
+
+export const formatComparisonOverview = (reports) => {
+  const change = (report, metric) => {
+    const value = report.comparison.find((row) => row.metric === metric).changePercent
+    return value === null ? 'N/A' : `${value > 0 ? '+' : ''}${value.toFixed(2)}%`
+  }
+  return [
+    '| Benchmark | Generation change | Time to idle change |',
+    '| --- | ---: | ---: |',
+    ...reports.map(
+      (report) =>
+        `| ${report.title} | ${change(report, 'medianGenerationSyncMs')} | ${change(report, 'medianTotalToIdleMs')} |`
+    ),
+  ].join('\n')
+}
+
+export const formatComparisonSuite = (report) =>
+  [
+    '# Benchmark suite comparison',
+    '',
+    formatComparisonOverview(report.benchmarks),
+    '',
+    ...report.benchmarks.map(formatComparison),
+  ].join('\n')
+
+export const unsupportedReasons = (report) => [
+  ...new Set(
+    report.pairs
+      .filter((pair) => pair.base.status === 'unsupported')
+      .map((pair) => pair.base.reason)
+  ),
+]

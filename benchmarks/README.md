@@ -15,9 +15,10 @@ npm run bench -- --headed
 npm run bench -- --output results/benchmark.json
 npm run bench:serve
 npm run bench:compare -- --base master
+npm run bench:compare -- --all --base master
 ```
 
-By default, each CLI invocation runs only the selected benchmark in a fresh Chromium launch. With `--all`, the local runner builds once and runs every registered benchmark sequentially, launching fresh Chromium with its own warmups for each workload. The same size, warmup, and sample options apply to every workload. The console shows an overview and per-benchmark summaries; `--output` saves one JSON object with `status` and a `benchmarks` array containing each complete report and its raw samples. If a benchmark fails, the suite stops, includes the error alongside completed results, writes the report, and exits with a nonzero status. Later benchmarks are omitted. `--all` and `--benchmark` cannot be combined. `--all` also works with `bench:profile`; comparison runs do not support it yet. Use `--benchmark element-creation` or `--benchmark component-creation` with `bench`, `bench:profile`, or `bench:compare`. In the browser, changing the `benchmark` query parameter and navigating launches a fresh application. Warmups and samples run within that launch.
+By default, each CLI invocation runs only the selected benchmark in a fresh Chromium launch. With `--all`, the local runner builds once and runs every registered benchmark sequentially, launching fresh Chromium with its own warmups for each workload. The same size, warmup, and sample options apply to every workload. The console shows an overview and per-benchmark summaries; `--output` saves one JSON object with `status` and a `benchmarks` array containing each complete report and its raw samples. If a benchmark fails, the suite stops, includes the error alongside completed results, writes the report, and exits with a nonzero status. Later benchmarks are omitted. `--all` and `--benchmark` cannot be combined. `--all` also works with `bench:profile`; use `bench:compare -- --all` for a full version comparison. Use `--benchmark element-creation` or `--benchmark component-creation` with `bench`, `bench:profile`, or `bench:compare`. In the browser, changing the `benchmark` query parameter and navigating launches a fresh application. Warmups and samples run within that launch.
 
 To add a workload, create a CamelCase definition in `src/benchmarks/` and register it in `benchmarks.js`. Each entry exports a `title` and a default `Blits.Component` with its template, state, and `setup`, `measure`, and `verify` methods under `methods`. The shared application renders the selected component and calls those methods on its instance, preserving Blits autocomplete and type inference within the workload. The application lifecycle, keyboard trigger, timing loop, reporting, and launch configuration are shared.
 
@@ -50,6 +51,18 @@ npm run bench:compare -- --base HEAD --size 100 --warmup 2 --samples 5 --pairs 2
 
 Both snapshots use the current benchmark harness, Vite plugins, installed dependencies (including the renderer), and Chromium. This compares Blits source changes, not dependency or build-tool version changes. Baselines that are incompatible with the current harness fail rather than silently running a different workload.
 
+`--all` compares every registered workload sequentially, reusing the same two builds. Each workload completes its own alternating base/candidate pairs before the next starts. Suite JSON contains shared `base` and `candidate` identities and a `benchmarks` array of complete comparison reports; summaries include an overview and detailed per-benchmark sections. `--all` cannot be combined with `--benchmark`. A failed comparison stops the command with a nonzero exit status; it does not publish a partial suite.
+
+A workload may optionally export `checkSupport()` (sync or async). Return `undefined` when supported, or a non-empty reason string when a required capability is missing:
+
+```js
+export const checkSupport = () => {
+  if (typeof Blits.someNewAPI !== 'function') return 'Requires Blits.someNewAPI'
+}
+```
+
+The check runs before launching the workload. An explicitly unsupported baseline produces **N/A** changes and a reason in JSON, the workflow summary, and the PR comment; candidate measurements still run and remain in the report. Unsupported candidates fail, as do unsupported local runs, invalid check results, thrown check errors, build/import failures, and unexpected benchmark errors. Feature checks should use APIs that can be safely imported on both versions (for example, checking a property on the default Blits export). They cannot guard an import that already fails during the build. Existing workloads without a check run normally.
+
 Both production builds finish before measurement begins. Each run uses a fresh browser and its own warmups, with the same viewport and 20× CPU slowdown. The default is two pairs: base → candidate, then candidate → base. Use `--pairs` to increase repetitions, and `--headed` to see the browser. Profiling is not supported for comparisons.
 
 The console prints a Markdown comparison table and saves `results/comparison.json` by default. Override the path with `--output`; relative paths resolve from `benchmarks/`. JSON includes commit identities, working-tree dirty status, execution order, all samples and statistics, and paired differences. Negative percentages mean faster. Summary columns show medians of run medians; differences and percentages are calculated within each pair and then summarized with a median. Per-pair percentages remain visible to expose inconsistent results. Percent changes from a zero baseline are reported as unavailable.
@@ -62,10 +75,12 @@ npm run bench:compare -- --base HEAD --candidate HEAD
 
 ## GitHub Actions
 
-The Run Benchmarks workflow compares the PR head SHA with the target branch's base SHA from the PR event, sequentially in the same job. It uses the PR's benchmark harness. For manual runs, supply a baseline branch or commit; the candidate is the selected workflow commit.
+The Run Benchmarks workflow runs all registered workloads with two base/candidate pairs per workload, five warmups and 20 measured samples per launch. Manual workflow runs can override the pair count. All measurements run sequentially on one runner; repetition reduces timing fluctuations but does not sample different runner configurations.
+
+The workflow compares the PR head SHA with the target branch's base SHA from the PR event, sequentially in the same job. It uses the PR's benchmark harness. For manual runs, supply a baseline branch or commit; the candidate is the selected workflow commit.
 
 It uploads a `benchmark-results` artifact containing `comparison.json` and writes configuration, aggregate comparison, and per-pair tables to the workflow summary. Results are informational without performance thresholds; build or benchmark execution errors still fail the job.
 
 After a successful PR run, Publish Benchmark Results saves a rendered Markdown report and JSON under `runs/<run-id>-<attempt>/` on the separate `benchmark-reports` branch. The branch is created automatically with report files only. Reports are publicly readable on GitHub while the repository is public and remain available after the Actions artifact expires.
 
-One PR comment is created and updated with the synchronous generation and time-to-idle percentage changes, plus an immutable full-report link. Outdated head/base results are skipped. Publishing runs from the default branch with write permissions, reads the benchmark artifact as data, and never executes PR code. The publisher must be merged into the default branch before it can run; repository rules must allow Actions to write the report branch and PR comments. No extra hosting or secrets are needed. Manual benchmark runs still produce an artifact and workflow summary but do not publish a PR comment.
+One PR comment is created and updated with a row per benchmark showing synchronous generation and time-to-idle percentage changes, each workload’s pair/warmup/sample counts, and an immutable full-report link. Outdated head/base results are skipped. Publishing runs from the default branch with write permissions, reads the benchmark artifact as data, and never executes PR code. The publisher must be merged into the default branch before it can run; repository rules must allow Actions to write the report branch and PR comments. No extra hosting or secrets are needed. Manual benchmark runs still produce an artifact and workflow summary but do not publish a PR comment.

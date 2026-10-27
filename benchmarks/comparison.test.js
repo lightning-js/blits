@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { comparePairs, formatComparison } from './comparison.js'
+import { comparePairs, formatComparison, formatComparisonOverview } from './comparison.js'
 
 const timings = (value) => ({
   medianGenerationSyncMs: value,
@@ -53,4 +53,38 @@ test('summary exposes run order and faster changes with a negative percentage', 
   assert.match(summary, /candidate → base/)
   assert.match(summary, /100\.00 \| 80\.00 \| -20\.00 \| -20\.00/)
   assert.match(summary, /Candidate working tree changes \| true/)
+})
+
+test('unsupported baselines have N/A comparisons and retain candidate timings and the reason', () => {
+  const pairs = [
+    {
+      order: ['base', 'candidate'],
+      base: { status: 'unsupported', reason: 'Requires the new API' },
+      candidate: timings(20),
+    },
+  ]
+  const comparison = comparePairs(pairs)
+  assert.deepEqual(comparison[0], {
+    metric: 'medianGenerationSyncMs',
+    baseMs: null,
+    candidateMs: 20,
+    differenceMs: null,
+    changePercent: null,
+    pairChangesPercent: [null],
+  })
+  const report = {
+    title: 'New feature',
+    pairs,
+    comparison,
+    base: { commit: 'base' },
+    candidate: { commit: 'candidate' },
+    size: 1000,
+    warmup: 5,
+    samples: 20,
+    cpuSlowdown: 20,
+    browserVersion: 'test',
+  }
+  assert.match(formatComparison(report), /N\/A — unsupported by baseline: Requires the new API/)
+  assert.match(formatComparison(report), /N\/A \| 20\.00 \| N\/A \| N\/A/)
+  assert.match(formatComparisonOverview([report]), /New feature \| N\/A \| N\/A/)
 })

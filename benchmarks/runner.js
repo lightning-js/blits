@@ -3,6 +3,7 @@ import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { build, preview } from 'vite'
 import { chromium } from 'playwright'
+import { requireBenchmarkSupport } from './src/support.js'
 import { runSuite } from './suite.js'
 import { validateOptions } from './src/benchmark-utils.js'
 import { formatSummary, formatSuiteSummary } from './summary.js'
@@ -61,6 +62,7 @@ export const measureBenchmark = async (config, options, headed = false) => {
     await page.goto(url.href)
     await page.waitForFunction(() => window.__BLITS_BENCH__?.ready === true)
     const results = await page.evaluate((options) => window.__BLITS_BENCH__.run(options), options)
+    requireBenchmarkSupport(results, options.allowUnsupported)
     return {
       ...results,
       benchmark,

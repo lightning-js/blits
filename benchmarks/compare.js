@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildBenchmark, measureBenchmark, writeReport } from './runner.js'
-import { comparePairs, formatComparison } from './comparison.js'
-import { defaultBenchmark, validateBenchmark } from './benchmarks.js'
+import { comparePairs, formatComparison, formatComparisonSuite } from './comparison.js'
+import { benchmarks, defaultBenchmark, validateBenchmark } from './benchmarks.js'
 import { validateOptions } from './src/benchmark-utils.js'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
@@ -63,6 +63,9 @@ const snapshot = async (destination, sha, temporary) => {
 }
 
 const run = async () => {
+  const all = args.includes('--all')
+  if (all && args.includes('--benchmark'))
+    throw new Error('Use either --all or --benchmark, not both')
   const baseRef = value('--base')
   if (!baseRef) throw new Error('Usage: npm run bench:compare -- --base <branch-or-commit>')
   const candidateRef = value('--candidate')
@@ -97,27 +100,38 @@ const run = async () => {
       await snapshot(source, sha, temporary)
       configs[name] = await buildBenchmark(source, resolve(temporary, `${name}-dist`))
     }
-    const pairs = []
-    for (let index = 0; index < pairCount; index++) {
-      const order = index % 2 === 0 ? ['base', 'candidate'] : ['candidate', 'base']
-      const pair = { order }
-      for (const name of order) {
-        console.log(`Pair ${index + 1}/${pairCount}: ${name}`)
-        pair[name] = await measureBenchmark(configs[name], options, args.includes('--headed'))
+    const reports = []
+    const names = all ? Object.keys(benchmarks) : [options.benchmark]
+    for (const benchmark of names) {
+      const pairs = []
+      for (let index = 0; index < pairCount; index++) {
+        const order = index % 2 === 0 ? ['base', 'candidate'] : ['candidate', 'base']
+        const pair = { order }
+        for (const name of order) {
+          console.log(`${benchmark}: pair ${index + 1}/${pairCount}: ${name}`)
+          pair[name] = await measureBenchmark(
+            configs[name],
+            { ...options, benchmark, allowUnsupported: name === 'base' },
+            args.includes('--headed')
+          )
+        }
+        pairs.push(pair)
       }
-      pairs.push(pair)
+      const report = {
+        title: pairs[0].candidate.title,
+        ...options,
+        benchmark,
+        base,
+        candidate,
+        cpuSlowdown: 20,
+        browserVersion: pairs[0].candidate.browserVersion,
+        pairs,
+        comparison: comparePairs(pairs),
+      }
+      reports.push(report)
     }
-    const report = {
-      title: pairs[0].candidate.title,
-      ...options,
-      base,
-      candidate,
-      cpuSlowdown: 20,
-      browserVersion: pairs[0].candidate.browserVersion,
-      pairs,
-      comparison: comparePairs(pairs),
-    }
-    const summary = formatComparison(report)
+    const report = all ? { base, candidate, benchmarks: reports } : reports[0]
+    const summary = all ? formatComparisonSuite(report) : formatComparison(report)
     console.log(summary)
     await writeReport(report, output, summary)
   } finally {
