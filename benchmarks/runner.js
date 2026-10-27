@@ -3,8 +3,10 @@ import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { build, preview } from 'vite'
 import { chromium } from 'playwright'
-import { formatSummary } from './summary.js'
-import { defaultBenchmark, validateBenchmark } from './benchmarks.js'
+import { runSuite } from './suite.js'
+import { validateOptions } from './src/benchmark-utils.js'
+import { formatSummary, formatSuiteSummary } from './summary.js'
+import { benchmarks, defaultBenchmark, validateBenchmark } from './benchmarks.js'
 import viteConfig from './vite.config.js'
 
 const benchmarkRoot = fileURLToPath(new URL('.', import.meta.url))
@@ -93,9 +95,17 @@ const run = async () => {
   const args = process.argv.slice(2)
   const profile = args.includes('--profile')
   const headed = args.includes('--headed')
+  const all = args.includes('--all')
+  if (all && args.includes('--benchmark')) {
+    throw new Error('Use either --all or --benchmark, not both')
+  }
   const value = (name, fallback) => {
     const index = args.indexOf(name)
-    return index === -1 ? fallback : args[index + 1]
+    if (index === -1) return fallback
+    if (!args[index + 1] || args[index + 1].startsWith('--')) {
+      throw new Error(`${name} requires a value`)
+    }
+    return args[index + 1]
   }
   const options = {
     benchmark: validateBenchmark(value('--benchmark', defaultBenchmark)),
@@ -103,6 +113,7 @@ const run = async () => {
     samples: Number(value('--samples', 20)),
     warmup: Number(value('--warmup', 5)),
   }
+  validateOptions(options)
   const output = value('--output', undefined)
   if (args.includes('--output') && (!output || output.startsWith('--'))) {
     throw new Error('--output requires a file path')
@@ -112,6 +123,17 @@ const run = async () => {
     mode: profile ? 'development' : 'production',
   }
   await build(config)
+  if (all) {
+    const report = await runSuite(Object.keys(benchmarks), (benchmark) =>
+      measureBenchmark(config, { ...options, benchmark }, headed)
+    )
+    report.commit = process.env.GITHUB_SHA
+    const summary = formatSuiteSummary(report)
+    console.log(summary)
+    await writeReport(report, output, summary)
+    if (report.status === 'failed') process.exitCode = 1
+    return
+  }
   const report = await measureBenchmark(config, options, headed)
   report.commit = process.env.GITHUB_SHA
   await writeReport(report, output, formatSummary(report))

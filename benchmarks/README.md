@@ -8,6 +8,7 @@ From the repository root:
 
 ```sh
 npm run bench
+npm run bench -- --all --output results/benchmarks.json
 npm run bench -- --benchmark component-creation
 npm run bench -- --size 100 --samples 5 --warmup 2
 npm run bench -- --headed
@@ -16,7 +17,7 @@ npm run bench:serve
 npm run bench:compare -- --base master
 ```
 
-Each CLI invocation runs only the selected benchmark in a fresh Chromium launch. Use `--benchmark element-creation` or `--benchmark component-creation` with `bench`, `bench:profile`, or `bench:compare`. In the browser, changing the `benchmark` query parameter and navigating launches a fresh application. Warmups and samples run within that launch.
+By default, each CLI invocation runs only the selected benchmark in a fresh Chromium launch. With `--all`, the local runner builds once and runs every registered benchmark sequentially, launching fresh Chromium with its own warmups for each workload. The same size, warmup, and sample options apply to every workload. The console shows an overview and per-benchmark summaries; `--output` saves one JSON object with `status` and a `benchmarks` array containing each complete report and its raw samples. If a benchmark fails, the suite stops, includes the error alongside completed results, writes the report, and exits with a nonzero status. Later benchmarks are omitted. `--all` and `--benchmark` cannot be combined. `--all` also works with `bench:profile`; comparison runs do not support it yet. Use `--benchmark element-creation` or `--benchmark component-creation` with `bench`, `bench:profile`, or `bench:compare`. In the browser, changing the `benchmark` query parameter and navigating launches a fresh application. Warmups and samples run within that launch.
 
 To add a workload, create a CamelCase definition in `src/benchmarks/` and register it in `benchmarks.js`. Each entry exports a `title` and a default `Blits.Component` with its template, state, and `setup`, `measure`, and `verify` methods under `methods`. The shared application renders the selected component and calls those methods on its instance, preserving Blits autocomplete and type inference within the workload. The application lifecycle, keyboard trigger, timing loop, reporting, and launch configuration are shared.
 

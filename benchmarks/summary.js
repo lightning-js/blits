@@ -26,3 +26,22 @@ export const formatSummary = (report) => {
     '',
   ].join('\n')
 }
+
+export const formatSuiteSummary = (report) =>
+  [
+    '# Benchmark suite',
+    '',
+    `Status: ${report.status}`,
+    '',
+    '| Benchmark | Median generation (ms) | Median time to idle (ms) |',
+    '| --- | ---: | ---: |',
+    ...report.benchmarks.map((result) =>
+      result.error
+        ? `| ${result.benchmark} | failed | failed |`
+        : `| ${result.benchmark} | ${result.medianGenerationSyncMs.toFixed(2)} | ${result.medianTotalToIdleMs.toFixed(2)} |`
+    ),
+    '',
+    ...report.benchmarks.map((result) =>
+      result.error ? `## ${result.benchmark}: failed\n\n${result.error}\n` : formatSummary(result)
+    ),
+  ].join('\n')
