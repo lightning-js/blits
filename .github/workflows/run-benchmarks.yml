@@ -68,7 +68,7 @@ jobs:
           BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base }}
           PAIRS: ${{ inputs.pairs || '2' }}
           CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: npm run bench:compare -- --base "$BASE_REF" --candidate "$CANDIDATE_SHA" --all --output results/comparison.json --pairs "$PAIRS"
+        run: npm run bench:compare -- --base "$BASE_REF" --candidate "$CANDIDATE_SHA" --all --warmup 20 --output results/comparison.json --pairs "$PAIRS"
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v7
