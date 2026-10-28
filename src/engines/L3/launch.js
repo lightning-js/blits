@@ -16,9 +16,6 @@
  */
 
 import { RendererMain } from '@lightningjs/renderer'
-import { WebGlCoreRenderer, SdfTextRenderer } from '@lightningjs/renderer/webgl'
-import { CanvasCoreRenderer, CanvasTextRenderer } from '@lightningjs/renderer/canvas'
-import { Inspector } from '@lightningjs/renderer/inspector'
 
 import { Log } from '../../lib/log.js'
 import { SCREEN_RESOLUTIONS, RENDER_QUALITIES } from '../../constants.js'
@@ -31,29 +28,49 @@ import { platform } from '../../platform.js'
 /** @type {RendererMain|{}} */
 export let renderer = {}
 
-const renderEngine = (settings) => {
+const renderEngine = async (settings) => {
   const renderMode = 'renderMode' in settings ? settings.renderMode : 'webgl'
 
-  if (renderMode === 'webgl') return WebGlCoreRenderer
-  if (renderMode === 'canvas') return CanvasCoreRenderer
+  if (renderMode === 'canvas') {
+    const canvasModule = await import('@lightningjs/renderer/canvas')
+    return canvasModule.CanvasCoreRenderer
+  }
+  const webglModule = await import('@lightningjs/renderer/webgl')
+  return webglModule.WebGlCoreRenderer
 }
 
-export const textRenderEngines = (settings) => {
+export const textRenderEngines = async (settings) => {
   const renderMode = 'renderMode' in settings ? settings.renderMode : 'webgl'
 
   // SDF text rendering is not compatible with the Canvas core renderer
-  if (renderMode === 'canvas') return [CanvasTextRenderer]
-
-  if (renderMode === 'webgl') {
-    // Only register the font engines actually required by the configured
-    // fonts, so unused text renderers are never initialized.
-    const { hasSdfFont, hasCanvasFont } = getRequiredFontEngines(settings.fonts)
-    if (hasSdfFont === true && hasCanvasFont === true) return [SdfTextRenderer, CanvasTextRenderer]
-    if (hasSdfFont === true) return [SdfTextRenderer]
-    // Canvas-only fonts, or no fonts declared at all (system/default fonts
-    // render via the Canvas engine, which can render any font family).
-    return [CanvasTextRenderer]
+  if (renderMode === 'canvas') {
+    const canvasModule = await import('@lightningjs/renderer/canvas')
+    return [canvasModule.CanvasTextRenderer]
   }
+
+  const webglModule = await import('@lightningjs/renderer/webgl')
+  // Only register the font engines actually required by the configured
+  // fonts, so unused text renderers are never initialized.
+  const { hasSdfFont, hasCanvasFont } = getRequiredFontEngines(settings.fonts)
+  if (hasSdfFont === true && hasCanvasFont === true) {
+    const canvasModule = await import('@lightningjs/renderer/canvas')
+    return [webglModule.SdfTextRenderer, canvasModule.CanvasTextRenderer]
+  }
+  if (hasSdfFont === true) {
+    return [webglModule.SdfTextRenderer]
+  }
+  // Canvas-only fonts, or no fonts declared at all (system/default fonts
+  // render via the Canvas engine, which can render any font family).
+  const canvasModule = await import('@lightningjs/renderer/canvas')
+  return [canvasModule.CanvasTextRenderer]
+}
+
+const loadInspector = async (settings) => {
+  if (settings.inspector === true) {
+    const inspectorModule = await import('@lightningjs/renderer/inspector')
+    return inspectorModule.Inspector
+  }
+  return undefined
 }
 
 const textureMemorySettings = (settings) => {
@@ -83,13 +100,23 @@ const textureMemorySettings = (settings) => {
  * @param {import('../../launch.js').BlitsAppFactory} App - Factory function that returns the application instance (extends BlitsComponent with .quit())
  * @param {HTMLElement} target - The target element to render the application into
  * @param {Partial<import('../../launch.js').BlitsSettings>} [settings] - The settings for the renderer
+ * @returns {Promise<RendererMain>} The initialized renderer
  *
  */
-export default (App, target, settings = {}) => {
+export default async (App, target, settings = {}) => {
   const screenHeight = settings.platform ? settings.platform.screenHeight : platform.screenHeight
   const hardwareConcurrency = settings.platform
     ? settings.platform.hardwareConcurrency
     : platform.hardwareConcurrency
+
+  // Load only the backend modules required for the configured renderMode.
+  // The unselected backend (and the inspector, unless enabled) is never
+  // fetched, parsed, or evaluated.
+  const [coreRenderer, fontEngines, inspector] = await Promise.all([
+    renderEngine(settings),
+    textRenderEngines(settings),
+    loadInspector(settings),
+  ])
 
   renderer = new RendererMain(
     {
@@ -109,10 +136,10 @@ export default (App, target, settings = {}) => {
             ? settings.webWorkersLimit
             : Math.min(hardwareConcurrency || 2, 2),
         clearColor: (settings.canvasColor && colors.normalize(settings.canvasColor)) || 0x00000000,
-        inspector: settings.inspector === true ? Inspector : undefined,
+        inspector: inspector,
         boundsMargin: settings.viewportMargin || 0,
-        renderEngine: renderEngine(settings),
-        fontEngines: textRenderEngines(settings),
+        renderEngine: coreRenderer,
+        fontEngines: fontEngines,
         canvas: settings.canvas,
         textureProcessingTimeLimit: settings.textureProcessingTimeLimit,
         textureMemory: textureMemorySettings(settings),
@@ -135,7 +162,7 @@ export default (App, target, settings = {}) => {
     }
   }
 
-  shaderLoader()
+  await shaderLoader()
   fontLoader()
   // Defer app initialization until after the current call stack is cleared,
   // allowing the renderer to finish setting up before the app starts creating components

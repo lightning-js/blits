@@ -17,10 +17,8 @@
 
 import Settings from '../../settings.js'
 import { renderer } from './launch.js'
-import * as webglShaders from '@lightningjs/renderer/webgl/shaders'
-import * as canvasShaders from '@lightningjs/renderer/canvas/shaders'
 
-function registerBlitsDefaultShaders(
+const registerBlitsDefaultShaders = (
   shManager,
   Rounded,
   Border,
@@ -31,7 +29,7 @@ function registerBlitsDefaultShaders(
   HolePunch,
   RadialGradient,
   LinearGradient
-) {
+) => {
   shManager.registerShaderType('rounded', Rounded)
   shManager.registerShaderType('border', Border)
   shManager.registerShaderType('shadow', Shadow)
@@ -43,8 +41,14 @@ function registerBlitsDefaultShaders(
   shManager.registerShaderType('linearGradient', LinearGradient)
 }
 
-export default () => {
+export default async () => {
   const stage = renderer.stage
+
+  // Load only the shader bundle for the configured renderMode
+  const backendShaders =
+    Settings.get('renderMode', 'webgl') === 'webgl'
+      ? await import('@lightningjs/renderer/webgl/shaders')
+      : await import('@lightningjs/renderer/canvas/shaders')
 
   const {
     Rounded,
@@ -56,7 +60,7 @@ export default () => {
     HolePunch,
     RadialGradient,
     LinearGradient,
-  } = Settings.get('renderMode', 'webgl') === 'webgl' ? webglShaders : canvasShaders
+  } = backendShaders
 
   registerBlitsDefaultShaders(
     stage.shManager,

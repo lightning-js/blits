@@ -78,19 +78,19 @@ test('getRequiredFontEngines - detects required font engines', (assert) => {
   assert.end()
 })
 
-test('textRenderEngines - only registers required font engines in webgl mode', (assert) => {
+test('textRenderEngines - only registers required font engines in webgl mode', async (assert) => {
   assert.deepEqual(
-    textRenderEngines({ renderMode: 'webgl', fonts: [{ family: 'A', type: 'msdf' }] }),
+    await textRenderEngines({ renderMode: 'webgl', fonts: [{ family: 'A', type: 'msdf' }] }),
     [SdfTextRenderer],
     'only SDF engine for msdf-only fonts'
   )
   assert.deepEqual(
-    textRenderEngines({ renderMode: 'webgl', fonts: [{ family: 'A', type: 'web' }] }),
+    await textRenderEngines({ renderMode: 'webgl', fonts: [{ family: 'A', type: 'web' }] }),
     [CanvasTextRenderer],
     'only Canvas engine for web-only fonts'
   )
   assert.deepEqual(
-    textRenderEngines({
+    await textRenderEngines({
       renderMode: 'webgl',
       fonts: [
         { family: 'A', type: 'msdf' },
@@ -101,31 +101,31 @@ test('textRenderEngines - only registers required font engines in webgl mode', (
     'both engines for mixed fonts'
   )
   assert.deepEqual(
-    textRenderEngines({ renderMode: 'webgl', fonts: [] }),
+    await textRenderEngines({ renderMode: 'webgl', fonts: [] }),
     [CanvasTextRenderer],
     'canvas engine when no fonts are declared (system fonts)'
   )
   assert.deepEqual(
-    textRenderEngines({ renderMode: 'webgl' }),
+    await textRenderEngines({ renderMode: 'webgl' }),
     [CanvasTextRenderer],
     'canvas engine when fonts setting is missing'
   )
   assert.deepEqual(
-    textRenderEngines({ fonts: [{ family: 'A', type: 'msdf' }] }),
+    await textRenderEngines({ fonts: [{ family: 'A', type: 'msdf' }] }),
     [SdfTextRenderer],
     'defaults to webgl renderMode'
   )
   assert.end()
 })
 
-test('textRenderEngines - canvas renderMode only registers the canvas engine', (assert) => {
+test('textRenderEngines - canvas renderMode only registers the canvas engine', async (assert) => {
   assert.deepEqual(
-    textRenderEngines({ renderMode: 'canvas', fonts: [{ family: 'A', type: 'msdf' }] }),
+    await textRenderEngines({ renderMode: 'canvas', fonts: [{ family: 'A', type: 'msdf' }] }),
     [CanvasTextRenderer],
     'sdf fonts cannot use the canvas core renderer'
   )
   assert.deepEqual(
-    textRenderEngines({ renderMode: 'canvas' }),
+    await textRenderEngines({ renderMode: 'canvas' }),
     [CanvasTextRenderer],
     'canvas engine when no fonts are declared'
   )

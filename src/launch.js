@@ -155,8 +155,13 @@ export default (App, target, settings) => {
 
   stage.element = engine.Element
 
-  renderer = engine.Launch(App, target, settings)
-  if (isDev === true) {
-    profiler.setRenderer(renderer)
-  }
+  // The L3 engine loads its backend modules dynamically, so the renderer
+  // is populated asynchronously. Internal ordering (renderer creation before
+  // app init) is preserved inside engine.Launch.
+  engine.Launch(App, target, settings).then((launchRenderer) => {
+    renderer = launchRenderer
+    if (isDev === true) {
+      profiler.setRenderer(launchRenderer)
+    }
+  })
 }
