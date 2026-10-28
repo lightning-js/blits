@@ -18,7 +18,6 @@
 import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import engine from './engine.js'
-import blitsPackageInfo from '../package.json' with { type: 'json' }
 import { configurePlatform } from './platform.js'
 import profiler from './lib/profiler.js'
 
@@ -52,18 +51,32 @@ const isDev = typeof __DEV__ !== 'undefined' && __DEV__
 export let renderer = {}
 export const stage = {}
 
-async function rendererVersion() {
-  let rendererPackageInfo
+const logVersionsDev = async () => {
+  if (isDev !== true) return
+  let blitsVersion
+  let rendererVersion
+  let blitsDeps
+  try {
+    const blitsPackageInfo = await import('../package.json', { with: { type: 'json' } })
+    const pkg = blitsPackageInfo.default ?? blitsPackageInfo
+    blitsVersion = pkg.version
+    blitsDeps = pkg.dependencies
+  } catch {
+    // ignore - version logging is dev-only best effort
+  }
   try {
     // Dynamically import the renderer package.json
-    rendererPackageInfo = await import('../../renderer/package.json')
-    if (rendererPackageInfo !== undefined) {
-      return rendererPackageInfo.version
-    }
-  } catch (e) {
-    // Fallback to renderer version in dependencies
-    return blitsPackageInfo.dependencies['@lightningjs/renderer']
+    const rendererPackageInfo = await import('../../renderer/package.json', {
+      with: { type: 'json' },
+    })
+    const pkg = rendererPackageInfo.default ?? rendererPackageInfo
+    rendererVersion = pkg.version
+  } catch {
+    // Fallback to renderer version range in dependencies
+    rendererVersion = blitsDeps?.['@lightningjs/renderer']
   }
+  Log.info('Blits Version ', blitsVersion)
+  Log.info('Renderer Version ', rendererVersion)
 }
 
 /**
@@ -148,10 +161,9 @@ export default (App, target, settings) => {
     )
   }
 
-  rendererVersion().then((v) => {
-    Log.info('Blits Version ', blitsPackageInfo.version)
-    Log.info('Renderer Version ', v)
-  })
+  if (isDev === true) {
+    logVersionsDev()
+  }
 
   stage.element = engine.Element
 
