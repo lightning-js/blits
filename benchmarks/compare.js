@@ -3,9 +3,12 @@ import { cp, mkdir, mkdtemp, rm, symlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { buildBenchmark, measureBenchmark, writeReport } from './runner.js'
-import { comparePairs, formatComparison } from './comparison.js'
-import { validateOptions } from './src/benchmark-utils.js'
+import { buildBenchmark, measureBenchmark, writeReport, saveReport } from './runner.js'
+import { comparePairs, formatComparison, formatComparisonSuite } from './comparison.js'
+import { benchmarks, defaultBenchmark, validateBenchmark } from './benchmarks.js'
+import { validateThreshold, DEFAULT_THRESHOLD_PERCENT } from './statistics.js'
+import { validateOptions, validateCpuSlowdown } from './src/benchmark-utils.js'
+import { runPairs } from './pairs.js'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const args = process.argv.slice(2)
@@ -62,17 +65,27 @@ const snapshot = async (destination, sha, temporary) => {
 }
 
 const run = async () => {
+  const all = args.includes('--all')
+  const short = args.includes('--short')
+  if (all && args.includes('--benchmark'))
+    throw new Error('Use either --all or --benchmark, not both')
   const baseRef = value('--base')
   if (!baseRef) throw new Error('Usage: npm run bench:compare -- --base <branch-or-commit>')
   const candidateRef = value('--candidate')
   const output = value('--output', 'results/comparison.json')
   const pairCount = Number(value('--pairs', 2))
+  const thresholdPercent = validateThreshold(
+    Number(value('--threshold', DEFAULT_THRESHOLD_PERCENT))
+  )
   const options = {
+    benchmark: validateBenchmark(value('--benchmark', defaultBenchmark)),
+    cpuSlowdown: Number(value('--cpu-slowdown', 20)),
     size: Number(value('--size', 1000)),
     warmup: Number(value('--warmup', 5)),
     samples: Number(value('--samples', 20)),
   }
   validateOptions(options)
+  validateCpuSlowdown(options.cpuSlowdown)
   if (!Number.isSafeInteger(pairCount) || pairCount < 1)
     throw new Error('--pairs must be a positive integer')
   if (args.includes('--profile'))
@@ -84,6 +97,7 @@ const run = async () => {
     dirty: !candidateRef && git('status', '--porcelain').length > 0,
   }
   const temporary = await mkdtemp(join(tmpdir(), 'blits-benchmark-'))
+  let progress
   try {
     const configs = {}
     for (const [name, sha] of [
@@ -95,29 +109,52 @@ const run = async () => {
       await snapshot(source, sha, temporary)
       configs[name] = await buildBenchmark(source, resolve(temporary, `${name}-dist`))
     }
-    const pairs = []
-    for (let index = 0; index < pairCount; index++) {
-      const order = index % 2 === 0 ? ['base', 'candidate'] : ['candidate', 'base']
-      const pair = { order }
-      for (const name of order) {
-        console.log(`Pair ${index + 1}/${pairCount}: ${name}`)
-        pair[name] = await measureBenchmark(configs[name], options, args.includes('--headed'))
+    const reports = []
+    progress = { status: 'running', base, candidate, benchmarks: reports }
+    const names = all ? Object.keys(benchmarks) : [options.benchmark]
+    for (const benchmark of names) {
+      const pairs = await runPairs(
+        pairCount,
+        async (name, index) => {
+          console.log(`${benchmark}: pair ${index + 1}/${pairCount}: ${name}`)
+          return measureBenchmark(
+            configs[name],
+            { ...options, benchmark, allowUnsupported: name === 'base' },
+            args.includes('--headed')
+          )
+        },
+        async (pairs) => {
+          progress.inProgress = { ...options, benchmark, thresholdPercent, pairs }
+          await saveReport(progress, output)
+        }
+      )
+      const report = {
+        title: pairs[0].candidate.title,
+        ...options,
+        benchmark,
+        base,
+        candidate,
+        cpuSlowdown: options.cpuSlowdown,
+        browserVersion: pairs[0].candidate.browserVersion,
+        pairs,
+        thresholdPercent,
+        comparison: comparePairs(pairs, { thresholdPercent }),
       }
-      pairs.push(pair)
+      reports.push(report)
+      delete progress.inProgress
     }
-    const report = {
-      title: pairs[0].candidate.title,
-      ...options,
-      base,
-      candidate,
-      cpuSlowdown: 20,
-      browserVersion: pairs[0].candidate.browserVersion,
-      pairs,
-      comparison: comparePairs(pairs),
+    const report = all ? { base, candidate, benchmarks: reports } : reports[0]
+    const summary = all ? formatComparisonSuite(report) : formatComparison(report)
+    if (!short) console.log(summary)
+    await writeReport(report, output, summary, short)
+  } catch (error) {
+    if (progress) {
+      progress.status = 'failed'
+      progress.error = error.message
+      const path = await saveReport(progress, output)
+      console.error(`Partial results saved to ${path}`)
     }
-    const summary = formatComparison(report)
-    console.log(summary)
-    await writeReport(report, output, summary)
+    throw error
   } finally {
     await rm(temporary, { recursive: true, force: true })
   }
