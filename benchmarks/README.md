@@ -1,6 +1,13 @@
 # Benchmarks
 
-Two workloads are available: `element-creation` (default) and `component-creation`. Both create 1,000 matching items with rectangles and text; the component benchmark adds a component boundary around each item.
+Four isolated workloads are available:
+
+| Benchmark | Measured work |
+| --- | --- |
+| `element-creation` (default) | Create Elements with rectangles and text |
+| `component-creation` | Create matching items with a component boundary |
+| `computed-loop-creation` | Mount a list whose computed array supplies its Element loop |
+| `computed-binding-updates` | Update ordinary computed bindings across mounted components |
 
 Install dependencies and Chromium:
 
@@ -17,13 +24,15 @@ Run commands below from the repository root.
 ```sh
 npm run bench -- --all --short --output results/benchmarks.json
 npm run bench -- --benchmark component-creation
+npm run bench -- --benchmark computed-loop-creation
+npm run bench -- --benchmark computed-binding-updates
 ```
 
 Options: `--size` (default 1000), `--warmup` (5), `--samples` (20), `--cpu-slowdown` (20; use 1 to disable), `--headed`, `--short`, and `--output`. Relative output paths resolve from `benchmarks/`. Full JSON is saved even with `--short`.
 
 The benchmark server enables cross-origin isolation for higher-resolution timers. JSON also records isolation status, browser mode, measurement start time, and duration for each launch.
 
-`--all` runs workloads sequentially with a fresh browser for each. Use `--benchmark` to select one instead. Results measure synchronous generation and time to renderer idle, including frame scheduling but not GPU completion. Warmups and clearing the previous items are excluded.
+`--all` runs workloads sequentially with a fresh browser for each. Use `--benchmark` to select one instead. Results measure synchronous work and time to renderer idle, including frame scheduling but not GPU completion. Warmups, preparation, and resetting the previous sample are excluded. JSON retains the historical `generationSyncMs` / `medianGenerationSyncMs` field names for compatibility; for the update workload these represent batch update time.
 
 For browser inspection, run `npm run bench:serve`, open the printed URL, and press Enter. Select a workload and options in the URL, for example `?benchmark=component-creation&size=1000&warmup=20&samples=20`. Manual runs use the browser's current CPU settings. Use `npm run bench:profile` for development profiling separately from production measurements.
 

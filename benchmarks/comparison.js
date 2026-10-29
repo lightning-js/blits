@@ -61,7 +61,7 @@ export const comparePairs = (pairs, { thresholdPercent = DEFAULT_THRESHOLD_PERCE
 const formatComparisonSection = (report) => {
   const number = (value) => (value === null ? 'N/A' : value.toFixed(2))
   const labels = {
-    medianGenerationSyncMs: 'Synchronous generation',
+    medianGenerationSyncMs: 'Synchronous work',
     medianTotalToIdleMs: 'Total time to idle',
   }
   return [
@@ -89,7 +89,7 @@ const formatComparisonSection = (report) => {
         `| ${labels[row.metric]} | ${number(row.baseMs)} | ${number(row.candidateMs)} | ${number(row.differenceMs)} | ${row.changePercent === null ? 'N/A' : `${number(row.changePercent)}%`} | ${formatInterval(row)} | ${verdictLabel(row)} |`
     ),
     '',
-    '| Pair | Order | Generation change (%) | Time to idle change (%) |',
+    '| Pair | Order | Synchronous work change (%) | Time to idle change (%) |',
     '| --- | --- | ---: | ---: |',
     ...report.pairs.map(
       (pair, index) =>
@@ -104,7 +104,7 @@ const comparisonNotes = [
   '',
   `95% Student-t intervals use mean log ratios in balanced four-launch blocks (AB/BA), not inner samples. Fewer than ${MIN_BLOCKS} blocks (${MIN_BLOCKS * 2} pairs) are preliminary. With sufficient data, verdicts compare the full interval with the practical band; inconclusive does not mean unchanged. Intervals assume independent, approximately normal block means and do not correct systematic bias, drift, or multiple-metric testing. With only two blocks, the variance estimate is particularly uncertain. Choose the run budget before measuring.`,
   '',
-  'Both versions use the current harness and installed dependencies. Warmups are excluded. Time to idle includes synchronous generation and frame scheduling, not GPU completion. Results are informational; verdicts do not fail CI.',
+  'Both versions use the current harness and installed dependencies. Warmups are excluded. Time to idle includes synchronous work and frame scheduling, not GPU completion. Results are informational; verdicts do not fail CI.',
   '',
 ].join('\n')
 
@@ -118,7 +118,7 @@ export const formatComparisonOverview = (reports) => {
     return `${value === null ? 'N/A' : `${value > 0 ? '+' : ''}${value.toFixed(2)}%`}${row.intervalPercent ? ` · ${formatInterval(row)}` : ''} · ${verdictLabel(row)}`
   }
   return [
-    '| Benchmark | Generation change | Time to idle change |',
+    '| Benchmark | Synchronous work change | Time to idle change |',
     '| --- | ---: | ---: |',
     ...reports.map(
       (report) =>
