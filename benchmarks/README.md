@@ -55,6 +55,6 @@ Optionally export `checkSupport()` returning a non-empty reason string for a mis
 
 ## GitHub Actions
 
-Run Benchmarks compares the PR against its target branch with all workloads, 4 pairs, 20 warmups, 20 samples, and 6× CPU slowdown. Four pairs complete two balanced blocks; an odd pair count leaves an incomplete block and no interval. The job is capped at 15 minutes. Manual runs can override pairs and CPU slowdown within that limit. It uploads available JSON even after a failure and writes a workflow summary on success. Results are informational; performance verdicts do not fail CI.
+Automatic PR benchmark runs are disabled. Start Run Benchmarks manually from the Actions tab, selecting the candidate branch and supplying a baseline branch or commit. Defaults are all workloads, 4 pairs, 20 warmups, 20 samples, and 6× CPU slowdown. Four pairs complete two balanced blocks; an odd pair count leaves an incomplete block and no interval. The job is capped at 15 minutes. Manual runs can override pairs and CPU slowdown within that limit. It uploads available JSON even after a failure and writes a workflow summary on success. Results are informational; performance verdicts do not fail CI.
 
-Publish Benchmark Results updates one PR comment and stores the full report on the `benchmark-reports` branch. Default CI runs include 95% intervals, which may be wide or inconclusive with only two blocks.
+Manual runs provide workflow summaries and artifacts; they do not publish PR comments. The PR report publisher is retained for future automatic runs. The 95% intervals may be wide or inconclusive with only two blocks.

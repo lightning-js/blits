@@ -1,13 +1,6 @@
 name: Run Benchmarks
 
 on:
-  pull_request:
-    paths:
-      - 'src/**'
-      - 'benchmarks/**'
-      - '.github/workflows/run-benchmarks.yml'
-      - '.github/workflows/publish-benchmark-results.yml'
-      - '.github/scripts/publish-benchmark*'
   workflow_dispatch:
     inputs:
       base:
