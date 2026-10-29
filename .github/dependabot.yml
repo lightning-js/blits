@@ -4,17 +4,6 @@ updates:
     directory: /
     target-branch: "dev"
     schedule:
-      interval: weekly
-    groups:
-      minor-patch:
-        patterns:
-          - "*"
-        update-types:
-          - minor
-          - patch
-    open-pull-requests-limit: 10
-  - package-ecosystem: github-actions
-    directory: /
-    target-branch: "dev"
-    schedule:
-      interval: weekly
+      interval: daily
+    allow:
+      - dependency-type: production
