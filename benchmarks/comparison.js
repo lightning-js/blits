@@ -102,7 +102,7 @@ const formatComparisonSection = (report) => {
 const comparisonNotes = [
   'Negative changes mean faster. Estimated change is the geometric mean of paired candidate/base ratios. Absolute columns are medians of run medians; the paired absolute difference is descriptive and need not equal the percentage estimate.',
   '',
-  '95% Student-t intervals use mean log ratios in balanced four-launch blocks (AB/BA), not inner samples. Fewer than four blocks (eight pairs) are preliminary. With sufficient data, verdicts compare the full interval with the practical band; inconclusive does not mean unchanged. Intervals assume independent, approximately normal block means and do not correct systematic bias, drift, or multiple-metric testing. Choose the run budget before measuring.',
+  `95% Student-t intervals use mean log ratios in balanced four-launch blocks (AB/BA), not inner samples. Fewer than ${MIN_BLOCKS} blocks (${MIN_BLOCKS * 2} pairs) are preliminary. With sufficient data, verdicts compare the full interval with the practical band; inconclusive does not mean unchanged. Intervals assume independent, approximately normal block means and do not correct systematic bias, drift, or multiple-metric testing. With only two blocks, the variance estimate is particularly uncertain. Choose the run budget before measuring.`,
   '',
   'Both versions use the current harness and installed dependencies. Warmups are excluded. Time to idle includes synchronous generation and frame scheduling, not GPU completion. Results are informational; verdicts do not fail CI.',
   '',

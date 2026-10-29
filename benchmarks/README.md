@@ -40,10 +40,10 @@ Use `--candidate <branch-or-commit>` to compare an exact revision instead of the
 To check comparison noise using identical source:
 
 ```sh
-npm run bench:compare -- --all --base HEAD --candidate HEAD --warmup 20 --pairs 8 --threshold 5 --short --output results/aa-run1.json
+npm run bench:compare -- --all --base HEAD --candidate HEAD --warmup 20 --pairs 4 --threshold 5 --short --output results/aa-run1.json
 ```
 
-Each pair uses fresh base and candidate browsers; order alternates. `--pairs` defaults to 2. Short runs are labelled **Preliminary**: their percentages are estimates, not performance conclusions. At least 8 pairs are currently required for a 95% interval; this does not guarantee a conclusive result. Negative means faster. `--threshold` sets the practical band (default ±5%); the full interval determines improvement, regression, no meaningful change, or inconclusive. Choose the run budget before starting.
+Each pair uses fresh base and candidate browsers; order alternates. `--pairs` defaults to 2. Short runs are labelled **Preliminary**: their percentages are estimates, not performance conclusions. At least 4 pairs are required for a 95% interval. Four-pair intervals use only two independent blocks and can be very wide; this does not guarantee a conclusive result or reliable 5% sensitivity. Negative means faster. `--threshold` sets the practical band (default ±5%); the full interval determines improvement, regression, no meaningful change, or inconclusive. Choose the run budget before starting.
 
 Completed launches are saved as the comparison progresses. A failed run retains partial results with `status: "failed"`; these are not a completed comparison or a resumable run.
 
@@ -55,6 +55,6 @@ Optionally export `checkSupport()` returning a non-empty reason string for a mis
 
 ## GitHub Actions
 
-Run Benchmarks compares the PR against its target branch with all workloads, 2 pairs, 20 warmups, 20 samples, and 20× CPU slowdown. The job is capped at 15 minutes. Manual runs can override pairs and CPU slowdown within that limit. It uploads available JSON even after a failure and writes a workflow summary on success. Results are informational; performance verdicts do not fail CI.
+Run Benchmarks compares the PR against its target branch with all workloads, 4 pairs, 20 warmups, 20 samples, and 6× CPU slowdown. Four pairs complete two balanced blocks; an odd pair count leaves an incomplete block and no interval. The job is capped at 15 minutes. Manual runs can override pairs and CPU slowdown within that limit. It uploads available JSON even after a failure and writes a workflow summary on success. Results are informational; performance verdicts do not fail CI.
 
-Publish Benchmark Results updates one PR comment and stores the full report on the `benchmark-reports` branch. Default CI runs show preliminary estimates; use longer local runs for confidence intervals.
+Publish Benchmark Results updates one PR comment and stores the full report on the `benchmark-reports` branch. Default CI runs include 95% intervals, which may be wide or inconclusive with only two blocks.

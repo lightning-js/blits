@@ -44,6 +44,18 @@ test('interval agrees with a four-observation Student-t reference calculation', 
   assert.equal(report.verdict, 'equivalent')
 })
 
+test('four pairs produce a low-sample interval with the one-degree-of-freedom critical value', () => {
+  const report = analyze([0.01, 0.03])
+  const margin = 12.707 * 0.01
+  assert.equal(report.independentBlocks, 2)
+  assert.ok(Math.abs(report.intervalPercent.lower - Math.expm1(0.02 - margin) * 100) < 1e-10)
+  assert.ok(Math.abs(report.intervalPercent.upper - Math.expm1(0.02 + margin) * 100) < 1e-10)
+  assert.equal(report.verdict, 'inconclusive')
+  const insufficient = analyze([0.02])
+  assert.equal(insufficient.intervalPercent, null)
+  assert.equal(insufficient.reason, 'insufficient-independent-blocks')
+})
+
 test('classifies known changes, equivalence, and uncertainty using the full interval', () => {
   const offsets = [-0.01, 0.01, -0.005, 0.005]
   assert.equal(analyze(offsets.map((x) => Math.log(1.1) + x)).verdict, 'regressed')

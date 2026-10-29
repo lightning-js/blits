@@ -1,5 +1,5 @@
 export const CONFIDENCE_LEVEL = 0.95
-export const MIN_BLOCKS = 4
+export const MIN_BLOCKS = 2
 export const DEFAULT_THRESHOLD_PERCENT = 5
 
 export const validateThreshold = (value) => {

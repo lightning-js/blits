@@ -17,12 +17,12 @@ on:
       pairs:
         description: Base/candidate pairs per benchmark
         required: true
-        default: '2'
+        default: '4'
         type: string
       cpu_slowdown:
         description: CPU slowdown (1 for native execution)
         required: true
-        default: '20'
+        default: '6'
         type: string
 
 permissions:
@@ -71,8 +71,8 @@ jobs:
       - name: Compare benchmarks and write workflow summary
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base }}
-          PAIRS: ${{ inputs.pairs || '2' }}
-          CPU_SLOWDOWN: ${{ inputs.cpu_slowdown || '20' }}
+          PAIRS: ${{ inputs.pairs || '4' }}
+          CPU_SLOWDOWN: ${{ inputs.cpu_slowdown || '6' }}
           CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: npm run bench:compare -- --base "$BASE_REF" --candidate "$CANDIDATE_SHA" --all --warmup 20 --samples 20 --cpu-slowdown "$CPU_SLOWDOWN" --threshold 5 --short --output results/comparison.json --pairs "$PAIRS"
 
