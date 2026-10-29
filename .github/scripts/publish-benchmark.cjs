@@ -11,6 +11,8 @@ module.exports = async ({ github, context, core }) => {
     formatComparisonOverview,
     unsupportedReasons,
   } = await import('../../benchmarks/comparison.js')
+  const { validateThreshold, DEFAULT_THRESHOLD_PERCENT, MIN_BLOCKS } =
+    await import('../../benchmarks/statistics.js')
   const repo = context.repo
   const run = context.payload.workflow_run
   let pulls = run.pull_requests
@@ -21,6 +23,9 @@ module.exports = async ({ github, context, core }) => {
     })
   }
   const report = JSON.parse(await readFile('benchmark-data/comparison.json', 'utf8'))
+  if (report.status !== undefined && report.status !== 'completed') {
+    throw new Error('Benchmark comparison is incomplete')
+  }
   const prs = []
   for (const pull of pulls) {
     const { data: pr } = await github.rest.pulls.get({ ...repo, pull_number: pull.number })
@@ -100,7 +105,10 @@ module.exports = async ({ github, context, core }) => {
       throw new Error('Invalid CPU slowdown')
     }
     result.candidate.dirty = false
-    result.comparison = comparePairs(result.pairs)
+    result.thresholdPercent = validateThreshold(
+      result.thresholdPercent ?? DEFAULT_THRESHOLD_PERCENT
+    )
+    result.comparison = comparePairs(result.pairs, { thresholdPercent: result.thresholdPercent })
     if (
       result.comparison.some(
         (row) =>
@@ -163,7 +171,7 @@ module.exports = async ({ github, context, core }) => {
     '',
     ...reports.map(
       (result) =>
-        `${result.title}: ${result.pairs.length} pairs, ${result.warmup} warmups and ${result.samples} samples per run.`
+        `${result.title}: ±${result.thresholdPercent}% practical band; ${result.pairs.length} pairs, ${result.warmup} warmups and ${result.samples} samples per run.`
     ),
     '',
     ...reports.flatMap((result) =>
@@ -172,7 +180,9 @@ module.exports = async ({ github, context, core }) => {
       )
     ),
     '',
-    'Negative means faster. Informational results; small changes can be measurement noise.',
+    `Runs with fewer than ${MIN_BLOCKS} balanced blocks (${MIN_BLOCKS * 2} pairs) are preliminary; no confidence interval or performance conclusion is available.`,
+    '',
+    'Negative means faster. Intervals and verdicts use balanced launch blocks, not inner samples. Inconclusive is not evidence of no change. Results are informational.',
     '',
     `[Full report](${url}) · [Workflow run](${run.html_url})`,
     '',

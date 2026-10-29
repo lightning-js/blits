@@ -1,3 +1,4 @@
+import { MIN_BLOCKS, DEFAULT_THRESHOLD_PERCENT } from './statistics.js'
 import { formatComparisonOverview, unsupportedReasons } from './comparison.js'
 
 export const formatSummary = (report) => {
@@ -56,9 +57,15 @@ export const formatShortSummary = (report) => {
     ...reports.map((result) =>
       result.error
         ? `${result.benchmark}: failed — ${result.error}`
-        : `${result.title}: size ${result.size}, warmup ${result.warmup}, samples ${result.samples}, CPU ${result.cpuSlowdown ?? 20}×${result.pairs ? `, pairs ${result.pairs.length}` : ''}`
+        : `${result.title}: size ${result.size}, warmup ${result.warmup}, samples ${result.samples}, CPU ${result.cpuSlowdown ?? 20}×${result.pairs ? `, pairs ${result.pairs.length}, blocks ${result.comparison?.[0]?.independentBlocks ?? 0}, practical band ±${result.thresholdPercent ?? DEFAULT_THRESHOLD_PERCENT}%` : ''}`
     ),
     '',
+    ...(comparison
+      ? [
+          `95% intervals require at least ${MIN_BLOCKS} balanced blocks (${MIN_BLOCKS * 2} pairs). Shorter runs are preliminary; percentage estimates alone are not evidence of a change.`,
+          '',
+        ]
+      : []),
     ...(comparison
       ? [
           formatComparisonOverview(reports),

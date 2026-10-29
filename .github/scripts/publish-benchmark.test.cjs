@@ -164,19 +164,31 @@ test('publishes every benchmark with individual comparisons and run configuratio
   await publish(mock)
   const body = mock.calls.find((call) => call.name === 'createComment').args.body
   assert.match(body, /Benchmark \| Generation change \| Time to idle change/)
-  assert.match(body, /Element generation benchmark \| -20\.00% \| \+10\.00%/)
-  assert.match(body, /Component generation benchmark \| -20\.00% \| \+10\.00%/)
+  assert.match(body, /Element generation benchmark \| -20\.00% · Preliminary \| \+10\.00%/)
+  assert.match(body, /Component generation benchmark \| -20\.00% · Preliminary \| \+10\.00%/)
   assert.match(body, /1 pairs, 5 warmups and 20 samples/)
   const tree = mock.calls.find((call) => call.name === 'createTree').args.tree
   assert.match(tree[0].content, /## Element generation benchmark: comparison/)
   assert.match(tree[0].content, /## Component generation benchmark: comparison/)
   const saved = JSON.parse(tree[1].content)
   assert.equal(saved.benchmarks.length, 2)
-  assert.equal(saved.benchmarks[1].comparison[0].changePercent, -20)
+  assert.ok(Math.abs(saved.benchmarks[1].comparison[0].changePercent + 20) < 1e-10)
 })
 
 test('rejects invalid suite entries before writing reports or comments', async () => {
   for (const [mutate, expected] of [
+    [
+      (report) => {
+        report.status = 'running'
+      },
+      /comparison is incomplete/,
+    ],
+    [
+      (report) => {
+        report.status = 'failed'
+      },
+      /comparison is incomplete/,
+    ],
     [
       (report) => {
         report.benchmarks = []
@@ -270,4 +282,35 @@ test('preserves the measured CPU rate and rejects invalid rates', async () => {
     },
   })
   await assert.rejects(publish(invalid), /Invalid CPU slowdown/)
+})
+
+test('recomputes intervals and verdicts rather than trusting artifact claims', async () => {
+  const mock = await fixture({
+    mutate: (report) => {
+      const pair = report.pairs[0]
+      report.pairs = Array.from({ length: 8 }, (_, index) => ({
+        ...structuredClone(pair),
+        order: index % 2 ? ['candidate', 'base'] : ['base', 'candidate'],
+      }))
+      report.comparison = [
+        { changePercent: 999, verdict: 'equivalent', intervalPercent: { lower: 0, upper: 0 } },
+      ]
+    },
+  })
+  await publish(mock)
+  const body = mock.calls.find((call) => call.name === 'createComment').args.body
+  assert.match(body, /Improvement/)
+  assert.match(body, /Regression/)
+  assert.doesNotMatch(body, /999|No meaningful change/)
+  const json = JSON.parse(
+    mock.calls.find((call) => call.name === 'createTree').args.tree[1].content
+  )
+  assert.equal(json.comparison[0].verdict, 'improved')
+  assert.equal(json.comparison[0].independentBlocks, 4)
+  const invalid = await fixture({
+    mutate: (report) => {
+      report.thresholdPercent = -1
+    },
+  })
+  await assert.rejects(publish(invalid), /Threshold must/)
 })
