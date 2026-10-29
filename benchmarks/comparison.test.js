@@ -7,20 +7,18 @@ const timings = (value) => ({
   medianTotalToIdleMs: value * 2,
 })
 
-test('compares within pairs before aggregating percentages', () => {
+test('compares paired multiplicative effects rather than averaging percentages', () => {
   const rows = comparePairs([
-    { base: timings(10), candidate: timings(20) },
-    { base: timings(100), candidate: timings(90) },
+    { order: ['base', 'candidate'], base: timings(10), candidate: timings(20) },
+    { order: ['candidate', 'base'], base: timings(100), candidate: timings(90) },
   ])
-  assert.deepEqual(rows[0], {
-    metric: 'medianGenerationSyncMs',
-    baseMs: 55,
-    candidateMs: 55,
-    differenceMs: 0,
-    changePercent: 45,
-    pairChangesPercent: [100, -10],
-  })
-  assert.equal(rows[1].changePercent, 45)
+  assert.equal(rows[0].baseMs, 55)
+  assert.equal(rows[0].candidateMs, 55)
+  assert.equal(rows[0].differenceMs, 0)
+  assert.ok(Math.abs(rows[0].changePercent - (Math.sqrt(1.8) - 1) * 100) < 1e-10)
+  assert.deepEqual(rows[0].pairChangesPercent, [100, -10])
+  assert.equal(rows[0].verdict, 'inconclusive')
+  assert.equal(rows[0].reason, 'insufficient-independent-blocks')
 })
 
 test('identical timings produce no change and zero baselines have no percentage', () => {
@@ -28,6 +26,16 @@ test('identical timings produce no change and zero baselines have no percentage'
   const [row] = comparePairs([{ base: timings(0), candidate: timings(10) }])
   assert.equal(row.differenceMs, 10)
   assert.equal(row.changePercent, null)
+})
+
+test('short comparisons show preliminary estimates without claiming a performance change', () => {
+  const pairs = [
+    { order: ['base', 'candidate'], base: timings(10), candidate: timings(12) },
+    { order: ['candidate', 'base'], base: timings(10), candidate: timings(12) },
+  ]
+  const overview = formatComparisonOverview([{ title: 'Test', comparison: comparePairs(pairs) }])
+  assert.match(overview, /\+20\.00% · Preliminary/)
+  assert.doesNotMatch(overview, /Improvement|Regression|No meaningful change|unavailable/)
 })
 
 test('summary exposes run order and faster changes with a negative percentage', () => {
@@ -64,14 +72,12 @@ test('unsupported baselines have N/A comparisons and retain candidate timings an
     },
   ]
   const comparison = comparePairs(pairs)
-  assert.deepEqual(comparison[0], {
-    metric: 'medianGenerationSyncMs',
-    baseMs: null,
-    candidateMs: 20,
-    differenceMs: null,
-    changePercent: null,
-    pairChangesPercent: [null],
-  })
+  assert.equal(comparison[0].baseMs, null)
+  assert.equal(comparison[0].candidateMs, 20)
+  assert.equal(comparison[0].changePercent, null)
+  assert.equal(comparison[0].verdict, 'unsupported')
+  assert.equal(comparison[0].intervalPercent, null)
+  assert.deepEqual(comparison[0].pairChangesPercent, [null])
   const report = {
     title: 'New feature',
     pairs,

@@ -19,6 +19,11 @@ on:
         required: true
         default: '2'
         type: string
+      cpu_slowdown:
+        description: CPU slowdown (1 for native execution)
+        required: true
+        default: '20'
+        type: string
 
 permissions:
   contents: read
@@ -30,7 +35,7 @@ concurrency:
 jobs:
   benchmark:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -67,13 +72,15 @@ jobs:
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base }}
           PAIRS: ${{ inputs.pairs || '2' }}
+          CPU_SLOWDOWN: ${{ inputs.cpu_slowdown || '20' }}
           CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: npm run bench:compare -- --base "$BASE_REF" --candidate "$CANDIDATE_SHA" --all --warmup 20 --output results/comparison.json --pairs "$PAIRS"
+        run: npm run bench:compare -- --base "$BASE_REF" --candidate "$CANDIDATE_SHA" --all --warmup 20 --samples 20 --cpu-slowdown "$CPU_SLOWDOWN" --threshold 5 --short --output results/comparison.json --pairs "$PAIRS"
 
       - name: Upload benchmark results
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: benchmark-results
           path: benchmarks/results/comparison.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30

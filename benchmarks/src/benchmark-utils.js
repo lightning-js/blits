@@ -11,19 +11,27 @@ let isIdle = false
 let idleWaiter
 
 export const untilIdle = (update) => {
+  // Start each update from idle so it can produce its own active -> idle transition.
+  if (update && !isIdle) return untilIdle().then(() => untilIdle(update))
   if (!update && isIdle) return Promise.resolve()
   return new Promise((resolve, reject) => {
     // Updates must produce their own active -> idle transition.
     let sawActive = !update
+    let idleEvents = 0
     const cleanup = () => {
       clearTimeout(timeout)
       idleWaiter = undefined
     }
     const timeout = setTimeout(() => {
       cleanup()
-      reject(new Error('Renderer did not become idle within 30 seconds'))
+      reject(
+        new Error(
+          `Renderer did not become idle within 30 seconds (update: ${Boolean(update)}, active observed: ${sawActive}, idle events: ${idleEvents}, last idle state: ${isIdle})`
+        )
+      )
     }, 30_000)
     idleWaiter = (idle) => {
+      if (idle) idleEvents++
       if (!idle) sawActive = true
       if (idle && sawActive) {
         cleanup()
@@ -124,10 +132,21 @@ export const runBenchmark = async ({
   try {
     const results = []
     for (let index = 0; index < warmup + samples; index++) {
-      const prepared = await setup(options)
-      const result = await measure(prepared)
-      await verify(options)
-      if (index >= warmup) results.push(result)
+      let phase = 'setup'
+      try {
+        const prepared = await setup(options)
+        phase = 'measure'
+        const result = await measure(prepared)
+        phase = 'verify'
+        await verify(options)
+        if (index >= warmup) results.push(result)
+      } catch (error) {
+        const repetition =
+          index < warmup
+            ? `warmup ${index + 1}/${warmup}`
+            : `sample ${index - warmup + 1}/${samples}`
+        throw new Error(`${title}: ${repetition}, ${phase}: ${error.message}`, { cause: error })
+      }
     }
     const summary = summarizeResults(options, results)
     logResults(summary)

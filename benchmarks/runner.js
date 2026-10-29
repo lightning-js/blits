@@ -47,7 +47,7 @@ export const measureBenchmark = async (config, options, headed = false) => {
   validateCpuSlowdown(cpuSlowdown)
   const server = await preview({
     ...config,
-    preview: { host: '127.0.0.1', port: 0 },
+    preview: { ...config.preview, host: '127.0.0.1', port: 0 },
   })
   let browser
   try {
@@ -63,12 +63,19 @@ export const measureBenchmark = async (config, options, headed = false) => {
     if (config.mode === 'development') url.searchParams.set('profile', '')
     await page.goto(url.href)
     await page.waitForFunction(() => window.__BLITS_BENCH__?.ready === true)
+    const crossOriginIsolated = await page.evaluate(() => window.crossOriginIsolated)
+    const startedAt = new Date().toISOString()
+    const started = performance.now()
     const results = await page.evaluate((options) => window.__BLITS_BENCH__.run(options), options)
     requireBenchmarkSupport(results, options.allowUnsupported)
     return {
       ...results,
       benchmark,
       cpuSlowdown,
+      browserMode: headed ? 'headed' : 'headless',
+      crossOriginIsolated,
+      startedAt,
+      durationMs: performance.now() - started,
       browserVersion: browser.version(),
       mode: config.mode,
     }
@@ -81,15 +88,19 @@ export const measureBenchmark = async (config, options, headed = false) => {
   }
 }
 
+export const saveReport = async (report, output) => {
+  if (!output) return
+  const outputPath = resolve(benchmarkRoot, output)
+  await mkdir(dirname(outputPath), { recursive: true })
+  await writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`)
+  return outputPath
+}
+
 export const writeReport = async (report, output, summary, short = false) => {
   const json = `${JSON.stringify(report, null, 2)}\n`
   console.log(short ? formatShortSummary(report) : json)
-  if (output) {
-    const outputPath = resolve(benchmarkRoot, output)
-    await mkdir(dirname(outputPath), { recursive: true })
-    await writeFile(outputPath, json)
-    console.log(`Results saved to ${outputPath}`)
-  }
+  const outputPath = await saveReport(report, output)
+  if (outputPath) console.log(`Results saved to ${outputPath}`)
   if (process.env.GITHUB_STEP_SUMMARY) {
     await appendFile(process.env.GITHUB_STEP_SUMMARY, summary)
   }
