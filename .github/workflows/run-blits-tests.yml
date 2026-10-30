@@ -70,11 +70,17 @@ jobs:
 
           if (testsMatch && passMatch) {
             const failed = failMatch ? failMatch[1] : '0';
-            results.summary = `passed: ${passMatch[1]}  failed: ${failed}  of ${testsMatch[1]} tests`;
+            const formatCount = (value) => Number(value).toLocaleString('en-US');
+            results.summary = `**Passed:** ${formatCount(passMatch[1])} · **Failed:** ${formatCount(failed)} · **Total:** ${formatCount(testsMatch[1])} assertions`;
             results.testsFailed = results.testsFailed ||
               (failMatch ? parseInt(failMatch[1]) > 0 : false) ||
               parseInt(testsMatch[1]) === 0;
-            if (results.testsFailed) results.error = testOutput;
+            if (results.testsFailed) {
+              results.error = testOutput;
+              if (process.env.TEST_OUTCOME !== 'success' && Number(failed) === 0) {
+                results.summary += ' — The test process exited unsuccessfully; see the workflow logs.';
+              }
+            }
             const failedBlocks = [];
             let inBlock = false, currentBlock = [];
             for (const line of testOutput.split('\n')) {
@@ -136,6 +142,7 @@ jobs:
           ./summary.txt
           ./failed.txt
           ./failing-tests.txt
+          ./error.txt
           ./pr_number.txt
           ./pr_repo.txt
           ./pr_branch.txt
