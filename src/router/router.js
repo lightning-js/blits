@@ -44,7 +44,7 @@ import { platform } from '../platform.js'
  * @property {Object} hooks - The hooks of the route
  * @property {Object} transition - The transition of the route
  * @property {Object} announce - The announce of the route
- * @property {(options: Object, parentEl: BlitsElement, parentComponent: BlitsComponent, rootComponent?: BlitsComponent) => BlitsComponent} component - The component factory of the route
+ * @property {BlitsComponentFactory} component - The component factory of the route (or a lazy import function)
  *
  * @typedef {Object} Hash
  * @property {string} path - The path of the hash
@@ -288,9 +288,13 @@ const performNavigation = async function (viewState) {
 
   // routing to a new page (instead of routing back to a keepAlive page)
   if (view === undefined) {
+    // Prepare eager runtime factories before creating their holder. Lazy loaders
+    // retain the conservative interactive fallback until their factory is known.
+    if (route.component.prepare !== undefined) route.component.prepare()
+    const needsInteractive = route.component.needsInteractive ?? true
     // create a holder element for the new view
     holder = stage.element({ parent: this[symbols.children][0] })
-    holder.populate({})
+    holder.populate({ holder: true, interactive: needsInteractive })
     holder.set('w', '100%')
     holder.set('h', '100%')
 

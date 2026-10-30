@@ -1629,3 +1629,18 @@ test('Element - destroy clears native sprite state', (assert) => {
   assert.equal(el._spriteState, null, 'sprite state should be cleared on destroy')
   assert.end()
 })
+
+test('Element - holder identity is independent of interactivity', (assert) => {
+  assert.capture(renderer, 'createNode', () => new EventEmitter())
+  for (const interactive of [true, false]) {
+    const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+    el.populate({ parent: { node: new EventEmitter() }, holder: true, interactive })
+    assert.equal(el.props.holder, true, 'element remains a holder')
+    assert.equal(
+      el.props.props.interactive,
+      interactive,
+      'renderer receives explicit interactivity'
+    )
+  }
+  assert.end()
+})

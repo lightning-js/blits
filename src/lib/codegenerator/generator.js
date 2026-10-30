@@ -87,6 +87,8 @@ export default function (templateObject = { children: [] }, devMode = false) {
     }, skips}
   `)
 
+  const renderCodeString = ctx.renderCode.join('\n')
+
   return {
     render: new Function(
       'parent',
@@ -96,7 +98,7 @@ export default function (templateObject = { children: [] }, devMode = false) {
       'effect',
       'getRaw',
       'Log',
-      ctx.renderCode.join('\n')
+      renderCodeString
     ),
     effects: ctx.effectsCode.map(
       (code) =>
@@ -112,6 +114,7 @@ export default function (templateObject = { children: [] }, devMode = false) {
         )
     ),
     context: ctx.context,
+    usesHoverState: renderCodeString.includes('.$isHovered'),
   }
 }
 
@@ -212,6 +215,7 @@ const generateElementCode = function (
 
   if (options.holder) {
     renderCode.push(`elementConfigs[${counter}]['holder'] = true`)
+    renderCode.push(`elementConfigs[${counter}]['interactive'] = cmps[${counter}].needsInteractive`)
   }
 
   Object.keys(templateObject).forEach((key) => {
@@ -342,12 +346,27 @@ const generateComponentCode = function (
 ) {
   const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
 
-  renderCode.push(`
+  if ('is' in templateObject) {
+    // Resolve the selected factory before populating its holder and filtering props.
+    renderCode.push(`
+      componentType = ${cast(templateObject.is, 'is', options.component)} || '${templateObject[Symbol.for('componentType')]}'
+      cmps[${counter}] = typeof componentType === 'function'
+        ? componentType
+        : (context.components && context.components[componentType]) || components[componentType]
+      if (!cmps[${counter}]) {
+        throw new Error('Component "${templateObject[Symbol.for('componentType')]}" not found')
+      }
+    `)
+  } else {
+    renderCode.push(`
     cmps[${counter}] =
       (context.components && context.components['${
         templateObject[Symbol.for('componentType')]
       }']) || components['${templateObject[Symbol.for('componentType')]}']
   `)
+  }
+
+  renderCode.push(`if (cmps[${counter}].prepare !== undefined) cmps[${counter}].prepare()`)
 
   this.cleanupCode.push(`
     cmps[${counter}] = null

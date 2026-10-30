@@ -832,3 +832,123 @@ function initLogTest(assert) {
   })
   initLog()
 }
+
+test('Component - pointer eligibility preserves click-to-focus without hover behavior', (assert) => {
+  for (const key of ['enter', 'any']) {
+    const factory = Component(`PointerInput${key}`, { input: { [key]: () => {} } })
+    assert.equal(factory.needsInteractive, true, `${key} input keeps the component hit-testable`)
+  }
+  assert.equal(
+    Component('DirectionalInput', { input: { left: () => {} } }).needsInteractive,
+    false,
+    'directional input alone does not handle mouse clicks'
+  )
+  for (const hook of ['focus', 'unfocus']) {
+    const factory = Component(`PointerFocus${hook}`, { hooks: { [hook]: () => {} } })
+    assert.equal(factory.needsInteractive, false, `${hook} hook alone does not handle mouse input`)
+  }
+  assert.equal(
+    Component('Decorative', {}).needsInteractive,
+    false,
+    'decorative components remain excluded'
+  )
+  assert.equal(
+    Component('EmptyInput', { input: {} }).needsInteractive,
+    false,
+    'empty input does not enable hit testing'
+  )
+  assert.equal(
+    Component('InvalidInput', { input: { enter: null } }).needsInteractive,
+    false,
+    'non-function input does not enable hit testing'
+  )
+  assert.end()
+})
+
+test('Component - explicit runtime preparation provides metadata before holder creation', (assert) => {
+  for (const usesHoverState of [true, false]) {
+    const config = {
+      template: usesHoverState
+        ? '<Element :color="$$isHovered ? 1 : 2" />'
+        : '<Element color="1" />',
+    }
+    const factory = Component('RuntimeHoverMetadata', config)
+    void factory.needsInteractive
+    assert.equal(config.code, undefined, 'metadata query does not compile')
+    factory.prepare()
+    assert.equal(factory.needsInteractive, usesHoverState, 'prepared metadata is correct')
+    assert.equal(factory.prepare, undefined, 'later holders skip preparation')
+    const code = config.code
+    const holder = {
+      destroy() {},
+      set() {
+        assert.fail('factory must not update holder properties')
+      },
+    }
+    const originalElement = stage.element
+    stage.element = () => ({ populate() {}, set() {}, destroy() {}, node: {} })
+    try {
+      const first = factory({}, holder)
+      const second = factory({}, holder)
+      assert.equal(config.code, code, 'instances reuse prepared code')
+      first.destroy()
+      second.destroy()
+    } finally {
+      stage.element = originalElement
+    }
+  }
+  const precompiled = Component('Precompiled', { code: { usesHoverState: true } })
+  assert.equal(precompiled.prepare, undefined, 'precompiled factories skip preparation')
+  assert.equal(precompiled.needsInteractive, true, 'precompiled metadata is immediately available')
+  assert.end()
+})
+
+const pointerEligibilityConfigs = [
+  ['only input.enter', { input: { enter() {} } }],
+  ['only input.any', { input: { any() {} } }],
+  ['hover hooks but no input handlers', { hooks: { hover() {}, unhover() {} } }],
+  ['hover state but no input handlers', { code: { usesHoverState: true } }],
+  [
+    'both hover and input handlers',
+    { code: { usesHoverState: true }, hooks: { hover() {}, unhover() {} }, input: { enter() {} } },
+  ],
+]
+
+for (const [description, config] of pointerEligibilityConfigs) {
+  test(`Component - component with ${description} remains interactive`, (assert) => {
+    const factory = Component('PointerEligibility', {
+      code: { usesHoverState: false },
+      ...config,
+    })
+    assert.equal(
+      factory.needsInteractive,
+      true,
+      'component remains eligible for pointer interaction'
+    )
+    assert.equal(factory.prepare, undefined, 'precompiled component needs no runtime preparation')
+    assert.end()
+  })
+}
+
+test('Component - runtime preparation preserves hover hooks and mouse input eligibility', (assert) => {
+  for (const config of [
+    { hooks: { hover() {} } },
+    { hooks: { unhover() {} } },
+    { input: { enter() {} } },
+    { input: { any() {} } },
+  ]) {
+    const factory = Component('RuntimePointerEligibility', { template: '<Element />', ...config })
+    assert.equal(
+      factory.needsInteractive,
+      true,
+      'hooks or input enable interaction before compilation'
+    )
+    factory.prepare()
+    assert.equal(
+      factory.needsInteractive,
+      true,
+      'compiling a template without hover state preserves interaction'
+    )
+  }
+  assert.end()
+})

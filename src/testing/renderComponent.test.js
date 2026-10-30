@@ -472,6 +472,7 @@ test('renderComponent snapshots nested component attributes and props separately
             hasFocus: false,
             isHovered: false,
             attributes: {
+              interactive: false,
               x: 100,
               y: 20,
               data: {
