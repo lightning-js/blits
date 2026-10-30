@@ -69,10 +69,12 @@ export default (source, filePath, mode) => {
           const componentScope = source.slice(scopeStart, scopeEnd)
 
           // Derive usesHoverState from both template ($$isHovered) and JS layer (this.$isHovered)
-          // Strip comments before checking to avoid false positives from commented-out code
-          const strippedScope = componentScope
-            .replace(/\/\/[^\n]*/g, '')
-            .replace(/\/\*[\s\S]*?\*\//g, '')
+          // Match strings first so URL/comment delimiters inside literals stay intact.
+          // Keep template literals too: their interpolations may read hover state.
+          const strippedScope = componentScope.replace(
+            /("(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'|`(?:\\[\s\S]|[^`\\])*`)|\/\/[^\r\n]*|\/\*[\s\S]*?\*\//g,
+            (match, literal) => literal || ' '
+          )
           const usesHoverState = code.usesHoverState || strippedScope.includes('this.$isHovered')
 
           // Insert the code in the component using the 'code' key, replacing the template key
