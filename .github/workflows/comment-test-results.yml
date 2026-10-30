@@ -88,22 +88,34 @@ jobs:
 
               console.log(`Posting comment to PR #${prNumber}`);
 
-              const status = process.env.FAILED === 'true' ? '❌ FAILED' : '✅ PASSED';
-              let commentBody = `#### Test Results: ${status}\n`
-                              + `**Run at:** ${process.env.TIMESTAMP}\n\n`
-                              + `**Summary:**\n${process.env.SUMMARY}`;
+              const run = context.payload.workflow_run;
+              const failed = process.env.FAILED === 'true' || run.conclusion !== 'success';
+              const status = failed ? '❌ FAILED' : '✅ PASSED';
+              const timestamp = new Date(process.env.TIMESTAMP);
+              const runAt = Number.isNaN(timestamp.getTime())
+                ? process.env.TIMESTAMP
+                : timestamp.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC');
+              let commentBody = `#### Test Results: ${status}\n\n`
+                              + `${process.env.SUMMARY}\n\n`
+                              + `[View workflow run](${run.html_url}) · ${runAt}`;
 
-              if (fs.existsSync('raw_failing_tests.txt')) {
-                const failingTests = fs.readFileSync('raw_failing_tests.txt', 'utf8').trim();
-                if (failingTests) {
-                  commentBody += '\n\n**Failed tests:**\n```\n' + failingTests + '\n```';
-                }
-              }
+              const details = (title, output) => {
+                const limit = 12000;
+                const text = output.length > limit
+                  ? output.slice(0, limit) + '\n… Output truncated. See the workflow run for the full log.'
+                  : output;
+                const fence = '`'.repeat(Math.max(3, ...Array.from(text.matchAll(/`+/g), match => match[0].length + 1)));
+                return `\n\n<details>\n<summary>${title}</summary>\n\n${fence}text\n${text}\n${fence}\n\n</details>`;
+              };
 
-              if (fs.existsSync('raw_error.txt')) {
-                commentBody += '\n\n**Error Output:**\n```\n'
-                             + fs.readFileSync('raw_error.txt', 'utf8')
-                             + '\n```';
+              const failingTests = fs.existsSync('raw_failing_tests.txt')
+                ? fs.readFileSync('raw_failing_tests.txt', 'utf8').trim()
+                : '';
+              if (failingTests) {
+                commentBody += details('Failed assertions', failingTests);
+              } else if (fs.existsSync('raw_error.txt')) {
+                const errorOutput = fs.readFileSync('raw_error.txt', 'utf8').trim();
+                if (errorOutput) commentBody += details('Execution error output', errorOutput);
               }
 
               await github.rest.issues.createComment({
