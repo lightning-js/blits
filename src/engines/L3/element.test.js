@@ -1630,28 +1630,17 @@ test('Element - destroy clears native sprite state', (assert) => {
   assert.end()
 })
 
-test('Element - holder sets interactive to the passed value (true)', (assert) => {
+test('Element - holder identity is independent of interactivity', (assert) => {
   assert.capture(renderer, 'createNode', () => new EventEmitter())
-  const component = {}
-  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, component)
-  el.populate({ parent: { node: new EventEmitter() }, holder: true })
-  assert.equal(
-    el.props.props['interactive'],
-    true,
-    'interactive should be true when holder value is true'
-  )
-  assert.end()
-})
-
-test('Element - holder sets interactive to the passed value (false)', (assert) => {
-  assert.capture(renderer, 'createNode', () => new EventEmitter())
-  const component = {}
-  const el = element({ parent: { node: { w: 1920, h: 1080 } } }, component)
-  el.populate({ parent: { node: new EventEmitter() }, holder: false })
-  assert.equal(
-    el.props.props['interactive'],
-    false,
-    'interactive should be false when holder value is false'
-  )
+  for (const interactive of [true, false]) {
+    const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
+    el.populate({ parent: { node: new EventEmitter() }, holder: true, interactive })
+    assert.equal(el.props.holder, true, 'element remains a holder')
+    assert.equal(
+      el.props.props.interactive,
+      interactive,
+      'renderer receives explicit interactivity'
+    )
+  }
   assert.end()
 })

@@ -82,7 +82,7 @@ test('Generate render and effect code for an empty template', (assert) => {
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -144,7 +144,7 @@ test('Generate render and effect code for a template with a single simple elemen
   const expectedRender = `
   function anonymous(parent,component,context,components,effect,getRaw,Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -215,7 +215,7 @@ test('Generate code for a template with a simple element and a simple nested ele
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -292,7 +292,7 @@ test('Generate code for a template with a single element with attributes', (asse
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -364,7 +364,7 @@ test('Generate code for a template with a single element with attributes with a 
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -442,7 +442,7 @@ test('Generate code for a template with a single element with attributes with nu
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -528,7 +528,7 @@ test('Generate code for a template with attributes and a nested element with att
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -626,7 +626,7 @@ test('Generate code for a template with attributes and 2 nested elements with at
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -748,7 +748,7 @@ test('Generate code for a template with attributes and deep nested elements with
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -871,7 +871,7 @@ test('Generate code for a template with simple dynamic attributes', (assert) => 
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -971,7 +971,7 @@ test('Generate code for a template with an attribute with a dash', (assert) => {
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -1045,7 +1045,7 @@ test('Generate code for a template with dynamic attributes with code to be evalu
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -1152,7 +1152,7 @@ test('Generate code for a template with attribute (object)', (assert) => {
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -1225,7 +1225,7 @@ test('Generate code for a template with dynamic attribute (object)', (assert) =>
   const expectedRender = `
    function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -1299,7 +1299,7 @@ test('Generate code for a template with attribute (object) with mixed dynamic & 
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -1373,7 +1373,7 @@ test('Generate code for a template with @-listeners', (assert) => {
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -1514,7 +1514,7 @@ test('Generate code for a template with custom components', (assert) => {
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -1542,7 +1542,8 @@ test('Generate code for a template with custom components', (assert) => {
 
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[1]['holder'] = cmps[1].needsInteractive
+    elementConfigs[1]['holder'] = true
+    elementConfigs[1]['interactive'] = cmps[1].needsInteractive
     skips[1] = []
     if (typeof cmps[1] !== 'undefined' && cmps[1][Symbol.for('config')].props !== undefined) {
       let props = cmps[1][Symbol.for('config')].props
@@ -1591,7 +1592,8 @@ test('Generate code for a template with custom components', (assert) => {
 
     elementConfigs[3] = {}
     elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[3]['holder'] = cmps[3].needsInteractive
+    elementConfigs[3]['holder'] = true
+    elementConfigs[3]['interactive'] = cmps[3].needsInteractive
     skips[3] = []
     if (typeof cmps[3] !== 'undefined' && cmps[3][Symbol.for('config')].props !== undefined) {
       let props = cmps[3][Symbol.for('config')].props
@@ -1704,7 +1706,7 @@ test('Generate code for a template with an unregistered custom component', (asse
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -1730,7 +1732,8 @@ test('Generate code for a template with an unregistered custom component', (asse
     parent = elms[0]
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[1]['holder'] = cmps[1].needsInteractive
+    elementConfigs[1]['holder'] = true
+    elementConfigs[1]['interactive'] = cmps[1].needsInteractive
     skips[1] = []
     if (typeof cmps[1] !== 'undefined' && cmps[1][Symbol.for('config')].props !== undefined) {
       let props = cmps[1][Symbol.for('config')].props
@@ -1775,7 +1778,8 @@ test('Generate code for a template with an unregistered custom component', (asse
     parent = elms[0]
     elementConfigs[3] = {}
     elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[3]['holder'] = cmps[3].needsInteractive
+    elementConfigs[3]['holder'] = true
+    elementConfigs[3]['interactive'] = cmps[3].needsInteractive
     skips[3] = []
     if (typeof cmps[3] !== 'undefined' && cmps[3][Symbol.for('config')].props !== undefined) {
       let props = cmps[3][Symbol.for('config')].props
@@ -1887,7 +1891,7 @@ test('Generate code for a template with custom components with arguments', (asse
   const expectedRender = `
   function anonymous(parent,component,context,components,effect,getRaw,Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -1913,7 +1917,8 @@ test('Generate code for a template with custom components with arguments', (asse
     parent = elms[0]
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[1]['holder'] = cmps[1].needsInteractive
+    elementConfigs[1]['holder'] = true
+    elementConfigs[1]['interactive'] = cmps[1].needsInteractive
     elementConfigs[1]['x'] = 10
     skips[1] = []
     if(typeof cmps[1] !== 'undefined' && cmps[1][Symbol.for('config')].props !== undefined) {
@@ -1960,7 +1965,8 @@ test('Generate code for a template with custom components with arguments', (asse
     parent = elms[0]
     elementConfigs[3] = {}
     elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[3]['holder'] = cmps[3].needsInteractive
+    elementConfigs[3]['holder'] = true
+    elementConfigs[3]['interactive'] = cmps[3].needsInteractive
     elementConfigs[3]['x'] = 100
     elementConfigs[3]['img'] = component.img
     skips[3] = []
@@ -2077,7 +2083,7 @@ test('Generate code for a template with custom components with argument value as
   const expectedRender = `
   function anonymous(parent,component,context,components,effect,getRaw,Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -2107,7 +2113,9 @@ test('Generate code for a template with custom components with argument value as
 
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
 
-    elementConfigs[1]['holder'] = cmps[1].needsInteractive
+    elementConfigs[1]['holder'] = true
+
+    elementConfigs[1]['interactive'] = cmps[1].needsInteractive
     elementConfigs[1]['x'] = 1000
     elementConfigs[1]['y'] = 100
     elementConfigs[1]['h'] = parent.node.h * (45 / 100)
@@ -2236,7 +2244,7 @@ test('Generate code for a template with custom components with reactive props', 
   const expectedRender = `
   function anonymous(parent,component,context,components,effect,getRaw,Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -2262,7 +2270,8 @@ test('Generate code for a template with custom components with reactive props', 
     parent = elms[0]
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[1]['holder'] = cmps[1].needsInteractive
+    elementConfigs[1]['holder'] = true
+    elementConfigs[1]['interactive'] = cmps[1].needsInteractive
     elementConfigs[1]['x'] = 10
     elementConfigs[1]['img'] = component.image
     skips[1] = []
@@ -2316,7 +2325,8 @@ test('Generate code for a template with custom components with reactive props', 
     parent = elms[0]
     elementConfigs[3] = {}
     elms[3] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[3]['holder'] = cmps[3].needsInteractive
+    elementConfigs[3]['holder'] = true
+    elementConfigs[3]['interactive'] = cmps[3].needsInteractive
     elementConfigs[3]['x'] = 100
     elementConfigs[3]['img'] = component.image
     skips[3] = []
@@ -2472,7 +2482,7 @@ test('Generate code for a template with a transition attributes', (assert) => {
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -2563,7 +2573,7 @@ test('Generate code for a template with slot content', (assert) => {
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -2592,7 +2602,8 @@ test('Generate code for a template with slot content', (assert) => {
 
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[1]['holder'] = cmps[1].needsInteractive
+    elementConfigs[1]['holder'] = true
+    elementConfigs[1]['interactive'] = cmps[1].needsInteractive
     elementConfigs[1]['w'] = 1920
     elementConfigs[1]['h'] = 1080
     skips[1] = []
@@ -2752,7 +2763,7 @@ test('Generate code for a template with slot content, using a named slot', (asse
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -2781,7 +2792,8 @@ test('Generate code for a template with slot content, using a named slot', (asse
 
     elementConfigs[1] = {}
     elms[1] = this.element({ parent: parent || 'root' }, inSlot === true ? slotComponent : component)
-    elementConfigs[1]['holder'] = cmps[1].needsInteractive
+    elementConfigs[1]['holder'] = true
+    elementConfigs[1]['interactive'] = cmps[1].needsInteractive
     elementConfigs[1]['w'] = 1920
     elementConfigs[1]['h'] = 1080
     skips[1] = []
@@ -2926,7 +2938,7 @@ test('Generate code for a template with a slot', (assert) => {
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -3023,7 +3035,7 @@ test('Generate code for a template with inline Text', (assert) => {
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -3108,7 +3120,7 @@ test('Generate code for a template with inline dynamic Text', (assert) => {
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -3193,7 +3205,7 @@ test('Generate code for a template with inline dynamic Text embedded in static t
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -3280,7 +3292,7 @@ test('Generate code for a template with inline text interpolation from plugins v
   const expectedRender = `
   function anonymous(parent,component,context,components,effect,getRaw,Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -3365,7 +3377,7 @@ test('Generate code for a template with a single element with attributes with pe
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -3453,7 +3465,7 @@ test('Generate code for a template with a simple for-loop on an Element', (asser
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -3637,7 +3649,7 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -3798,7 +3810,7 @@ test('Generate code for a template with a simple for-loop on an Element, Using d
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -3952,7 +3964,7 @@ test('Generate code for a template with a simple for-loop on an Element with a c
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -4139,7 +4151,7 @@ test('Generate code for a template with a simple for-loop on an Element with a k
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -4325,7 +4337,7 @@ test('Generate code for a template with a simple for-loop on a Component with a 
   const expectedRender = `
     function anonymous(parent,component,context,components,effect,getRaw,Log) {
       const elms = []
-      const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","holder"]
+      const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data","interactive"]
       const elementConfigs = []
       const forloops = []
       const props = []
@@ -4411,7 +4423,8 @@ test('Generate code for a template with a simple for-loop on a Component with a 
       if(elms[1][scope.key] === undefined) {
           elms[1][scope.key] = this.element({parent: parent || 'root'}, inSlot === true ? slotComponent : component)
       }
-      elementConfigs[1]['holder'] = cmps[1].needsInteractive
+      elementConfigs[1]['holder'] = true
+      elementConfigs[1]['interactive'] = cmps[1].needsInteractive
           skips[1] = []
           if(typeof cmps[1] !== 'undefined' && cmps[1][Symbol.for('config')].props !== undefined) {
             // attributes that are a prop should be removed from element config (even if it's a know element prop)
@@ -4524,7 +4537,7 @@ test('Generate code for a template with a simple for-loop on an Element with an 
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -4709,7 +4722,7 @@ test('Generate code for a template with double $$ (i.e. referencing a Blits plug
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -4793,7 +4806,7 @@ test('Generate code for a template with verification of dynamic attributes', (as
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -4888,7 +4901,7 @@ test('Generate code for a template with verification of reactive attributes', (a
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -5011,7 +5024,7 @@ test('Generate code for a template with attribute values verified against a nest
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -5138,7 +5151,7 @@ test('Generate code for a template with verification of attributes with Math cal
   const expectedRender = `
   function anonymous(parent, component, context, components, effect, getRaw, Log) {
     const elms = []
-    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "holder"]
+    const validAttributes = ["parent","rotation","rich","w","h","x","y","z","zIndex","color","src","texture","image","map","frame","fit","rtt","mount","pivot","scale","show","alpha","rounded","border","shadow","shader","clipping","clipradius","overflow","font","size","maxwidth","maxheight","maxlines","textoverflow","letterspacing","lineheight","contain","align","content","placement","inspector-data", "interactive"]
     const elementConfigs = []
     const forloops = []
     const props = []
@@ -5381,5 +5394,47 @@ test('Generator sets isSprite for nested Sprite under Element', (assert) => {
     'nested Sprite should use correct element config index for isSprite'
   )
 
+  assert.end()
+})
+
+test('Dynamic component holders use the selected factory interactivity', (assert) => {
+  for (const needsInteractive of [true, false]) {
+    for (const registration of ['local', 'global', 'factory']) {
+      const holderConfigs = []
+      const factory = () => ({
+        [Symbol.for('slots')]: [],
+        [Symbol.for('children')]: [],
+      })
+      factory.needsInteractive = needsInteractive
+      factory[Symbol.for('config')] = {}
+      factory[Symbol.for('isComponent')] = true
+      const code = generator.call(scope, {
+        children: [
+          {
+            [Symbol.for('componentType')]: 'Component',
+            is: '$chosen',
+          },
+        ],
+      })
+      const stage = {
+        element: () => ({ populate: (config) => holderConfigs.push(config) }),
+      }
+      const context = {
+        components: registration === 'local' ? { Selected: factory } : {},
+      }
+      const globals = registration === 'global' ? { Selected: factory } : {}
+      const component = {
+        chosen: registration === 'factory' ? factory : 'Selected',
+      }
+      const result = code.render.call(stage, null, component, context, globals)
+      assert.equal(
+        holderConfigs[0].interactive,
+        needsInteractive,
+        `${registration} factory sets holder interactivity to ${needsInteractive}`
+      )
+      assert.equal(holderConfigs[0].holder, true, `${registration} element remains a holder`)
+      assert.ok(result.elms[1], `${registration} component is instantiated`)
+    }
+  }
   assert.end()
 })

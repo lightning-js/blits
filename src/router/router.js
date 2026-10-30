@@ -293,7 +293,7 @@ const performNavigation = async function (viewState) {
     const needsInteractive =
       route.component.needsInteractive !== undefined ? route.component.needsInteractive : true
     holder = stage.element({ parent: this[symbols.children][0] })
-    holder.populate({ holder: needsInteractive })
+    holder.populate({ holder: true, interactive: needsInteractive })
     holder.set('w', '100%')
     holder.set('h', '100%')
 
