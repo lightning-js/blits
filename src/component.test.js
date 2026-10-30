@@ -929,3 +929,26 @@ for (const [description, config] of pointerEligibilityConfigs) {
     assert.end()
   })
 }
+
+test('Component - runtime preparation preserves hover hooks and mouse input eligibility', (assert) => {
+  for (const config of [
+    { hooks: { hover() {} } },
+    { hooks: { unhover() {} } },
+    { input: { enter() {} } },
+    { input: { any() {} } },
+  ]) {
+    const factory = Component('RuntimePointerEligibility', { template: '<Element />', ...config })
+    assert.equal(
+      factory.needsInteractive,
+      true,
+      'hooks or input enable interaction before compilation'
+    )
+    factory.prepare()
+    assert.equal(
+      factory.needsInteractive,
+      true,
+      'compiling a template without hover state preserves interaction'
+    )
+  }
+  assert.end()
+})

@@ -509,6 +509,7 @@ const Component = (name = required('name'), config = required('config')) => {
     factory.prepare = () => {
       Log.debug(`Generating code for ${name} component`)
       config.code = codegenerator.call(config, parser(config.template, name), devMode)
+      factory.needsInteractive = factory.needsInteractive || !!config.code.usesHoverState
       factory.prepare = undefined
     }
   }
@@ -524,16 +525,11 @@ const Component = (name = required('name'), config = required('config')) => {
   factory[symbols.isComponent] = true
 
   // Pointer hit testing supports both hover and click-to-focus/input.
-  Object.defineProperty(factory, 'needsInteractive', {
-    get() {
-      return (
-        (config.hooks && !!(config.hooks.hover || config.hooks.unhover)) ||
-        (config.input &&
-          (typeof config.input.enter === 'function' || typeof config.input.any === 'function')) ||
-        !!(config.code && config.code.usesHoverState)
-      )
-    },
-  })
+  factory.needsInteractive =
+    (config.hooks && !!(config.hooks.hover || config.hooks.unhover)) ||
+    (config.input &&
+      (typeof config.input.enter === 'function' || typeof config.input.any === 'function')) ||
+    !!(config.code && config.code.usesHoverState)
 
   return factory
 }
