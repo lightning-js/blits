@@ -366,6 +366,8 @@ const generateComponentCode = function (
   `)
   }
 
+  renderCode.push(`if (cmps[${counter}].prepare !== undefined) cmps[${counter}].prepare()`)
+
   this.cleanupCode.push(`
     cmps[${counter}] = null
   `)

@@ -864,3 +864,41 @@ test('Component - pointer eligibility preserves click-to-focus without hover beh
   )
   assert.end()
 })
+
+test('Component - explicit runtime preparation provides metadata before holder creation', (assert) => {
+  for (const usesHoverState of [true, false]) {
+    const config = {
+      template: usesHoverState
+        ? '<Element :color="$$isHovered ? 1 : 2" />'
+        : '<Element color="1" />',
+    }
+    const factory = Component('RuntimeHoverMetadata', config)
+    void factory.needsInteractive
+    assert.equal(config.code, undefined, 'metadata query does not compile')
+    factory.prepare()
+    assert.equal(factory.needsInteractive, usesHoverState, 'prepared metadata is correct')
+    assert.equal(factory.prepare, undefined, 'later holders skip preparation')
+    const code = config.code
+    const holder = {
+      destroy() {},
+      set() {
+        assert.fail('factory must not update holder properties')
+      },
+    }
+    const originalElement = stage.element
+    stage.element = () => ({ populate() {}, set() {}, destroy() {}, node: {} })
+    try {
+      const first = factory({}, holder)
+      const second = factory({}, holder)
+      assert.equal(config.code, code, 'instances reuse prepared code')
+      first.destroy()
+      second.destroy()
+    } finally {
+      stage.element = originalElement
+    }
+  }
+  const precompiled = Component('Precompiled', { code: { usesHoverState: true } })
+  assert.equal(precompiled.prepare, undefined, 'precompiled factories skip preparation')
+  assert.equal(precompiled.needsInteractive, true, 'precompiled metadata is immediately available')
+  assert.end()
+})

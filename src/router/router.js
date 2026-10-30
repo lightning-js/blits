@@ -288,10 +288,11 @@ const performNavigation = async function (viewState) {
 
   // routing to a new page (instead of routing back to a keepAlive page)
   if (view === undefined) {
+    // Prepare eager runtime factories before creating their holder. Lazy loaders
+    // retain the conservative interactive fallback until their factory is known.
+    if (route.component.prepare !== undefined) route.component.prepare()
+    const needsInteractive = route.component.needsInteractive ?? true
     // create a holder element for the new view
-    // for lazy imports needsInteractive is undefined, default to true
-    const needsInteractive =
-      route.component.needsInteractive !== undefined ? route.component.needsInteractive : true
     holder = stage.element({ parent: this[symbols.children][0] })
     holder.populate({ holder: true, interactive: needsInteractive })
     holder.set('w', '100%')

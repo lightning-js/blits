@@ -496,14 +496,21 @@ const Component = (name = required('name'), config = required('config')) => {
       base = setupComponent(Object.create(Base), config)
     }
 
-    // one time code generation (only if precompilation is turned off)
-    if (config.code === undefined) {
-      Log.debug(`Generating code for ${name} component`)
-      config.code = codegenerator.call(config, parser(config.template, name), devMode)
-    }
+    // Direct factory calls also prepare runtime code before rendering.
+    if (factory.prepare !== undefined) factory.prepare()
 
     // create an instance of the component, using base as the prototype (which contains Base)
     return component.call(Object.create(base), options, parentEl, parentComponent, rootComponent)
+  }
+
+  // Precompiled factories have no preparation step. Runtime factories compile once,
+  // explicitly before holder creation, then take the same path as precompiled ones.
+  if (config.code === undefined) {
+    factory.prepare = () => {
+      Log.debug(`Generating code for ${name} component`)
+      config.code = codegenerator.call(config, parser(config.template, name), devMode)
+      factory.prepare = undefined
+    }
   }
 
   // store the config on the factory, in order to access the config
