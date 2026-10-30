@@ -40,6 +40,8 @@ jobs:
     - name: Analyze Test Results
       id: analyze-results
       uses: actions/github-script@v9
+      env:
+        TEST_OUTCOME: ${{ steps.run-tests.outcome }}
       with:
         result-encoding: json
         script: |
@@ -49,7 +51,7 @@ jobs:
           const results = {
             timestamp,
             summary: '',
-            testsFailed: false,
+            testsFailed: process.env.TEST_OUTCOME !== 'success',
             error: null
           };
 
@@ -69,7 +71,10 @@ jobs:
           if (testsMatch && passMatch) {
             const failed = failMatch ? failMatch[1] : '0';
             results.summary = `passed: ${passMatch[1]}  failed: ${failed}  of ${testsMatch[1]} tests`;
-            results.testsFailed = failMatch ? parseInt(failMatch[1]) > 0 : false;
+            results.testsFailed = results.testsFailed ||
+              (failMatch ? parseInt(failMatch[1]) > 0 : false) ||
+              parseInt(testsMatch[1]) === 0;
+            if (results.testsFailed) results.error = testOutput;
             const failedBlocks = [];
             let inBlock = false, currentBlock = [];
             for (const line of testOutput.split('\n')) {
@@ -86,11 +91,10 @@ jobs:
               }
             }
             fs.writeFileSync('./failing-tests.txt', failedBlocks.join('\n\n'));
-          } else if (results.testsFailed) {
-            results.summary = 'Tests failed. No summary found in output.';
-            results.error = testOutput;
           } else {
-            results.summary = 'Tests passed. No summary found in output.';
+            results.summary = 'Test execution error: No test summary found in output.';
+            results.testsFailed = true;
+            results.error = testOutput;
           }
 
           return outputResults(results);

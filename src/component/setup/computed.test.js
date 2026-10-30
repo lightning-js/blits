@@ -18,6 +18,9 @@
 import test from 'tape'
 import computedFn from './computed.js'
 import symbols from '../../lib/symbols.js'
+import { initLog } from '../../lib/log.js'
+
+initLog()
 
 // --- Helpers ---
 const setup = (computeds = {}, values = {}) => {
