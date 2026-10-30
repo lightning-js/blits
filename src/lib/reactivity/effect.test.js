@@ -17,11 +17,13 @@
 
 import test from 'tape'
 import { trigger, track, effect, pauseTracking, resumeTracking } from './effect.js'
+import { flushJobs } from './scheduler.js'
 
 test('Trigger - type', (assert) => {
   const expected = 'function'
   const actual = typeof trigger
 
+  flushJobs()
   assert.equal(actual, expected, 'Trigger should be a function')
   assert.end()
 })
@@ -30,6 +32,7 @@ test('Track type', (assert) => {
   const expected = 'function'
   const actual = typeof track
 
+  flushJobs()
   assert.equal(actual, expected, 'Track should be a function')
   assert.end()
 })
@@ -40,6 +43,7 @@ test('Effect - Basic Effect', (assert) => {
     data.count++
   }
   effect(basicEffect)
+  flushJobs()
   assert.equal(data.count, 1, 'Effect should run once initially and increment count')
   assert.end()
 })
@@ -59,6 +63,7 @@ test('Tracking remains paused until every nested pause is resumed', (assert) => 
 
   trigger(target, 'value')
 
+  flushJobs()
   assert.equal(
     effectRuns,
     1,
@@ -80,6 +85,7 @@ test('Effect - Restores tracking state when an effect throws', (assert) => {
     throw new Error('Effect failed')
   }
 
+  flushJobs()
   assert.throws(
     () => effect(failedEffect),
     /Effect failed/,
@@ -89,10 +95,12 @@ test('Effect - Restores tracking state when an effect throws', (assert) => {
   // Reads outside an effect must not be attributed to the effect that failed.
   track(unrelatedTarget, 'unrelated')
 
+  flushJobs()
   assert.doesNotThrow(
     () => trigger(unrelatedTarget, 'unrelated'),
     'Unrelated reactive properties should not trigger the failed effect'
   )
+  flushJobs()
   assert.equal(
     failedEffectRuns,
     1,
@@ -116,6 +124,7 @@ test('Effect - Restores the enclosing effect when a nested effect throws', (asse
     outerEffectRuns++
 
     if (outerEffectRuns === 1) {
+      flushJobs()
       assert.throws(
         () => effect(innerEffect, 'inner'),
         /Nested effect failed/,
@@ -130,6 +139,7 @@ test('Effect - Restores the enclosing effect when a nested effect throws', (asse
   effect(outerEffect, 'outer')
   trigger(outerTarget, 'outer')
 
+  flushJobs()
   assert.equal(outerEffectRuns, 2, 'Enclosing effect should keep tracking after the nested error')
   assert.end()
 })

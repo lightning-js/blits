@@ -16,6 +16,7 @@
  */
 
 import symbols from '../../lib/symbols.js'
+import { flushJobs } from '../../lib/reactivity/scheduler.js'
 
 export default {
   $setTimeout: {
@@ -156,6 +157,9 @@ export default {
     value: function (fn, ...params) {
       // early exit when component is marked as end of life
       if (this.eol === true) return
+      // commit pending reactivity effects first, so the callback observes
+      // flushed state without relying on host microtask/macrotask ordering
+      flushJobs()
       return this.$setTimeout(fn, 0, ...params)
     },
     writable: false,

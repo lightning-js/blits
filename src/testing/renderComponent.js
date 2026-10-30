@@ -19,6 +19,7 @@ import Settings from '../settings.js'
 import { renderer, stage } from '../launch.js'
 import { setDevMode } from '../component.js'
 import symbols from '../lib/symbols.js'
+import { flushJobs } from '../lib/reactivity/scheduler.js'
 import { initLog } from '../lib/log.js'
 import { getRaw } from '../lib/reactivity/reactive.js'
 import Focus from '../focus/focus.js'
@@ -56,6 +57,9 @@ const renderComponent = (Component, options = {}) => {
   const component = Component({ props: options.props || {} }, root, parent)
 
   const snapshot = () => {
+    // Effects flush async (microtask) by default; make snapshots
+    // deterministic by committing pending jobs first.
+    flushJobs()
     const holderMap = new WeakMap()
     collectComponents(component, holderMap)
     return componentSnapshot(component, holderMap)
@@ -87,6 +91,7 @@ const renderComponent = (Component, options = {}) => {
     for (let i = 0; i < keys.length; i++) {
       component[symbols.props][keys[i]] = props[keys[i]]
     }
+    flushJobs()
   }
 
   const setState = (state = {}) => {
@@ -94,6 +99,7 @@ const renderComponent = (Component, options = {}) => {
     for (let i = 0; i < keys.length; i++) {
       component[symbols.state][keys[i]] = state[keys[i]]
     }
+    flushJobs()
   }
 
   const focus = (event) => {
