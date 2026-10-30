@@ -38,6 +38,8 @@ module.exports = defineConfig([
         ...globals.node,
         globalThis: false,
         __DEV__: false,
+        __BLITS_VERSION__: false,
+        __RENDERER_VERSION__: false,
       },
 
       parser: babelParser,

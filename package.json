@@ -58,8 +58,8 @@
   },
   "scripts": {
     "test": "c8 npm run test:run | tap-diff",
-    "test:run": "node -r global-jsdom/register node_modules/tape/bin/tape \"scripts/**/*.test.js\" \"src/**/*.test.js\"",
-    "test:run:failures": "node -r global-jsdom/register node_modules/tape/bin/tape \"scripts/**/*.test.js\" \"src/**/*.test.js\" | tap-filter test-fail | tap-diff",
+    "test:run": "node -r global-jsdom/register node_modules/tape/bin/tape \"scripts/**/*.test.js\" \"src/**/*.test.js\" \"vite/**/*.test.js\"",
+    "test:run:failures": "node -r global-jsdom/register node_modules/tape/bin/tape \"scripts/**/*.test.js\" \"src/**/*.test.js\" \"vite/**/*.test.js\" | tap-filter test-fail | tap-diff",
     "lint": "node scripts/lint.js",
     "lint:fix": "node scripts/lint.js fix",
     "prepublishOnly": "node scripts/prepublishOnly.js",
