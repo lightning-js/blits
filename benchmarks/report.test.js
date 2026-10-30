@@ -83,7 +83,7 @@ test('short comparisons show CPU rate, absolute medians, and individual pair cha
     comparison: comparePairs(pairs),
   })
   assert.match(summary, /CPU 4×/)
-  assert.match(summary, /Generation \| 10\.00 \| 10\.50 \| P1: \+20\.00%, P2: -10\.00%/)
+  assert.match(summary, /Synchronous work \| 10\.00 \| 10\.50 \| P1: \+20\.00%, P2: -10\.00%/)
 })
 
 test('CPU slowdown accepts finite rates at least one', () => {

@@ -22,10 +22,10 @@ export const formatSummary = (report) => {
     '',
     '| Timing (ms) | Median | Average | Min | Max |',
     '| --- | ---: | ---: | ---: | ---: |',
-    timingRow('Synchronous generation', 'GenerationSyncMs'),
+    timingRow('Synchronous work', 'GenerationSyncMs'),
     timingRow('Total time to idle', 'TotalToIdleMs'),
     '',
-    'Warmups are excluded. Total time to idle includes synchronous generation and frame scheduling.',
+    'Warmups are excluded. Total time to idle includes synchronous work and frame scheduling.',
     '',
   ].join('\n')
 }
@@ -36,7 +36,7 @@ export const formatSuiteSummary = (report) =>
     '',
     `Status: ${report.status}`,
     '',
-    '| Benchmark | Median generation (ms) | Median time to idle (ms) |',
+    '| Benchmark | Median synchronous work (ms) | Median time to idle (ms) |',
     '| --- | ---: | ---: |',
     ...report.benchmarks.map((result) =>
       result.error
@@ -75,7 +75,7 @@ export const formatShortSummary = (report) => {
           ...reports.flatMap((result) =>
             result.comparison.map(
               (row) =>
-                `| ${result.title} | ${row.metric === 'medianGenerationSyncMs' ? 'Generation' : 'Time to idle'} | ${row.baseMs === null ? 'N/A' : row.baseMs.toFixed(2)} | ${row.candidateMs.toFixed(2)} | ${row.pairChangesPercent.map((value, index) => `P${index + 1}: ${value === null ? 'N/A' : `${value > 0 ? '+' : ''}${value.toFixed(2)}%`}`).join(', ')} |`
+                `| ${result.title} | ${row.metric === 'medianGenerationSyncMs' ? 'Synchronous work' : 'Time to idle'} | ${row.baseMs === null ? 'N/A' : row.baseMs.toFixed(2)} | ${row.candidateMs.toFixed(2)} | ${row.pairChangesPercent.map((value, index) => `P${index + 1}: ${value === null ? 'N/A' : `${value > 0 ? '+' : ''}${value.toFixed(2)}%`}`).join(', ')} |`
             )
           ),
           '',
@@ -85,7 +85,7 @@ export const formatShortSummary = (report) => {
           ),
         ]
       : [
-          '| Benchmark | Median generation (ms) | Median time to idle (ms) |',
+          '| Benchmark | Median synchronous work (ms) | Median time to idle (ms) |',
           '| --- | ---: | ---: |',
           ...reports
             .filter((result) => !result.error)

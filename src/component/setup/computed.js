@@ -18,6 +18,7 @@
 import { Log } from '../../lib/log.js'
 
 import symbols from '../../lib/symbols.js'
+import { trackComputed } from '../../lib/reactivity/effect.js'
 
 export default (component, computeds) => {
   component[symbols.computedKeys] = []
@@ -40,7 +41,7 @@ export default (component, computeds) => {
       component[symbols.computedKeys].push(computed)
       Object.defineProperty(component, computed, {
         get() {
-          return computeds[computed].apply(this)
+          return trackComputed(computeds[computed], this)
         },
       })
     }

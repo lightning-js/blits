@@ -97,7 +97,7 @@ export const logResults = (summary) => {
     samples: { value: samples },
   })
   console.table({
-    'Synchronous generation (ms)': {
+    'Synchronous work (ms)': {
       median: summary.medianGenerationSyncMs,
       average: summary.averageGenerationSyncMs,
       min: summary.minGenerationSyncMs,
