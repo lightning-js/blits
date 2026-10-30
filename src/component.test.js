@@ -832,3 +832,35 @@ function initLogTest(assert) {
   })
   initLog()
 }
+
+test('Component - pointer eligibility preserves click-to-focus without hover behavior', (assert) => {
+  for (const key of ['enter', 'any']) {
+    const factory = Component(`PointerInput${key}`, { input: { [key]: () => {} } })
+    assert.equal(factory.needsInteractive, true, `${key} input keeps the component hit-testable`)
+  }
+  assert.equal(
+    Component('DirectionalInput', { input: { left: () => {} } }).needsInteractive,
+    false,
+    'directional input alone does not handle mouse clicks'
+  )
+  for (const hook of ['focus', 'unfocus']) {
+    const factory = Component(`PointerFocus${hook}`, { hooks: { [hook]: () => {} } })
+    assert.equal(factory.needsInteractive, false, `${hook} hook alone does not handle mouse input`)
+  }
+  assert.equal(
+    Component('Decorative', {}).needsInteractive,
+    false,
+    'decorative components remain excluded'
+  )
+  assert.equal(
+    Component('EmptyInput', { input: {} }).needsInteractive,
+    false,
+    'empty input does not enable hit testing'
+  )
+  assert.equal(
+    Component('InvalidInput', { input: { enter: null } }).needsInteractive,
+    false,
+    'non-function input does not enable hit testing'
+  )
+  assert.end()
+})

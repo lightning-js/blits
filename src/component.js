@@ -516,11 +516,13 @@ const Component = (name = required('name'), config = required('config')) => {
   // To determine whether dynamic component is actual Blits component or not
   factory[symbols.isComponent] = true
 
-  // Getter to determine if the component needs interactive hover support
+  // Pointer hit testing supports both hover and click-to-focus/input.
   Object.defineProperty(factory, 'needsInteractive', {
     get() {
       return (
         (config.hooks && !!(config.hooks.hover || config.hooks.unhover)) ||
+        (config.input &&
+          (typeof config.input.enter === 'function' || typeof config.input.any === 'function')) ||
         !!(config.code && config.code.usesHoverState)
       )
     },
