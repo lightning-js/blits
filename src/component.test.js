@@ -902,3 +902,30 @@ test('Component - explicit runtime preparation provides metadata before holder c
   assert.equal(precompiled.needsInteractive, true, 'precompiled metadata is immediately available')
   assert.end()
 })
+
+const pointerEligibilityConfigs = [
+  ['only input.enter', { input: { enter() {} } }],
+  ['only input.any', { input: { any() {} } }],
+  ['hover hooks but no input handlers', { hooks: { hover() {}, unhover() {} } }],
+  ['hover state but no input handlers', { code: { usesHoverState: true } }],
+  [
+    'both hover and input handlers',
+    { code: { usesHoverState: true }, hooks: { hover() {}, unhover() {} }, input: { enter() {} } },
+  ],
+]
+
+for (const [description, config] of pointerEligibilityConfigs) {
+  test(`Component - component with ${description} remains interactive`, (assert) => {
+    const factory = Component('PointerEligibility', {
+      code: { usesHoverState: false },
+      ...config,
+    })
+    assert.equal(
+      factory.needsInteractive,
+      true,
+      'component remains eligible for pointer interaction'
+    )
+    assert.equal(factory.prepare, undefined, 'precompiled component needs no runtime preparation')
+    assert.end()
+  })
+}

@@ -61,3 +61,32 @@ test('Precompiler - actual comments do not enable hover metadata', (assert) => {
   )
   assert.end()
 })
+
+const hoverContexts = [
+  ['component method', 'methods: { check() { return this.$isHovered } }'],
+  ['computed property', 'computed: { highlighted() { return this.$isHovered } }'],
+  [
+    'callback registered during initialization',
+    "hooks: { init() { this.$listen('check', () => this.$isHovered) } }",
+  ],
+  ['reactive effect', 'hooks: { init() { effect(() => { this.highlighted = this.$isHovered }) } }'],
+]
+
+for (const [context, config] of hoverContexts) {
+  test(`Precompiler - this.$isHovered inside a ${context} enables hover metadata`, (assert) => {
+    for (const hasHoverReference of [true, false]) {
+      const properties = hasHoverReference ? config : config.replace('this.$isHovered', 'false')
+      const source = `Blits.Component('HoverContext', { template: '<Element />', ${properties} })`
+      const compiled = precompile(source, 'HoverContext.js', 'production')
+      const component = new Function('Blits', `return ${compiled.code}`)({
+        Component: (_name, config) => config,
+      })
+      assert.equal(
+        component.code.usesHoverState,
+        hasHoverReference,
+        'metadata reflects the presence of the JavaScript hover reference'
+      )
+    }
+    assert.end()
+  })
+}
