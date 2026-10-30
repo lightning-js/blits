@@ -68,7 +68,7 @@ export const Rounded = {
       quad.ty,
       quad.width,
       quad.height,
-      this.computed.radius!,
+      this.computed.radius,
     );
     ctx.clip(path);
     //renders node context(if not called the context won't be drawn)

@@ -145,12 +145,20 @@ export default function () {
 
               if (fs.existsSync(generatedFontFile)) {
                 const fileContent = fs.readFileSync(generatedFontFile)
+                const etag = `"${generateHash(generatedFontFile)}"`
 
                 // Check if headers have already been sent
                 if (!res.headersSent) {
                   res.setHeader('Content-Type', mimeType)
-                  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
-                  res.end(fileContent)
+                  res.setHeader('Cache-Control', 'no-cache')
+                  res.setHeader('ETag', etag)
+
+                  if (req.headers['if-none-match'] === etag) {
+                    res.statusCode = 304
+                    res.end()
+                  } else {
+                    res.end(fileContent)
+                  }
                 } else {
                   // this should never happen except some edge cases
                   console.error(`ERROR: Headers already sent for ${req.url}`, res.getHeaders())

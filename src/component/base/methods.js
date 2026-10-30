@@ -16,13 +16,21 @@
  */
 
 import symbols from '../../lib/symbols.js'
-import { default as Focus, keyUpCallbacks, getComponentWithInputEvent } from '../../focus/focus.js'
+import {
+  default as Focus,
+  keyUpCallbacks,
+  getComponentWithInputEvent,
+  removeKeyUpCallbacks,
+} from '../../focus/focus.js'
 import eventListeners from '../../lib/eventListeners.js'
 import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
-import { removeGlobalEffects } from '../../lib/reactivity/effect.js'
+import { removeEffects } from '../../lib/reactivity/effect.js'
 import { renderer } from '../../launch.js'
 import { keyMap } from '../../application.js'
+import { platform } from '../../platform.js'
+
+const selectCache = new WeakMap()
 
 export default {
   $focus: {
@@ -48,10 +56,14 @@ export default {
      * @returns {boolean} - Returns true if this component or a parent component handled the event, false otherwise
      */
     value: function (event) {
-      if (event === null || event === undefined || event instanceof KeyboardEvent === false)
+      if (
+        event === null ||
+        event === undefined ||
+        (platform.isKeyboardEvent && platform.isKeyboardEvent(event) === false)
+      )
         return false
 
-      const key = keyMap[event.key] || keyMap[event.keyCode] || event.key || event.keyCode
+      const key = keyMap[event.keyCode] || event.keyCode
 
       const componentWithInputEvent = getComponentWithInputEvent(this, key)
       if (componentWithInputEvent === null) return false
@@ -65,8 +77,8 @@ export default {
         cb = inputEvents.any.call(componentWithInputEvent, event)
       }
 
-      if (cb !== undefined && event.code) {
-        keyUpCallbacks.set(event.code, cb)
+      if (cb !== undefined && event.keyCode) {
+        keyUpCallbacks.set(event.keyCode, { callback: cb, component: componentWithInputEvent })
       }
 
       return true
@@ -93,7 +105,11 @@ export default {
      */
     value: function () {
       this.eol = true
+      selectCache.delete(this)
+      removeKeyUpCallbacks(this)
       this[symbols.lifecycle].state = 'destroy'
+
+      removeEffects(this[symbols.effects])
 
       // when destroying a component that currently has focus
       // pass focus to the parent so we don't get lost in focus limbo
@@ -125,7 +141,6 @@ export default {
 
       deleteChildren(this[symbols.children])
       this[symbols.children].length = 0
-      removeGlobalEffects(this[symbols.effects])
 
       this[symbols.state] = {}
 
@@ -166,12 +181,12 @@ export default {
     enumerable: true,
     configurable: false,
   },
-  [symbols.removeGlobalEffects]: {
+  [symbols.removeEffects]: {
     /**
      * @this {import('../../component').BlitsComponent}
      */
     value: function (effects = []) {
-      removeGlobalEffects(effects)
+      removeEffects(effects)
     },
     writable: false,
     enumerable: false,
@@ -185,24 +200,58 @@ export default {
       // early exit when component is marked as end of life
       if (this.eol === true) return
 
-      let selected = null
-      this[symbols.children].forEach((child) => {
+      let cache = selectCache.get(this)
+      if (cache !== undefined && cache.has(ref) === true) {
+        const selected = cache.get(ref)
+        if (selected !== undefined && selected.eol !== true) return selected
+        cache.delete(ref)
+      }
+
+      for (const child of this[symbols.children]) {
+        if (child === undefined || child === null) continue
         if (Array.isArray(child)) {
-          child.forEach((c) => {
-            if (c['ref'] === ref) selected = c
-          })
+          const selected = child.find((c) => c['ref'] === ref)
+          if (selected !== undefined) {
+            if (cache === undefined) {
+              cache = new Map()
+              selectCache.set(this, cache)
+            }
+            cache.set(ref, selected)
+            return selected
+          }
         } else if (Object.getPrototypeOf(child) === Object.prototype) {
-          Object.keys(child).forEach((k) => {
-            if (child[k]['ref'] === ref) selected = child[k]
-          })
+          const selected = Object.values(child).find((c) => c['ref'] === ref)
+          if (selected !== undefined) {
+            if (cache === undefined) {
+              cache = new Map()
+              selectCache.set(this, cache)
+            }
+            cache.set(ref, selected)
+            return selected
+          }
         } else {
-          if (child['ref'] === ref) selected = child
+          if (child['ref'] === ref) {
+            if (cache === undefined) {
+              cache = new Map()
+              selectCache.set(this, cache)
+            }
+            cache.set(ref, child)
+            return child
+          }
         }
-      })
-      return selected
+      }
+      return null
     },
     writable: false,
     enumerable: true,
+    configurable: false,
+  },
+  [symbols.invalidateSelectCache]: {
+    value: function () {
+      selectCache.delete(this)
+    },
+    writable: false,
+    enumerable: false,
     configurable: false,
   },
   $trigger: {
@@ -234,7 +283,7 @@ export default {
  */
 const deleteChildren = function (children) {
   for (let i = 0; i < children.length; i++) {
-    if (!children[i]) return
+    if (!children[i]) continue
     // call destroy when method is available on child
     if (children[i].destroy && typeof children[i].destroy === 'function') {
       children[i].destroy()

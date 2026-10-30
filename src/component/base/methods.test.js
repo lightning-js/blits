@@ -23,6 +23,8 @@ import { initLog } from '../../lib/log.js'
 import timeouts_intervals from './timeouts_intervals.js'
 import { registerHooks } from '../../lib/hooks.js'
 import lifecycle from '../../lib/lifecycle.js'
+import { reactive } from '../../lib/reactivity/reactive.js'
+import { effect, removeEffects } from '../../lib/reactivity/effect.js'
 
 initLog()
 
@@ -33,9 +35,9 @@ test('Methods - Should contain all the defined methods', (assert) => {
   assert.equal(typeof component.unfocus, 'function', 'should have unfocus method')
   assert.equal(typeof component.destroy, 'function', 'should have destroy method')
   assert.equal(
-    typeof component[symbols.removeGlobalEffects],
+    typeof component[symbols.removeEffects],
     'function',
-    'should have removeGlobalEffects method'
+    'should have removeEffects method'
   )
   assert.equal(typeof component.$trigger, 'function', 'should have $trigger method')
   assert.equal(typeof component.$select, 'function', 'should have $select method')
@@ -152,6 +154,40 @@ test('Methods - Validate $select method behavior', (assert) => {
   assert.end()
 })
 
+test('Methods - $select returns the first matching ref', (assert) => {
+  const Child = function (componentId) {
+    this.componentId = componentId
+    this.ref = 'duplicate'
+  }
+  const first = new Child('first')
+  const second = new Child('second')
+  const component = Object.defineProperties({ [symbols.children]: [first, second] }, { ...methods })
+
+  assert.equal(component.$select('duplicate'), first, 'first matching child should be returned')
+  assert.end()
+})
+
+test('Methods - $select caches successful lookups', (assert) => {
+  let reads = 0
+  const child = {}
+  Object.defineProperty(child, 'ref', {
+    get() {
+      reads++
+      return 'cached'
+    },
+  })
+  const children = [child]
+  const component = Object.defineProperties({}, { ...methods })
+  component[symbols.children] = children
+
+  const selected = component.$select('cached')
+  const firstReadCount = reads
+
+  assert.equal(component.$select('cached'), selected, 'cached ref should avoid a second scan')
+  assert.equal(reads, firstReadCount, 'cached lookup should not inspect child refs again')
+  assert.end()
+})
+
 test('Methods - Validate $select method with nested array of children structure', (assert) => {
   const ChildComponent = function (id, ref) {
     this.componentId = id
@@ -212,13 +248,13 @@ test('Methods - Validate $select method with object of children structure', (ass
   assert.end()
 })
 
-test('Methods - Validate removeGlobalEffects method behavior', (assert) => {
+test('Methods - Validate removeEffects method behavior', (assert) => {
   const component = Object.defineProperties({}, { ...methods })
 
   const effects = []
   // todo: use effects based on global app state properties
-  component[symbols.removeGlobalEffects](effects)
-  assert.pass('removeGlobalEffects should execute without error')
+  component[symbols.removeEffects](effects)
+  assert.pass('removeEffects should execute without error')
   assert.end()
 })
 
@@ -270,6 +306,148 @@ test('Methods - Validate destroy method behavior', (assert) => {
   assert.equal(holderMock.destroyed, true, 'Holder destroy method should be called')
   assert.equal(childrenDestroyMock.count, 4, 'All children destroy methods should be called')
 
+  assert.end()
+})
+
+test('Methods - Destroy continues past an empty child slot', (assert) => {
+  const { component, childrenDestroyMock } = getTestComponent()
+
+  component[symbols.children].splice(1, 0, undefined)
+  component.destroy()
+
+  assert.equal(
+    childrenDestroyMock.count,
+    4,
+    'All children after an empty slot should still be destroyed'
+  )
+  assert.end()
+})
+
+test('Methods - Destroy continues past an empty keyed loop entry', (assert) => {
+  const { component, childrenDestroyMock } = getTestComponent()
+
+  component[symbols.children][2] = {
+    emptyItem: undefined,
+    item1: { componentId: 'child3', destroy: childrenDestroyMock },
+    item2: { componentId: 'child4', destroy: childrenDestroyMock },
+  }
+  component.destroy()
+
+  assert.equal(
+    childrenDestroyMock.count,
+    4,
+    'All keyed loop children after an empty entry should still be destroyed'
+  )
+  assert.end()
+})
+
+test('Methods - Destroy removes effects belonging to a child after an empty loop slot', (assert) => {
+  const { component } = getTestComponent()
+  const persistentState = reactive({ value: 0 })
+  let effectCalls = 0
+
+  const childEffect = () => {
+    persistentState.value
+    effectCalls++
+  }
+  const child = {
+    destroy() {
+      removeEffects([childEffect])
+    },
+  }
+
+  effect(childEffect)
+  component[symbols.children] = [undefined, child]
+  component.destroy()
+
+  persistentState.value = 1
+
+  assert.equal(
+    effectCalls,
+    1,
+    'A destroyed parent should not leave a skipped child effect subscribed to persistent state'
+  )
+
+  // Keep the regression test's reactive subscription isolated from subsequent tests.
+  removeEffects([childEffect])
+  assert.end()
+})
+
+test('Methods - Destroy does not rerun effects when clearing array state', (assert) => {
+  const { component } = getTestComponent()
+  component[symbols.state] = reactive({
+    $hasFocus: false,
+    items: [1, 2, 3],
+  })
+  let effectCalls = 0
+
+  const stateEffect = () => {
+    component[symbols.state].items
+    effectCalls++
+  }
+
+  component[symbols.effects].push(stateEffect)
+  effect(stateEffect)
+
+  component.destroy()
+
+  assert.equal(effectCalls, 1, 'Destroy should not trigger effects subscribed to array state')
+  assert.end()
+})
+
+test('Methods - Destroy removes effects before moving focus to the parent', (assert) => {
+  const { component } = getTestComponent()
+  component[symbols.state] = reactive({ $hasFocus: true })
+  // mock $focus functionality on the parent
+  component[symbols.parent] = {
+    $focus() {
+      component[symbols.state].$hasFocus = false
+    },
+  }
+  Object.defineProperty(component, '$hasFocus', {
+    get() {
+      return this[symbols.state].$hasFocus
+    },
+  })
+
+  let effectCalls = 0
+  const focusEffect = () => {
+    component[symbols.state].$hasFocus
+    effectCalls++
+  }
+
+  component[symbols.effects].push(focusEffect)
+  effect(focusEffect)
+  component.destroy()
+
+  assert.equal(effectCalls, 1, 'Moving focus during destroy should not run $hasFocus effects')
+  assert.end()
+})
+
+test('Methods - Reactive array effects cannot abort component teardown', (assert) => {
+  const { component, cleanupMock, holderMock } = getTestComponent()
+  component[symbols.state] = reactive({
+    $hasFocus: false,
+    items: [1, 2, 3],
+  })
+
+  const stateEffect = () => {
+    component[symbols.state].items
+    if (component.eol === true) throw new Error('Effect ran during component teardown')
+  }
+
+  component[symbols.effects].push(stateEffect)
+  effect(stateEffect)
+
+  assert.doesNotThrow(() => component.destroy(), 'Destroy should not run reactive effects')
+  assert.equal(holderMock.destroyed, true, 'Destroy should release the renderer holder')
+  assert.equal(cleanupMock.called, true, 'Destroy should release generated render closures')
+
+  // Keep this test isolated if the regression returns.
+  if (holderMock.destroyed === false) {
+    removeEffects([stateEffect])
+    component.destroy()
+  }
   assert.end()
 })
 

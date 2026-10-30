@@ -20,15 +20,18 @@ import msdfGenerator from './msdfGenerator.js'
 import blitsFileConverter from './blitsFileConverter.js'
 import reactivityGuard from './reactivityGuard.js'
 import injectDevConfig from './inject-dev-config.js'
+import injectVersions from './injectVersions.js'
 
 export { default as preCompiler } from './preCompiler.js'
 export { default as msdfGenerator } from './msdfGenerator.js'
 export { default as blitsFileConverter } from './blitsFileConverter.js'
 export { default as reactivityGuard } from './reactivityGuard.js'
 export { default as injectDevConfig } from './inject-dev-config.js'
+export { default as injectVersions } from './injectVersions.js'
 
 export default [
   injectDevConfig(),
+  injectVersions(),
   blitsFileConverter(),
   reactivityGuard(),
   preCompiler(),

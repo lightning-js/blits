@@ -38,6 +38,11 @@ import { plugins } from './plugin.js'
 
 // object to store global components
 let globalComponents
+let devMode = false
+
+export const setDevMode = (enabled) => {
+  devMode = enabled === true
+}
 
 const required = (name) => {
   throw new Error(`Parameter ${name} is required`)
@@ -92,10 +97,14 @@ export const componentMap = new WeakMap()
  * @typedef {Object} BlitsElement
  * @property {BlitsComponent} component - Reference to the owning Blits component.
  * @property {BlitsElementConfig} config - Configuration object for the element.
+ * @property {boolean} eol - Indicates when the element is end-of-life (destroyed).
  * @property {number} counter - Unique counter used for shader workarounds. FIXME?
  * @property {string[]} effectNames - Names of active shader effects.
  * @property {any} node - The underlying renderer node (e.g., WebGL node or text node).
  * @property {BlitsElementProps} props - Proxy-like object containing transformed props.
+ * @property {Object<string, any>} scheduledTransitions - Tracks transitions by property name.
+ * @property {Object<string, ReturnType<typeof setTimeout>>} debounceTimeouts - Pending animation debounce timers.
+ * @property {any} [_spriteState] - Native Sprite texture cache (L3 only).
  * @property {any[]} children - WVB I cant see this populated? Filtered list of children owned by this element. FIXME?
  * @property {any} parent - WVB Shortcut to the parent CoreNode?
  * @property {number} nodeId - ID of the CoreNode, if available.
@@ -105,6 +114,9 @@ export const componentMap = new WeakMap()
  * @property {function(string, any, Object):void} animate - Animates a property with transition options.
  * @property {function():void} destroy - Destroys the underlying node and cancels transitions.
  * @property {function(any): any} triggerLayout - Triggers a layout update for the element.
+ * @property {function(Object):void} setInspectorMetadata - Merges inspector metadata onto the node.
+ * @property {function():void} _scheduleNativeSpriteSync - Queues a coalesced native Sprite texture sync.
+ * @property {function():void} _syncNativeSprite - Resolves and applies the native Sprite texture.
  *
  * @typedef {Object} BlitsLifecycle
  * @property {BlitsComponent} component - The Blits comonent instance this lifecycle belongs to.
@@ -326,7 +338,7 @@ const Component = (name = required('name'), config = required('config')) => {
       // fpsUpdate event
       if (config.hooks.fpsUpdate) {
         const cb = (_r, data) => {
-          emit('fpsUpdate', this[symbols.identifier], this, [data.fps])
+          emit('fpsUpdate', this[symbols.identifier], this, [data.fps, data.frameCount])
         }
         renderer.on('fpsUpdate', cb)
         this[symbols.rendererEventListeners].push({ event: 'fpsUpdate', cb })
@@ -414,8 +426,9 @@ const Component = (name = required('name'), config = required('config')) => {
       }
     }
 
-    // finaly set the lifecycle state to ready (in the next tick)
-    setTimeout(() => (this[symbols.lifecycle].state = 'ready'))
+    // finally set the lifecycle state to ready (synchronously: instantiation,
+    // reactivity setup and template spawn are all complete at this point)
+    this[symbols.lifecycle].state = 'ready'
 
     // and return this
     return this
@@ -432,6 +445,10 @@ const Component = (name = required('name'), config = required('config')) => {
    */
   const factory = (options = {}, parentEl, parentComponent, rootComponent) => {
     if (Base[symbols['launched']] === false) {
+      // create a context with shared properties so this.$reactive (etc.)
+      // is available during plugin initialization
+      const pluginContext = Object.defineProperties({}, shared)
+
       // Register user defined plugins once on the Base object (after launch)
       const pluginKeys = Object.keys(plugins)
       const pluginKeysLength = pluginKeys.length
@@ -449,8 +466,8 @@ const Component = (name = required('name'), config = required('config')) => {
         const plugin = plugins[pluginName]
 
         pluginInstances[prefixedPluginName] = {
-          // instantiate the plugin, passing in provided options
-          value: Object.defineProperties(plugin.plugin(plugin.options), shared),
+          // instantiate the plugin with shared context, then apply shared to the result
+          value: Object.defineProperties(plugin.plugin.call(pluginContext, plugin.options), shared),
           writable: false,
           enumerable: true,
           configurable: true,
@@ -482,7 +499,7 @@ const Component = (name = required('name'), config = required('config')) => {
     // one time code generation (only if precompilation is turned off)
     if (config.code === undefined) {
       Log.debug(`Generating code for ${name} component`)
-      config.code = codegenerator.call(config, parser(config.template, name))
+      config.code = codegenerator.call(config, parser(config.template, name), devMode)
     }
 
     // create an instance of the component, using base as the prototype (which contains Base)

@@ -53,6 +53,15 @@ export const isTransition = (value) => {
 }
 
 /**
+ * Checks if a transition object has a duration of zero.
+ * @param {any} value - The value to check.
+ * @returns {boolean} True if the transition duration is zero, false otherwise.
+ */
+export const isZeroDurationTransition = (value) => {
+  return value.transition.duration === 0
+}
+
+/**
  * Checks if a string is an object string (starts and ends with curly braces).
  * @param {string} str - The string to check.
  * @returns {boolean} True if the string is an object string, false otherwise.

@@ -20,13 +20,20 @@ import { state } from '../router/router.js'
 import Settings from '../settings.js'
 import { DEFAULT_HOLD_TIMEOUT_MS } from '../constants.js'
 import { Log } from '../lib/log.js'
-import { getAncestors } from './helpers.js'
+import { getAncestors, isInAliveComponentTree } from './helpers.js'
+import { platform } from '../platform.js'
 
 let focusedComponent = null
 let focusChain = []
 let setFocusTimeout
 
 export const keyUpCallbacks = new Map()
+
+export const removeKeyUpCallbacks = (component) => {
+  for (const [keyCode, entry] of keyUpCallbacks) {
+    if (entry.component === component) keyUpCallbacks.delete(keyCode)
+  }
+}
 
 export default {
   _hold: false,
@@ -40,6 +47,8 @@ export default {
     return focusedComponent
   },
   set(component, event) {
+    if (component === undefined || isInAliveComponentTree(component) === false) return
+
     clearTimeout(setFocusTimeout)
 
     // early return if already focused
@@ -59,6 +68,10 @@ export default {
         while (i--) {
           // don't unfocus when part of the new focus chain
           if (newFocusChain.indexOf(focusChain[i]) > -1) break
+          // only unfocus components that actually have focus
+          // ($hasFocus, not the lifecycle state which is shared with hover/enter/exit)
+          const componentState = focusChain[i][symbols.state]
+          if (componentState !== undefined && componentState.$hasFocus === false) continue
           focusChain[i][symbols.lifecycle].state = 'unfocus'
         }
         focusChain = newFocusChain
@@ -74,12 +87,13 @@ export default {
 
     // and finally set focus to the leaf component
     setFocusTimeout = setTimeout(
-      () => setFocus(component, event),
+      () => component.eol !== true && setFocus(component, event),
       this.hold === true ? Settings.get('holdTimeout', DEFAULT_HOLD_TIMEOUT_MS) : 0
     )
   },
   input(key, event) {
     if (state.navigating === true) return
+    if (focusedComponent === null) return
 
     const componentWithInputEvent = getComponentWithInputEvent(focusedComponent, key)
 
@@ -95,7 +109,7 @@ export default {
     }
 
     if (cb !== undefined) {
-      keyUpCallbacks.set(event.code, cb)
+      keyUpCallbacks.set(event.keyCode, { callback: cb, component: componentWithInputEvent })
     }
   },
 }
@@ -132,10 +146,11 @@ const setFocus = (component, event) => {
   focusedComponent = component
   component[symbols.lifecycle].state = 'focus'
 
-  if (event instanceof KeyboardEvent) {
-    const internalEvent = new KeyboardEvent('keydown', event)
-    // @ts-ignore - this is an internal event
+  if (platform.isKeyboardEvent && platform.isKeyboardEvent(event) && platform.dispatchEvent) {
+    const internalEvent = platform.createKeyboardEvent
+      ? platform.createKeyboardEvent('keydown', event)
+      : event
     internalEvent[symbols.internalEvent] = true
-    document.dispatchEvent(internalEvent)
+    platform.dispatchEvent(internalEvent)
   }
 }

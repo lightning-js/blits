@@ -16,9 +16,47 @@
  */
 
 import Element from './element.js'
-import Launch from './launch.js'
+import Launch, { renderer } from './launch.js'
+import colors from '../../lib/colors/colors.js'
+import { SCREEN_RESOLUTIONS, RENDER_QUALITIES } from '../../constants.js'
+
+/**
+ * Maps Blits setting keys to renderer runtime options
+ *
+ * @type {Record<string, (value: any) => Partial<import('@lightningjs/renderer').RendererRuntimeSettings>>}
+ */
+const rendererOptions = {
+  // defaults to transparent (same as on launch) for empty or invalid colors
+  w: (v) => ({ appWidth: v }),
+  h: (v) => ({ appHeight: v }),
+  screenResolution: (v) => ({
+    deviceLogicalPixelRatio: typeof v === 'string' ? (SCREEN_RESOLUTIONS[v] ?? 1) : v,
+  }),
+  renderQuality: (v) => ({
+    devicePhysicalPixelRatio: RENDER_QUALITIES[v] ?? v ?? 1,
+  }),
+  canvasColor: (v) => ({ clearColor: Number(colors.normalize(v ?? '', '0x00000000')) }),
+  fpsInterval: (v) => ({ fpsUpdateInterval: v }),
+  pixelRatio: (v) => ({ deviceLogicalPixelRatio: v }),
+  viewportMargin: (v) => ({ boundsMargin: v }),
+  maxFPS: (v) => ({ targetFPS: v }),
+}
+
+/**
+ * Applies a runtime setting to the renderer via RendererMain.setOptions()
+ *
+ * @param {string} key - Blits setting key (validated by $settings)
+ * @param {any} value - New value
+ */
+const updateSetting = (key, value) => {
+  const rendererInstance = renderer
+  if (rendererInstance && typeof rendererInstance.setOptions === 'function') {
+    rendererInstance.setOptions(rendererOptions[key](value))
+  }
+}
 
 export default {
   Element,
   Launch,
+  updateSetting,
 }

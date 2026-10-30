@@ -37,6 +37,9 @@ module.exports = defineConfig([
         ...globals.browser,
         ...globals.node,
         globalThis: false,
+        __DEV__: false,
+        __BLITS_VERSION__: false,
+        __RENDERER_VERSION__: false,
       },
 
       parser: babelParser,

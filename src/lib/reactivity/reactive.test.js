@@ -17,7 +17,7 @@
 
 import test from 'tape'
 import { reactive } from './reactive.js'
-import { effect, pauseTracking, resumeTracking } from './effect.js'
+import { effect, pauseTracking, removeEffects, resumeTracking } from './effect.js'
 import symbols from '../symbols.js'
 
 test('Type', (assert) => {
@@ -155,6 +155,65 @@ test('Reactive - Array Reactivity', (assert) => {
   assert.end()
 })
 
+test('Reactive - Track the length of a directly reactive array', (assert) => {
+  const cases = [
+    { name: 'push', initial: [], mutate: (items) => items.push('one'), expected: 1 },
+    { name: 'pop', initial: ['one'], mutate: (items) => items.pop(), expected: 0 },
+    { name: 'shift', initial: ['one'], mutate: (items) => items.shift(), expected: 0 },
+    { name: 'unshift', initial: [], mutate: (items) => items.unshift('one'), expected: 1 },
+    {
+      name: 'splice',
+      initial: ['one'],
+      mutate: (items) => items.splice(0, 1),
+      expected: 0,
+    },
+  ]
+
+  cases.forEach(({ name, initial, mutate, expected }) => {
+    const items = reactive(initial)
+    let length
+
+    effect(() => {
+      length = items.length
+    })
+
+    mutate(items)
+    assert.equal(length, expected, `Length should update after ${name}`)
+  })
+
+  const items = reactive(['two', 'one'])
+  let runs = 0
+  effect(() => {
+    items.length
+    runs++
+  })
+
+  const runsBeforeSameLengthMutations = runs
+  items.splice(0, 1, 'replacement')
+  items.sort()
+  assert.equal(
+    runs,
+    runsBeforeSameLengthMutations,
+    'Effect should not run when an array mutation preserves its length'
+  )
+  assert.end()
+})
+
+test('Reactive - Track nested array length through its parent', (assert) => {
+  const data = reactive({ items: [] })
+  let runs = 0
+
+  effect(() => {
+    data.items.length
+    runs++
+  })
+
+  data.items.push('one')
+
+  assert.equal(runs, 2, 'Effect should run once after nested array length changes')
+  assert.end()
+})
+
 test('Reactive - Effect with specific keys', (assert) => {
   const data = reactive({ foo: 'foo', bar: 'bar', count: 0 })
 
@@ -217,6 +276,159 @@ test('Reactive - Multiple effects Tracking & Triggering for same object', (asser
     22,
     'Both effects should run again after modifying a property and increment counter'
   )
+  assert.end()
+})
+
+test('Reactive - Removing an effect tracked by multiple reactive targets', (assert) => {
+  const first = reactive({ value: 1 }, 'Proxy')
+  const second = reactive({ value: 2 }, 'Proxy')
+  let calls = 0
+
+  const globalEffect = () => {
+    calls++
+    first.value
+    second.value
+  }
+
+  effect(globalEffect)
+  removeEffects([globalEffect])
+
+  first.value = 2
+  second.value = 3
+
+  assert.equal(calls, 1, 'Changing tracked targets should not run the removed effect')
+  assert.end()
+})
+
+test('Reactive - Removing an effect tracked by multiple keys on one target', (assert) => {
+  const data = reactive({ first: 1, second: 2 }, 'Proxy')
+  let calls = 0
+
+  const globalEffect = () => {
+    calls++
+    data.first
+    data.second
+  }
+
+  effect(globalEffect)
+  removeEffects([globalEffect])
+
+  data.first = 2
+  data.second = 3
+
+  assert.equal(calls, 1, 'Changing tracked keys should not run the removed effect')
+  assert.end()
+})
+
+test('Reactive - Tracking the same dependency more than once', (assert) => {
+  const data = reactive({ value: 1 }, 'Proxy')
+  let calls = 0
+
+  const globalEffect = () => {
+    calls++
+    data.value
+    data.value
+  }
+
+  effect(globalEffect)
+  removeEffects([globalEffect])
+  data.value = 2
+
+  assert.equal(calls, 1, 'A duplicated dependency should be removed correctly')
+  assert.end()
+})
+
+test('Reactive - Removing only the requested effect', (assert) => {
+  const data = reactive({ value: 1 }, 'Proxy')
+  let removedCalls = 0
+  let retainedCalls = 0
+
+  const removedEffect = () => {
+    removedCalls++
+    data.value
+  }
+  const retainedEffect = () => {
+    retainedCalls++
+    data.value
+  }
+
+  effect(removedEffect)
+  effect(retainedEffect)
+  removeEffects([removedEffect])
+  data.value = 2
+
+  assert.equal(removedCalls, 1, 'The removed effect should not run')
+  assert.equal(retainedCalls, 2, 'An effect not selected for removal should still run')
+
+  removeEffects([retainedEffect])
+  assert.end()
+})
+
+test('Reactive - Removing an effect in defineProperty mode', (assert) => {
+  const data = reactive({ first: 1, second: 2 }, 'defineProperty')
+  let calls = 0
+
+  const globalEffect = () => {
+    calls++
+    data.first
+    data.second
+  }
+
+  effect(globalEffect)
+  removeEffects([globalEffect])
+
+  data.first = 2
+  data.second = 3
+
+  assert.equal(calls, 1, 'Changing tracked keys should not run the removed effect')
+  assert.end()
+})
+
+test('Reactive - Removing an effect for a destroyed keyed loop item', (assert) => {
+  const item = reactive({ data: undefined })
+  let calls = 0
+
+  const loopEffect = () => {
+    calls++
+    item.data
+  }
+
+  effect(loopEffect)
+  removeEffects([loopEffect])
+  item.data = 'loaded asynchronously'
+
+  assert.equal(calls, 1, 'A late item update should not run the removed loop effect')
+  assert.end()
+})
+
+test('Reactive - Removing effects for a destroyed nested loop subtree', (assert) => {
+  const parentItem = reactive({ title: 'Parent' })
+  const childItem = reactive({ title: 'Child' })
+  const grandchildItem = reactive({ data: undefined })
+  const calls = [0, 0, 0]
+  const subtreeEffects = [
+    () => {
+      calls[0]++
+      parentItem.title
+    },
+    () => {
+      calls[1]++
+      childItem.title
+    },
+    () => {
+      calls[2]++
+      grandchildItem.data
+    },
+  ]
+
+  subtreeEffects.forEach((subtreeEffect) => effect(subtreeEffect))
+  removeEffects(subtreeEffects)
+
+  parentItem.title = 'Updated parent'
+  childItem.title = 'Updated child'
+  grandchildItem.data = 'loaded asynchronously'
+
+  assert.deepEqual(calls, [1, 1, 1], 'Late updates should not run removed subtree effects')
   assert.end()
 })
 

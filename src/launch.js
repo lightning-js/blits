@@ -18,7 +18,12 @@
 import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import engine from './engine.js'
-import blitsPackageInfo from '../package.json' with { type: 'json' }
+import { configurePlatform } from './platform.js'
+import profiler from './lib/profiler.js'
+
+// Vite replaces __DEV__ with a boolean at build time. The typeof check keeps
+// the source usable outside Vite (for example in the test runner).
+const isDev = typeof __DEV__ !== 'undefined' && __DEV__
 
 /**
  * @typedef {Object} Font
@@ -46,20 +51,6 @@ import blitsPackageInfo from '../package.json' with { type: 'json' }
 export let renderer = {}
 export const stage = {}
 
-async function rendererVersion() {
-  let rendererPackageInfo
-  try {
-    // Dynamically import the renderer package.json
-    rendererPackageInfo = await import('../../renderer/package.json')
-    if (rendererPackageInfo !== undefined) {
-      return rendererPackageInfo.version
-    }
-  } catch (e) {
-    // Fallback to renderer version in dependencies
-    return blitsPackageInfo.dependencies['@lightningjs/renderer']
-  }
-}
-
 /**
  * @typedef {Object} BlitsSettings
  * @property {number} [w] - Width of the Application
@@ -86,10 +77,13 @@ async function rendererVersion() {
  * @property {number} [holdTimeout] - Time after which a key press is considered a hold
  * @property {HTMLCanvasElement} [canvas] - Custom canvas object used to render the App
  * @property {number} [textureProcessingTimeLimit] - Max time renderer can process textures in a frame
+ * @property {import('@lightningjs/renderer').RendererMainSettings['platform']} [rendererPlatform] - Custom platform used by the renderer
  * @property {Partial<import('@lightningjs/renderer').RendererMainSettings>} [advanced] - Advanced renderer settings
  * @property {boolean} [announcer] - Whether or not the announcer should be activated on initialization
  * @property {boolean} [enableMouse] - Enable mouse support (hover and click-to-focus). Defaults to false.
  * @property {number} [maxFPS] - Maximum FPS
+ * @property {function} [platform] - Platform factory for non-browser environments
+ * @property {boolean} [profiler] - Start the performance profiler on launch
  */
 
 /**
@@ -109,16 +103,58 @@ async function rendererVersion() {
  * @returns {void}
  */
 export default (App, target, settings) => {
+  let warnLegacyRendererPlatform = false
+
+  if (settings !== undefined && 'platform' in settings) {
+    if (typeof settings.platform === 'function') {
+      settings.platform = configurePlatform(settings.platform)
+    } else {
+      if ('rendererPlatform' in settings === false) {
+        settings.rendererPlatform = settings.platform
+      }
+      delete settings.platform
+      warnLegacyRendererPlatform = true
+    }
+  }
+
   Settings.set(settings)
 
   initLog()
 
-  rendererVersion().then((v) => {
-    Log.info('Blits Version ', blitsPackageInfo.version)
-    Log.info('Renderer Version ', v)
-  })
+  if (isDev === true) {
+    // expose the profiler, so it can be controlled from the devtools console
+    globalThis.__BLITS_PROFILER__ = profiler
+    if (Settings.get('profiler', false) === true) profiler.start()
+  }
+
+  if (warnLegacyRendererPlatform === true) {
+    Log.warn(
+      'Passing a renderer platform via settings.platform is deprecated. Use settings.rendererPlatform instead.'
+    )
+  }
+
+  Log.info(
+    'Blits version:',
+    typeof __BLITS_VERSION__ === 'undefined' ? 'unknown' : __BLITS_VERSION__
+  )
+  Log.info(
+    'Renderer version:',
+    typeof __RENDERER_VERSION__ === 'undefined' ? 'unknown' : __RENDERER_VERSION__
+  )
 
   stage.element = engine.Element
 
-  renderer = engine.Launch(App, target, settings)
+  renderer = engine.Launch(target, settings)
+  if (isDev === true) {
+    profiler.setRenderer(renderer)
+  }
+
+  // Instantiate the app and wire up the quit function
+  let app = App()
+  app.quit = () => {
+    Log.info('Closing App')
+    app.destroy()
+    app = null
+    renderer = null
+  }
 }

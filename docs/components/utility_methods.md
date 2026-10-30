@@ -62,7 +62,9 @@ export default Blits.Component('MyComponent', {
     </Element>
   `,
   state() {
-    focusIndex: 1
+    return {
+      focusIndex: 1
+    }
   },
   input: {
     down() {
@@ -108,11 +110,13 @@ When the `$focus` method is called on a Component that is already is a focused s
 The `$input()`-method handles keyboard events on a component **without changing focus**. It works similarly to `$focus()`, but for input handling instead of focus management.
 
 **Comparison with `$focus()` methods:**
-- `this.parent.$focus()` - Changes focus to parent **ONLY** (no event parameter = no bubbling)
-- `this.parent.$focus(e)` - Changes focus to parent **AND** bubbles the event (with event parameter)
-- `this.parent.$input(e)` - Handles the input event on parent **ONLY** (no focus change)
+- `this.$parent.$focus()` - Changes focus to parent **ONLY** (no event parameter = no bubbling)
+- `this.$parent.$focus(e)` - Changes focus to parent **AND** bubbles the event (with event parameter)
+- `this.$parent.$input(e)` - Handles the input event on parent **ONLY** (no focus change)
 
-Both `this.parent.$focus(e)` and `this.parent.$input(e)` process events on the parent. The difference is that `$focus()` changes focus, while `$input()` only handles the input event.
+Both `this.$parent.$focus(e)` and `this.$parent.$input(e)` process events on the parent. The difference is that `$focus()` changes focus, while `$input()` only handles the input event.
+
+> **v2**: `this.parent` was renamed to `this.$parent` in Blits v2.
 
 **When to use `$input`:**
 Use this when you need another component (like a parent) to handle the key but want to keep focus on the current component.
@@ -127,13 +131,13 @@ export default Blits.Component('MyComponent', {
     enter(e) {
       // Handle the enter key locally
       this.doSomething()
-      
+
       // Also let parent handle it without changing focus
-      this.parent.$input(e)
+      this.$parent.$input(e)
     },
     back(e) {
       // Let parent handle back key, but keep focus here
-      if (this.parent.$input(e)) {
+      if (this.$parent.$input(e)) {
         // Parent handled it
         return
       }
@@ -151,7 +155,7 @@ export default Blits.Component('MyComponent', {
 })
 ```
 
-> **Note**: The `$input()` method works on the component it's called on (like `$focus()`), so call it on the target component (e.g., `this.parent.$input(e)` or `this.$select('ref').$input(e)`) to handle input on that component without changing focus.
+> **Note**: The `$input()` method works on the component it's called on (like `$focus()`), so call it on the target component (e.g., `this.$parent.$input(e)` or `this.$select('ref').$input(e)`) to handle input on that component without changing focus.
 
 ### $trigger
 
@@ -162,9 +166,11 @@ Instead of setting a value to `null` and then setting it back to the initial val
 ```js
 export default Blits.Component('MyComponent', {
   state() {
-    focusIndex: 1
+    return {
+      focusIndex: 1
+    }
   },
-  watchers: {
+  watch: {
     focusIndex(v) {
       console.log('I trigger when focusIndex changes')
     }
@@ -222,7 +228,7 @@ Note that this recursive operation comes at a cost, especially when emitting lar
 
 
 ```js
-// explicitely _not_ passing this.navigationResult by reference
+// explicitly _not_ passing this.navigationResult by reference
 this.$emit('setMenuItems', this.navigationResult, false)
 ```
 
@@ -347,7 +353,9 @@ The `this.$clearTimeouts()`-method is a utility method that is used to clear all
 ```js
 export default Blits.Component('MyComponent', {
   state() {
-    timeout: null
+    return {
+      timeout: null
+    }
   },
   hooks: {
     init() {

@@ -22,6 +22,7 @@ export default Blits.Component('Gold', {
       this.y = this.y + 50
     }
   },
+})
 ```
 
 Using _transitions_ we really make our App come alive.
@@ -47,11 +48,12 @@ export default Blits.Component('Gold', {
       this.y = this.y + 50
     }
   },
+})
 ```
 
 If we try out the modified example above, you'll notice how much difference adding a simple transition makes.
 
-When the `.transition`-modifier is added to a reactive attribute, a default `ease-in` transition with a duration of `300ms` is applied
+When the `.transition`-modifier is added to a reactive attribute, a default `ease` transition with a duration of `300ms` is applied
 
 ## Customizing transitions
 
@@ -86,6 +88,7 @@ Besides a reference to the `value`, you can also use dynamic values for the othe
 
 ### Available easing functions
 
+- `ease` (default)
 - `ease-in`
 - `ease-out`
 - `ease-in-out`
@@ -126,6 +129,7 @@ export default Blits.Component('Gold', {
       //
     },
   }
+})
 ```
 
 It is also possible to keep track of the entire progress of a transition. Every frametick during a transition (ideally once every 16ms), the renderer reports the progress of the transition. You can hook into this event by specifying a `progress` key on the transition configuration object, with a function to excute.
@@ -147,4 +151,5 @@ export default Blits.Component('Gold', {
       }
     },
   }
+})
 ```

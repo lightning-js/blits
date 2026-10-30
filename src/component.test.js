@@ -30,6 +30,9 @@ initLog()
 if (renderer && !renderer.on) {
   renderer.on = () => {}
 }
+if (renderer && !renderer.off) {
+  renderer.off = () => {}
+}
 
 test('Type', (assert) => {
   const expected = 'function'
@@ -108,13 +111,13 @@ test('Component - Instance should initiate lifecycle object', (assert) => {
   )
   assert.equal(
     foo[symbols.lifecycle].previous,
-    null,
-    'Lifecycle object should have previous state not initialized'
+    'init',
+    'Lifecycle object should have init as previous state'
   )
   assert.equal(
     foo[symbols.lifecycle].current,
-    'init',
-    'Lifecycle object should have initial current state'
+    'ready',
+    'Lifecycle object should have ready as current state'
   )
   assert.end()
 })
@@ -250,7 +253,7 @@ test('Component - Instance should initialize children', (assert) => {
   assert.equal(args[0], parent, 'Render should be called with parent parameter')
   assert.equal(args[1], foo, 'Render should be called with Foo component instance')
   assert.equal(args[2], config, 'Render should be called with config parameter')
-  assert.ok(args[3].Sprite, 'Render should be called with global components object')
+  assert.ok(args[3].Circle, 'Render should be called with global components object')
   assert.end()
 })
 
@@ -370,7 +373,7 @@ test('Component - Instance should execute all side effects', (assert) => {
   assert.equals(calls.args[0], foo, 'Effect should be invoked with foo component instance')
   assert.equals(calls.args[1], children, 'Effect should be invoked with component`s children')
   assert.equals(calls.args[2], config, 'Effect should be invoked with config object')
-  assert.ok(calls.args[3].Sprite, 'Effect should be invoked with global components object')
+  assert.ok(calls.args[3].Circle, 'Effect should be invoked with global components object')
   assert.equals(calls.args[4], root, 'Effect should be invoked with root component')
   assert.ok(typeof calls.args[6] === 'function', 'Effect should be invoked with effect function')
   assert.end()
@@ -395,20 +398,6 @@ test('Component - Instance should have all symbols configured', (assert) => {
     assert.ok(descriptor.configurable === true, `${symbol.description} should be configurable`)
   })
   assert.end()
-})
-
-test('Component - Instance should have ready state after the next process tick', (assert) => {
-  assert.plan(1)
-
-  const foo = Component('Foo', {})()
-
-  setTimeout(() => {
-    assert.equal(
-      foo[symbols.lifecycle].state,
-      'ready',
-      'Foo component lifecycle should be eventually in a ready state'
-    )
-  })
 })
 
 test('Component - Configure input events', (assert) => {
@@ -528,6 +517,54 @@ test('Component - Warn when method name matches prop name', (assert) => {
     logs[0].args.pop(),
     'foo already exists as a prop',
     'Should log prop/method name clash error message'
+  )
+  assert.end()
+})
+
+test('Component - Should unregister renderer hook listeners on destroy', (assert) => {
+  const offCapture = assert.capture(renderer, 'off', () => {})
+  const onCapture = assert.capture(renderer, 'on', () => {})
+  const config = {
+    code: {
+      render: () => {
+        return { elms: [{ node: { on: () => {} } }], cleanup: () => {} }
+      },
+      effects: [],
+    },
+    hooks: {
+      frameTick() {},
+      idle() {},
+    },
+  }
+
+  const holder = { destroy() {} }
+  const parent = { $focus() {} }
+  const foo = Component('Foo', config)({}, holder, parent, {})
+  const onCalls = onCapture()
+
+  foo.destroy()
+
+  const offCalls = offCapture()
+  const frameTickCb = onCalls.find((c) => c.args[0] === 'frameTick').args[1]
+  const idleCb = onCalls.find((c) => c.args[0] === 'idle').args[1]
+  const activeCb = onCalls.find((c) => c.args[0] === 'active').args[1]
+
+  assert.ok(
+    offCalls.some((c) => c.args[0] === 'frameTick' && c.args[1] === frameTickCb),
+    'frameTick listener should be removed on destroy'
+  )
+  assert.ok(
+    offCalls.some((c) => c.args[0] === 'idle' && c.args[1] === idleCb),
+    'idle listener should be removed on destroy'
+  )
+  assert.ok(
+    offCalls.some((c) => c.args[0] === 'active' && c.args[1] === activeCb),
+    'active listener should be removed on destroy'
+  )
+  assert.equal(
+    foo[symbols.rendererEventListeners],
+    null,
+    'rendererEventListeners should be cleared'
   )
   assert.end()
 })

@@ -1,6 +1,6 @@
 # Lazy Loading with the :range Parameter
 
-The for-loop in Blits comes with a [`:range` parameter](../built-in/for-loop.html#using-the-range-attribute) that allows you to render only a portion of an array rather than all the items.
+The for-loop in Blits comes with a [`:range` parameter](../built-in/for-loop.md#using-the-range-attribute) that allows you to render only a portion of an array rather than all the items.
 
 This `:range` parameter can also be used to easily implement an efficient form of _lazy loading_. Lazy loading is a crucial concept for performance in TV applications where rails can contain hundreds of items, but only a small subset is visible at any time.
 
@@ -38,11 +38,11 @@ export default Blits.Component('RangedRail', {
   },
   input: {
     right() {
-      this.focus = Math.min(this.focus + 1, items.length)
+      this.focused = Math.min(this.focused + 1, this.items.length)
       this.range++
     },
     left() {
-      this.focus = Math.max(this.focus - 1, 0)
+      this.focused = Math.max(this.focused - 1, 0)
       this.range--
     }
   }
@@ -90,14 +90,14 @@ export default Blits.Component('LazyRail', {
   },
   input: {
     right() {
-      this.focus = Math.min(this.focus + 1, items.length)
+      this.focused = Math.min(this.focused + 1, this.items.length)
       // push the range update to the next tick to spread out the work
       // and ease the CPU a bit
-      this.$setTimeout(() => this.range = this.focus)
+      this.$setTimeout(() => this.range = this.focused)
 
     },
     left() {
-      this.focus = Math.max(this.focus - 1, 0)
+      this.focused = Math.max(this.focused - 1, 0)
       // we don't decrement the range when scrolling back to keep components alive
       // this.range--
     }

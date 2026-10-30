@@ -119,7 +119,27 @@ export default function (templateObject = { children: [] }, devMode = false) {
 }
 
 // This is used to get only variable from expression
-const extractVariables = function (value) {
+const extractVariables = function (value, isContentKey = false) {
+  if (isContentKey) {
+    // Strip string literals (single and double quoted) so that $variables
+    // embedded in plain text (e.g. "'this.$notifications.add()'") are not
+    // mistakenly extracted as component variable references.
+    const stripped = value.replace(/'[^']*'|"[^"]*"/g, '')
+
+    // A $variable is a real component reference only if:
+    // 1. The value starts with a bare $variable (e.g. "$notification.add(ms,)")
+    // 2. The stripped text contains string concatenation (e.g. "'Count: ' + $notifications.count")
+    // Plain text with embedded $variables (e.g. "Custom plugin with $reactive state")
+    // should not trigger verification.
+    const isBareDollarVar = /^\s*\$\$?\w+/.test(stripped)
+    const hasConcatExpression = /\+/.test(stripped)
+
+    if (!isBareDollarVar && !hasConcatExpression) {
+      return false
+    }
+    value = stripped
+  }
+
   const regEx = /\$\$?\w+(\.\w+)?/g
   const matches = value.match(regEx)
   if (matches !== null) {
@@ -130,8 +150,8 @@ const extractVariables = function (value) {
   }
 }
 
-const verifyVariables = function (value, renderCode, type = 'dynamic') {
-  const variablesToBeVerified = extractVariables(value)
+const verifyVariables = function (value, renderCode, isContentKey = false, type = 'dynamic') {
+  const variablesToBeVerified = extractVariables(value, isContentKey)
   if (variablesToBeVerified !== false) {
     for (let i = 0; i < variablesToBeVerified.length; i++) {
       let variable = variablesToBeVerified[i]
@@ -189,6 +209,10 @@ const generateElementCode = function (
     renderCode.push(`elementConfigs[${counter}][Symbol.for('isSlot')] = true`)
   }
 
+  if (templateObject[Symbol.for('componentType')] === 'Sprite') {
+    renderCode.push(`elementConfigs[${counter}][Symbol.for('isSprite')] = true`)
+  }
+
   if (options.holder) {
     renderCode.push(`elementConfigs[${counter}]['holder'] = cmps[${counter}].needsInteractive`)
   }
@@ -202,13 +226,15 @@ const generateElementCode = function (
 
     if (key === 'key') return
 
+    // a ref on a component belongs to the component itself, not to its holder element
+    if (options.holder === true && (key === 'ref' || key === ':ref')) return
+
     // Skip inspector-data in production builds for performance optimization
     if (key === 'inspector-data' && !isDev) return
 
     const value = templateObject[key]
 
     if (isReactiveKey(key)) {
-      if (options.holder && key === ':color') return
       if (options.holder) {
         this.effectsCode.push(`
         if(typeof skips === 'undefined' || (typeof skips[${counter}] === 'undefined' ||
@@ -225,7 +251,7 @@ const generateElementCode = function (
       }
       // value.includes('.') === false &&
       if (isDev === true && options.component !== 'scope.' && value.includes('$')) {
-        verifyVariables(value, renderCode, 'reactive')
+        verifyVariables(value, renderCode, key === ':content', 'reactive')
       }
       renderCode.push(
         `elementConfigs[${counter}]['${key.substring(1)}'] = ${interpolate(
@@ -235,7 +261,7 @@ const generateElementCode = function (
       )
     } else {
       if (isDev === true && options.component !== 'scope.' && value.includes('$')) {
-        verifyVariables(value, renderCode)
+        verifyVariables(value, renderCode, key === 'content')
       }
       renderCode.push(
         `elementConfigs[${counter}]['${key}'] = ${cast(value, key, options.component)}`
@@ -504,6 +530,8 @@ const generateForLoopCode = function (templateObject, parent) {
     }
   }
 
+  const invalidateSelectCache = 'ref' in templateObject
+
   ctx.renderCode.push(`
     created[${forStartCounter}] = []
     effects[${forStartCounter}] = []
@@ -512,6 +540,7 @@ const generateForLoopCode = function (templateObject, parent) {
     let to${forStartCounter}
 
     forloops[${forStartCounter}] = (collection = [], elms, created) => {
+      ${invalidateSelectCache ? "rootComponent && rootComponent[Symbol.for('invalidateSelectCache')]()" : ''}
       const rawCollection = getRaw(collection)
       const keys = new Set()
       let l = rawCollection.length
@@ -539,6 +568,7 @@ const generateForLoopCode = function (templateObject, parent) {
           keys.add('' +  ${interpolate(key, '') || 'l'})
         }
       }
+
   `)
 
   // keep track of the index in the render code so we can inject
@@ -550,9 +580,9 @@ const generateForLoopCode = function (templateObject, parent) {
       created.length = 0
       const length = rawCollection.length
 
-      component !== null && component[Symbol.for('removeGlobalEffects')](effects[${forStartCounter}])
+      component !== null && component[Symbol.for('removeEffects')](effects[${forStartCounter}])
 
-     const effectsToRemove = new Set(effects[${forStartCounter}].slice(0))
+      const effectsToRemove = new Set(effects[${forStartCounter}])
       if (effectsToRemove.size > 0) {
         const componentEffects = component?.[Symbol.for('effects')] || []
         let writeIndex = 0
@@ -595,10 +625,15 @@ const generateForLoopCode = function (templateObject, parent) {
   if (
     templateObject[Symbol.for('componentType')] === 'Element' ||
     templateObject[Symbol.for('componentType')] === 'Slot' ||
-    templateObject[Symbol.for('componentType')] === 'Text'
+    templateObject[Symbol.for('componentType')] === 'Text' ||
+    templateObject[Symbol.for('componentType')] === 'Sprite' ||
+    templateObject[Symbol.for('componentType')] === 'Layout'
   ) {
     if (templateObject[Symbol.for('componentType')] === 'Text') {
       templateObject.__textnode = 'true'
+    }
+    if (templateObject[Symbol.for('componentType')] === 'Layout') {
+      templateObject.__layout = 'true'
     }
     generateElementCode.call(ctx, templateObject, parent, {
       key: 'scope.key',
@@ -772,7 +807,8 @@ const generateCode = function (templateObject, parent = false, options = {}) {
           childTemplateObject[Symbol.for('componentType')] === 'Element' ||
           childTemplateObject[Symbol.for('componentType')] === 'Slot' ||
           childTemplateObject[Symbol.for('componentType')] === 'Text' ||
-          childTemplateObject[Symbol.for('componentType')] === 'Layout'
+          childTemplateObject[Symbol.for('componentType')] === 'Layout' ||
+          childTemplateObject[Symbol.for('componentType')] === 'Sprite'
         ) {
           if (childTemplateObject[Symbol.for('componentType')] === 'Text') {
             childTemplateObject.__textnode = 'true'

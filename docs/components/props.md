@@ -45,7 +45,7 @@ Types are inferred based on the default value of a prop. Types can also be added
 
 ```js
 props: {
-  bgColor: 'red' // type string is inferred
+  bgColor: 'red', // type string is inferred
   /**
    * Height of the element
    * @type {number|undefined}

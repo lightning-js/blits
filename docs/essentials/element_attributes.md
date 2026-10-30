@@ -11,8 +11,10 @@ In order to position and set the dimensions of an Element, the following attribu
   - `x` - the x position of the Element in pixels, relative to its parent - allows negative values and decimals
   - `y` - the y position of the Element in pixels, relative to its parent - allows negative values and decimals
   - `z` - the z index of the element (optionally `zIndex` can be used as an alias)
-  - `w` - the width of the element in pixels (optionally `width` can be used as an alias)
-  - `h` - the height of the element in pixels (optionally `height` can be used as an alias)
+  - `w` - the width of the element in pixels
+  - `h` - the height of the element in pixels
+
+> **Note (v1 only):** In Blits v1, `width` and `height` could be used as aliases for `w` and `h`. These aliases were removed in Blits v2. Use `w` and `h` directly.
 
 All positioning and dimension related attributes, when not specified, will default to `0`.
 
@@ -96,6 +98,14 @@ _HSL and HSLA formats are planned to be added in the future._
 <Element w="200" h="200" color="skyblue" />
 ```
 
+For convenience, Blits exports the known HTML color names, including `transparent` so they can be used in the App or in plugins:
+
+```js
+import htmlColors from '@lightningjs/blits/colors'
+
+htmlColors.red // '0xff0000ff'
+```
+
 ### Basic linear gradients
 
 The color attribute can also be used to specify basic linear gradients.
@@ -107,7 +117,7 @@ Again, you can use "normal" notation for the colors (like hexadecimal or rgba) a
 ```xml
 <Element w="200" h="200" color="{top: 'red', bottom: 'blue'}" />
 <Element w="200" h="200" color="{left: 'rgba(255,255,255,.5)', right: '#000'}" />
-<Element w="200" h="200" color="{left: '#aaa333', top: 'aqua', 'bottom: rgb(255,100,20)'}" />
+<Element w="200" h="200" color="{left: '#aaa333', top: 'aqua', bottom: 'rgb(255,100,20)'}" />
 <Element w="200" h="200" color="{bottom: 'black'}" />
 ```
 
@@ -192,7 +202,9 @@ By default contents inside an Element (i.e. child Elements) will overflow the bo
 
 In order to contain / cut off the content inside an Element's `w` and `h`, you can add the `clipping="true"`-attribute. Setting `clipping` to `false` restores the default behaviour of content overflowing.
 
-Alternatively you can also use the `overflow`-attribute (and pass it `true` or `false`), which works similar to clipping just mapped inversly (i.e. `overflow="false"` ensures content that surpasses the parent dimensions is clipped-off).
+Alternatively you can also use the `overflow`-attribute (and pass it `true` or `false`), which works similar to clipping just mapped inversely (i.e. `overflow="false"` ensures content that surpasses the parent dimensions is clipped-off).
+
+When `clipping` is enabled, you can additionally set the `clipradius`-attribute to a number to round the corners of the clip area, instead of clipping to a sharp rectangle. It has no effect when `clipping` is `false`, and is only supported on the WebGL renderer (not Canvas).
 
 ## Shaders
 
@@ -201,7 +213,7 @@ Generally Elements that have a color or texture are simply rendered as a rectang
 In Blits there are two ways to apply these Shaders.
 
 ### Built-in Element Shader attributes
-For better a better development experience Blits had the following shader attributes regularly used in app development:
+For a better development experience Blits had the following shader attributes regularly used in app development:
 
 - `rounded` - Allows you to round corners of an Element. You can do this with a single value, array, or object. ([details](https://lightningjs.io/api/renderer/interfaces/Renderer.RoundedProps.html))
 - `border` - Allows you to add an inner border to an Element. You can do this with an object. ([details](https://lightningjs.io/api/renderer/interfaces/Renderer.BorderProps.html))
@@ -219,6 +231,18 @@ You can also use built-in shader attributes in combination with eachother f.e;
 ```xml
 <Element w="200" h="200" x="20" y="100" rounded="20" border="{w: 20, color:'blue'}"/>
 ```
+
+### Adding a Referance
+
+You can add a reference to an Element or Component by using the `ref` attribute.
+
+```xml
+<Element w="200" h="200" x="20" y="100" ref="myElement" />
+
+<MyComponent ref="MyComponent">
+```
+
+With a `ref` setup you can use it the `$select` method inside the same Component where the Element is referenced in its template. For more information follow view [Utility Methods](../components/utility_methods.md#select) or for similar but more advanced built-in features view [Directives](../built-in/directives.md)
 
 ### Using shader attribute
 > [!WARNING]
