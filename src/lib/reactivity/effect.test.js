@@ -23,7 +23,7 @@ import {
   pauseTracking,
   resumeTracking,
   removeEffects,
-  trackComputed,
+  createComputed,
 } from './effect.js'
 
 test('Trigger - type', (assert) => {
@@ -153,10 +153,11 @@ test('Computed tracking restores filters, discovers dependencies, and cleans up 
     return this.value
   }
   const component = { value: 42 }
+  const read = createComputed(getter, component, 'visibleCards')
   const render = (force) => {
     runs++
     lastForce = force
-    assert.equal(trackComputed(getter, component), 42, 'Getter preserves its receiver and result')
+    assert.equal(read(), 42, 'Getter preserves its receiver and result')
     track(target, 'childOnly')
     track(target, 'range')
   }
@@ -186,22 +187,34 @@ test('Computed tracking restores filters, discovers dependencies, and cleans up 
 test('Nested and throwing computed getters restore the outer tracking filter', (assert) => {
   const target = {}
   let runs = 0
-  const inner = () => {
-    track(target, 'inner')
-    return 42
-  }
-  const outer = () => {
-    const value = trackComputed(inner)
-    track(target, 'outer')
-    return value
-  }
-  const throwing = () => {
-    throw new Error('Computed failed')
-  }
+  const inner = createComputed(
+    () => {
+      track(target, 'inner')
+      return 42
+    },
+    {},
+    'inner'
+  )
+  const outer = createComputed(
+    () => {
+      const value = inner()
+      track(target, 'outer')
+      return value
+    },
+    {},
+    'computed'
+  )
+  const throwing = createComputed(
+    () => {
+      throw new Error('Computed failed')
+    },
+    {},
+    'throwing'
+  )
   const render = () => {
     runs++
-    assert.equal(trackComputed(outer), 42, 'Nested getter returns its result')
-    assert.throws(() => trackComputed(throwing), /Computed failed/, 'Getter errors propagate')
+    assert.equal(outer(), 42, 'Nested getter returns its result')
+    assert.throws(() => throwing(), /Computed failed/, 'Getter errors propagate')
     track(target, 'unrelated')
   }
   effect(render, ['computed'])
@@ -220,21 +233,25 @@ test('Nested and throwing computed getters restore the outer tracking filter', (
 test('Computed tracking respects paused tracking and reads outside effects', (assert) => {
   const target = {}
   let runs = 0
-  const getter = () => {
-    track(target, 'cards')
-    return []
-  }
+  const getter = createComputed(
+    () => {
+      track(target, 'cards')
+      return []
+    },
+    {},
+    'computed'
+  )
   const render = () => {
     runs++
     pauseTracking()
     try {
-      trackComputed(getter)
+      getter()
     } finally {
       resumeTracking()
     }
   }
   effect(render, ['computed'])
-  trackComputed(getter)
+  getter()
   trigger(target, 'cards')
   assert.equal(runs, 1, 'Paused and non-effect reads do not subscribe')
   removeEffects([render])

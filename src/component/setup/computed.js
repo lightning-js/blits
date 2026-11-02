@@ -18,7 +18,7 @@
 import { Log } from '../../lib/log.js'
 
 import symbols from '../../lib/symbols.js'
-import { trackComputed } from '../../lib/reactivity/effect.js'
+import { createComputed } from '../../lib/reactivity/effect.js'
 
 export default (component, computeds) => {
   component[symbols.computedKeys] = []
@@ -41,7 +41,10 @@ export default (component, computeds) => {
       component[symbols.computedKeys].push(computed)
       Object.defineProperty(component, computed, {
         get() {
-          return trackComputed(computeds[computed], this)
+          // Setup runs on the shared prototype; install the cache on first instance access.
+          const get = createComputed(computeds[computed], this, computed)
+          Object.defineProperty(this, computed, { get })
+          return get()
         },
       })
     }
