@@ -27,7 +27,7 @@ import { trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
 import { removeEffects } from '../../lib/reactivity/effect.js'
 import { renderer } from '../../launch.js'
-import { keyMap } from '../../application.js'
+import { keyMap } from '../../keymap.js'
 import { platform } from '../../platform.js'
 
 const selectCache = new WeakMap()
