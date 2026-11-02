@@ -154,11 +154,11 @@ test(':for preserves range tracking, filtering, and cleanup with chained compute
     assert.equal(runs, 2, 'Loop body reads do not subscribe the loop')
     component.to = 2
     assert.deepEqual(renderedKeys(), ['one', 'two'], 'Range changes update the loop')
-    assert.equal(runs, 3, 'Range update evaluates once')
+    assert.equal(runs, 2, 'Range update reuses the cached computed collection')
   } finally {
     fixture.destroy()
   }
   component.cards = [{ id: 'three' }]
-  assert.equal(runs, 3, 'Destroy unsubscribes computed dependencies')
+  assert.equal(runs, 2, 'Destroy unsubscribes computed dependencies')
   assert.end()
 })
