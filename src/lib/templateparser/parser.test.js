@@ -1282,6 +1282,7 @@ test('Parse template with an invalid attribute name by providing component file 
 })
 
 test('Parse template with color and effects attributes and parsing should convert color values', (assert) => {
+  const warnings = assert.capture(console, 'warn')
   const template = `
       <Element :color="$backgroundColor">
         <Element color="{top: '#44037a', bottom: '#240244'}" />
@@ -1421,6 +1422,12 @@ test('Parse template with color and effects attributes and parsing should conver
     actual,
     expected,
     'Parser should return object representation of template with color values converted'
+  )
+  const logs = warnings()
+  assert.equal(logs.length, 2, 'Should warn for both unsupported HSL color formats')
+  assert.ok(
+    logs.every((call) => call.args[0] === 'HSL(A) color format is not supported yet'),
+    'Should explain why HSL colors fall back to white'
   )
   assert.end()
 })

@@ -24,6 +24,9 @@ import symbols from './lib/symbols.js'
 import { DEFAULT_HOLD_TIMEOUT_MS, DEFAULT_KEYMAP } from './constants.js'
 import { renderer } from './launch.js'
 import { platform } from './platform.js'
+import { keyMap, setKeyMap } from './keymap.js'
+
+export { keyMap } from './keymap.js'
 
 // Reacts to Blits-only settings changed at runtime via `this.$settings.set()`.
 Settings.onRuntimeSettingChange = (key, value) => {
@@ -74,13 +77,6 @@ Settings.onRuntimeSettingChange = (key, value) => {
   }
 }
 
-/**
- * Merged keyMap (default + custom settings).
- * Initialized once during application init.
- * @type {Object<string, string>}
- */
-export let keyMap = {}
-
 /** @type {any} Active App component instance, set during App init */
 let liveAppInstance = null
 /** @type {any} Platform input target, set during App init */
@@ -100,7 +96,7 @@ let mouseMoveThrottleMs = 100
 let enableMouseFlag = false
 
 export const initKeyMap = () => {
-  keyMap = { ...DEFAULT_KEYMAP, ...Settings.get('keymap', {}) }
+  setKeyMap({ ...DEFAULT_KEYMAP, ...Settings.get('keymap', {}) })
 }
 
 const Application = (config) => {

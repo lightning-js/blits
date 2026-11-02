@@ -17,7 +17,9 @@
  */
 
 import test from 'tape'
-import Application from './application.js'
+import Application, { keyMap } from './application.js'
+import Settings from './settings.js'
+import methods from './component/base/methods.js'
 import { initLog } from './lib/log.js'
 import Focus, { keyUpCallbacks } from './focus/focus.js'
 import symbols from './lib/symbols.js'
@@ -60,6 +62,44 @@ test('Key-up clears hold even when the release callback throws', (assert) => {
     keyUpCallbacks.delete(13)
     config.hooks[symbols.destroy].call(app)
     document.addEventListener = originalAddEventListener
+  }
+  assert.end()
+})
+
+test('Runtime keymap changes reach component input and the application export', (assert) => {
+  const originalKeymap = Settings.get('keymap', {})
+  const calls = []
+  const component = {
+    [symbols.inputEvents]: {
+      first() {
+        calls.push('first')
+      },
+      second() {
+        calls.push('second')
+      },
+    },
+  }
+  const event = new KeyboardEvent('keydown', { keyCode: 999 })
+
+  try {
+    Settings.set('keymap', { 999: 'first' })
+    assert.equal(keyMap[999], 'first', 'Application export should expose the initial mapping')
+    assert.equal(
+      methods.$input.value.call(component, event),
+      true,
+      'First mapping should handle input'
+    )
+
+    Settings.set('keymap', { 999: 'second' })
+    assert.equal(keyMap[999], 'second', 'Application export should expose the updated mapping')
+    assert.equal(
+      methods.$input.value.call(component, event),
+      true,
+      'Updated mapping should handle input'
+    )
+    assert.deepEqual(calls, ['first', 'second'], 'Component input should use the live keymap')
+  } finally {
+    Settings.set('keymap', originalKeymap)
   }
   assert.end()
 })

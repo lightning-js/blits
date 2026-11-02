@@ -17,6 +17,9 @@
 
 import test from 'tape'
 import themePlugin from './theme.js'
+import { initLog } from '../lib/log.js'
+
+initLog()
 
 test('Empty Theme creation', (assert) => {
   const theme = themePlugin.plugin()
