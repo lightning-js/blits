@@ -346,10 +346,14 @@ const generateComponentCode = function (
 ) {
   const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
 
-  if ('is' in templateObject) {
+  if ('is' in templateObject || ':is' in templateObject) {
+    const selectedComponent =
+      ':is' in templateObject
+        ? interpolate(templateObject[':is'], options.component)
+        : cast(templateObject.is, 'is', options.component)
     // Resolve the selected factory before populating its holder and filtering props.
     renderCode.push(`
-      componentType = ${cast(templateObject.is, 'is', options.component)} || '${templateObject[Symbol.for('componentType')]}'
+      componentType = ${selectedComponent} || '${templateObject[Symbol.for('componentType')]}'
       cmps[${counter}] = typeof componentType === 'function'
         ? componentType
         : (context.components && context.components[componentType]) || components[componentType]

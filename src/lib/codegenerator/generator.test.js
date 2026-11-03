@@ -17,6 +17,7 @@
 
 import test from 'tape'
 import generator from './generator.js'
+import parser from '../templateparser/parser.js'
 
 const normalize = (str) => {
   return (
@@ -5492,5 +5493,42 @@ test('Runtime factories prepare before holder creation', (assert) => {
     {}
   )
   assert.equal(initialInteractive, true, 'holder receives final interactivity during population')
+  assert.end()
+})
+
+test('Parsed reactive component selectors prepare the selected factory before holder creation', (assert) => {
+  for (const needsInteractive of [true, false]) {
+    for (const registration of ['local', 'global', 'factory']) {
+      let prepared = false
+      let instantiated = false
+      let holderConfig
+      const factory = () => {
+        instantiated = true
+        return { [Symbol.for('slots')]: [], [Symbol.for('children')]: [] }
+      }
+      factory[Symbol.for('config')] = {}
+      factory[Symbol.for('isComponent')] = true
+      factory.prepare = () => {
+        prepared = true
+        factory.needsInteractive = needsInteractive
+        factory.prepare = undefined
+      }
+      const code = generator.call(scope, parser('<Component :is="$chosen" />'))
+      code.render.call(
+        {
+          element() {
+            assert.equal(prepared, true, `${registration} factory prepares before holder creation`)
+            return { populate: (config) => (holderConfig = config) }
+          },
+        },
+        null,
+        { chosen: registration === 'factory' ? factory : 'Selected' },
+        { components: registration === 'local' ? { Selected: factory } : {} },
+        registration === 'global' ? { Selected: factory } : {}
+      )
+      assert.equal(holderConfig.interactive, needsInteractive, 'holder uses prepared metadata')
+      assert.equal(instantiated, true, 'selected factory is instantiated')
+    }
+  }
   assert.end()
 })
