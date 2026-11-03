@@ -1256,6 +1256,43 @@ class CustomNode extends EventEmitter {
   }
 }
 
+for (const direction of ['horizontal', 'vertical']) {
+  test(`Element - ${direction} layout ignores renderer z-index order`, (assert) => {
+    assert.capture(renderer, 'createNode', () => new CustomNode())
+    const layout = createLayoutElement(direction, 10, () => {})
+    const first = element({ parent: layout }, {})
+    const hidden = element({ parent: layout }, {})
+    const last = element({ parent: layout }, {})
+    registerLayoutChildren(layout, first, hidden, last)
+    first.set('w', 100)
+    first.set('h', 100)
+    hidden.set('w', 300)
+    hidden.set('h', 300)
+    hidden.set('show', false)
+    last.set('w', 50)
+    last.set('h', 50)
+    layout.set('align-items', 'center')
+    const position = direction === 'horizontal' ? 'x' : 'y'
+    const dimension = direction === 'horizontal' ? 'w' : 'h'
+    const crossPosition = direction === 'horizontal' ? 'y' : 'x'
+
+    for (const focused of [first, last, first]) {
+      for (const child of [first, hidden, last]) {
+        child.set('z', child === focused ? 1 : 0)
+      }
+      // Simulate the renderer's in-place draw-order sort after focus changes.
+      layout.node.children.sort((a, b) => a.zIndex - b.zIndex)
+      layout.triggerLayout(layout.props)
+      assert.equal(first.node[position], 0, 'First visible item keeps its position')
+      assert.equal(last.node[position], 110, 'Gap and hidden-item exclusion stay correct')
+      assert.equal(layout.node[dimension], 160, 'Container size stays correct')
+      assert.equal(last.node[crossPosition], 50, 'Cross-axis alignment stays correct')
+      assert.equal(layout.node.children.at(-1), focused.node, 'Draw order is preserved')
+    }
+    assert.end()
+  })
+}
+
 function createElement(props = {}) {
   const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
   const data = {
@@ -1275,36 +1312,145 @@ function createElement(props = {}) {
 }
 
 function createLayoutElement(direction, gap, layoutUpdateSpy) {
-  let layoutElNode
-
-  // creating component object to fake children
   const comp = {
-    [symbols.getChildren]: () => {
-      return [
-        {
-          props: { raw: { show: true } },
-          parent: layoutElNode,
-        },
-        {
-          props: { raw: { show: true } },
-          parent: layoutElNode,
-        },
-      ]
+    [symbols.getChildren]() {
+      throw new Error('Layout must not scan component children')
     },
   }
-
-  // element to break chain of parent element layoutFn trigger
   const grandParent = element({ parent: new EventEmitter(), props: {} }, {})
-
-  // Layout Element
   const layoutEl = element({ parent: grandParent }, comp)
-
-  // Populating layout element with configuration
   layoutEl.populate({ __layout: true, direction: direction, gap: gap, '@updated': layoutUpdateSpy })
-  layoutElNode = layoutEl.node
-
   return layoutEl
 }
+
+/** Populate children and link the mock renderer nodes. */
+function registerLayoutChildren(layoutEl, ...kids) {
+  for (let i = 0; i < kids.length; i++) {
+    const k = kids[i]
+    k.populate({ parent: layoutEl })
+    layoutEl.node.children.push(k.node)
+    k.node.parent = layoutEl.node
+  }
+}
+
+test('Element - Layout tracks insertion, reparenting and removal without component scans', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const firstLayout = createLayoutElement('horizontal', 10, () => {})
+  const secondLayout = createLayoutElement('horizontal', 10, () => {})
+  const first = element({ parent: firstLayout }, {})
+  const second = element({ parent: firstLayout }, {})
+  registerLayoutChildren(firstLayout, first, second)
+  first.set('w', 100)
+  second.set('w', 50)
+
+  // Neither component-child buckets nor their integer-key enumeration determine layout order.
+  firstLayout.component[symbols.children] = [{ 20: first, 10: second }]
+  firstLayout.triggerLayout(firstLayout.props)
+  assert.equal(second.node.x, 110, 'Insertion order survives integer-keyed child buckets')
+
+  second.set('parent', secondLayout)
+  assert.equal(firstLayout.node.w, 100, 'Moving a child updates the old layout')
+  assert.equal(second.node.x, 0, 'Moving a child registers it with the new layout')
+  second.set('w', 70)
+  assert.equal(secondLayout.node.w, 70, 'Resizing updates the new layout')
+  assert.equal(firstLayout.node.w, 100, 'Resizing does not update the previous layout')
+
+  second.set('parent', secondLayout)
+  secondLayout.triggerLayout(secondLayout.props)
+  assert.equal(secondLayout.node.w, 70, 'Setting the same parent does not duplicate membership')
+
+  const third = element({ parent: firstLayout }, {})
+  registerLayoutChildren(firstLayout, third)
+  third.set('w', 25)
+  first.destroy()
+  assert.equal(third.node.x, 0, 'Removing a child closes the gap')
+  assert.equal(firstLayout.node.w, 25, 'Removing a child updates container dimensions')
+
+  third.set('parent', { node: new CustomNode() })
+  assert.equal(firstLayout.layoutChildren.length, 0, 'Moving out of Layout removes membership')
+  secondLayout.destroy()
+  assert.doesNotThrow(() => second.destroy(), 'Child teardown tolerates a destroyed layout')
+  assert.end()
+})
+
+test('Element - Moving into Layout tracks asynchronous loads without accumulating listeners', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const layout = createLayoutElement('horizontal', 10, () => {})
+  const outside = { node: new CustomNode(), props: {} }
+  const child = element({ parent: outside }, {})
+  child.populate({ w: 50 })
+  const initialListeners = child.node.listenerCount('loaded')
+
+  for (let i = 0; i < 3; i++) {
+    child.set('parent', layout)
+    assert.equal(
+      child.node.listenerCount('loaded'),
+      initialListeners + 1,
+      'Layout adds one load listener'
+    )
+    child.node.w = 100 + i
+    child.node.emit('loaded')
+    assert.equal(layout.node.w, 100 + i, 'Asynchronous loads update the current layout')
+    child.set('parent', outside)
+    assert.equal(
+      child.node.listenerCount('loaded'),
+      initialListeners,
+      'Leaving Layout removes the listener'
+    )
+  }
+  child.destroy()
+  assert.end()
+})
+
+test('Element - Layout follows textCalculated events when text is reparented', (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  assert.capture(renderer, 'createTextNode', () => new CustomNode())
+  const layout = createLayoutElement('horizontal', 10, () => {})
+  const outside = { node: new CustomNode(), props: {} }
+  const child = element({ parent: layout }, {})
+  child.populate({ __textnode: true })
+
+  assert.equal(
+    child.node.listenerCount('textCalculated'),
+    1,
+    'Text listens for calculated dimensions'
+  )
+  child.node.w = 100
+  child.node.h = 50
+  child.node.emit('textCalculated')
+  assert.equal(layout.node.w, 100, 'Calculated text dimensions update Layout')
+  child.set('parent', outside)
+  assert.equal(
+    child.node.listenerCount('textCalculated'),
+    0,
+    'Leaving Layout removes the text listener'
+  )
+  child.set('parent', layout)
+  assert.equal(
+    child.node.listenerCount('textCalculated'),
+    1,
+    'Rejoining Layout restores one text listener'
+  )
+  const node = child.node
+  child.destroy()
+  assert.equal(node.listenerCount('textCalculated'), 0, 'Destroy removes the text listener')
+  assert.end()
+})
+
+test('Element - Nested Layout propagates dimensions without component scans', (assert) => {
+  assert.capture(renderer, 'createNode', (props) => Object.assign(new CustomNode(), props))
+  const outer = createLayoutElement('vertical', 10, () => {})
+  const inner = element({ parent: outer }, {})
+  inner.populate({ __layout: true, direction: 'horizontal', gap: 5 })
+  const child = element({ parent: inner }, {})
+  child.populate({ w: 100, h: 50 })
+  assert.equal(inner.node.w, 100, 'Inner layout sizes to its child')
+  assert.equal(outer.node.w, 100, 'Width propagates to the outer layout')
+  assert.equal(outer.node.h, 50, 'Height propagates to the outer layout')
+  child.set('w', 150)
+  assert.equal(outer.node.w, 150, 'Resizing propagates through nested layouts')
+  assert.end()
+})
 
 // Test for lines 522-524: isSlot symbol handling
 test('Element - Set isSlot symbol', (assert) => {
