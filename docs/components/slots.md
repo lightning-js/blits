@@ -51,6 +51,6 @@ The parent can now supply both the main content and the footer:
 </Card>
 ```
 
-Content without a `slot` attribute is inserted inside the first `<Slot />` declared in the Component's template. In the example above, this is the unnamed `<Slot x="20" y="20" />`. Keep this default slot before any named slots.
+Content without a `slot` attribute is inserted inside the first `<Slot />` declared in the Component's template, whether or not it has a name. In the example above, this is the unnamed `<Slot x="20" y="20" />`. Keep this default slot before any named slots.
 
 If the Component has no slots defined, the content is inserted inside the top level wrapper Element of its template.
