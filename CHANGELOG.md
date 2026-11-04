@@ -9,7 +9,7 @@ _4 nov 2026_
 - Fixed using a computed prop as a reactive source of a for-loop
 - Improved setup of automated tests
 - Added caching mechanism to computed props
-- Bumped L3 renderer to v3.10.0
+- Bumped L3 renderer to v3.11.0
 
 
 # 2.15.0
