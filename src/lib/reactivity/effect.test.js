@@ -16,7 +16,15 @@
  */
 
 import test from 'tape'
-import { trigger, track, effect, pauseTracking, resumeTracking } from './effect.js'
+import {
+  trigger,
+  track,
+  effect,
+  pauseTracking,
+  resumeTracking,
+  removeEffects,
+  createComputed,
+} from './effect.js'
 
 test('Trigger - type', (assert) => {
   const expected = 'function'
@@ -131,5 +139,121 @@ test('Effect - Restores the enclosing effect when a nested effect throws', (asse
   trigger(outerTarget, 'outer')
 
   assert.equal(outerEffectRuns, 2, 'Enclosing effect should keep tracking after the nested error')
+  assert.end()
+})
+
+test('Computed tracking restores filters, discovers dependencies, and cleans up its runner', (assert) => {
+  const target = {}
+  let ready = false
+  let runs = 0
+  let lastForce
+  const getter = function () {
+    track(target, 'ready')
+    if (ready) track(target, 'cards')
+    return this.value
+  }
+  const component = { value: 42 }
+  const read = createComputed(getter, component, 'visibleCards')
+  const render = (force) => {
+    runs++
+    lastForce = force
+    assert.equal(read(), 42, 'Getter preserves its receiver and result')
+    track(target, 'childOnly')
+    track(target, 'range')
+  }
+  effect(render, ['visibleCards', 'range'])
+  trigger(target, 'childOnly')
+  assert.equal(runs, 1, 'Reads after the getter remain filtered')
+
+  ready = true
+  trigger(target, 'ready', true)
+  assert.equal(runs, 2, 'Computed dependencies trigger the effect')
+  assert.equal(lastForce, true, 'Computed runner forwards the force flag')
+  trigger(target, 'cards')
+  assert.equal(runs, 3, 'Dependencies first read on an update are tracked')
+  trigger(target, 'childOnly')
+  assert.equal(runs, 3, 'Update tracking also excludes child-only reads')
+  trigger(target, 'range')
+  assert.equal(runs, 4, 'The original filtered dependencies remain active')
+
+  removeEffects([render])
+  trigger(target, 'ready')
+  trigger(target, 'cards')
+  trigger(target, 'range')
+  assert.equal(runs, 4, 'Cleanup removes both computed and direct subscriptions')
+  assert.end()
+})
+
+test('Nested and throwing computed getters restore the outer tracking filter', (assert) => {
+  const target = {}
+  let runs = 0
+  const inner = createComputed(
+    () => {
+      track(target, 'inner')
+      return 42
+    },
+    {},
+    'inner'
+  )
+  const outer = createComputed(
+    () => {
+      const value = inner()
+      track(target, 'outer')
+      return value
+    },
+    {},
+    'computed'
+  )
+  const throwing = createComputed(
+    () => {
+      throw new Error('Computed failed')
+    },
+    {},
+    'throwing'
+  )
+  const render = () => {
+    runs++
+    assert.equal(outer(), 42, 'Nested getter returns its result')
+    assert.throws(() => throwing(), /Computed failed/, 'Getter errors propagate')
+    track(target, 'unrelated')
+  }
+  effect(render, ['computed'])
+  trigger(target, 'inner')
+  trigger(target, 'outer')
+  assert.equal(runs, 3, 'Both nested and outer dependencies trigger one execution each')
+  trigger(target, 'unrelated')
+  assert.equal(runs, 3, 'The original filter is restored even after an error')
+  removeEffects([render])
+  trigger(target, 'inner')
+  trigger(target, 'outer')
+  assert.equal(runs, 3, 'Nested computed subscriptions are cleaned up')
+  assert.end()
+})
+
+test('Computed tracking respects paused tracking and reads outside effects', (assert) => {
+  const target = {}
+  let runs = 0
+  const getter = createComputed(
+    () => {
+      track(target, 'cards')
+      return []
+    },
+    {},
+    'computed'
+  )
+  const render = () => {
+    runs++
+    pauseTracking()
+    try {
+      getter()
+    } finally {
+      resumeTracking()
+    }
+  }
+  effect(render, ['computed'])
+  getter()
+  trigger(target, 'cards')
+  assert.equal(runs, 1, 'Paused and non-effect reads do not subscribe')
+  removeEffects([render])
   assert.end()
 })

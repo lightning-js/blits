@@ -15,8 +15,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import symbols from '../symbols.js'
+
 let currentEffect = null
 let currentKey = null
+// Write position for dependency-array reuse, restored after nested computed getters.
+let computedDependencyIndex = 0
 
 // counter that tracks all pauseTracking invocations
 // to ensure nested array operations don't prematurely
@@ -33,20 +37,98 @@ export const resumeTracking = () => {
 
 const objectMap = new WeakMap()
 const effectDependenciesMap = new WeakMap()
+const computedEffects = new WeakMap()
+const effectQueue = new Set()
+let pendingEffects = null
+
+const computedRunner = (effectFn, key) => {
+  if (effectFn.computed === true) return effectFn
+  let runner = computedEffects.get(effectFn)
+  if (runner === undefined) {
+    runner = (force) => effect(effectFn, key, force)
+    computedEffects.set(effectFn, runner)
+  }
+  return runner
+}
+
+export const createComputed = (getter, component, key) => {
+  let value
+  let status = 'dirty'
+
+  const invalidate = (force) => {
+    if (status === 'dirty' || status === 'disposed') return
+    status = 'dirty'
+    trigger(component, key, force)
+  }
+  invalidate.computed = true
+  invalidate.dispose = () => {
+    value = undefined
+    status = 'disposed'
+  }
+  if (component[symbols.effects] !== undefined) component[symbols.effects].push(invalidate)
+
+  return () => {
+    if (status === 'disposed') return undefined
+
+    if (currentEffect !== null) track(component, key, true)
+    if (status === 'clean') return value
+
+    const previousEffect = currentEffect
+    const previousKey = currentKey
+    const previousPauseCounter = pauseCounter
+    const previousDependencyIndex = computedDependencyIndex
+    computedDependencyIndex = 0
+    try {
+      // Refresh dependencies in isolation, including reads made outside effects.
+      clearDependencies(invalidate)
+      currentEffect = invalidate
+      currentKey = null
+      pauseCounter = 0
+      value = getter.call(component)
+      status = 'clean'
+      return value
+    } catch (error) {
+      status = 'failed'
+      throw error
+    } finally {
+      const dependencies = effectDependenciesMap.get(invalidate)
+      if (dependencies !== undefined) dependencies.length = computedDependencyIndex
+      computedDependencyIndex = previousDependencyIndex
+      currentEffect = previousEffect
+      currentKey = previousKey
+      pauseCounter = previousPauseCounter
+    }
+  }
+}
+
+const clearDependencies = (effect, releaseStorage) => {
+  const dependencies = effectDependenciesMap.get(effect)
+  if (dependencies === undefined) return
+  for (let i = 0; i < dependencies.length; i++) {
+    const effects = dependencies[i]
+    effects.delete(effect)
+    if (effect.computed === true) effects.computedCount--
+  }
+  if (releaseStorage === true) dependencies.length = 0
+}
 
 export const removeEffects = (effectsToRemove) => {
   for (let i = 0; i < effectsToRemove.length; i++) {
     const effect = effectsToRemove[i]
-    const dependencies = effectDependenciesMap.get(effect)
-    if (dependencies === undefined) continue
-    for (let j = 0; j < dependencies.length; j++) {
-      dependencies[j].delete(effect)
+    const computedEffect = computedEffects.get(effect)
+    if (computedEffect !== undefined) {
+      // Computed dependencies subscribe the runner itself, so unsubscribe it separately.
+      clearDependencies(computedEffect, true)
+      effectDependenciesMap.delete(computedEffect)
+      computedEffects.delete(effect)
     }
+    clearDependencies(effect, true)
     effectDependenciesMap.delete(effect)
+    if (effect.computed === true) effect.dispose()
   }
 }
 
-export const track = (target, key) => {
+export const track = (target, key, computed) => {
   if (currentEffect !== null) {
     if (pauseCounter > 0) {
       return
@@ -56,6 +138,7 @@ export const track = (target, key) => {
       if (currentKey.includes(key) === false) return
     } else if (currentKey !== null && key !== currentKey) return
 
+    const subscriber = computed === true ? computedRunner(currentEffect, currentKey) : currentEffect
     let effectsMap = objectMap.get(target)
     if (effectsMap === undefined) {
       effectsMap = new Map()
@@ -66,14 +149,19 @@ export const track = (target, key) => {
       effects = new Set()
       effectsMap.set(key, effects)
     }
-    if (effects.has(currentEffect) === false) {
-      let dependencies = effectDependenciesMap.get(currentEffect)
+    if (effects.has(subscriber) === false) {
+      let dependencies = effectDependenciesMap.get(subscriber)
       if (dependencies === undefined) {
         dependencies = []
-        effectDependenciesMap.set(currentEffect, dependencies)
+        effectDependenciesMap.set(subscriber, dependencies)
       }
-      dependencies.push(effects)
-      effects.add(currentEffect)
+      effects.add(subscriber)
+      if (subscriber.computed === true) {
+        dependencies[computedDependencyIndex++] = effects
+        effects.computedCount = effects.computedCount === undefined ? 1 : effects.computedCount + 1
+      } else {
+        dependencies.push(effects)
+      }
     }
   }
 }
@@ -85,14 +173,52 @@ export const trigger = (target, key, force = false) => {
     return
   }
   const effects = effectsMap.get(key)
+  // Ordinary state updates keep their direct path.
+  if (
+    effects !== undefined &&
+    pendingEffects === null &&
+    (effects.computedCount === undefined || effects.computedCount === 0)
+  ) {
+    for (const effect of effects) {
+      if (effect.computed !== true) effect(force)
+    }
+    return
+  }
   if (effects !== undefined) {
-    for (let effect of effects) {
-      effect(force)
+    const parentQueue = pendingEffects
+    // Reuse the root queue; only nested updates with pending consumers need another set.
+    let queue = parentQueue
+    if (queue === null) {
+      queue = effectQueue.size === 0 ? effectQueue : new Set()
+      // All consumers share the source mutation's force flag.
+      queue.force = force
+    }
+    pendingEffects = queue
+    try {
+      for (const effect of effects) {
+        if (effect.computed === true) {
+          effect(force)
+        } else {
+          const runner = computedEffects.get(effect)
+          queue.add(runner === undefined ? effect : runner)
+        }
+      }
+      // Invalidate the whole computed chain before any consumer can read its cache.
+      if (parentQueue === null) {
+        pendingEffects = null
+        for (const effect of queue) {
+          queue.delete(effect)
+          if (effectDependenciesMap.has(effect) === true) effect(queue.force)
+        }
+      }
+    } finally {
+      pendingEffects = parentQueue
+      if (parentQueue === null) queue.clear()
     }
   }
 }
 
-export const effect = (effectFn, key = null) => {
+export const effect = (effectFn, key = null, force) => {
   const previousEffect = currentEffect
   const previousKey = currentKey
 
@@ -100,7 +226,7 @@ export const effect = (effectFn, key = null) => {
   currentKey = key
 
   try {
-    effectFn()
+    effectFn(force)
   } finally {
     currentEffect = previousEffect
     currentKey = previousKey

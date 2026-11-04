@@ -496,14 +496,22 @@ const Component = (name = required('name'), config = required('config')) => {
       base = setupComponent(Object.create(Base), config)
     }
 
-    // one time code generation (only if precompilation is turned off)
-    if (config.code === undefined) {
-      Log.debug(`Generating code for ${name} component`)
-      config.code = codegenerator.call(config, parser(config.template, name), devMode)
-    }
+    // Direct factory calls also prepare runtime code before rendering.
+    if (factory.prepare !== undefined) factory.prepare()
 
     // create an instance of the component, using base as the prototype (which contains Base)
     return component.call(Object.create(base), options, parentEl, parentComponent, rootComponent)
+  }
+
+  // Precompiled factories have no preparation step. Runtime factories compile once,
+  // explicitly before holder creation, then take the same path as precompiled ones.
+  if (config.code === undefined) {
+    factory.prepare = () => {
+      Log.debug(`Generating code for ${name} component`)
+      config.code = codegenerator.call(config, parser(config.template, name), devMode)
+      factory.needsInteractive = factory.needsInteractive || !!config.code.usesHoverState
+      factory.prepare = undefined
+    }
   }
 
   // store the config on the factory, in order to access the config
@@ -515,6 +523,13 @@ const Component = (name = required('name'), config = required('config')) => {
 
   // To determine whether dynamic component is actual Blits component or not
   factory[symbols.isComponent] = true
+
+  // Pointer hit testing supports both hover and click-to-focus/input.
+  factory.needsInteractive =
+    (config.hooks && !!(config.hooks.hover || config.hooks.unhover)) ||
+    (config.input &&
+      (typeof config.input.enter === 'function' || typeof config.input.any === 'function')) ||
+    !!(config.code && config.code.usesHoverState)
 
   return factory
 }

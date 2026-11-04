@@ -18,7 +18,6 @@
 import Settings from './settings.js'
 import { initLog, Log } from './lib/log.js'
 import engine from './engine.js'
-import blitsPackageInfo from '../package.json' with { type: 'json' }
 import { configurePlatform } from './platform.js'
 import profiler from './lib/profiler.js'
 
@@ -51,20 +50,6 @@ const isDev = typeof __DEV__ !== 'undefined' && __DEV__
  */
 export let renderer = {}
 export const stage = {}
-
-async function rendererVersion() {
-  let rendererPackageInfo
-  try {
-    // Dynamically import the renderer package.json
-    rendererPackageInfo = await import('../../renderer/package.json')
-    if (rendererPackageInfo !== undefined) {
-      return rendererPackageInfo.version
-    }
-  } catch (e) {
-    // Fallback to renderer version in dependencies
-    return blitsPackageInfo.dependencies['@lightningjs/renderer']
-  }
-}
 
 /**
  * @typedef {Object} BlitsSettings
@@ -148,10 +133,14 @@ export default (App, target, settings) => {
     )
   }
 
-  rendererVersion().then((v) => {
-    Log.info('Blits Version ', blitsPackageInfo.version)
-    Log.info('Renderer Version ', v)
-  })
+  Log.info(
+    'Blits version:',
+    typeof __BLITS_VERSION__ === 'undefined' ? 'unknown' : __BLITS_VERSION__
+  )
+  Log.info(
+    'Renderer version:',
+    typeof __RENDERER_VERSION__ === 'undefined' ? 'unknown' : __RENDERER_VERSION__
+  )
 
   stage.element = engine.Element
 
