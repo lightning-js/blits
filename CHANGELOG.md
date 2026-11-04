@@ -9,6 +9,7 @@ _4 nov 2026_
 - Fixed using a computed prop as a reactive source of a for-loop
 - Improved setup of automated tests
 - Added caching mechanism to computed props
+- Added selective setup of mouse interactivity, only when component uses hover functionality
 - Bumped L3 renderer to v3.11.0
 
 
