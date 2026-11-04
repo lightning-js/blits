@@ -65,6 +65,10 @@
         "link": "/components/props"
       },
       {
+        "text": "Slots",
+        "link": "/components/slots"
+      },
+      {
         "text": "Computed properties",
         "link": "/components/computed_properties"
       },
