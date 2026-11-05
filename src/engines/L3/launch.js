@@ -16,8 +16,6 @@
  */
 
 import { RendererMain } from '@lightningjs/renderer'
-import { WebGlCoreRenderer, SdfTextRenderer } from '@lightningjs/renderer/webgl'
-import { CanvasCoreRenderer, CanvasTextRenderer } from '@lightningjs/renderer/canvas'
 import { Inspector } from '@lightningjs/renderer/inspector'
 
 import { SCREEN_RESOLUTIONS, RENDER_QUALITIES } from '../../constants.js'
@@ -26,33 +24,33 @@ import fontLoader from './fontLoader.js'
 import shaderLoader from './shaderLoader.js'
 import { getRequiredFontEngines } from './fontTypes.js'
 import { platform } from '../../platform.js'
+import { coreRenderers, textRenderers, resolveRenderMode } from './backends.js'
 
 /** @type {RendererMain|{}} */
 export let renderer = {}
 
 const renderEngine = (settings) => {
-  const renderMode = 'renderMode' in settings ? settings.renderMode : 'webgl'
+  const renderMode = resolveRenderMode('renderMode' in settings ? settings.renderMode : 'webgl')
 
-  if (renderMode === 'webgl') return WebGlCoreRenderer
-  if (renderMode === 'canvas') return CanvasCoreRenderer
+  return coreRenderers[renderMode]
 }
 
 export const textRenderEngines = (settings) => {
-  const renderMode = 'renderMode' in settings ? settings.renderMode : 'webgl'
+  const renderMode = resolveRenderMode('renderMode' in settings ? settings.renderMode : 'webgl')
 
   // SDF text rendering is not compatible with the Canvas core renderer
-  if (renderMode === 'canvas') return [CanvasTextRenderer]
+  if (renderMode === 'canvas') return [textRenderers.Canvas]
 
-  if (renderMode === 'webgl') {
-    // Only register the font engines actually required by the configured
-    // fonts, so unused text renderers are never initialized.
-    const { hasSdfFont, hasCanvasFont } = getRequiredFontEngines(settings.fonts)
-    if (hasSdfFont === true && hasCanvasFont === true) return [SdfTextRenderer, CanvasTextRenderer]
-    if (hasSdfFont === true) return [SdfTextRenderer]
-    // Canvas-only fonts, or no fonts declared at all (system/default fonts
-    // render via the Canvas engine, which can render any font family).
-    return [CanvasTextRenderer]
+  // Only register the font engines actually required by the configured
+  // fonts, so unused text renderers are never initialized.
+  const { hasSdfFont, hasCanvasFont } = getRequiredFontEngines(settings.fonts)
+  if (hasSdfFont === true && hasCanvasFont === true) {
+    return [textRenderers.Sdf, textRenderers.Canvas]
   }
+  if (hasSdfFont === true) return [textRenderers.Sdf]
+  // Canvas-only fonts, or no fonts declared at all (system/default fonts
+  // render via the Canvas engine, which can render any font family).
+  return [textRenderers.Canvas]
 }
 
 const textureMemorySettings = (settings) => {

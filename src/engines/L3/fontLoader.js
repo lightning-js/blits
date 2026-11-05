@@ -18,10 +18,11 @@
 import Settings from '../../settings.js'
 import { renderer } from './launch.js'
 import { resolveFontEngineType } from './fontTypes.js'
+import { resolveRenderMode } from './backends.js'
 
 export default () => {
   const stage = renderer.stage
-  const renderMode = Settings.get('renderMode', 'webgl')
+  const renderMode = resolveRenderMode(Settings.get('renderMode', 'webgl'))
 
   const fonts = Settings.get('fonts', [])
   for (let i = 0; i < fonts.length; i++) {

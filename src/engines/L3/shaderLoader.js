@@ -17,8 +17,7 @@
 
 import Settings from '../../settings.js'
 import { renderer } from './launch.js'
-import * as webglShaders from '@lightningjs/renderer/webgl/shaders'
-import * as canvasShaders from '@lightningjs/renderer/canvas/shaders'
+import { shaderSets, resolveRenderMode } from './backends.js'
 
 function registerBlitsDefaultShaders(
   shManager,
@@ -56,7 +55,7 @@ export default () => {
     HolePunch,
     RadialGradient,
     LinearGradient,
-  } = Settings.get('renderMode', 'webgl') === 'webgl' ? webglShaders : canvasShaders
+  } = shaderSets[resolveRenderMode(Settings.get('renderMode', 'webgl'))]
 
   registerBlitsDefaultShaders(
     stage.shManager,
