@@ -18,45 +18,24 @@
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
-const BACKENDS_FILE = fileURLToPath(new URL('../src/engines/L3/backends.js', import.meta.url))
+// Resolved relative to this plugin file (not process.cwd()), so it works
+// whether Blits is installed in node_modules, hoisted, or symlinked.
+const BACKENDS_INDEX = fileURLToPath(
+  new URL('../src/engines/L3/backends/index.js', import.meta.url)
+)
 
-// Generated replacement modules for `src/engines/L3/backends.js`, one per
-// buildable renderMode.
-const GENERATED = {
-  canvas: `
-import { CanvasCoreRenderer, CanvasTextRenderer } from '@lightningjs/renderer/canvas'
-import * as canvasShaders from '@lightningjs/renderer/canvas/shaders'
-
-// Generated at build time by the @lightningjs/blits/vite renderMode plugin
-// (blits.renderMode: 'canvas' in vite.config.js). Do not edit directly.
-export const lockedRenderMode = 'canvas'
-export const coreRenderers = { canvas: CanvasCoreRenderer }
-export const textRenderers = { Canvas: CanvasTextRenderer }
-export const shaderSets = { canvas: canvasShaders }
-export const resolveRenderMode = () => 'canvas'
-`,
-
-  webgl: `
-import { WebGlCoreRenderer, SdfTextRenderer } from '@lightningjs/renderer/webgl'
-import { CanvasTextRenderer } from '@lightningjs/renderer/canvas'
-import * as webglShaders from '@lightningjs/renderer/webgl/shaders'
-
-// Generated at build time by the @lightningjs/blits/vite renderMode plugin
-// (blits.renderMode: 'webgl' in vite.config.js). Do not edit directly.
-export const lockedRenderMode = 'webgl'
-export const coreRenderers = { webgl: WebGlCoreRenderer }
-export const textRenderers = { Sdf: SdfTextRenderer, Canvas: CanvasTextRenderer }
-export const shaderSets = { webgl: webglShaders }
-export const resolveRenderMode = () => 'webgl'
-`,
+const VARIANTS = {
+  webgl: fileURLToPath(new URL('../src/engines/L3/backends/webgl.js', import.meta.url)),
+  canvas: fileURLToPath(new URL('../src/engines/L3/backends/canvas.js', import.meta.url)),
 }
 
+// Windows paths are case-insensitive; normalize before comparing.
 const normalize = (filePath) => {
   const resolved = path.resolve(filePath)
   return process.platform === 'win32' ? resolved.toLowerCase() : resolved
 }
 
-const NORMALIZED_BACKENDS_FILE = normalize(BACKENDS_FILE)
+const NORMALIZED_BACKENDS_INDEX = normalize(BACKENDS_INDEX)
 
 export default function renderMode() {
   let mode = null
@@ -81,11 +60,15 @@ export default function renderMode() {
       )
     },
 
-    load(id) {
-      if (mode === null) return null
-      if (normalize(id.split('?')[0]) !== NORMALIZED_BACKENDS_FILE) return null
+    // Redirects the internal backends/index.js import to the single-backend
+    // variant file on disk.
+    resolveId(source, importer) {
+      if (mode === null || importer === undefined) return null
 
-      return GENERATED[mode]
+      const resolved = normalize(path.resolve(path.dirname(importer), source.split('?')[0]))
+      if (resolved !== NORMALIZED_BACKENDS_INDEX) return null
+
+      return VARIANTS[mode]
     },
   }
 }

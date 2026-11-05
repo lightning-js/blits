@@ -24,10 +24,31 @@ import fontLoader from './fontLoader.js'
 import shaderLoader from './shaderLoader.js'
 import { getRequiredFontEngines } from './fontTypes.js'
 import { platform } from '../../platform.js'
-import { coreRenderers, textRenderers, resolveRenderMode } from './backends.js'
+import { Log } from '../../lib/log.js'
+import {
+  coreRenderers,
+  textRenderers,
+  lockedRenderMode,
+  resolveRenderMode,
+} from './backends/index.js'
 
 /** @type {RendererMain|{}} */
 export let renderer = {}
+
+// Warns when a renderMode passed to Blits.Launch conflicts with a renderMode
+// locked in at build time
+export const warnOnRenderModeConflict = (settings, locked = lockedRenderMode) => {
+  if (locked === null) return
+  if ('renderMode' in settings === false) return
+  if (settings.renderMode === locked) return
+
+  Log.warn(
+    `renderMode "${settings.renderMode}" passed to Blits.Launch is ignored: this build was ` +
+      `compiled with renderMode "${locked}" locked in via the Blits Vite plugin ` +
+      `(blits.renderMode in vite.config.js), and the "${settings.renderMode}" backend is not ` +
+      'included in this bundle.'
+  )
+}
 
 const renderEngine = (settings) => {
   const renderMode = resolveRenderMode('renderMode' in settings ? settings.renderMode : 'webgl')
@@ -83,6 +104,7 @@ const textureMemorySettings = (settings) => {
  *
  */
 export default (target, settings = {}) => {
+  warnOnRenderModeConflict(settings)
   const screenHeight = settings.platform ? settings.platform.screenHeight : platform.screenHeight
   const hardwareConcurrency = settings.platform
     ? settings.platform.hardwareConcurrency

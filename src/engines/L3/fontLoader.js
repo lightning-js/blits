@@ -18,7 +18,7 @@
 import Settings from '../../settings.js'
 import { renderer } from './launch.js'
 import { resolveFontEngineType } from './fontTypes.js'
-import { resolveRenderMode } from './backends.js'
+import { resolveRenderMode } from './backends/index.js'
 
 export default () => {
   const stage = renderer.stage

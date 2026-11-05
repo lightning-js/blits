@@ -17,7 +17,7 @@
 
 import Settings from '../../settings.js'
 import { renderer } from './launch.js'
-import { shaderSets, resolveRenderMode } from './backends.js'
+import { shaderSets, resolveRenderMode } from './backends/index.js'
 
 function registerBlitsDefaultShaders(
   shManager,

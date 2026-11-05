@@ -16,26 +16,14 @@
  */
 
 import { WebGlCoreRenderer, SdfTextRenderer } from '@lightningjs/renderer/webgl'
-import { CanvasCoreRenderer, CanvasTextRenderer } from '@lightningjs/renderer/canvas'
+import { CanvasTextRenderer } from '@lightningjs/renderer/canvas'
 import * as webglShaders from '@lightningjs/renderer/webgl/shaders'
-import * as canvasShaders from '@lightningjs/renderer/canvas/shaders'
 
-/**
- * Fixed at build time by the renderMode Vite plugin.
- *
- * @type {'webgl'|'canvas'|null}
- */
-export const lockedRenderMode = null
+/** @type {'webgl'|'canvas'|null} */
+export const lockedRenderMode = 'webgl'
 
-export const coreRenderers = { webgl: WebGlCoreRenderer, canvas: CanvasCoreRenderer }
+export const coreRenderers = { webgl: WebGlCoreRenderer }
 export const textRenderers = { Sdf: SdfTextRenderer, Canvas: CanvasTextRenderer }
-export const shaderSets = { webgl: webglShaders, canvas: canvasShaders }
+export const shaderSets = { webgl: webglShaders }
 
-/**
- * Resolves the renderMode to actually use
- *
- * @param {'webgl'|'canvas'} requested - renderMode derived from settings
- * @returns {'webgl'|'canvas'}
- */
-export const resolveRenderMode = (requested) =>
-  lockedRenderMode !== null ? lockedRenderMode : requested
+export const resolveRenderMode = () => lockedRenderMode
