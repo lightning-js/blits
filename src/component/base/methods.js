@@ -23,7 +23,7 @@ import {
   removeKeyUpCallbacks,
 } from '../../focus/focus.js'
 import eventListeners from '../../lib/eventListeners.js'
-import { trigger } from '../../lib/reactivity/effect.js'
+import { batch, trigger } from '../../lib/reactivity/effect.js'
 import { Log } from '../../lib/log.js'
 import { removeEffects } from '../../lib/reactivity/effect.js'
 import { renderer } from '../../launch.js'
@@ -33,6 +33,12 @@ import { platform } from '../../platform.js'
 const selectCache = new WeakMap()
 
 export default {
+  $batch: {
+    value: batch,
+    writable: false,
+    enumerable: true,
+    configurable: false,
+  },
   $focus: {
     /**
      * @this {import('../../component').BlitsComponent}
