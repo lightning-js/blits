@@ -21,6 +21,7 @@ import blitsFileConverter from './blitsFileConverter.js'
 import reactivityGuard from './reactivityGuard.js'
 import injectDevConfig from './inject-dev-config.js'
 import injectVersions from './injectVersions.js'
+import renderMode from './renderMode.js'
 
 export { default as preCompiler } from './preCompiler.js'
 export { default as msdfGenerator } from './msdfGenerator.js'
@@ -28,6 +29,7 @@ export { default as blitsFileConverter } from './blitsFileConverter.js'
 export { default as reactivityGuard } from './reactivityGuard.js'
 export { default as injectDevConfig } from './inject-dev-config.js'
 export { default as injectVersions } from './injectVersions.js'
+export { default as renderMode } from './renderMode.js'
 
 export default [
   injectDevConfig(),
@@ -36,4 +38,5 @@ export default [
   reactivityGuard(),
   preCompiler(),
   msdfGenerator(),
+  renderMode(),
 ]
