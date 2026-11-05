@@ -28,6 +28,31 @@ import { effect, removeEffects } from '../../lib/reactivity/effect.js'
 
 initLog()
 
+test('Methods - $batch is shared on the prototype and binds the callback to the component', (assert) => {
+  const prototype = Object.defineProperties({}, methods)
+  const component = Object.create(prototype)
+  const state = reactive({ first: 0, second: 0 })
+  component.state = state
+  let runs = 0
+  const render = () => {
+    state.first
+    state.second
+    runs++
+  }
+  effect(render)
+  const result = component.$batch(function () {
+    assert.equal(this, component, 'Callback receives the component as this')
+    this.state.first = 1
+    this.state.second = 2
+    return 'done'
+  })
+  assert.equal(result, 'done', 'Returns the callback result')
+  assert.equal(runs, 2, 'The component method batches reactive updates')
+  assert.equal(Object.hasOwn(component, '$batch'), false, 'No per-instance method allocation')
+  removeEffects([render])
+  assert.end()
+})
+
 test('Methods - Should contain all the defined methods', (assert) => {
   const component = Object.defineProperties({}, { ...methods })
 
