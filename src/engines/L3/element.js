@@ -37,14 +37,37 @@ const holderComponentMap = new WeakMap()
 const layouts = new WeakMap()
 const layoutParents = new WeakMap()
 
-const updateLayoutParent = (element, parent) => {
+const pendingLayouts = new WeakSet()
+
+/**
+ * Re-layouts a layout once per tick, no matter how many children were removed from it.
+ * @param {any} layout
+ */
+const scheduleLayout = (layout) => {
+  if (pendingLayouts.has(layout)) return
+  pendingLayouts.add(layout)
+  // Promise microtask instead of queueMicrotask, which older TV browsers lack
+  Promise.resolve().then(() => {
+    pendingLayouts.delete(layout)
+    if (layout.eol !== true) layout.triggerLayout(layout.props)
+  })
+}
+
+/**
+ * Keeps layout membership in sync with the element's parent.
+ * @param {any} element
+ * @param {any} parent
+ * @param {boolean} [batch] defer the old layout's re-layout to a microtask (used on destroy)
+ */
+const updateLayoutParent = (element, parent, batch = false) => {
   const membership = layoutParents.get(element)
   const previous = membership === undefined ? undefined : membership.layout
   const next = layouts.get(parent)
   if (previous === next) return
   if (previous !== undefined) {
     const children = previous.layoutChildren
-    const index = children.indexOf(element)
+    // :for teardown destroys from the end, so search from the end
+    const index = children.lastIndexOf(element)
     if (index !== -1) children.splice(index, 1)
     element.node.off(membership.event, membership.onLoaded)
     layoutParents.delete(element)
@@ -59,7 +82,8 @@ const updateLayoutParent = (element, parent) => {
     element.node.on(event, onLoaded)
   }
   if (previous !== undefined && previous.eol !== true) {
-    previous.triggerLayout(previous.props)
+    if (batch === true) scheduleLayout(previous)
+    else previous.triggerLayout(previous.props)
   }
 }
 
@@ -1013,7 +1037,8 @@ const Element = {
 
     if (this.node === null) return
 
-    updateLayoutParent(this, undefined)
+    // many siblings are usually destroyed in the same tick, re-layout once afterwards
+    updateLayoutParent(this, undefined, true)
     layouts.delete(this.node)
     if (this.layoutChildren !== undefined) this.layoutChildren.length = 0
 
