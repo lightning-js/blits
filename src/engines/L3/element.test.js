@@ -1293,6 +1293,31 @@ for (const direction of ['horizontal', 'vertical']) {
   })
 }
 
+test('Element - Destroying Layout children re-layouts once per tick', async (assert) => {
+  assert.capture(renderer, 'createNode', () => new CustomNode())
+  const layout = createLayoutElement('horizontal', 10, () => {})
+  const kids = []
+  for (let i = 0; i < 5; i++) {
+    const kid = element({ parent: layout }, {})
+    registerLayoutChildren(layout, kid)
+    kid.set('w', 10)
+    kids.push(kid)
+  }
+  const relayout = sinon.spy(layout, 'triggerLayout')
+
+  for (let i = 0; i < 4; i++) kids[i].destroy()
+  assert.equal(relayout.callCount, 0, 'Removal does not re-layout synchronously')
+  await Promise.resolve()
+  assert.equal(relayout.callCount, 1, 'Removing 4 children re-layouts once')
+  assert.equal(kids[4].node.x, 0, 'Remaining child moves into the gap')
+
+  kids[4].destroy()
+  layout.destroy()
+  await Promise.resolve()
+  assert.equal(relayout.callCount, 1, 'No re-layout runs after the Layout is destroyed')
+  assert.end()
+})
+
 function createElement(props = {}) {
   const el = element({ parent: { node: { w: 1920, h: 1080 } } }, {})
   const data = {
@@ -1333,7 +1358,7 @@ function registerLayoutChildren(layoutEl, ...kids) {
   }
 }
 
-test('Element - Layout tracks insertion, reparenting and removal without component scans', (assert) => {
+test('Element - Layout tracks insertion, reparenting and removal without component scans', async (assert) => {
   assert.capture(renderer, 'createNode', () => new CustomNode())
   const firstLayout = createLayoutElement('horizontal', 10, () => {})
   const secondLayout = createLayoutElement('horizontal', 10, () => {})
@@ -1363,6 +1388,7 @@ test('Element - Layout tracks insertion, reparenting and removal without compone
   registerLayoutChildren(firstLayout, third)
   third.set('w', 25)
   first.destroy()
+  await Promise.resolve() // removal re-layout is batched in a microtask
   assert.equal(third.node.x, 0, 'Removing a child closes the gap')
   assert.equal(firstLayout.node.w, 25, 'Removing a child updates container dimensions')
 
