@@ -1,6 +1,6 @@
 import { MIN_BLOCKS, DEFAULT_THRESHOLD_PERCENT } from './statistics.js'
 import { formatComparisonOverview, unsupportedReasons } from './comparison.js'
-import { formatMemorySummary } from './memory.js'
+import { formatMemorySummary, formatMemoryComparisonOverview } from './memory.js'
 
 const isMemoryResult = (result) => result.kind === 'memory'
 
@@ -74,12 +74,13 @@ export const formatShortSummary = (report) => {
   const timingReports = reports.filter((result) => !result.error && !isMemoryResult(result))
   const memoryReports = reports.filter((result) => !result.error && isMemoryResult(result))
   const comparison = timingReports.some((result) => result.comparison)
+  const memoryComparison = memoryReports.some((result) => result.comparison)
 
   return [
     ...(report.status ? [`Status: ${report.status}`, ''] : []),
     ...reports.map(resultLine),
     '',
-    ...(comparison
+    ...(comparison || memoryComparison
       ? [
           `95% intervals require at least ${MIN_BLOCKS} balanced blocks (${MIN_BLOCKS * 2} pairs). Shorter runs are preliminary; percentage estimates alone are not evidence of a change.`,
           '',
@@ -113,16 +114,18 @@ export const formatShortSummary = (report) => {
             ),
           ]
         : []),
-    ...(memoryReports.length
-      ? [
-          '',
-          '| Benchmark | Created (MB) | Retained (MB) |',
-          '| --- | ---: | ---: |',
-          ...memoryReports.map(
-            (result) =>
-              `| ${result.benchmark ?? result.title} | ${result.createdMb.toFixed(2)} | ${result.retainedMb.toFixed(2)} |`
-          ),
-        ]
-      : []),
+    ...(memoryComparison
+      ? ['', formatMemoryComparisonOverview(memoryReports)]
+      : memoryReports.length
+        ? [
+            '',
+            '| Benchmark | Created (MB) | Retained (MB) |',
+            '| --- | ---: | ---: |',
+            ...memoryReports.map(
+              (result) =>
+                `| ${result.benchmark ?? result.title} | ${result.createdMb.toFixed(2)} | ${result.retainedMb.toFixed(2)} |`
+            ),
+          ]
+        : []),
   ].join('\n')
 }
