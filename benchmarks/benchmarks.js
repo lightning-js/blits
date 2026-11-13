@@ -3,9 +3,15 @@ export const benchmarks = {
   'component-creation': () => import('./src/benchmarks/ComponentCreation.js'),
   'computed-loop-creation': () => import('./src/benchmarks/ComputedLoopCreation.js'),
   'computed-binding-updates': () => import('./src/benchmarks/ComputedBindingUpdates.js'),
+  'memory-usage': () => import('./src/benchmarks/MemoryUsage.js'),
 }
 
 export const defaultBenchmark = 'element-creation'
+
+// Memory benchmarks report heap states (baseline/created/destroyed)
+const memoryBenchmarks = new Set(['memory-usage'])
+
+export const isMemoryBenchmark = (name) => memoryBenchmarks.has(name)
 
 export const validateBenchmark = (name) => {
   if (!Object.hasOwn(benchmarks, name)) {
