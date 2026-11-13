@@ -29,6 +29,25 @@ export default (component, title) =>
       },
       ready() {
         const workload = this.$select('workload')
+        // Memory workloads expose mount/unmount instead of setup/measure/verify.
+        // They're called individually by the Node-side runner so it can force a
+        // GC and read the heap size between each step.
+        const isMemoryWorkload =
+          typeof workload.mount === 'function' && typeof workload.unmount === 'function'
+        if (isMemoryWorkload) {
+          window.__BLITS_BENCH__ = {
+            ready: true,
+            mount: async (size) => {
+              await workload.mount(size)
+              workload.verifyMounted(size)
+            },
+            unmount: async () => {
+              await workload.unmount()
+              workload.verifyUnmounted()
+            },
+          }
+          return
+        }
         const run = async (options = {}) => {
           if (this.benchmarkRunning) return
           this.benchmarkRunning = true

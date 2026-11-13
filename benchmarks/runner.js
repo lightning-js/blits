@@ -7,7 +7,13 @@ import { requireBenchmarkSupport } from './src/support.js'
 import { runSuite } from './suite.js'
 import { validateOptions, validateCpuSlowdown } from './src/benchmark-utils.js'
 import { formatSummary, formatSuiteSummary, formatShortSummary } from './summary.js'
-import { benchmarks, defaultBenchmark, validateBenchmark } from './benchmarks.js'
+import { benchmarks, defaultBenchmark, validateBenchmark, isMemoryBenchmark } from './benchmarks.js'
+import {
+  DEFAULT_MEMORY_SIZE,
+  validateMemorySize,
+  summarizeMemory,
+  formatMemorySummary,
+} from './memory.js'
 import viteConfig from './vite.config.js'
 
 const benchmarkRoot = fileURLToPath(new URL('.', import.meta.url))
@@ -88,6 +94,74 @@ export const measureBenchmark = async (config, options, headed = false) => {
   }
 }
 
+export const measureMemoryBenchmark = async (config, options, headed = true) => {
+  const benchmark = validateBenchmark(options.benchmark ?? defaultBenchmark)
+  const cpuSlowdown = options.cpuSlowdown ?? 20
+  validateCpuSlowdown(cpuSlowdown)
+  const size = options.size ?? DEFAULT_MEMORY_SIZE
+  validateMemorySize(size)
+  const { title } = await benchmarks[benchmark]()
+  const server = await preview({
+    ...config,
+    preview: { ...config.preview, host: '127.0.0.1', port: 0 },
+  })
+  let browser
+  try {
+    browser = await chromium.launch({ headless: !headed })
+    const page = await browser.newPage({
+      viewport: { width: 1920, height: 1080 },
+    })
+    page.on('pageerror', (error) => console.error(error))
+    const client = await page.context().newCDPSession(page)
+    await client.send('Emulation.setCPUThrottlingRate', { rate: cpuSlowdown })
+    await client.send('Performance.enable')
+    const url = new URL(server.resolvedUrls.local[0])
+    url.searchParams.set('benchmark', benchmark)
+    await page.goto(url.href)
+    await page.waitForFunction(() => window.__BLITS_BENCH__?.ready === true)
+    const crossOriginIsolated = await page.evaluate(() => window.crossOriginIsolated)
+
+    const heapUsedBytes = async () => {
+      await client.send('HeapProfiler.collectGarbage')
+      await client.send('HeapProfiler.collectGarbage')
+      const { metrics } = await client.send('Performance.getMetrics')
+      const metric = metrics.find((metric) => metric.name === 'JSHeapUsedSize')
+      if (!metric) throw new Error('JSHeapUsedSize metric unavailable from CDP Performance domain')
+      return metric.value
+    }
+
+    const startedAt = new Date().toISOString()
+    const started = performance.now()
+
+    const baselineBytes = await heapUsedBytes()
+    await page.evaluate((size) => window.__BLITS_BENCH__.mount(size), size)
+    const afterCreateBytes = await heapUsedBytes()
+    await page.evaluate(() => window.__BLITS_BENCH__.unmount())
+    const afterDestroyBytes = await heapUsedBytes()
+
+    const summary = summarizeMemory(
+      { title, benchmark, size },
+      { baselineBytes, afterCreateBytes, afterDestroyBytes }
+    )
+    return {
+      ...summary,
+      cpuSlowdown,
+      browserMode: headed ? 'headed' : 'headless',
+      crossOriginIsolated,
+      startedAt,
+      durationMs: performance.now() - started,
+      browserVersion: browser.version(),
+      mode: config.mode,
+    }
+  } finally {
+    try {
+      await browser?.close()
+    } finally {
+      await server.close()
+    }
+  }
+}
+
 export const saveReport = async (report, output) => {
   if (!output) return
   const outputPath = resolve(benchmarkRoot, output)
@@ -123,14 +197,20 @@ const run = async () => {
     }
     return args[index + 1]
   }
+  const benchmark = validateBenchmark(value('--benchmark', defaultBenchmark))
+  const sizeArg = value('--size', undefined)
   const options = {
-    benchmark: validateBenchmark(value('--benchmark', defaultBenchmark)),
+    benchmark,
     cpuSlowdown: Number(value('--cpu-slowdown', 20)),
-    size: Number(value('--size', 1000)),
+    size: Number(sizeArg ?? (isMemoryBenchmark(benchmark) ? DEFAULT_MEMORY_SIZE : 1000)),
     samples: Number(value('--samples', 20)),
     warmup: Number(value('--warmup', 5)),
   }
-  validateOptions(options)
+  if (isMemoryBenchmark(benchmark)) {
+    validateMemorySize(options.size)
+  } else {
+    validateOptions(options)
+  }
   validateCpuSlowdown(options.cpuSlowdown)
   const output = value('--output', undefined)
   if (args.includes('--output') && (!output || output.startsWith('--'))) {
@@ -142,9 +222,16 @@ const run = async () => {
   }
   await build(config)
   if (all) {
-    const report = await runSuite(Object.keys(benchmarks), (benchmark) =>
-      measureBenchmark(config, { ...options, benchmark }, headed)
-    )
+    const report = await runSuite(Object.keys(benchmarks), (name) => {
+      const runOptions = {
+        ...options,
+        benchmark: name,
+        size: sizeArg ?? (isMemoryBenchmark(name) ? DEFAULT_MEMORY_SIZE : options.size),
+      }
+      return isMemoryBenchmark(name)
+        ? measureMemoryBenchmark(config, runOptions, headed)
+        : measureBenchmark(config, runOptions, headed)
+    })
     report.commit = process.env.GITHUB_SHA
     const summary = formatSuiteSummary(report)
     if (!short) console.log(summary)
@@ -152,9 +239,21 @@ const run = async () => {
     if (report.status === 'failed') process.exitCode = 1
     return
   }
-  const report = await measureBenchmark(config, options, headed)
+  const memory = isMemoryBenchmark(benchmark)
+  const report = memory
+    ? await measureMemoryBenchmark(config, options, headed)
+    : await measureBenchmark(config, options, headed)
   report.commit = process.env.GITHUB_SHA
-  await writeReport(report, output, formatSummary(report), short)
+  if (memory) {
+    // Default prints JSON; --short prints the formatted memory summary. No
+    // GitHub step summary is written yet: the CI/workflow integration is a
+    // separate follow-up once the CLI output is settled.
+    console.log(short ? formatMemorySummary(report) : `${JSON.stringify(report, null, 2)}\n`)
+    const outputPath = await saveReport(report, output)
+    if (outputPath) console.log(`Results saved to ${outputPath}`)
+  } else {
+    await writeReport(report, output, formatSummary(report), short)
+  }
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
