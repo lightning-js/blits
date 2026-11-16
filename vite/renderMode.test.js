@@ -28,6 +28,11 @@ const CANVAS_VARIANT = fileURLToPath(
 const IMPORTER = fileURLToPath(new URL('../src/engines/L3/launch.js', import.meta.url))
 const SOURCE = './backends/index.js'
 
+test('renderMode - runs before the default Vite resolver', (assert) => {
+  assert.equal(renderMode().enforce, 'pre', 'uses pre enforcement for backend redirection')
+  assert.end()
+})
+
 test('renderMode - resolveId is a no-op when blits.renderMode is not configured', (assert) => {
   const plugin = renderMode()
   plugin.configResolved({})

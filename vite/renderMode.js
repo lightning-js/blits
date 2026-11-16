@@ -42,6 +42,7 @@ export default function renderMode() {
 
   return {
     name: 'blits-render-mode',
+    enforce: 'pre',
 
     configResolved(resolvedConfig) {
       const configured = resolvedConfig.blits && resolvedConfig.blits.renderMode
