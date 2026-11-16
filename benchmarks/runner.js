@@ -115,6 +115,7 @@ export const measureMemoryBenchmark = async (config, options, headed = true) => 
     const client = await page.context().newCDPSession(page)
     await client.send('Emulation.setCPUThrottlingRate', { rate: cpuSlowdown })
     await client.send('Performance.enable')
+    await client.send('HeapProfiler.enable')
     const url = new URL(server.resolvedUrls.local[0])
     url.searchParams.set('benchmark', benchmark)
     await page.goto(url.href)
