@@ -44,7 +44,7 @@ const pendingLayouts = new WeakSet()
  * @param {any} layout
  */
 const scheduleLayout = (layout) => {
-  if (pendingLayouts.has(layout)) return
+  if (pendingLayouts.has(layout) === true) return
   pendingLayouts.add(layout)
   // Promise microtask instead of queueMicrotask, which older TV browsers lack
   Promise.resolve().then(() => {
@@ -57,9 +57,9 @@ const scheduleLayout = (layout) => {
  * Keeps layout membership in sync with the element's parent.
  * @param {any} element
  * @param {any} parent
- * @param {boolean} [batch] defer the old layout's re-layout to a microtask (used on destroy)
+ * @param {boolean} [deferRelayout] defer the old layout's re-layout to a microtask (used on destroy)
  */
-const updateLayoutParent = (element, parent, batch = false) => {
+const updateLayoutParent = (element, parent, deferRelayout = false) => {
   const membership = layoutParents.get(element)
   const previous = membership === undefined ? undefined : membership.layout
   const next = layouts.get(parent)
@@ -82,7 +82,7 @@ const updateLayoutParent = (element, parent, batch = false) => {
     element.node.on(event, onLoaded)
   }
   if (previous !== undefined && previous.eol !== true) {
-    if (batch === true) scheduleLayout(previous)
+    if (deferRelayout === true) scheduleLayout(previous)
     else previous.triggerLayout(previous.props)
   }
 }
