@@ -15,4 +15,5 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export { default as L3 } from './L3/index.js'
+// FTL is the sole backend. Use upstream Blits as the L3 reference.
+export { default as FTL } from './FTL/index.js'

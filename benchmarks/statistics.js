@@ -73,10 +73,12 @@ export const analyzePairs = (pairs, metric, thresholdPercent = DEFAULT_THRESHOLD
     const order = (pair) => (Array.isArray(pair.order) ? pair.order.join(',') : '')
     const first = order(pairs[index])
     const second = order(pairs[index + 1])
-    if (!(
-      (first === 'base,candidate' && second === 'candidate,base') ||
-      (first === 'candidate,base' && second === 'base,candidate')
-    )) {
+    if (
+      !(
+        (first === 'base,candidate' && second === 'candidate,base') ||
+        (first === 'candidate,base' && second === 'base,candidate')
+      )
+    ) {
       return { ...result, reason: 'unbalanced-or-missing-order' }
     }
     blocks.push((logs[index] + logs[index + 1]) / 2)

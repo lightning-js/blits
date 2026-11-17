@@ -18,11 +18,7 @@
 // blits file type reference
 /// <reference path="./blits.d.ts" />
 
-import {type ShaderEffect as RendererShaderEffect, type RendererMainSettings, type FrameCounter} from '@lightningjs/renderer'
-import { CanvasShaderType } from '@lightningjs/renderer/canvas';
-import { WebGlShaderType } from '@lightningjs/renderer/webgl';
-
-type WebGlCoreShader = import('@lightningjs/renderer').WebGlCoreShader
+import type { FTLConfig, FTLConfiguration } from 'ftl'
 
 export interface AnnouncerUtteranceOptions {
   /**
@@ -239,7 +235,8 @@ export interface Hooks {
   *
   * Note: This event fire multiple times
   */
-  fpsUpdate?: (fps: number, frameCounter: FrameCounter) => void;
+  /** FTL reports FPS without L3's frame-bucket counter. */
+  fpsUpdate?: (fps: number, frameCounter?: undefined) => void;
 }
 
 export interface Input {
@@ -1045,12 +1042,14 @@ type Font = WebFont | SdfFont
 
 type ShaderEffect = {
   name: string,
-  type: RendererShaderEffect
+  /** Custom L3 shader effects are not supported on the FTL branch. */
+  type: unknown
 }
 
 type Shader = {
   name: string,
-  type: WebGlShaderType | CanvasShaderType
+  /** Custom shader registration is not yet supported on the FTL branch. */
+  type: unknown
 }
 
 type ScreenResolutions = 'hd' | '720p' | 720 | 'fhd' | 'fullhd' | '1080p' | 1080 | '4k' | '2160p' | 2160
@@ -1402,12 +1401,11 @@ export interface Settings {
    */
   textureProcessingTimeLimit?: number,
   /**
-   * Advanced renderer settings to override Blits launch settings, or configure
-   * settings that are not officially exposed in Blits yet
+   * FTL configuration overrides. Stage dimensions are controlled by w/h.
    *
    * @important if you dont know what you're doing here, you probably shouldn't be doing it!
    */
-  advanced?: Partial<RendererMainSettings>,
+  advanced?: Partial<Omit<FTLConfig, 'width' | 'height'>>,
   /**
    * Whether or not the announcer should be activated on initialization
    *
@@ -1478,10 +1476,10 @@ export interface Settings {
   /**
    * Custom platform layer to be used by the renderer.
    *
-   * For renderer-specific platform implementations. Passing a renderer platform
-   * through `platform` is deprecated.
+   * Supply an FTL platform object, not an L3 platform constructor. Passing it
+   * through `platform` is deprecated; that setting configures Blits itself.
    */
-  rendererPlatform?: RendererMainSettings['platform']
+  rendererPlatform?: FTLConfiguration['platform']
 
 }
 
@@ -1637,7 +1635,7 @@ export interface Blits {
   /**
    * Blits Launch
    */
-  Launch(App: ComponentFactory, target: HTMLElement | String, settings?: Settings) : void
+  Launch(App: ComponentFactory, target: HTMLElement | String, settings?: Settings) : Promise<void>
   /**
    * Blits Plugin
    *

@@ -18,7 +18,7 @@
 let counter
 let isDev
 
-import { elementAttributes } from '../../engines/L3/element.js'
+import { elementAttributes } from '../../engines/common/elementAttributes.js'
 
 export default function (templateObject = { children: [] }, devMode = false) {
   const ctx = {

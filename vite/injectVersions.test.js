@@ -10,10 +10,7 @@ test('version injection resolves installed metadata from Blits, independently of
   try {
     for (const layout of ['nested', 'hoisted', 'linked']) {
       const blits = join(root, layout, 'node_modules/@lightningjs/blits')
-      const renderer = join(
-        layout === 'nested' ? blits : join(root, layout),
-        'node_modules/@lightningjs/renderer'
-      )
+      const renderer = join(layout === 'nested' ? blits : join(root, layout), 'node_modules/ftl')
       mkdirSync(join(blits, 'vite'), { recursive: true })
       mkdirSync(join(renderer, 'dist/exports'), { recursive: true })
       writeFileSync(
@@ -23,7 +20,7 @@ test('version injection resolves installed metadata from Blits, independently of
       writeFileSync(
         join(renderer, 'package.json'),
         JSON.stringify({
-          name: '@lightningjs/renderer',
+          name: 'ftl',
           version: '4.5.6',
           exports: './dist/exports/index.js',
         })

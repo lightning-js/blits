@@ -30,7 +30,7 @@ import { platform } from '../platform.js'
 /**
  * @typedef {import('../component.js').BlitsComponentFactory} BlitsComponentFactory - The component of the route
  * @typedef {import('../component.js').BlitsComponent} BlitsComponent - The element of the route
- * @typedef {import('../engines/L3/element.js').BlitsElement} BlitsElement - The element of the route
+ * @typedef {import('../component.js').BlitsElement} BlitsElement - The element of the route
  *
  * @typedef {BlitsComponent|BlitsComponentFactory} RouteView
  * @typedef {RouteView & { default?: BlitsComponentFactory }} RouteViewWithOptionalDefault
@@ -235,7 +235,7 @@ const performNavigation = async function (viewState) {
     route.transition = route.transition(this.previousRoute, route)
   }
 
-  /** @type {import('../engines/L3/element.js').BlitsElement} */
+  /** @type {import('../component.js').BlitsElement} */
   let holder
 
   /** @type {RouteViewWithOptionalDefault|undefined|null} */

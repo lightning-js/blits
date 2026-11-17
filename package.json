@@ -1,7 +1,7 @@
 {
   "name": "@lightningjs/blits",
   "version": "2.16.0",
-  "description": "Blits: The Lightning 3 App Development Framework",
+  "description": "Blits: FTL renderer integration branch",
   "bin": "bin/index.js",
   "exports": {
     ".": "./index.js",
@@ -86,6 +86,7 @@
     "@babel/plugin-syntax-import-assertions": "^7.28.6",
     "@eslint/eslintrc": "^3.3.4",
     "@eslint/js": "^9.39.3",
+    "animejs": "^4.5.0",
     "c8": "^12.0.0",
     "eslint": "^9.39.3",
     "eslint-config-prettier": "^10.1.8",
@@ -103,8 +104,16 @@
     "tape": "^5.9.0"
   },
   "dependencies": {
-    "@lightningjs/renderer": "3.11.0",
+    "ftl": "git+https://github.com/lightning-js/ftl.git#v0.15.1",
     "magic-string": "^1.4.1"
+  },
+  "peerDependencies": {
+    "animejs": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "animejs": {
+      "optional": true
+    }
   },
   "repository": {
     "type": "git",

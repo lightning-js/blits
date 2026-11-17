@@ -45,8 +45,7 @@ const isDev = typeof __DEV__ !== 'undefined' && __DEV__
  */
 
 /**
- * @typedef {import('@lightningjs/renderer').RendererMain} RendererMain
- * @type {RendererMain | {}}
+ * @type {ReturnType<typeof import('./engines/FTL/launch.js').createFacade> | {}}
  */
 export let renderer = {}
 export const stage = {}
@@ -77,8 +76,8 @@ export const stage = {}
  * @property {number} [holdTimeout] - Time after which a key press is considered a hold
  * @property {HTMLCanvasElement} [canvas] - Custom canvas object used to render the App
  * @property {number} [textureProcessingTimeLimit] - Max time renderer can process textures in a frame
- * @property {import('@lightningjs/renderer').RendererMainSettings['platform']} [rendererPlatform] - Custom platform used by the renderer
- * @property {Partial<import('@lightningjs/renderer').RendererMainSettings>} [advanced] - Advanced renderer settings
+ * @property {import('ftl').FTLConfiguration['platform']} [rendererPlatform] - FTL platform implementation
+ * @property {Partial<Omit<import('ftl').FTLConfig, 'width'|'height'>>} [advanced] - FTL configuration overrides
  * @property {boolean} [announcer] - Whether or not the announcer should be activated on initialization
  * @property {boolean} [enableMouse] - Enable mouse support (hover and click-to-focus). Defaults to false.
  * @property {number} [maxFPS] - Maximum FPS
@@ -97,12 +96,15 @@ export const stage = {}
  * Launches the Blits application with the given App, target, and settings.
  * Sets up logging, version info, and initializes the renderer and stage singletons.
  *
+ * FTL dependencies resolve asynchronously. The renderer binding is published
+ * before any app component is constructed. Await Launch() to observe errors.
+ *
  * @param {BlitsAppFactory} App - The root BlitsComponent to launch.
  * @param {HTMLElement} target - The DOM element or rendering target.
  * @param {BlitsSettings} settings - Configuration settings for the application.
- * @returns {void}
+ * @returns {Promise<void>}
  */
-export default (App, target, settings) => {
+export default async (App, target, settings = {}) => {
   let warnLegacyRendererPlatform = false
 
   if (settings !== undefined && 'platform' in settings) {
@@ -137,23 +139,46 @@ export default (App, target, settings) => {
     'Blits version:',
     typeof __BLITS_VERSION__ === 'undefined' ? 'unknown' : __BLITS_VERSION__
   )
+
+  if ('renderer' in settings) {
+    if (settings.renderer !== 'ftl') {
+      throw new Error('[Blits:FTL] this branch only supports FTL; remove the renderer setting')
+    }
+    Log.warn("[Blits:FTL] renderer: 'ftl' is no longer needed; FTL is the only backend")
+  }
   Log.info(
-    'Renderer version:',
+    'FTL version:',
     typeof __RENDERER_VERSION__ === 'undefined' ? 'unknown' : __RENDERER_VERSION__
   )
 
   stage.element = engine.Element
 
-  renderer = engine.Launch(target, settings)
+  renderer = await engine.Launch(target, settings)
   if (isDev === true) {
     profiler.setRenderer(renderer)
   }
 
-  // Instantiate the app and wire up the quit function
+  try {
+    initApp(App, () => {
+      if (isDev === true) profiler.setRenderer(null)
+      renderer.destroy()
+    })
+  } catch (error) {
+    if (isDev === true) profiler.setRenderer(null)
+    renderer.destroy()
+    renderer = null
+    throw error
+  }
+}
+
+// Publish the renderer before constructing components; app ownership stays here.
+const initApp = (App, onQuit) => {
   let app = App()
   app.quit = () => {
+    if (app === null) return
     Log.info('Closing App')
     app.destroy()
+    if (onQuit !== undefined) onQuit()
     app = null
     renderer = null
   }

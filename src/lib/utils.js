@@ -87,3 +87,19 @@ export const isArrayString = (str) => {
 export const parseToObject = (str) => {
   return JSON.parse(str.replace(/'/g, '"').replace(/([\w-_]+)\s*:/g, '"$1":'))
 }
+
+/**
+ * Coerces numeric strings (how static template attributes arrive) to numbers.
+ * FTL does plain arithmetic on props, so a string like "-10" would poison
+ * transforms with NaN — the L3 renderer coerces on its side instead.
+ * Non-numeric values pass through untouched.
+ * @param {any} v - The value to coerce.
+ * @returns {any} A number when numeric, otherwise the input as-is.
+ */
+export const toNumber = (v) => {
+  if (typeof v === 'number') return v
+  if (typeof v === 'string' && v.trim() !== '' && Number.isNaN(Number(v)) === false) {
+    return Number(v)
+  }
+  return v
+}

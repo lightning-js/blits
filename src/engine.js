@@ -15,4 +15,4 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export { L3 as default } from './engines/index.js'
+export { FTL as default } from './engines/index.js'

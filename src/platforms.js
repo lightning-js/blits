@@ -15,9 +15,4 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export {
-  WebPlatform,
-  WebPlatformNext,
-  WebPlatformChrome50,
-  WebPlatformLegacy,
-} from '@lightningjs/renderer/platforms'
+export { default as browserPlatform } from 'ftl/platform/browser'

@@ -25,17 +25,17 @@ function getVersions() {
   const blits = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
   // Resolve the public entry: the renderer does not export its package.json.
   // Walk upwards to support hoisted, nested, and symlinked installations.
-  let directory = dirname(require.resolve('@lightningjs/renderer'))
+  let directory = dirname(require.resolve('ftl'))
   while (true) {
     const filename = join(directory, 'package.json')
     if (existsSync(filename)) {
       const pkg = JSON.parse(readFileSync(filename, 'utf8'))
-      if (pkg.name === '@lightningjs/renderer') {
+      if (pkg.name === 'ftl') {
         return { blits: blits.version, renderer: pkg.version }
       }
     }
     const parent = dirname(directory)
-    if (parent === directory) throw new Error('Unable to locate @lightningjs/renderer/package.json')
+    if (parent === directory) throw new Error('Unable to locate ftl/package.json')
     directory = parent
   }
 }
