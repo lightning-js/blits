@@ -137,6 +137,21 @@ Whenever you navigate to a new page, the URL hash will automatically be updated.
 
 If you want to disable this automatic history navigation on Back (for example, to let a top-level navigation component handle Back), set `this.$router.backNavigation = false`. Set `this.$router.backNavigation = true` to restore the default behavior.
 
+### Navigating back multiple steps
+
+`this.$router.back()` navigates back a single entry in the history stack by default. To jump back multiple entries at once (similar to the browser's `history.go(-n)`), pass the number of steps as an argument:
+
+```js
+this.$router.back(2) // navigate back 2 pages in the history stack
+```
+
+The current history stack can be inspected (read-only) via `this.$router.history`, which returns an array of route objects ordered oldest to most recent. The last entry in the array is the route that `back()` navigates to first.
+
+```js
+this.$router.history.length // number of pages in the history stack
+this.$router.history[this.$router.history.length - 1].path // path of the previous page
+```
+
 By default, every time you navigate to a new route, the application focus will be automatically passed to the newly loaded page. If you instead want to maintain the current focus (for example in a widget that sits above your RouterView), you can use `passFocus: false` as part of the router options.
 
 ## Deeplinking
@@ -181,7 +196,8 @@ The Router API provides several useful methods and properties for managing route
 
 - `this.$router.to()` - navigating to a different location (as discussed above)
 - `this.$router.get()` - retrieve a Router instance scoped to a named Router view
-- `this.$router.back()` - programmatically navigate back down the history stack
+- `this.$router.back(steps?)` - programmatically navigate back down the history stack (optionally multiple steps at once)
+- `this.$router.history` - retrieve a read-only snapshot of the history stack
 - `this.$router.currentRoute` - retrieve the current route
 - `this.$router.routes` - retrieve the list of all routes
 - `this.$router.navigating` - retrieve the current navigating state

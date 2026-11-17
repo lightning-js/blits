@@ -55,7 +55,7 @@ export default {
     }
 
     const setDict = (language) => {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         const translationObj = translations[language]
         if (typeof translationObj === 'object') {
           dictionary = translationObj
@@ -71,6 +71,7 @@ export default {
             })
             .catch((e) => {
               Log.error(e)
+              reject(e)
             })
         }
       })

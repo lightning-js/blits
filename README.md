@@ -2,6 +2,13 @@
 
 # Blits - Lightning 3 App Development Framework
 
+> **FTL branch:** this branch runs Blits exclusively on the
+> [Lightning FTL renderer](https://github.com/lightning-js/ftl), not L3.
+> FTL is installed from its pinned GitHub release; do not install the unrelated
+> npm package named `ftl`. No renderer selection setting is needed.
+> See [FTL setup, supported features, and limitations](src/engines/FTL/README-FTL.md).
+> Use upstream Blits on `master` as the L3 reference for parity comparisons.
+
 ![npm](https://img.shields.io/npm/v/@lightningjs/blits?label=Version&color=blue) ![License](https://img.shields.io/github/license/lightning-js/blits?label=License&color=blue) ![Tests](https://github.com/lightning-js/blits/workflows/Tests/badge.svg) ![Coverage](https://img.shields.io/codecov/c/github/lightning-js/blits/master?label=Coverage) ![npm](https://img.shields.io/npm/dm/@lightningjs/blits?label=Downloads&color=blue)
 
 With Blits, the App Development Framework for Lightning 3, it becomes a breeze to build great Lightning 3 applications.

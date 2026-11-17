@@ -149,9 +149,9 @@ const createRouter = (component, routerViewName) => {
       toRouterView(routerView, path, data, options)
       return true
     },
-    back() {
+    back(steps = 1) {
       const routerView = resolveRouterView(component, routerViewName)
-      return routerView === null ? false : back.call(routerView)
+      return routerView === null ? false : back.call(routerView, steps)
     },
     get(name) {
       return getRouterFromCache(component, name)
@@ -171,6 +171,10 @@ const createRouter = (component, routerViewName) => {
     },
     get navigating() {
       return state.navigating
+    },
+    get history() {
+      const routerView = resolveRouterView(component, routerViewName)
+      return routerView === null ? [] : routerView.history.slice()
     },
     state,
   }

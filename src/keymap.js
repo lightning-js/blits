@@ -15,10 +15,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import Element from './element.js'
-import Launch from './launch.js'
+/**
+ * Merged keyMap (default + custom settings).
+ * Updated during application initialization and runtime settings changes.
+ * @type {Object<string, string>}
+ */
+export let keyMap = {}
 
-export default {
-  Element,
-  Launch,
+export const setKeyMap = (value) => {
+  keyMap = value
 }

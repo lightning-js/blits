@@ -19,6 +19,8 @@ import symbols from './lib/symbols.js'
 
 const settings = {
   [symbols.settings]: {},
+  // Reacts to Blits-only settings changed at runtime via `this.$settings.set()`.
+  onRuntimeSettingChange: null,
   get(key, defaultValue = null) {
     if (key in this[symbols.settings]) {
       return this[symbols.settings][key]
@@ -33,6 +35,9 @@ const settings = {
       })
     } else {
       this[symbols.settings][key] = value
+      if (typeof this.onRuntimeSettingChange === 'function') {
+        this.onRuntimeSettingChange(key, value)
+      }
     }
   },
 }

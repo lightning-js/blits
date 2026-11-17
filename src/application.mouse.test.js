@@ -33,6 +33,7 @@ const createComponent = (id, parent) => ({
   [symbols.lifecycle]: { state: 'init' },
 })
 const getKeydown = (docAdded) => docAdded.find((c) => c.event === 'keydown')
+const getKeyup = (docAdded) => docAdded.find((c) => c.event === 'keyup')
 
 function createMockApp() {
   return {
@@ -98,7 +99,11 @@ function cleanupAppAndRestore(config, restore, opts = {}) {
   Settings.set('enableMouse', false)
 }
 
-const keyEvent = (key, keyCode) => new KeyboardEvent('keydown', { key, keyCode, bubbles: true })
+const keyEvent = (key, keyCode, type = 'keydown') => {
+  const event = new KeyboardEvent(type, { key, bubbles: true })
+  Object.defineProperty(event, 'keyCode', { value: keyCode })
+  return event
+}
 
 function spyHoverClear() {
   const original = Hover.clear
@@ -253,6 +258,35 @@ test('Key input when hover already null does not throw', async (assert) => {
   }
 })
 
+test('Moving the pointer on the same node hovers it again after key input cleared the hover', async (assert) => {
+  const { renderer } = await import('./launch.js')
+  const { componentMap } = await import('./component.js')
+  const node = {}
+  const card = createComponent('card')
+  componentMap.set(node, card)
+  renderer.canvas = { getBoundingClientRect: () => ({ left: 0, top: 0 }) }
+  renderer.stage = { getNodeFromPosition: () => node }
+
+  const { config, docAdded, restore } = await runApplicationInit(true)
+  try {
+    const mousemove = docAdded.find((c) => c.event === 'mousemove')
+    const keydown = getKeydown(docAdded)
+
+    mousemove.handler({ timeStamp: 1000, clientX: 10, clientY: 10 })
+    assert.equal(Hover.get(), card, 'the pointer hovers the component under it')
+
+    await keydown.handler(keyEvent('ArrowDown', 40))
+    assert.equal(Hover.get(), null, 'key input clears the hover')
+
+    mousemove.handler({ timeStamp: 2000, clientX: 12, clientY: 10 })
+    assert.equal(Hover.get(), card, 'moving on the same component hovers it again')
+  } finally {
+    delete renderer.canvas
+    delete renderer.stage
+    cleanupAppAndRestore(config, restore)
+  }
+})
+
 test('Re-init after destroy re-registers listeners', async (assert) => {
   const { config, docAdded, restore } = await runApplicationInit(true)
   const keydownHandlers = docAdded.filter((c) => c.event === 'keydown')
@@ -270,5 +304,48 @@ test('Re-init after destroy re-registers listeners', async (assert) => {
     assert.pass('keydown handler works after re-init')
   } finally {
     cleanupAppAndRestore(config, restore)
+  }
+})
+
+// Counts the pointer moves that get past the throttle: each one emits `mouse::move`.
+async function countHandledMoves(timeStamps) {
+  const { default: Application } = await import('./application.js')
+  Settings.set('enableMouse', true)
+  const spies = createListenerSpies()
+  const config = {}
+  Application(config)
+  let handled = 0
+  const app = {
+    ...createMockApp(),
+    $emit: (name) => {
+      if (name === 'mouse::move') handled++
+    },
+  }
+  config.hooks[symbols.init].call(app)
+  try {
+    const mousemove = spies.docAdded.find((c) => c.event === 'mousemove')
+    for (const timeStamp of timeStamps) mousemove.handler({ timeStamp, clientX: 0, clientY: 0 })
+    return handled
+  } finally {
+    cleanupAppAndRestore(config, spies.restore)
+  }
+}
+
+const MOVE_TIMESTAMPS = [1000, 1050, 1099, 1100, 1150]
+
+test('Pointer moves within 100ms of the last handled move are dropped by default', async (assert) => {
+  assert.equal(await countHandledMoves(MOVE_TIMESTAMPS), 2, 'only moves 100ms apart are handled')
+})
+
+test('mouseMoveThrottle setting changes the pointer move throttle window', async (assert) => {
+  Settings.set('mouseMoveThrottle', 16)
+  try {
+    assert.equal(
+      await countHandledMoves(MOVE_TIMESTAMPS),
+      4,
+      'moves at least 16ms apart are handled'
+    )
+  } finally {
+    delete Settings[symbols.settings].mouseMoveThrottle
   }
 })

@@ -19,22 +19,21 @@
 // text, config})` and owns the FTL app singleton (mirrors L3/launch.js
 // `export let renderer`).
 //
-// Phase 1 (core-only): webgl + canvas render modes, canvas text engine only.
-// MSDF/SDF fonts, custom shaders, inspector, pixelRatio/renderQuality and
-// advanced renderer settings are warn-and-skip (see README-FTL.md).
+// WebGL + Canvas backends, canvas/MSDF fonts and built-in effects. See
+// README-FTL.md for the settings and rendering features not yet supported.
 //
-// FTL is an OPTIONAL peer dependency (`ftl` + subpaths `ftl/platform/browser`,
+// FTL is a required dependency (`ftl` + subpaths `ftl/platform/browser`,
 // `ftl/renderer/webgl`, `ftl/renderer/canvas`, `ftl/text/canvas`,
 // `ftl/shaders`, `ftl/shaders/create`). All FTL imports are dynamic inside
-// `Launch()` so the L3 bundle/test path never touches them.
+// `Launch()` so importing Blits or its compiler does not initialize FTL.
 //
-// Async note: dynamic imports make this function async. Blits `src/launch.js`
-// passes an `onRenderer` callback which is invoked with the renderer facade
-// BEFORE the app components are constructed, so the global `renderer`
-// binding is populated in time.
+// Dynamic imports make this async. Like L3/launch.js, this only creates the
+// renderer; src/launch.js publishes it before constructing the application.
 
 import { Log } from '../../lib/log.js'
-import colors from '../../lib/colors/colors.js'
+import { colorToFtl } from './shaders.js'
+import { resolveFontEngine, fontEngines } from './fonts.js'
+import { platform as blitsPlatform } from '../../platform.js'
 
 /** @type {any|null} FTL app singleton created by Launch(). */
 export let ftlApp = null
@@ -59,7 +58,11 @@ const resolveTarget = (target) => {
  * Resolve (or create) the canvas to render into.
  */
 const resolveCanvas = (targetEl, settings, w, h) => {
-  if (settings.canvas) return settings.canvas
+  if (settings.canvas) {
+    settings.canvas.width = w
+    settings.canvas.height = h
+    return settings.canvas
+  }
   if (targetEl) {
     const existing = targetEl.tagName === 'CANVAS' ? targetEl : targetEl.querySelector('canvas')
     if (existing) {
@@ -102,28 +105,21 @@ const fitCanvas = (canvas, targetEl, w, h) => {
   return () => {}
 }
 
-const hexToRgbaFloat = (hex) => {
-  const h = ('' + hex).replace('0x', '').replace('#', '')
-  if (/^[0-9a-f]{8}$/i.test(h) === false) return [0, 0, 0, 0]
-  return [
-    parseInt(h.slice(0, 2), 16) / 255,
-    parseInt(h.slice(2, 4), 16) / 255,
-    parseInt(h.slice(4, 6), 16) / 255,
-    parseInt(h.slice(6, 8), 16) / 255,
-  ]
-}
-
 /**
  * Renderer facade: gives Blits core (`component.js` hooks, `application.js`
  * mouse, `FPScounter`) the `RendererMain` surface it expects, backed by FTL
  * signals. `stage` is intentionally absent in phase 1 (no mouse picking);
  * `application.js` already guards `renderer.stage == null`.
  */
-const createFacade = (app, canvas, settings, onDestroy = null) => {
+export const createFacade = (app, canvas, settings, onDestroy = null) => {
   const subs = { idle: new Set(), active: new Set(), frameTick: new Set(), fpsUpdate: new Set() }
   let isIdle = false
   let frames = 0
   let fpsTimer = null
+  let fpsStarted = 0
+  let destroyed = false
+  const signalUnsubs = []
+  const frameData = { time: 0, delta: 0 }
 
   const fire = (name, ...args) => {
     subs[name].forEach((cb) => {
@@ -136,59 +132,84 @@ const createFacade = (app, canvas, settings, onDestroy = null) => {
   }
 
   if (app.signals && app.signals.idle && typeof app.signals.idle.subscribe === 'function') {
-    app.signals.idle.subscribe(() => {
-      isIdle = true
-      frames = 0
-      subs.idle.forEach((cb) => {
-        try {
-          cb()
-        } catch (e) {
-          Log.error('[Blits:FTL] idle listener failed', e)
-        }
-      })
-    })
-  }
-
-  if (app.signals && app.signals.tick && typeof app.signals.tick.subscribe === 'function') {
-    app.signals.tick.subscribe((dt) => {
-      if (isIdle === true) {
-        isIdle = false
-        subs.active.forEach((cb) => {
+    signalUnsubs.push(
+      app.signals.idle.subscribe(() => {
+        isIdle = true
+        subs.idle.forEach((cb) => {
           try {
             cb()
           } catch (e) {
-            Log.error('[Blits:FTL] active listener failed', e)
+            Log.error('[Blits:FTL] idle listener failed', e)
           }
         })
-      }
-      frames++
-      subs.frameTick.forEach((cb) => {
-        try {
-          cb(facade, dt)
-        } catch (e) {
-          Log.error('[Blits:FTL] frameTick listener failed', e)
-        }
       })
-    })
+    )
   }
 
-  // fpsUpdate: derived from tick counts (L3 pushes these from the renderer).
-  const fpsInterval = settings.fpsInterval || 1000
-  fpsTimer = setInterval(() => {
-    if (subs.fpsUpdate.size === 0) return
-    const fps = Math.round((frames * 1000) / fpsInterval)
+  if (app.signals && app.signals.tick && typeof app.signals.tick.subscribe === 'function') {
+    signalUnsubs.push(
+      app.signals.tick.subscribe((dt) => {
+        if (isIdle === true) {
+          isIdle = false
+          subs.active.forEach((cb) => {
+            try {
+              cb()
+            } catch (e) {
+              Log.error('[Blits:FTL] active listener failed', e)
+            }
+          })
+        }
+        frames++
+        frameData.time = blitsPlatform.now()
+        frameData.delta = dt
+        subs.frameTick.forEach((cb) => {
+          try {
+            cb(facade, frameData)
+          } catch (e) {
+            Log.error('[Blits:FTL] frameTick listener failed', e)
+          }
+        })
+      })
+    )
+  }
+
+  // Keep the reporting interval mutable for this.$settings.set('fpsInterval').
+  const setFpsInterval = (interval) => {
+    if (fpsTimer !== null) clearInterval(fpsTimer)
+    fpsTimer = null
     frames = 0
-    fire('fpsUpdate', facade, { fps })
-  }, fpsInterval)
-  if (fpsTimer && typeof fpsTimer.unref === 'function') fpsTimer.unref()
+    if (destroyed === true || interval <= 0) return
+    fpsStarted = blitsPlatform.now()
+    fpsTimer = setInterval(() => {
+      const now = blitsPlatform.now()
+      const fps = Math.round((frames * 1000) / (now - fpsStarted))
+      frames = 0
+      fpsStarted = now
+      if (subs.fpsUpdate.size !== 0) fire('fpsUpdate', facade, { fps })
+    }, interval)
+    if (typeof fpsTimer.unref === 'function') fpsTimer.unref()
+  }
+
+  for (const name of ['contextLost', 'contextRestored', 'contextRestoreFailed']) {
+    const sig = app.signals[name]
+    if (sig === undefined) continue
+    subs[name] = new Set()
+    signalUnsubs.push(sig.subscribe((data) => fire(name, facade, data)))
+  }
 
   const facade = {
     _isFtl: true,
     _ftlApp: app,
     canvas,
+    root: app.root,
+    ready: app.ready,
+    start: () => app.start(),
+    stop: () => app.stop(),
+    setClearColor: (color) => app.setClearColor(color),
+    setFpsInterval,
     on: (evt, cb) => {
       if (subs[evt] === undefined) {
-        Log.warn(`[Blits:FTL] renderer event '${evt}' is not supported in phase 1`)
+        Log.warn(`[Blits:FTL] renderer event '${evt}' is not supported`)
         return () => {}
       }
       subs[evt].add(cb)
@@ -204,7 +225,11 @@ const createFacade = (app, canvas, settings, onDestroy = null) => {
       else subs[evt].delete(cb)
     },
     destroy: () => {
+      if (destroyed === true) return
+      destroyed = true
       if (fpsTimer !== null) clearInterval(fpsTimer)
+      for (let i = 0; i < signalUnsubs.length; i++) signalUnsubs[i]()
+      signalUnsubs.length = 0
       Object.keys(subs).forEach((k) => subs[k].clear())
       if (onDestroy !== null && onDestroy !== undefined) {
         try {
@@ -216,22 +241,29 @@ const createFacade = (app, canvas, settings, onDestroy = null) => {
       if (app && typeof app.stop === 'function') app.stop()
     },
   }
+  setFpsInterval(settings.fpsInterval ?? 1000)
   return facade
 }
 
 /**
- * Launch the FTL engine and application.
+ * Initialize the FTL engine. The caller owns application construction.
  *
- * @param {import('../../launch.js').BlitsAppFactory} App - Factory function that returns the application instance.
  * @param {HTMLElement|string} target - The target element (or element id) to render into.
  * @param {Partial<import('../../launch.js').BlitsSettings>} [settings] - Blits settings.
- * @param {(facade: any) => void} [onRenderer] - Called with the renderer facade before App() runs.
  * @returns {Promise<any>} Resolves to the renderer facade.
  */
-export default async (App, target, settings = {}, onRenderer) => {
+export default async (target, settings = {}) => {
   const w = settings.w || 1920
   const h = settings.h || 1080
   const renderMode = 'renderMode' in settings ? settings.renderMode : 'webgl'
+  if (renderMode !== 'canvas' && renderMode !== 'webgl') {
+    throw new Error(`[Blits:FTL] unsupported renderMode '${renderMode}'`)
+  }
+  const fonts = settings.fonts || []
+  let needsMsdf = false
+  for (let i = 0; i < fonts.length; i++) {
+    if (resolveFontEngine(fonts[i], renderMode).engine === 'msdf') needsMsdf = true
+  }
 
   // Note: all specifiers below are static strings (no @vite-ignore) so Vite
   // can resolve and code-split them. They only load when the FTL engine is
@@ -240,7 +272,7 @@ export default async (App, target, settings = {}, onRenderer) => {
     import('ftl'),
     import('ftl/platform/browser'),
     import('ftl/text/canvas'),
-    import('ftl/text/msdf'),
+    needsMsdf === true ? import('ftl/text/msdf') : Promise.resolve(null),
   ])
   const rendererModule =
     renderMode === 'canvas'
@@ -254,7 +286,7 @@ export default async (App, target, settings = {}, onRenderer) => {
   let shaderBridge = null
   let shaderInstances = []
   let stageMod = null
-  try {
+  if (renderMode === 'webgl') {
     const [bridge, shaderMods, shaderCreateMod, stageModule] = await Promise.all([
       import('./shaders.js'),
       import('ftl/shaders'),
@@ -289,8 +321,6 @@ export default async (App, target, settings = {}, onRenderer) => {
       'BilinearShader',
       'HolePunchShader',
     ].map((key) => mods.createShader(mods[key]))
-  } catch (e) {
-    Log.warn('[Blits:FTL] shader modules unavailable — rounded/border/shadow/gradient ignored', e)
   }
 
   const targetEl = resolveTarget(target)
@@ -318,7 +348,7 @@ export default async (App, target, settings = {}, onRenderer) => {
     const [{ DefaultRectShader, DefaultTextureShader, MsdfTextShader }, { createShader }] =
       await Promise.all([import('ftl/shaders'), import('ftl/shaders/create')])
     const webglRenderer = rendererModule.default || rendererModule
-    msdfTextShader = createShader(MsdfTextShader)
+    msdfTextShader = needsMsdf === true ? createShader(MsdfTextShader) : null
     renderer = webglRenderer(canvas, {
       rectangleShader: createShader(DefaultRectShader),
       textureShader: createShader(DefaultTextureShader),
@@ -330,21 +360,29 @@ export default async (App, target, settings = {}, onRenderer) => {
   }
 
   ftlApp = main({
-    platform,
+    platform: settings.rendererPlatform || platform,
     renderer,
     text: {
       canvas: textCanvas.default || textCanvas,
       // MSDF engine coexists with canvas; per-text `type` selects.
       // Default stays canvas (unregistered families fall back, like L3).
-      msdf: textMsdf.default || textMsdf,
+      msdf: textMsdf === null ? undefined : textMsdf.default,
       defaultTextEngine: 'canvas',
     },
-    config: {
-      width: w,
-      height: h,
-      boundsMargin: settings.viewportMargin || 0,
-      numImageWorkers: 'webWorkersLimit' in settings ? settings.webWorkersLimit : 2,
-    },
+    config: Object.assign(
+      {
+        width: w,
+        height: h,
+        boundsMargin: settings.viewportMargin || 0,
+        numImageWorkers:
+          settings.webWorkersLimit ?? Math.min(blitsPlatform.hardwareConcurrency || 2, 2),
+        uploadBudgetMs: settings.textureProcessingTimeLimit ?? 10,
+        clearColor: colorToFtl(settings.canvasColor ?? '0x00000000'),
+        handleLoopError: (error) => Log.error('[Blits:FTL] render loop callback failed', error),
+      },
+      settings.advanced,
+      { width: w, height: h }
+    ),
   })
   ftlApp.canvas = canvas
 
@@ -358,6 +396,7 @@ export default async (App, target, settings = {}, onRenderer) => {
     }
   }
 
+  let stopAnimations = () => {}
   // Animation engine (optional peer `animejs`): FTL owns the rAF loop, so
   // AnimeJS runs in manual mode, driven by FTL ticks. `hasRunningTweens`
   // keeps the loop alive while tweens run — no AnimeJS privates involved.
@@ -378,15 +417,21 @@ export default async (App, target, settings = {}, onRenderer) => {
       cubicBezier: animeMod.cubicBezier,
     })
     const animeEngine = animeMod.engine
+    const previousMainLoop = animeEngine.useDefaultMainLoop
     animeEngine.useDefaultMainLoop = false
     ftlApp.addActiveCheck(() => tweenMod.hasRunningTweens())
-    ftlApp.signals.tick.subscribe(() => {
+    const unsubscribe = ftlApp.signals.tick.subscribe(() => {
       try {
         animeEngine.update()
       } catch (e) {
         Log.error('[Blits:FTL] animation engine update failed', e)
       }
     })
+    stopAnimations = () => {
+      unsubscribe()
+      tweenMod.setAnimationEngine(null)
+      animeEngine.useDefaultMainLoop = previousMainLoop
+    }
   } catch {
     Log.warn(
       '[Blits:FTL] `animejs` peer not installed — transitions apply instantly (`npm i animejs`)'
@@ -406,24 +451,14 @@ export default async (App, target, settings = {}, onRenderer) => {
     }
   }
 
-  if (settings.canvasColor) {
-    try {
-      const normalized = colors.normalize(settings.canvasColor)
-      if (renderer.setClearColor) renderer.setClearColor(hexToRgbaFloat(normalized))
-    } catch (e) {
-      Log.warn('[Blits:FTL] could not apply canvasColor', e)
-    }
-  }
-
   // Fonts: `msdf`/`sdf` entries load their atlas pair into the MSDF
   // engine (derived `<file>.msdf.png/.json` unless explicit png/json;
   // the Blits msdfGenerator vite plugin serves/generates those URLs).
   // Everything else loads the raw file into the canvas engine. Families
   // are registered per loaded engine so text nodes select correctly.
-  // All loads are awaited here: FTL renders MSDF from a family cache that
-  // must exist before first paint.
-  const { resolveFontEngine, fontEngines } = await import('./fonts.js')
-  const fonts = settings.fonts || []
+  // Current FTL loadFont registers lazily. First use triggers loading and
+  // invalidates the element when ready; do not preload every configured font.
+  fontEngines.clear()
   for (let i = 0; i < fonts.length; i++) {
     const font = fonts[i]
     const plan = resolveFontEngine(font, renderMode)
@@ -455,34 +490,32 @@ export default async (App, target, settings = {}, onRenderer) => {
   }
 
   if (settings.shaders && settings.shaders.length > 0) {
-    Log.warn('[Blits:FTL] custom shaders need the phase-2 shader bridge, ignoring')
+    Log.warn('[Blits:FTL] custom shader registration is not supported, ignoring')
+  }
+  if (settings.effects && settings.effects.length > 0) {
+    Log.warn('[Blits:FTL] custom shader effects are not supported, ignoring')
   }
   if (settings.inspector === true) {
-    Log.warn('[Blits:FTL] inspector is not supported with FTL in phase 1')
+    Log.warn('[Blits:FTL] inspector is not supported with FTL')
+  }
+  for (const key of ['pixelRatio', 'renderQuality', 'screenResolution', 'gpuMemory', 'maxFPS']) {
+    if (settings[key] !== undefined)
+      Log.warn(`[Blits:FTL] launch setting '${key}' is not supported`)
   }
 
-  rendererFacade = createFacade(ftlApp, canvas, settings, unfit)
-
-  // Publish the facade BEFORE constructing components so Blits core
-  // (`component.js` reading the global `renderer` binding) sees it in time.
-  if (typeof onRenderer === 'function') onRenderer(rendererFacade)
-
-  const initApp = () => {
-    let app = App()
-    const prevQuit = app.quit
-    app.quit = () => {
-      Log.info('Closing App (FTL)')
-      if (typeof prevQuit === 'function') prevQuit.call(app)
-      else if (typeof app.destroy === 'function') app.destroy()
-      rendererFacade.destroy()
-      app = null
-      ftlApp = null
-      rendererFacade = null
+  rendererFacade = createFacade(ftlApp, canvas, settings, () => {
+    unfit()
+    stopAnimations()
+    if (shaderBridge !== null) {
+      shaderBridge.setStage(null)
+      shaderBridge.setShaderModules(null)
     }
-  }
-
-  // Mirror L3: defer app init a tick so setup settles before components render.
-  Promise.resolve().then(initApp)
-
+    fontEngines.clear()
+    if (typeof window !== 'undefined' && window.__blitsFtl === ftlApp) {
+      window.__blitsFtl = undefined
+    }
+    ftlApp = null
+    rendererFacade = null
+  })
   return rendererFacade
 }

@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// FTL NodeAdapter skeleton (phase 1 core-only). Implements the
+// FTL NodeAdapter. Implements the
 // `src/engines/common/nodeAdapter.js` contract over FTL Elements.
 //
 // Rules:
@@ -26,17 +26,16 @@
 //   (transform, alpha, visibility, ...). `color`/`w`/`h` carry no
 //   child-visible state and skip the walk (`w`/`h` except on RTT roots,
 //   where a resize must re-render the framebuffer via member dirties).
-// - Text nodes: Blits `__textnode` props become `createText()` assigned to
-//   `el.text` (FTL decouples text objects from elements). Spike needed for
-//   exact canvas-text prop names (see TODO.md).
+// - Text changes must pass through el.text so baked textures, font waiters
+//   and glyph caches are invalidated, not just the element's transform.
 // - Images: `src`/`texture` props become `createImage()` assigned to
-//   `el.texture`. `autoSize` behavior TBD in spike.
+//   `el.texture`. Resource listeners follow subsequent text/texture swaps.
 // - Events: FTL uses `signal()` (`subscribe` returns unsubscribe), NOT
-//   `EventEmitter`. `on('loaded'/'failed')` subscribes to the TEXTURE signals;
-//   `inBounds/outOfBounds` subscribe to `el.signals`. Payloads are normalized
+//   `EventEmitter`. Resource listeners follow texture/text changes; failure
+//   and bounds listeners use stable element signals. Payloads are normalized
 //   to `{ w, h, type }` / error.
-// - `animate`, `createShader`, `createTexture`, `loadFont` throw `unsupported`
-//   in phase 1 by design.
+// - Animation uses the optional AnimeJS bridge. Shaders, textures and fonts
+//   are configured by the element/launch bridges rather than this interface.
 
 import { unsupported } from '../common/nodeAdapter.js'
 import { createTween } from './tween.js'
@@ -76,6 +75,35 @@ const ensureProvisionalSize = (props) => {
   if (!props.h) props.h = 1
 }
 
+const resourceListeners = new WeakMap()
+
+const bindResourceListener = (node, listener) => {
+  if (listener.unsub !== null) listener.unsub()
+  listener.unsub = null
+  const revision = ++listener.revision
+  const text = node.text
+  const isText = text !== null && text !== undefined
+  const isGlyphText = isText === true && text.type !== 0 && text.type !== 'canvas'
+  const tex = node.texture
+  const sig = isGlyphText === true ? node.signals.textCalculated : tex?.signals.loaded
+  if (sig === undefined || sig === null) return
+  const notify = () => {
+    if (listener.active !== true || listener.revision !== revision || node._destroyed === true)
+      return
+    listener.cb({ w: node.w, h: node.h, type: isText === true ? 'text' : 'texture' }, node)
+  }
+  listener.unsub = subscribeSignal(sig, notify)
+  // Warm textures may have emitted before listeners were installed. Defer so
+  // callers can finish constructing the component before @loaded is invoked.
+  if (isGlyphText === false && tex.isReady === true) queueMicrotask(notify)
+}
+
+const refreshResourceListeners = (node) => {
+  const listeners = resourceListeners.get(node)
+  if (listeners === undefined) return
+  for (const listener of listeners) bindResourceListener(node, listener)
+}
+
 export default {
   getRoot() {
     return requireApp().root
@@ -104,14 +132,16 @@ export default {
   },
   setProp(node, key, value) {
     if (key === 'text') {
-      // Full text-object replace path; per-field text updates TBD in spike.
+      ensureProvisionalSize(node)
       node.text = value
       node.dirty()
+      refreshResourceListeners(node)
       return
     }
     if (key === 'texture') {
       node.texture = value
       node.dirty()
+      refreshResourceListeners(node)
       return
     }
     node[key] = value
@@ -141,26 +171,37 @@ export default {
     return createTween(node, key, from, to, settings, write)
   },
   on(node, evt, cb) {
-    if (evt === 'loaded') {
-      // FTL texture signals live on the texture, but element signals carry
-      // bounds; wire texture-loaded where available, else element signal.
-      const tex = node.texture || node._texture
-      const sig = (tex && (tex.signals?.loaded || tex.loaded)) || node.signals?.inBounds
-      if (sig) return subscribeSignal(sig, () => cb({ w: node.w, h: node.h }, node))
-      return subscribeSignal(node.signals.inBounds, () => cb({ w: node.w, h: node.h }, node))
+    if (evt === 'loaded' || evt === 'textCalculated') {
+      let listeners = resourceListeners.get(node)
+      if (listeners === undefined) {
+        listeners = new Set()
+        resourceListeners.set(node, listeners)
+      }
+      const listener = { cb, unsub: null, active: true, revision: 0 }
+      listeners.add(listener)
+      bindResourceListener(node, listener)
+      return () => {
+        listener.active = false
+        if (listener.unsub !== null) listener.unsub()
+        listeners.delete(listener)
+      }
     }
     if (evt === 'failed') {
-      const tex = node.texture || node._texture
-      const sig = (tex && (tex.signals?.failed || tex.released)) || null
-      if (sig) return subscribeSignal(sig, (err) => cb(err, node))
+      const sig = node.signals?.failed
+      if (sig !== undefined && sig !== null) return subscribeSignal(sig, (err) => cb(err, node))
       return () => {}
     }
-    if (evt === 'inBounds' || evt === 'outOfBounds') {
-      return subscribeSignal(node.signals[evt], () => cb(node))
+    if (evt === 'inBounds' || evt === 'outOfBounds' || evt === 'inViewport') {
+      // FTL does not yet distinguish preload bounds from the strict viewport.
+      const name = evt === 'inViewport' ? 'inBounds' : evt
+      return subscribeSignal(node.signals[name], () =>
+        cb(node, {
+          previous: name === 'outOfBounds' ? 1 : 0,
+          current: name === 'outOfBounds' ? 0 : 1,
+        })
+      )
     }
-    throw new Error(
-      `[Blits:FTL] unsupported event '${evt}' (phase 1: loaded/failed/inBounds/outOfBounds)`
-    )
+    throw new Error(`[Blits:FTL] unsupported event '${evt}'`)
   },
   off(unsub) {
     // FTL `subscribe` returns an unsubscribe fn; adapter `on` returns it, so
@@ -168,6 +209,14 @@ export default {
     if (typeof unsub === 'function') unsub()
   },
   destroy(node) {
+    const listeners = resourceListeners.get(node)
+    if (listeners !== undefined) {
+      for (const listener of listeners) {
+        listener.active = false
+        if (listener.unsub !== null) listener.unsub()
+      }
+      resourceListeners.delete(node)
+    }
     node.destroy()
   },
   getParent(node) {

@@ -15,22 +15,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// BlitsElement-over-FTL. Mirrors the structure of `src/engines/L3/element.js`
+// BlitsElement-over-FTL. Mirrors the structure of upstream Blits' element layer
 // (populate / set / animate / destroy / layoutFn / propsTransformer) but emits
 // FTL-native props and talks to the renderer ONLY through `nodeAdapter.js`.
 //
-// Phase-1 (core-only) deltas vs L3:
-// - color: normalized `0xRRGGBBAA` -> `[r,g,b,a]` floats. Gradient objects,
-//   shaders (rounded/border/shadow/shader), sprites (image/map/frame) and
-//   `fit` are warn-once + ignored (phase 2).
+// Deltas vs L3:
+// - color: normalized `0xRRGGBBAA` -> `[r,g,b,a]` floats. Built-in effects
+//   and gradients are handled by shaders.js; sprites by sprite.js.
 // - show -> `visible` (FTL flag); alpha stays separate.
 // - text nodes: element props + text props are split; text goes through
-//   `ftlApp.createText()` (canvas engine). `color` on a text node becomes
+//   `ftlApp.createText()` (canvas/MSDF). `color` on a text node becomes
 //   `textColor`.
 // - images: `src` string -> `ftlApp.createImage({ src })` -> `texture`.
 //   `autoSize` mirrors the L3 `autosize` behavior when no w/h is given.
-// - animate/transitions: warn-once, apply end value immediately, still fire
-//   `transition.start/end` callbacks so components behave.
+// - animate/transitions: optional AnimeJS bridge driven by FTL frame ticks.
 // - `node.on/off` compat shims are attached to each created FTL element so
 //   Blits core (`component.js` attach/detach/enter/exit hooks calling
 //   `wrapper.node.on('inBounds' | 'outOfBounds' | 'inViewport')`) works
@@ -266,6 +264,11 @@ const propsTransformer = {
   set rotation(v) {
     this.props['rotation'] = toNumber(v) * (Math.PI / 180)
   },
+  set rich(v) {
+    if (v === true || v === 'true') {
+      warnOnce('rich', 'rich text is not supported by the FTL text bridge')
+    }
+  },
   set w(v) {
     this.props['w'] = toNumber(parsePercentage.call(this, v, 'w'))
   },
@@ -285,7 +288,7 @@ const propsTransformer = {
     this.props['zIndex'] = toNumber(v)
   },
   set color(v) {
-    if (typeof v === 'string' && v.startsWith('{') === false) {
+    if (typeof v === 'number' || (typeof v === 'string' && v.startsWith('{') === false)) {
       this.props['color'] = colorToFtl(v)
       this.props['textColor'] = colorToFtl(v)
     } else if (typeof v === 'object' || (isObjectString(v) === true && (v = parseToObject(v)))) {
@@ -340,8 +343,23 @@ const propsTransformer = {
     }
   },
   set fit(v) {
-    void v
-    warnOnce('fit', "'fit' texture option is not supported in FTL phase 1")
+    if (v === 'cover' || v === 'contain') {
+      this.props['resizeMode'] = { type: v }
+      return
+    }
+    if (isObjectString(v) === true) v = parseToObject(v)
+    if (typeof v !== 'object' || v === null) {
+      this.props['resizeMode'] = null
+      return
+    }
+    const resizeMode = { type: v.type || 'cover' }
+    if (typeof v.position === 'number') {
+      resizeMode.clipX = resizeMode.clipY = v.position
+    } else if (typeof v.position === 'object' && v.position !== null) {
+      resizeMode.clipX = v.position.x
+      resizeMode.clipY = v.position.y
+    }
+    this.props['resizeMode'] = resizeMode
   },
   set rtt(v) {
     this.props['rtt'] = v
@@ -468,7 +486,7 @@ const propsTransformer = {
     }
   },
   set letterspacing(v) {
-    this.props['letterSpacing'] = toNumber(v) || 1
+    this.props['letterSpacing'] = toNumber(v)
   },
   set lineheight(v) {
     this.props['lineHeight'] = toNumber(v)
@@ -522,9 +540,14 @@ const propsTransformer = {
     // FTL has no interactive/holder nodes in phase 1.
     warnOnce('holder', "'holder' interactivity is not supported in FTL phase 1")
   },
+  set interactive(v) {
+    if (v === true || v === 'true') {
+      warnOnce('interactive', 'pointer picking is not supported by the FTL bridge')
+    }
+  },
 }
 
-export const elementAttributes = Object.keys(propsTransformer)
+export { elementAttributes } from '../common/elementAttributes.js'
 
 /**
  * Attach `.on/.off` compat shims to a raw FTL element so Blits core code
@@ -532,7 +555,7 @@ export const elementAttributes = Object.keys(propsTransformer)
  * @param {any} node - Raw FTL element.
  */
 const attachNodeShims = (node) => {
-  if (node.__blitsShimmed === true) return
+  // FTL pools raw elements. Reinitialize shims for every new Blits owner.
   node.__blitsShimmed = true
   node.__blitsSubs = []
   node.on = (evt, cb) => {
@@ -716,7 +739,7 @@ const Element = {
     if (this[symbols.isSprite] !== true) {
       if (props['@loaded'] !== undefined && typeof props['@loaded'] === 'function') {
         this.node.on('loaded', (dimensions) => {
-          props['@loaded']({ w: dimensions.w, h: dimensions.h }, this)
+          props['@loaded'](dimensions, this)
         })
       }
 
@@ -733,7 +756,7 @@ const Element = {
 
     if (this.config.parent.props !== undefined && this.config.parent.props.__layout === true) {
       this.config.parent.triggerLayout(this.config.parent.props)
-      this.node.on('loaded', () => {
+      this.node.on(isTextNode === true ? 'textCalculated' : 'loaded', () => {
         if (this.eol === true) return
         this.config.parent.triggerLayout(this.config.parent.props)
       })
@@ -778,6 +801,8 @@ const Element = {
         }
       }
     }
+
+    if (prop === 'color') this._syncElementShader()
 
     if (this.config.parent.props && this.config.parent.props.__layout === true) {
       this.config.parent.triggerLayout(this.config.parent.props)
@@ -848,7 +873,7 @@ const Element = {
       if (this.node.text === null || this.node.text === undefined) return
       if (key === 'color') return
       this.node.text[key] = value
-      this.node.dirty()
+      adapter.setProp(this.node, 'text', this.node.text)
       return
     }
     if (key === 'parent') {
@@ -989,7 +1014,7 @@ const Element = {
    */
   _applyFontFamily(value) {
     if (this.node.text === null || this.node.text === undefined) return
-    const want = fontEngines.engineOf(value)
+    const want = fontEngines.engineOf(value) ?? 'canvas'
     const current = this.node.text.type
     const wantType =
       want !== undefined && engineTextType[want] !== undefined ? engineTextType[want] : undefined
@@ -1001,11 +1026,14 @@ const Element = {
       ftlApp === undefined
     ) {
       this.node.text.fontFamily = value
-      this.node.dirty()
+      adapter.setProp(this.node, 'text', this.node.text)
       return
     }
-    this.node.text = ftlApp.createText({ ...this.node.text, fontFamily: value, type: want })
-    this.node.dirty()
+    adapter.setProp(
+      this.node,
+      'text',
+      ftlApp.createText({ ...this.node.text, fontFamily: value, type: want })
+    )
   },
   /**
    * Read the current (text-aware) value of a transformed prop.
@@ -1036,7 +1064,7 @@ const Element = {
       return (v) => {
         if (this.eol === true || this.node === null || this.node === undefined) return
         this.node.text[key] = v
-        this.node.dirty()
+        adapter.setProp(this.node, 'text', this.node.text)
       }
     }
     return (v) => {
@@ -1276,8 +1304,8 @@ const Element = {
  */
 const syncSrcTexture = function () {
   const texture = resolveImageTexture(this.props.raw['src'])
+  adapter.setProp(this.node, 'texture', texture)
   if (texture !== null) {
-    adapter.setProp(this.node, 'texture', texture)
     if (!('w' in this.props.raw) && !('h' in this.props.raw)) {
       adapter.setProp(this.node, 'autoSize', true)
     }

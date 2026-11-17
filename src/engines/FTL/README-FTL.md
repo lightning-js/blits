@@ -1,104 +1,86 @@
-# Blits + FTL renderer (phase 1)
+# Blits + FTL
 
-Opt-in support for the new FTL renderer alongside the default Lightning 3
-renderer. Select it per app via launch settings:
+This branch uses **FTL only**. There is no L3 backend or L3 renderer dependency.
+Use upstream Blits (`master`) as the L3 reference for cross-renderer comparisons.
+
+## Setup
+
+`npm install` installs Lightning FTL from the pinned GitHub `v0.15.1` release.
+**Do not run `npm install ftl`: the npm package with that name is unrelated.**
+AnimeJS is an optional peer for transitions (`npm install animejs`). It is also
+installed for development. Without it, transitions apply their final values.
 
 ```js
-Blits.Launch(App, 'app', {
-  renderer: 'ftl', // default: 'l3'
+await Blits.Launch(App, 'app', {
   w: 1920,
   h: 1080,
+  renderMode: 'webgl', // or 'canvas'; this is not a backend selector
 })
 ```
 
-Install the optional peer dependencies to use it:
+FTL dependencies initialize asynchronously. `Launch()` resolves after the
+renderer is published and the application is constructed, not after all fonts,
+images, or the first frame have finished loading. Await it to handle startup
+errors. The old `renderer: 'ftl'` setting is unnecessary and warns; requesting
+`renderer: 'l3'` throws rather than silently running a different backend.
 
-```sh
-npm i ftl animejs
-```
+For sibling development, an application can override its FTL dependency with
+`"ftl": "file:../ftl"`. FTL package exports are used directly; no L3 aliases or
+compatibility facade package is needed.
 
-For local development against sibling checkouts:
+## Supported integration
 
-```json
-{ "dependencies": { "ftl": "file:../ftl" } }
-```
+- Position, size, percentages, z-index, rotation, mount, pivot, scale, alpha,
+  visibility, layouts, components, router and focus.
+- Solid string and numeric `0xRRGGBBAA` colors; gradient objects use the built-in
+  gradient shaders, including four-corner gradients.
+- Raster images, native sprite sheets, and `fit="contain"` / `fit="cover"`
+  with optional crop positioning. Image/text mutations invalidate FTL state.
+- Canvas text and configured MSDF font families. Canvas render mode uses canvas
+  fonts; WebGL initializes the MSDF engine only when configured fonts need it.
+  Font registration is lazy, matching current FTL's first-use loading.
+- Built-in rounded, border, shadow, gradient and hole-punch effects on WebGL.
+- Optional AnimeJS transitions driven by FTL ticks.
+- `frameTick` hooks with `{ time, delta }`, idle/active hooks, derived FPS,
+  and context loss/restoration events. The profiler receives frame timing.
+- Runtime `canvasColor` and `fpsInterval` updates target FTL.
+- `textureProcessingTimeLimit` maps to FTL's upload budget; `webWorkersLimit`
+  defaults to at most two workers.
+- `advanced` overrides FTL config fields (for example `maxTextureCount`,
+  `maxPoolSize`, `handleLoopError`, `contextRestoreTimeout`). Stage dimensions
+  remain controlled by `w`/`h`.
+- `rendererPlatform` accepts an FTL platform object. `browserPlatform` is
+  exported from `@lightningjs/blits/platforms`; L3 platform constructors are gone.
 
-The FTL engine is resolved via dynamic import, so L3 apps never download or
-parse FTL code.
+## Known gaps — not a full parity claim
 
-## What works in phase 1 (core-only)
+- Text metrics, containment, line-height semantics and SSDF/rich text do not yet
+  match every upstream L3 case. `rich` warns; text remains plain text.
+- Draw ordering, image tinting, textured effects, moving/nested clipping and RTT
+  sharing still require dedicated parity work. Similar shader names do not
+  imply identical composition with image textures.
+- `inViewport` currently approximates `inBounds`; FTL does not expose L3's three
+  viewport/preload states. These are not exact viewport lifecycle semantics.
+- Mouse picking, inspector, rounded descendant clipping, custom shader
+  registration and post-creation reparenting are unsupported.
+- Sprite `@error` is not wired by the sprite bridge yet. Ordinary image/font
+  failures use the element failure signal.
+- `pixelRatio`, `renderQuality`, `screenResolution`, `gpuMemory`, and `maxFPS`
+  warn when explicitly supplied. The stage renders at authored dimensions and
+  is fitted with CSS; this is not equivalent to L3 pixel-ratio rendering.
+- Other renderer runtime settings warn rather than targeting an L3 singleton.
+- Quit stops FTL, disposes facade subscriptions/timers and animation integration,
+  but FTL still permits only one global stage per page. Relaunch needs a reload.
 
-- Position/size (`x y w h`, incl. `%`), `z`, `rotation` (degrees), `mount`,
-  `pivot`, `scale`, `alpha`, `show` (maps to FTL `visible`)
-- Solid `color` (any `colors.normalize` format → FTL rgba floats)
-- `src` images (raster; SVG needs explicit `w`/`h`), `@loaded` / `@error`
-- Native sprites (`<Sprite image map frame>`): sheet via `createImage`,
-  frames via `createTexture('subtexture')` with L3-identical map lookup
-  (`{defaults, frames}`, flat maps, inline frame objects); `@loaded`
-  subscribes on the frame texture (`@error` has no FTL failure signal and
-  warns, like `src` images)
-- Text (`content font size align maxwidth maxheight maxlines letterspacing
-  lineheight contain textoverflow`) with per-family engine selection:
-  `msdf`/`sdf` entries load their atlas pair (`<file>.msdf.png/.json`,
-  served or generated by the Blits msdfGenerator vite plugin) into the
-  MSDF engine and render SDF text; everything else (plus `renderMode:
-  'canvas'`) uses the canvas engine. Unregistered families fall back to
-  canvas, like L3
-- Flex `__layout` containers, `%` placement, router, focus, components
-- `frameTick` / `idle` / `active` hooks, `fpsUpdate` (derived from ticks)
-- Transitions/animations via AnimeJS (optional peer `animejs`, lazy-loaded
-  in the FTL chunk only). All 16 Blits easings map to identical L3
-  cubic-bezier curves; `start/progress/end` callbacks, delay, cancel and
-  router `end`-promises work. Without the peer, transitions apply instantly
-  with a warning
-- `rounded` / `border` / `shadow` (all combos, reactive live updates),
-  gradient `color` objects (`{top,bottom,left,right}` → linear gradient;
-  single key degrades to solid), and `shader={type}` for built-in types
-  (`linearGradient`, `radialGradient`, `holePunch`, effect combos)
+## Verification strategy
 
-## Known limitations (warn-and-continue, never silent)
+Retain shared Blits unit tests and FTL bridge tests here. Run matching Blits
+fixtures against upstream Blits/L3 and this branch/FTL, with the same assets,
+fonts, dimensions and capture points. Compare output to the L3 reference and
+assert dimensions, events and lifecycle separately. Different backend-specific
+snapshot baselines alone do not prove parity.
 
-- Custom `shaders:[]` types and string-form `shader="name"` need hand ports
-- Gradient color objects map corner pairs to a diagonal linear gradient
-  (approximation of L3's bilinear 4-corner blend); max 8 stops
-- Effect shaders are WebGL-only (`renderMode: 'canvas'` renders unshaded)
-- MSDF/SDF atlas entries without a derivable pair warn and fall back
-  (specify `file` or explicit `png`+`json`)
-- `inspector: true` ignored; `holder` interactivity ignored
-- Mouse picking disabled (`enableMouse` is safe: hover just never resolves)
-- `renderQuality` / `pixelRatio` / `gpuMemory` / `advanced` settings ignored
-- `renderMode: 'canvas'` uses the FTL 2D canvas renderer
-
-## Architecture
-
-```
-Blits core → stage.element (= FTL/element.js BlitsElement)
-  → FTL/nodeAdapter.js (NodeAdapter contract, see ../common/nodeAdapter.js)
-  → FTL Elements (ftlApp.createElement / createText / createImage + dirty())
-```
-
-`FTL/launch.js` maps Blits settings onto FTL
-`main({ platform, renderer, text, config })` and returns a renderer facade
-(`on/off/canvas/destroy`) that backs the global Blits `renderer` binding.
-
-## Engine notes (bundling / boot pitfalls)
-
-- Dynamic `import('ftl/...')` specifiers must stay static strings (no
-  `@vite-ignore`, no variables) or the browser build emits bare specifiers
-  that fail at runtime. The dev server additionally needs the `ftl/*` alias
-  in the app's vite config (optional-peer externalization + export remaps).
-- `webglRenderer(canvas, shaders)` requires an explicit `additionalShaders`
-  array (an omitted arg is not enough — the default parameter only applies
-  when the whole argument is undefined).
-- FTL only starts loading an element's texture once it is renderable
-  (`w>0 && h>0`) and flips out-of-bounds→in-bounds. Unmeasured Blits
-  text/image nodes get a 1x1 provisional size until `autoSize`/`set`
-  resolves them (mirrors L3's 1px text nodes).
-- The canvas backing store (`w`/`h`) is fitted to the display with CSS
-  (aspect preserved, refit on resize) unless the app passes its own sized
-  canvas — so stage coordinates map to the visible area like L3.
-
-## Roadmap
-
-Custom shader ports, sprite textures, MSDF fonts, inspector metadata,
-mouse picking via bounds walk, pixel-ratio support.
+There is **not yet a cross-backend visual suite** in this refresh. Existing
+mocked/unit tests cannot establish visual equivalence. Add native FTL regression
+cases for engine bugs exposed by real Blits fixtures rather than building a
+standalone L3 compatibility layer.

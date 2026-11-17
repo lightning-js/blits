@@ -16,11 +16,15 @@
  */
 
 import Blits from '../../index.js'
-import { renderer } from '../launch.js'
 import fps_sprite from '../../public/assets/fps_sprite.base64.js'
 
 // exporting as named export to allow selective importing
 export const FPScounter = Blits.Component('FPScounter', {
+  props: {
+    active: true,
+    show: true,
+    alpha: 1,
+  },
   template: `
     <Element>
       <Element y="15" x="20">
@@ -93,28 +97,34 @@ export const FPScounter = Blits.Component('FPScounter', {
       avgFps: '---',
       minFps: '---',
       maxFps: '---',
+
+      data: {
+        minFps: 10000,
+        maxFps: 0,
+        totalFps: 0,
+        fpsUpdateCounter: 0,
+        avgFps: 0,
+      },
     }
   },
   hooks: {
-    ready() {
-      let minFps = 10000
-      let maxFps = 0
-      let avgFps = 0
-      let totalFps = 0
-      let fpsUpdateCounter = 0
+    /**
+     * @param {number} fps
+     */
+    fpsUpdate(fps) {
+      // early return when not active or hidden
+      if (!this.active || !this.show || this.alpha === 0) return
 
-      renderer.on('fpsUpdate', (rM, { fps }) => {
-        minFps = Math.min(fps, minFps)
-        maxFps = Math.max(fps, maxFps)
-        totalFps += fps
-        fpsUpdateCounter++
-        avgFps = Math.round(totalFps / fpsUpdateCounter)
+      this.data.minFps = Math.min(fps, this.data.minFps)
+      this.data.maxFps = Math.max(fps, this.data.maxFps)
+      this.data.totalFps += fps
+      this.data.fpsUpdateCounter++
+      this.data.avgFps = Math.round(this.data.totalFps / this.data.fpsUpdateCounter)
 
-        this.fps = fps.toString().padStart(3, '0')
-        this.avgFps = avgFps.toString().padStart(3, '0')
-        this.minFps = minFps.toString().padStart(3, '0')
-        this.maxFps = maxFps.toString().padStart(3, '0')
-      })
+      this.fps = fps.toString().padStart(3, '0')
+      this.avgFps = this.data.avgFps.toString().padStart(3, '0')
+      this.minFps = this.data.minFps.toString().padStart(3, '0')
+      this.maxFps = this.data.maxFps.toString().padStart(3, '0')
     },
   },
 })

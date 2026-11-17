@@ -20,9 +20,7 @@
 // for built-in types) into FTL shader instances (`el.shader`).
 //
 // Notes:
-// - The value parsers are ported from `src/lib/shaders/shaders.js` rather
-//   than imported: that module pulls the L3 renderer singleton, which would
-//   bundle the whole L3 renderer into the FTL chunk.
+// - The value parsers follow upstream Blits' shader attribute semantics.
 // - Colors are normalized with the shared `colors` lib, then converted to
 //   FTL `[r,g,b,a]` floats. `colorToFtl` is exported for `element.js`.
 // - Gradient angle convention needs NO translation: both L3
@@ -70,6 +68,9 @@ export const setStage = (stage) => {
  */
 export const colorToFtl = (v) => {
   if (v === null || v === undefined) return [1, 1, 1, 1]
+  if (typeof v === 'number') {
+    return [(v >>> 24) / 255, ((v >>> 16) & 255) / 255, ((v >>> 8) & 255) / 255, (v & 255) / 255]
+  }
   const normalized = colors.normalize(typeof v === 'string' ? v : '' + v)
   const hex = ('' + normalized).replace('0x', '').replace('#', '')
   if (/^[0-9a-f]{8}$/i.test(hex) === false) return [1, 1, 1, 1]
@@ -107,7 +108,7 @@ export const parseRoundedValue = (v) => {
 
 /**
  * Parse a `border` value to `{ width, color, gap, align }` (all optional).
- * Mirrors `lib/shaders/shaders.js` `parseBorder`.
+ * Mirrors upstream Blits' `parseBorder`.
  */
 export const parseBorderValue = (v) => {
   if (v === undefined || v === null) return null
@@ -275,7 +276,7 @@ export const parseGradientColor = (obj) => {
 }
 
 /**
- * Combination matrix mirroring `lib/shaders/shaders.js createElementShader`:
+ * Combination matrix mirroring upstream Blits' createElementShader:
  * border+shadow (no rounded) and every rounded combo share the
  * `roundedWithBorderAndShadow` FTL shader (radius 0 when unrounded).
  * @param {{ rounded: any, border: any, shadow: any }} raw

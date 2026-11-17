@@ -37,7 +37,7 @@ export default Blits.Component('MyComponent', {
 
 Within a computed property, you can reference one or more state variables or props and _return_ a value based on calculations or logical operations.
 
-Whenever the value of any of the referenced variables changes, the computed property will automatically recalculate.
+Computed properties are evaluated on first access and their results are cached per component instance. Repeated reads reuse the cached value. Whenever a referenced reactive state variable or prop changes, the cache is invalidated and the next read recalculates the value. Changes to nonreactive values do not invalidate the cache.
 
 If a computed property is referenced reactively in the template (i.e., the argument is prefixed with colons `:`), it will also trigger an automatic rerender of that portion of the template.
 

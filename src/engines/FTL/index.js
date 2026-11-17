@@ -15,18 +15,32 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// FTL engine entry: mirrors L3/index.js `{ Element, Launch }` so
-// `src/launch.js` (`stage.element = engine.Element`) can select it via
-// `settings.renderer: 'ftl'`.
+// FTL is the sole runtime engine on this branch.
 
 import Element from './element.js'
-import Launch from './launch.js'
+import Launch, { rendererFacade } from './launch.js'
 import nodeAdapter from './nodeAdapter.js'
+import { colorToFtl } from './shaders.js'
+import { Log } from '../../lib/log.js'
 
-export { Element, Launch, nodeAdapter }
+const updateSetting = (key, value) => {
+  if (rendererFacade === null) return
+  if (key === 'canvasColor') {
+    rendererFacade.setClearColor(colorToFtl(value ?? '0x00000000'))
+    return
+  }
+  if (key === 'fpsInterval') {
+    rendererFacade.setFpsInterval(value)
+    return
+  }
+  Log.warn(`[Blits:FTL] runtime setting '${key}' is not supported`)
+}
+
+export { Element, Launch, nodeAdapter, updateSetting }
 
 export default {
   Element,
   Launch,
   nodeAdapter,
+  updateSetting,
 }

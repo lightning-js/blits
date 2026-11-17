@@ -18,7 +18,7 @@
 let counter
 let isDev
 
-import { elementAttributes } from '../../engines/L3/element.js'
+import { elementAttributes } from '../../engines/common/elementAttributes.js'
 
 export default function (templateObject = { children: [] }, devMode = false) {
   const ctx = {
@@ -87,6 +87,8 @@ export default function (templateObject = { children: [] }, devMode = false) {
     }, skips}
   `)
 
+  const renderCodeString = ctx.renderCode.join('\n')
+
   return {
     render: new Function(
       'parent',
@@ -96,7 +98,7 @@ export default function (templateObject = { children: [] }, devMode = false) {
       'effect',
       'getRaw',
       'Log',
-      ctx.renderCode.join('\n')
+      renderCodeString
     ),
     effects: ctx.effectsCode.map(
       (code) =>
@@ -112,6 +114,7 @@ export default function (templateObject = { children: [] }, devMode = false) {
         )
     ),
     context: ctx.context,
+    usesHoverState: renderCodeString.includes('.$isHovered'),
   }
 }
 
@@ -212,6 +215,7 @@ const generateElementCode = function (
 
   if (options.holder) {
     renderCode.push(`elementConfigs[${counter}]['holder'] = true`)
+    renderCode.push(`elementConfigs[${counter}]['interactive'] = cmps[${counter}].needsInteractive`)
   }
 
   Object.keys(templateObject).forEach((key) => {
@@ -222,6 +226,9 @@ const generateElementCode = function (
     }
 
     if (key === 'key') return
+
+    // a ref on a component belongs to the component itself, not to its holder element
+    if (options.holder === true && (key === 'ref' || key === ':ref')) return
 
     // Skip inspector-data in production builds for performance optimization
     if (key === 'inspector-data' && !isDev) return
@@ -339,12 +346,31 @@ const generateComponentCode = function (
 ) {
   const renderCode = options.forceEffect ? this.effectsCode : this.renderCode
 
-  renderCode.push(`
+  if ('is' in templateObject || ':is' in templateObject) {
+    const selectedComponent =
+      ':is' in templateObject
+        ? interpolate(templateObject[':is'], options.component)
+        : cast(templateObject.is, 'is', options.component)
+    // Resolve the selected factory before populating its holder and filtering props.
+    renderCode.push(`
+      componentType = ${selectedComponent} || '${templateObject[Symbol.for('componentType')]}'
+      cmps[${counter}] = typeof componentType === 'function'
+        ? componentType
+        : (context.components && context.components[componentType]) || components[componentType]
+      if (!cmps[${counter}]) {
+        throw new Error('Component "${templateObject[Symbol.for('componentType')]}" not found')
+      }
+    `)
+  } else {
+    renderCode.push(`
     cmps[${counter}] =
       (context.components && context.components['${
         templateObject[Symbol.for('componentType')]
       }']) || components['${templateObject[Symbol.for('componentType')]}']
   `)
+  }
+
+  renderCode.push(`if (cmps[${counter}].prepare !== undefined) cmps[${counter}].prepare()`)
 
   this.cleanupCode.push(`
     cmps[${counter}] = null
@@ -524,6 +550,8 @@ const generateForLoopCode = function (templateObject, parent) {
     }
   }
 
+  const invalidateSelectCache = 'ref' in templateObject
+
   ctx.renderCode.push(`
     created[${forStartCounter}] = []
     effects[${forStartCounter}] = []
@@ -532,6 +560,7 @@ const generateForLoopCode = function (templateObject, parent) {
     let to${forStartCounter}
 
     forloops[${forStartCounter}] = (collection = [], elms, created) => {
+      ${invalidateSelectCache ? "rootComponent && rootComponent[Symbol.for('invalidateSelectCache')]()" : ''}
       const rawCollection = getRaw(collection)
       const keys = new Set()
       let l = rawCollection.length

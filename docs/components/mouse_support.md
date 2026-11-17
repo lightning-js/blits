@@ -26,7 +26,10 @@ When `enableMouse` is `false` (the default), no mouse or pointer listeners are a
 
 ## Hover state and lifecycle
 
-When the pointer moves over the canvas, Blits hit-tests the scene and sets the hovered component. Only one component is hovered at a time (the leaf under the cursor). Move events are throttled (about once every 100ms) to limit updates. When the pointer moves off the canvas or over empty space, hover is cleared.
+When the pointer moves over the canvas, Blits hit-tests the scene and sets the hovered component. Only one component is
+hovered at a time (the leaf under the cursor). Move events are throttled to limit updates: by default at most one every
+100ms, configurable with the `mouseMoveThrottle` launch setting. When the pointer moves off the canvas or over empty
+space, hover is cleared.
 
 Hover applies only to **components**, not to individual `Element` nodes. A component must have **dimensions** to be hoverable: set `w`/`h` on the component tag, or on the root element of the template, or set them dynamically with `this.$size()`.
 
@@ -89,7 +92,9 @@ If the user clicks the button with the mouse, `doAction()` runs just as when the
 
 ## App-level mouse move event
 
-When `enableMouse` is true, the Application component emits a `mouse::move` event on each throttled pointer move (same throttle as hover, about 100ms). You can listen in the root App hooks for custom behavior (e.g. custom cursor, analytics):
+When `enableMouse` is true, the Application component emits a `mouse::move` event on each throttled pointer move (same
+throttle as hover, `mouseMoveThrottle`, 100ms by default). You can listen in the root App hooks for custom behavior
+(e.g. custom cursor, analytics):
 
 ```js
 export default Blits.Application({

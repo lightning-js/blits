@@ -154,6 +154,40 @@ test('Methods - Validate $select method behavior', (assert) => {
   assert.end()
 })
 
+test('Methods - $select returns the first matching ref', (assert) => {
+  const Child = function (componentId) {
+    this.componentId = componentId
+    this.ref = 'duplicate'
+  }
+  const first = new Child('first')
+  const second = new Child('second')
+  const component = Object.defineProperties({ [symbols.children]: [first, second] }, { ...methods })
+
+  assert.equal(component.$select('duplicate'), first, 'first matching child should be returned')
+  assert.end()
+})
+
+test('Methods - $select caches successful lookups', (assert) => {
+  let reads = 0
+  const child = {}
+  Object.defineProperty(child, 'ref', {
+    get() {
+      reads++
+      return 'cached'
+    },
+  })
+  const children = [child]
+  const component = Object.defineProperties({}, { ...methods })
+  component[symbols.children] = children
+
+  const selected = component.$select('cached')
+  const firstReadCount = reads
+
+  assert.equal(component.$select('cached'), selected, 'cached ref should avoid a second scan')
+  assert.equal(reads, firstReadCount, 'cached lookup should not inspect child refs again')
+  assert.end()
+})
+
 test('Methods - Validate $select method with nested array of children structure', (assert) => {
   const ChildComponent = function (id, ref) {
     this.componentId = id
@@ -358,6 +392,35 @@ test('Methods - Destroy does not rerun effects when clearing array state', (asse
   component.destroy()
 
   assert.equal(effectCalls, 1, 'Destroy should not trigger effects subscribed to array state')
+  assert.end()
+})
+
+test('Methods - Destroy removes effects before moving focus to the parent', (assert) => {
+  const { component } = getTestComponent()
+  component[symbols.state] = reactive({ $hasFocus: true })
+  // mock $focus functionality on the parent
+  component[symbols.parent] = {
+    $focus() {
+      component[symbols.state].$hasFocus = false
+    },
+  }
+  Object.defineProperty(component, '$hasFocus', {
+    get() {
+      return this[symbols.state].$hasFocus
+    },
+  })
+
+  let effectCalls = 0
+  const focusEffect = () => {
+    component[symbols.state].$hasFocus
+    effectCalls++
+  }
+
+  component[symbols.effects].push(focusEffect)
+  effect(focusEffect)
+  component.destroy()
+
+  assert.equal(effectCalls, 1, 'Moving focus during destroy should not run $hasFocus effects')
   assert.end()
 })
 

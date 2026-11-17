@@ -1,6 +1,93 @@
 # Changelog
 
+# 2.16.0
+
+_4 nov 2026_
+
+
+- Improved benchmark results using 95 student t confidendence interval
+- Fixed using a computed prop as a reactive source of a for-loop
+- Improved setup of automated tests
+- Added caching mechanism to computed props
+- Added selective setup of mouse interactivity, only when component uses hover functionality
+- Bumped L3 renderer to v3.11.0
+
+
+# 2.15.0
+
+_26 oct 2026_
+
+- Updated CI/CD benchmark runner
+- Bumped renderer to 3.7.0
+- Added release script with temporary stashing of changes
+- Exposed router history via `this.$router.history`
+- Fixed issue with keyup causing wrong app state in case of fatal error in callback
+- Added functionality to retrieve settings and to update certain settings runtime
+- Fixed module type definitions
+- Removed asynchronous App startup (app startup time improvement)
+- Improved FPS counter (using dedicated fpsUpdate hook)
+- Fixed timing issue where unfocus hook can be invoked for items without focus
+
+# 2.14.0
+
+_19 oct 2026_
+
+- Added built-in profiler support to for both internal and app dev use
+- Added benchmark for performance comparison (and GitHub workflow to run on PRs)
+
+## 2.13.0
+
+_13 oct 2026_
+
+- Bumped renderer to 3.7.0
+
+
+## 2.12.0
+
+_8 oct 2026_
+
+- Added support for rich text using _bb-code_-style formatting
+- Capped default number of webworkers at 2 for faster App startup time
+- Added selective instantiation of _only_ the relevant text renders based on the registered fonts
+- Bumped renderer to 3.6.0 with latest rich text enhancements
+
+## 2.11.0
+
+_28 sep 2026_
+
+- Improved `$select()` method by adding caching
+- Upgraded several dependencies
+- Bumped renderer to 3.5.1
+
+## 2.10.0
+
+_21 sep 2026_
+
+- Fixed / improved type definitions
+- Fixed issue with accidental sideeffect running when `$hasFocus` triggers after destroy
+- Fixed issue where an error in an effect can break execution of other effects
+- Added support for reactivity of `array.length`
+- Improved reactivity in the case of nested array operations
+- Fixed case where transition callbacks could run after destroy
+- Fixed case where keyup callback could fire after component destroy
+- Improved error handling and parse rejection for fetchJson method
+- Fixed typing of `fpsUpdate`
+- Added textCalculated listener to trigger layout changes
+- Added `mouseMoveThrottle` setting to configure responsiveness of mouse movements
+- Fixed issue where hover is not recognized after keyboard use
+- Added support for numeric rgba colors
+- Bumped renderer to 3.5.0
+
+## 2.9.0
+
+_9 sep 2026_
+
+- Added DOM based Aria announcer implementation
+
+
 ## 2.8.9
+
+_12 aug 2026_
 
 - Fixed focus issue related to multiple named router views
 

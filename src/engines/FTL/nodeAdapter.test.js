@@ -121,3 +121,78 @@ test('setProp routes text/texture through their setters without branching', (t) 
   t.equal(calls.dirtyBranch, 0, 'texture path skips the walk')
   t.end()
 })
+
+const makeSignal = () => {
+  const listeners = new Set()
+  return {
+    subscribe(cb) {
+      listeners.add(cb)
+      return () => listeners.delete(cb)
+    },
+    fire(value) {
+      for (const cb of listeners) cb(value)
+    },
+    listeners,
+  }
+}
+
+test('resource listeners follow texture replacements, not bounds transitions', (t) => {
+  const first = { signals: { loaded: makeSignal() } }
+  const second = { signals: { loaded: makeSignal() } }
+  const { node } = makeNode({ w: 100, h: 50, texture: first })
+  const loaded = []
+  const unsubscribe = adapter.on(node, 'loaded', (data) => loaded.push(data))
+
+  first.signals.loaded.fire(first)
+  adapter.setProp(node, 'texture', second)
+  first.signals.loaded.fire(first)
+  second.signals.loaded.fire(second)
+
+  t.equal(loaded.length, 2, 'only the current texture emits loaded')
+  t.deepEqual(loaded[1], { w: 100, h: 50, type: 'texture' }, 'dimensions include resource type')
+  t.equal(first.signals.loaded.listeners.size, 0, 'old texture listener removed')
+  unsubscribe()
+  t.equal(second.signals.loaded.listeners.size, 0, 'current texture listener removed')
+  t.end()
+})
+
+test('warm texture notifications can be canceled before deferred delivery', async (t) => {
+  const texture = { isReady: true, signals: { loaded: makeSignal() } }
+  const { node } = makeNode({ w: 10, h: 20, texture })
+  let calls = 0
+  const unsubscribe = adapter.on(node, 'loaded', () => calls++)
+  t.equal(calls, 0, 'loaded is never delivered inline during construction')
+  unsubscribe()
+  await Promise.resolve()
+  t.equal(calls, 0, 'unsubscribe cancels the queued notification')
+  t.end()
+})
+
+test('glyph text uses measured dimensions and stable element failure signals', (t) => {
+  const signals = { textCalculated: makeSignal(), failed: makeSignal(), outOfBounds: makeSignal() }
+  const { node } = makeNode({ w: 40, h: 30, text: { type: 1 }, texture: null, signals })
+  let dimensions
+  let failure
+  let previous
+  const unsubs = [
+    adapter.on(node, 'loaded', (data) => {
+      dimensions = data
+    }),
+    adapter.on(node, 'failed', (error) => {
+      failure = error
+    }),
+    adapter.on(node, 'outOfBounds', (_node, data) => {
+      previous = data.previous
+    }),
+  ]
+  signals.textCalculated.fire({ w: 40, h: 30 })
+  const error = new Error('font load failed')
+  signals.failed.fire(error)
+  signals.outOfBounds.fire(node)
+
+  t.deepEqual(dimensions, { w: 40, h: 30, type: 'text' }, 'text reports measured dimensions')
+  t.equal(failure, error, 'failure does not depend on a texture existing')
+  t.equal(previous, 1, 'bounds payload supports the Blits detach hook')
+  for (const unsubscribe of unsubs) unsubscribe()
+  t.end()
+})

@@ -26,7 +26,7 @@
 //   (which routes via `applySingleProp`/`setProp` and `dirty()`s).
 // - Easing parity with L3 is exact, not approximate: the L3 renderer defines
 //   every Blits easing as cubic-bezier parameters
-//   (@lightningjs/renderer `core/utils.ts` `timingLookup`), and AnimeJS v4
+//   (upstream L3 `core/utils.ts` `timingLookup`), and AnimeJS v4
 //   accepts easing *functions* — so each Blits name maps to
 //   `cubicBezier(...params)` with identical curves.
 // - `runningTweens` backs `addActiveCheck`, keeping FTL's loop alive without
@@ -39,7 +39,7 @@ import { Log } from '../../lib/log.js'
 
 /**
  * L3 cubic-bezier parameters per Blits easing name. Copied from
- * @lightningjs/renderer `src/core/utils.ts` `timingLookup` — the source of
+ * Upstream L3 `src/core/utils.ts` `timingLookup` — the source of
  * truth for what L3 renders, so FTL tweens follow identical curves.
  */
 const easingParams = {

@@ -46,6 +46,10 @@
       {
         "text": "Application settings",
         "link": "/essentials/settings"
+      },
+      {
+        "text": "Runtime settings (detailed reference)",
+        "link": "/essentials/runtime_settings"
       }
     ]
   },
@@ -189,6 +193,10 @@
       {
         "text": "Custom Plugins",
         "link": "/plugins/custom_plugins"
+      },
+      {
+        "text": "Animation",
+        "link": "/plugins/animation"
       }
     ]
   },
@@ -198,6 +206,10 @@
       {
         "text": "Lazy loading",
         "link": "/performance/lazy-loading"
+      },
+      {
+        "text": "Profiling",
+        "link": "/performance/profiling"
       }
     ]
   }

@@ -16,27 +16,14 @@
  */
 
 /**
- * NodeAdapter — the layer between Blits CoreNodes (BlitsElement) and the
- * underlying renderer primitives (L3 CoreNode/CoreTextNode vs FTL Element).
+ * NodeAdapter — the layer between BlitsElement and FTL elements.
  *
- * Blits core (`src/engines/L3/element.js` today, `src/engines/FTL/element.js`
- * tomorrow) must ONLY talk to a renderer through this interface. It must never
- * import `RendererMain`, FTL `createElement`, or touch `node._dirty`-style
- * internals directly.
+ * The element layer transforms template attributes. This adapter creates and
+ * invalidates FTL elements and normalizes resource/lifecycle subscriptions.
  *
- * Key semantic differences the adapter normalizes:
- * - L3 CoreNode: reactive setters (assign + done), `node.animate()` built in,
- *   `EventEmitter` (`on/off/once`), color as normalized number, `%` strings
- *   resolved by Blits before passing.
- * - FTL Element: plain struct, caller MUST call `el.dirty()` after mutation
- *   (`setProp` does this), no built-in animate (stubbed in phase 1), `signal()`
- *   based events, color as `[r,g,b,a 0-1]`, `visible` flag, text/image as
- *   separate objects (`el.text` / `el.texture`).
- *
- * Phase 1 scope (core-only): position/size/alpha/color/texture/text/parent/
- * events (loaded/failed). Shaders, sprites, SDF/MSDF fonts, transitions,
- * inspector, RTT and mouse-picking are explicitly out of scope and throw
- * `unsupported()` so call sites fail loudly instead of silently misrendering.
+ * FTL elements use explicit dirty tracking, signal-based events, RGBA float
+ * colors, and separate text/texture objects. Transitions use the optional
+ * AnimeJS bridge; shader/font/texture setup lives in the dedicated bridges.
  *
  * @typedef {object} AnimationSettings
  * @property {number} [duration] - Duration in ms.
@@ -64,28 +51,25 @@
  *   (already transformed) prop. FTL impl must call `dirty()` internally.
  * @property {(node: any, key: string, from: any, to: any, settings: AnimationSettings, write: (value: any) => void) => AnimationController} animate - Tween one
  *   transformed prop from `from` to `to`. `write` persists eased values
- *   (element-layer routing for text/color). L3 ignores `from`/`write` (the
- *   renderer reads and writes).
+ *   (element-layer routing for text/color).
  * @property {(node: any, evt: string, cb: function) => void} on - Events:
- *   'loaded' | 'failed' (phase 1) ; 'inBounds' | 'outOfBounds' | 'inViewport' (phase 2).
+ *   'loaded' | 'failed' | 'textCalculated' | 'inBounds' | 'outOfBounds' | 'inViewport'.
  * @property {(node: any, evt?: string, cb?: function) => void} off
  * @property {(node: any) => void} destroy
  * @property {(node: any) => any} getParent
  * @property {(node: any) => any[]} getChildren
  * @property {(node: any) => number|string} getId
- * @property {(type: string, props?: object) => any} createShader - Phase 2. Throws in phase 1.
- * @property {(type: string, props?: object) => any} createTexture - Phase 2. Throws in phase 1.
- * @property {(...args: any[]) => Promise<void>} loadFont - Phase 2. Throws in phase 1.
+ * @property {(type: string, props?: object) => any} createShader - Use the shader bridge instead.
+ * @property {(type: string, props?: object) => any} createTexture - Use the texture/sprite bridge instead.
+ * @property {(...args: any[]) => Promise<void>} loadFont - Use launch font registration instead.
  */
 
 /**
- * Throw a loud, greppable error for phase-1 out-of-scope features.
+ * Throw a loud, greppable error for operations outside this adapter.
  * @param {string} feature - e.g. 'shaders', 'animate', 'loadFont'
  */
 export const unsupported = (feature) => {
-  throw new Error(
-    `[Blits:NodeAdapter] '${feature}' is not supported by this renderer yet (phase 1 core-only)`
-  )
+  throw new Error(`[Blits:NodeAdapter] '${feature}' is not exposed by the node adapter`)
 }
 
 /**

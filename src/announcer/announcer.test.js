@@ -338,3 +338,45 @@ test('Announcer stop uses custom platform announcer driver cancel', (assert) => 
     announcement.stop()
   }, 400)
 })
+
+test('Announcer removes the current message during debounce', (assert) => {
+  announcer.stop()
+  announcer.clear()
+  announcer.enable()
+
+  const spokenMessages = []
+
+  configurePlatform((defaults) => ({
+    ...defaults,
+    announcer: {
+      speak(options) {
+        spokenMessages.push(options.message)
+        return Promise.resolve()
+      },
+      cancel() {},
+    },
+  }))
+
+  const announcement = announcer.speak('skip this message')
+  const nextAnnouncement = announcer.speak('speak this message')
+
+  setTimeout(() => {
+    announcement.remove()
+  }, 150)
+
+  announcement.then((status) => {
+    setTimeout(() => {
+      assert.equal(status, 'canceled', 'debouncing message resolves as canceled')
+      assert.deepEqual(
+        spokenMessages,
+        ['speak this message'],
+        'driver skips the canceled message and continues with the queue'
+      )
+
+      configurePlatform(() => ({}))
+      assert.end()
+    }, 400)
+  })
+
+  nextAnnouncement.catch(() => {})
+})

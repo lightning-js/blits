@@ -30,7 +30,7 @@ import { platform } from '../platform.js'
 /**
  * @typedef {import('../component.js').BlitsComponentFactory} BlitsComponentFactory - The component of the route
  * @typedef {import('../component.js').BlitsComponent} BlitsComponent - The element of the route
- * @typedef {import('../engines/L3/element.js').BlitsElement} BlitsElement - The element of the route
+ * @typedef {import('../component.js').BlitsElement} BlitsElement - The element of the route
  *
  * @typedef {BlitsComponent|BlitsComponentFactory} RouteView
  * @typedef {RouteView & { default?: BlitsComponentFactory }} RouteViewWithOptionalDefault
@@ -44,7 +44,7 @@ import { platform } from '../platform.js'
  * @property {Object} hooks - The hooks of the route
  * @property {Object} transition - The transition of the route
  * @property {Object} announce - The announce of the route
- * @property {(options: Object, parentEl: BlitsElement, parentComponent: BlitsComponent, rootComponent?: BlitsComponent) => BlitsComponent} component - The component factory of the route
+ * @property {BlitsComponentFactory} component - The component factory of the route (or a lazy import function)
  *
  * @typedef {Object} Hash
  * @property {string} path - The path of the hash
@@ -235,7 +235,7 @@ const performNavigation = async function (viewState) {
     route.transition = route.transition(this.previousRoute, route)
   }
 
-  /** @type {import('../engines/L3/element.js').BlitsElement} */
+  /** @type {import('../component.js').BlitsElement} */
   let holder
 
   /** @type {RouteViewWithOptionalDefault|undefined|null} */
@@ -288,9 +288,13 @@ const performNavigation = async function (viewState) {
 
   // routing to a new page (instead of routing back to a keepAlive page)
   if (view === undefined) {
+    // Prepare eager runtime factories before creating their holder. Lazy loaders
+    // retain the conservative interactive fallback until their factory is known.
+    if (route.component.prepare !== undefined) route.component.prepare()
+    const needsInteractive = route.component.needsInteractive ?? true
     // create a holder element for the new view
     holder = stage.element({ parent: this[symbols.children][0] })
-    holder.populate({})
+    holder.populate({ holder: true, interactive: needsInteractive })
     holder.set('w', '100%')
     holder.set('h', '100%')
 
@@ -590,9 +594,22 @@ export const getSingleRegisteredRouterView = () => {
   return singleRouterView
 }
 
-export const back = function () {
+export const back = function (steps = 1) {
   if (this.history === undefined) return
+  if (steps < 1) steps = 1
+  if (steps > this.history.length) steps = this.history.length
   const viewState = getViewState(this.name)
+
+  // discard the intermediate history entries when navigating back more than 1 step
+  for (let i = 1; i < steps; i++) {
+    const poppedRoute = this.history.pop()
+    // if skipped history item is configured as keepAlive true then invoke destroy on view
+    if (poppedRoute.view !== undefined && poppedRoute.view !== null) {
+      poppedRoute.view.destroy()
+      poppedRoute.focus = null
+    }
+  }
+
   const route = this.history.pop()
   if (route && this.currentRoute !== route) {
     // set indicator that we are navigating back (to prevent adding page to history stack)

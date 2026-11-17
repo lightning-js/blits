@@ -74,6 +74,9 @@ test('shaders - colorToFtl', (assert) => {
   assert.deepEqual(colorToFtl('white'), [1, 1, 1, 1], 'named white')
   assert.deepEqual(colorToFtl('#00000000'), [0, 0, 0, 0], 'transparent')
   assert.deepEqual(colorToFtl('0x00ff00ff'), [0, 1, 0, 1], 'normalized form passes through')
+  assert.deepEqual(colorToFtl(0xff0000ff), [1, 0, 0, 1], 'numeric RGBA uses packed channels')
+  assert.deepEqual(colorToFtl(0x0000ffff), [0, 0, 1, 1], 'numeric RGBA preserves leading zeroes')
+  assert.deepEqual(colorToFtl(0), [0, 0, 0, 0], 'numeric zero is transparent')
   assert.end()
 })
 

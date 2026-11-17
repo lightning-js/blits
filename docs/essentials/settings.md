@@ -58,12 +58,13 @@ Example font object:
 
 ## Input & Focus
 
-| Setting         | Type      | Description |
-|----------------|-----------|-------------|
-| `keymap`       | `object`  | Custom key mapping for input events |
-| `holdTimeout`  | `number`  | Time (ms) to consider a key press as hold |
-| `inputThrottle`| `number`  | Input throttle time (ms) to prevent rapid successive inputs |
-| `enableMouse`  | `boolean` | Enable mouse support (hover and click-to-focus). Defaults to false. |
+| Setting             | Type      | Description                                                                                                      |
+|---------------------|-----------|------------------------------------------------------------------------------------------------------------------|
+| `keymap`            | `object`  | Custom key mapping for input events                                                                              |
+| `holdTimeout`       | `number`  | Time (ms) to consider a key press as hold                                                                        |
+| `inputThrottle`     | `number`  | Input throttle time (ms) to prevent rapid successive inputs                                                      |
+| `enableMouse`       | `boolean` | Enable mouse support (hover and click-to-focus). Defaults to false.                                              |
+| `mouseMoveThrottle` | `number`  | Minimum time (ms) between pointer moves processed for hover; moves arriving sooner are dropped. Defaults to 100. |
 
 ## Renderer
 
@@ -142,6 +143,31 @@ Blits.Launch(App, 'app', {
 })
 ```
 
+For platforms with a screen reader, Blits also provides a DOM announcer. It maintains a single
+visually hidden `aria-live="assertive"` region and updates its text for every announcement. The
+live region does not take DOM focus.
+
+```js
+import createAnnouncer from '@lightningjs/blits/platforms/dom/announcer'
+
+Blits.Launch(App, 'app', {
+  announcer: true,
+  platform: () => ({
+    announcer: createAnnouncer(),
+  }),
+})
+```
+
+For example, a focused component can announce its label through the platform screen reader:
+
+```js
+hooks: {
+  focus() {
+    this.$announcer.speak(this.label)
+  },
+}
+```
+
 The `rendererPlatform` setting is separate from `platform`. It is only passed to the renderer, and should be used for renderer specific platform configuration.
 
 ## Effects & Shaders
@@ -162,6 +188,19 @@ The `rendererPlatform` setting is separate from `platform`. It is only passed to
 | Setting         | Type      | Description |
 |----------------|-----------|-------------|
 | `announcer`    | `boolean` | Enable/disable text-to-speech announcer |
+
+## Runtime Settings
+
+Every component has access to `this.$settings`. Any launch setting can be read, and a subset of settings can be changed while the App is running.
+
+```js
+this.$settings.get('renderMode') // 'webgl'
+this.$settings.set('canvasColor', 'darkblue')
+this.$settings.set('fpsInterval', 500)
+this.$settings.set('pixelRatio', 0.66666667)
+```
+
+Only a subset of settings can be changed at runtime. For the full list and usage examples, see [`docs/essentials/runtime_settings.md`](./runtime_settings.md).
 
 ## Example Usage
 
@@ -190,6 +229,7 @@ Blits.Launch(App, 'app', {
   inspector: false,
   announcer: true,
   enableMouse: false, // set true for hover + click-to-focus on canvas
+  mouseMoveThrottle: 100, // lower (e.g. 16) for hover that tracks the pointer more closely
   platform: (defaults) => ({
     screenHeight: 720,
     input: myInputTarget,

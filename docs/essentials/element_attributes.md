@@ -98,6 +98,14 @@ _HSL and HSLA formats are planned to be added in the future._
 <Element w="200" h="200" color="skyblue" />
 ```
 
+For convenience, Blits exports the known HTML color names, including `transparent` so they can be used in the App or in plugins:
+
+```js
+import htmlColors from '@lightningjs/blits/colors'
+
+htmlColors.red // '0xff0000ff'
+```
+
 ### Basic linear gradients
 
 The color attribute can also be used to specify basic linear gradients.
@@ -223,6 +231,18 @@ You can also use built-in shader attributes in combination with eachother f.e;
 ```xml
 <Element w="200" h="200" x="20" y="100" rounded="20" border="{w: 20, color:'blue'}"/>
 ```
+
+### Adding a Referance
+
+You can add a reference to an Element or Component by using the `ref` attribute.
+
+```xml
+<Element w="200" h="200" x="20" y="100" ref="myElement" />
+
+<MyComponent ref="MyComponent">
+```
+
+With a `ref` setup you can use it the `$select` method inside the same Component where the Element is referenced in its template. For more information follow view [Utility Methods](../components/utility_methods.md#select) or for similar but more advanced built-in features view [Directives](../built-in/directives.md)
 
 ### Using shader attribute
 > [!WARNING]
