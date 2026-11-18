@@ -987,7 +987,10 @@ export type Route = {
   }
 }
 
-type ComponentFactory = () => void
+type ComponentFactory = (() => void) & {
+  needsInteractive?: boolean
+  prepare?: () => void
+}
 
 // Launch Related
 

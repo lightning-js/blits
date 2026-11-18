@@ -74,6 +74,29 @@ Example font object:
 | `canvas`       | `HTMLCanvasElement` | Custom canvas to render to |
 | `rendererPlatform` | `object` | Custom platform configuration passed to the renderer |
 
+### Including only one renderer backend
+
+By default, both the WebGL and Canvas renderer backends are included in your App bundle. The `renderMode` setting passed to `Blits.Launch()` decides which one is used, but doesn't remove the other backend from the bundle.
+
+If you already know which renderer your App will use, you can configure the Blits Vite plugin to only include that backend. This decreases the bundle size, which can be important for startup time, especially on lower powered devices.
+
+To do this, add `blits.renderMode` to your `vite.config.js`:
+
+```js
+import { defineConfig } from 'vite'
+import blitsVitePlugins from '@lightningjs/blits/vite'
+
+export default defineConfig({
+  plugins: [...blitsVitePlugins],
+  blits: {
+    renderMode: 'canvas', // or 'webgl'
+  },
+})
+```
+
+This locks the renderer mode at build time. You can then leave out `renderMode` in `Blits.Launch()`, or set it to the same value. Any different value is ignored and will log a warning.
+
+
 ## Platform
 
 | Setting         | Type      | Description |

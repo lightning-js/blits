@@ -636,7 +636,7 @@ const propsTransformer = {
       this.props['data'] = v
     }
   },
-  set holder(v) {
+  set interactive(v) {
     this.props['interactive'] = v
   },
 }

@@ -100,9 +100,7 @@ const reactiveProxy = (original, _parent = null, _key) => {
 
       // handling objects (but not null values, which have object type in JS)
       if (typeof target[key] === 'object' && target[key] !== null) {
-        if (Array.isArray(target[key]) === true) {
-          track(target, key)
-        }
+        track(target, key)
         // create a new reactive proxy
         return reactiveProxy(getRaw(target[key]), target, key)
       }
@@ -140,6 +138,8 @@ const reactiveProxy = (original, _parent = null, _key) => {
             Object.getPrototypeOf(value) === Object.prototype
           ) {
             value = Object.assign(receiver[key], value)
+            // The object keeps its identity; its nested setters already notified consumers.
+            isEqual = true
           }
         }
         result = Reflect.set(target, key, value, receiver)
@@ -167,7 +167,7 @@ const reactiveDefineProperty = (target) => {
 
     if (target[key] !== null && typeof target[key] === 'object') {
       if (Object.getPrototypeOf(target[key]) === Object.prototype) {
-        return reactiveDefineProperty(target[key])
+        reactiveDefineProperty(target[key])
       } else if (Array.isArray(target[key]) === true) {
         for (let i = 0; i < arrayPatchMethods.length; i++) {
           target[key][arrayPatchMethods[i]] = function (v) {
@@ -189,6 +189,13 @@ const reactiveDefineProperty = (target) => {
         // todo: support assigning array (as we do with proxies)
         let oldValue = internalValue
         if (oldValue !== newValue) {
+          if (
+            newValue !== null &&
+            typeof newValue === 'object' &&
+            Object.getPrototypeOf(newValue) === Object.prototype
+          ) {
+            reactiveDefineProperty(newValue)
+          }
           internalValue = newValue
           trigger(target, key)
         }

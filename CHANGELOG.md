@@ -1,5 +1,18 @@
 # Changelog
 
+# 2.16.0
+
+_4 nov 2026_
+
+
+- Improved benchmark results using 95 student t confidendence interval
+- Fixed using a computed prop as a reactive source of a for-loop
+- Improved setup of automated tests
+- Added caching mechanism to computed props
+- Added selective setup of mouse interactivity, only when component uses hover functionality
+- Bumped L3 renderer to v3.10.0
+
+
 # 2.15.0
 
 _26 oct 2026_
