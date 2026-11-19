@@ -43,3 +43,31 @@ If a computed property is referenced reactively in the template (i.e., the argum
 
 Computed properties should **not** have any _side effects_ (i.e. should not change the value of any state variable). Side effects can potentially lead your app into an endless loop if not handled carefully. If you want to execute certain logic upon state changes, you can consider to use a [watcher](./watchers.md) for this.
 
+## Batching related updates
+
+By default, each change to a reactive state variable used by a computed property invalidates its cached value. Reactive bindings that reference the computed property update immediately. Multiple consecutive state changes can therefore trigger repeated computed evaluations and binding updates. This can potentially lead to multiple render updates. Use `this.$batch()` to group related state changes so those bindings update together and share a single computed evaluation:
+
+```js
+this.$batch(() => {
+  this.items[0].quantity += 100
+  this.discount += 10
+})
+```
+
+State changes immediately, and reading a computed property inside the callback returns a value based on the current state. Reactive consumers, including template bindings and watchers, wait until the batch exits. Each queued consumer runs once with the final values, so multiple bindings can share one computed calculation. Writes triggered by consumers during flushing still propagate synchronously.
+
+Nested batches flush when the outermost callback exits, before `$batch()` returns; updates are not delayed until the end of the tick. Batching also covers reactive updates to other components made during the callback. Updates outside a batch retain their normal synchronous behavior.
+
+The callback receives the component as `this`, and `$batch()` returns its result. If the callback throws, changes already made are flushed before the error propagates; changes are not rolled back. Consumer errors propagate synchronously and clear the remaining queue, as with ordinary reactive updates. If both the callback and a consumer throw, the callback's original error is preserved.
+
+The callback must be synchronous: do not pass an `async` function or return a Promise. Await asynchronous work before entering the batch:
+
+```js
+const result = await fetchCart()
+
+this.$batch(() => {
+  this.items = result.items
+  this.discount = result.discount
+})
+```
+
