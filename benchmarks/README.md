@@ -8,7 +8,8 @@ Isolated workloads are available:
 | `component-creation` | Create matching items with a component boundary |
 | `computed-loop-creation` | Mount a list whose computed array supplies its Element loop |
 | `computed-binding-updates` | Update ordinary computed bindings across mounted components |
-| `router-navigation` | Navigate with the Router from an empty page to a page of components |
+| `router-navigation` | Navigate with the Router from an empty page to a populated page, without a transition |
+| `router-navigation-animated` | The same navigation with the Router's default fade transition |
 
 Install dependencies and Chromium:
 
@@ -28,6 +29,7 @@ npm run bench -- --benchmark component-creation
 npm run bench -- --benchmark computed-loop-creation
 npm run bench -- --benchmark computed-binding-updates
 npm run bench -- --benchmark router-navigation
+npm run bench -- --benchmark router-navigation-animated
 ```
 
 Options: `--size` (default 1000), `--warmup` (5), `--samples` (20), `--cpu-slowdown` (20; use 1 to disable), `--headed`, `--short`, and `--output`. Relative output paths resolve from `benchmarks/`. Full JSON is saved even with `--short`.
