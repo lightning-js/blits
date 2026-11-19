@@ -4,6 +4,8 @@ export const benchmarks = {
   'computed-loop-creation': () => import('./src/benchmarks/ComputedLoopCreation.js'),
   'computed-binding-updates': () => import('./src/benchmarks/ComputedBindingUpdates.js'),
   'memory-usage': () => import('./src/benchmarks/MemoryUsage.js'),
+  'router-navigation': () => import('./src/benchmarks/RouterNavigation.js'),
+  'router-navigation-animated': () => import('./src/benchmarks/RouterNavigationAnimated.js'),
 }
 
 export const defaultBenchmark = 'element-creation'
