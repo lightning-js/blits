@@ -1,5 +1,12 @@
 # Changelog
 
+# 2.17.1
+
+_27 nov 2026_
+
+- Bumped Lightning renderer to 3.14.0
+- Added agents.md
+
 # 2.17.0
 
 _27 nov 2026_
