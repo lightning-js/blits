@@ -15,21 +15,47 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { execSync } from 'child_process'
+import { execFileSync, execSync } from 'child_process'
 import { readFileSync } from 'fs'
 
 // Read the input provided by the pre-push hook
-const input = readFileSync(0, 'utf-8').trim().split(' ')
-if (input.length < 4) {
+const pushLines = readFileSync(0, 'utf-8')
+  .trim()
+  .split(/\r?\n/)
+  .filter(Boolean)
+  .map((line) => line.split(/\s+/))
+
+if (!pushLines.length || pushLines.some((input) => input.length < 4)) {
   console.log('Insufficient input from pre-push hook. Skipping lint.')
   process.exit(0)
 }
 
-const localSha = input[1] // The SHA being pushed
-const remoteSha = input[3] // The remote SHA, can be zeros for new branch
+const zeroSha = '0000000000000000000000000000000000000000'
+const releaseTags = pushLines
+  .filter(([localRef, localSha]) => localRef.startsWith('refs/tags/') && localSha !== zeroSha)
+  .map(([localRef]) => localRef.replace('refs/tags/', ''))
+
+for (const tag of releaseTags) {
+  try {
+    console.log(`Validating release tag ${tag}...\n`)
+    execFileSync(process.execPath, ['./scripts/validate-release.js', tag], { stdio: 'inherit' })
+  } catch (error) {
+    console.log('\nRelease validation failed. Push cancelled.')
+    process.exit(1)
+  }
+}
+
+const branchPush = pushLines.find(([localRef]) => !localRef.startsWith('refs/tags/'))
+
+if (!branchPush) {
+  process.exit(0)
+}
+
+const localSha = branchPush[1] // The SHA being pushed
+const remoteSha = branchPush[3] // The remote SHA, can be zeros for new branch
 
 // If remote is all zeros, it's a new branch
-const isNewBranch = remoteSha === '0000000000000000000000000000000000000000'
+const isNewBranch = remoteSha === zeroSha
 
 let filesToLint
 
