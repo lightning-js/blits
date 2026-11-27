@@ -70,6 +70,9 @@ jobs:
       - name: Set up npm Trusted Publishing
         run: npm install --global npm@11.5.1
 
+      - name: Install Dependencies
+        run: npm ci
+
       - name: Publish to npm
         run: npm publish --access public --provenance
 
