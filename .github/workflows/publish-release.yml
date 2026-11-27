@@ -5,13 +5,11 @@ on:
     tags:
       - 'v*.*.*'
 
-permissions:
-  contents: write
-  id-token: write
-
 jobs:
-  publish:
+  validate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout Code
@@ -37,6 +35,37 @@ jobs:
 
       - name: Check Package
         run: npm pack --dry-run
+
+      - name: Upload Release Notes
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-notes
+          path: release-notes.md
+
+  publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.23.2
+          registry-url: https://registry.npmjs.org
+
+      - name: Download Release Notes
+        uses: actions/download-artifact@v7
+        with:
+          name: release-notes
+          path: .
 
       - name: Publish to npm
         run: npm publish --access public --provenance
