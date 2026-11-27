@@ -1,9 +1,18 @@
 # Changelog
 
+# 2.17.0
+
+_27 nov 2026_
+
+- Added fix for children ordering in layout in combination with z-index
+- Added documentation for `slots` and `fit`-attribute
+- Added configuration to pull in only webgl or canvas renderer backend build time
+- Added more benchmarks
+- Bumped Lightning renderer to 3.13.0
+
 # 2.16.0
 
 _4 nov 2026_
-
 
 - Improved benchmark results using 95 student t confidendence interval
 - Fixed using a computed prop as a reactive source of a for-loop
