@@ -67,10 +67,11 @@ jobs:
           name: release-notes
           path: .
 
+      - name: Set up npm Trusted Publishing
+        run: npm install --global npm@11.5.1
+
       - name: Publish to npm
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         env:
