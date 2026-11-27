@@ -33,6 +33,60 @@ import { resolveSpriteTexture } from './spriteTexture.js'
 
 const holderComponentMap = new WeakMap()
 
+// Keep layout order separate from the renderer's mutable z-index order.
+const layouts = new WeakMap()
+const layoutParents = new WeakMap()
+
+const pendingLayouts = new WeakSet()
+
+/**
+ * Re-layouts a layout once per tick, no matter how many children were removed from it.
+ * @param {any} layout
+ */
+const scheduleLayout = (layout) => {
+  if (pendingLayouts.has(layout) === true) return
+  pendingLayouts.add(layout)
+  // Promise microtask instead of queueMicrotask, which older TV browsers lack
+  Promise.resolve().then(() => {
+    pendingLayouts.delete(layout)
+    if (layout.eol !== true) layout.triggerLayout(layout.props)
+  })
+}
+
+/**
+ * Keeps layout membership in sync with the element's parent.
+ * @param {any} element
+ * @param {any} parent
+ * @param {boolean} [deferRelayout] defer the old layout's re-layout to a microtask (used on destroy)
+ */
+const updateLayoutParent = (element, parent, deferRelayout = false) => {
+  const membership = layoutParents.get(element)
+  const previous = membership === undefined ? undefined : membership.layout
+  const next = layouts.get(parent)
+  if (previous === next) return
+  if (previous !== undefined) {
+    const children = previous.layoutChildren
+    // :for teardown destroys from the end, so search from the end
+    const index = children.lastIndexOf(element)
+    if (index !== -1) children.splice(index, 1)
+    element.node.off(membership.event, membership.onLoaded)
+    layoutParents.delete(element)
+  }
+  if (next !== undefined) {
+    next.layoutChildren.push(element)
+    const onLoaded = () => {
+      if (element.eol !== true && next.eol !== true) next.triggerLayout(next.props)
+    }
+    const event = element.props.raw.__textnode === true ? 'textCalculated' : 'loaded'
+    layoutParents.set(element, { layout: next, event, onLoaded })
+    element.node.on(event, onLoaded)
+  }
+  if (previous !== undefined && previous.eol !== true) {
+    if (deferRelayout === true) scheduleLayout(previous)
+    else previous.triggerLayout(previous.props)
+  }
+}
+
 /** @param {any} frame */
 const spriteFrameKey = (frame) =>
   typeof frame === 'object' && frame !== null ? JSON.stringify(frame) : frame
@@ -104,17 +158,14 @@ const layoutFn = function (config) {
 
   let offset = padding.start
 
-  const children = this.node.children
-  const childrenLength = children.length
-  const elementChildren = this.children
-
+  const elementChildren = this.layoutChildren
+  const childrenLength = elementChildren.length
   let otherDimension = 0
   const gap = config.gap || 0
   for (let i = 0; i < childrenLength; i++) {
-    if (elementChildren[i] !== undefined && elementChildren[i].props.raw.show === false) {
-      continue
-    }
-    const node = children[i]
+    const el = elementChildren[i]
+    if (el === undefined || el.props.raw.show === false) continue
+    const node = el.node
     node[position] = offset
     node[oppositePosition] = padding.oppositeStart
     // todo: temporary text check, due to 1px width of empty text node
@@ -140,7 +191,9 @@ const layoutFn = function (config) {
 
   if (align !== 0) {
     for (let i = 0; i < childrenLength; i++) {
-      const node = children[i]
+      const el = elementChildren[i]
+      if (el === undefined) continue
+      const node = el.node
       node[oppositePosition] = otherDimension * align
       node[oppositeMount] = align
     }
@@ -152,12 +205,10 @@ const layoutFn = function (config) {
   }
 
   // trigger layout on parent if parent is a layout
-  if (
-    this.config.parent &&
-    this.config.parent.eol !== true &&
-    this.config.parent.props.__layout === true
-  ) {
-    this.config.parent.triggerLayout(this.config.parent.props)
+  const membership = layoutParents.get(this)
+  const layoutParent = membership === undefined ? undefined : membership.layout
+  if (layoutParent !== undefined && layoutParent.eol !== true) {
+    layoutParent.triggerLayout(layoutParent.props)
   }
 }
 
@@ -681,16 +732,16 @@ const Element = {
     }
 
     if (props.__layout === true) {
+      this.layoutChildren = []
+      layouts.set(this.node, this)
       this.triggerLayout = layoutFn.bind(this)
     }
 
-    if (this.config.parent.props !== undefined && this.config.parent.props.__layout === true) {
-      this.config.parent.triggerLayout(this.config.parent.props)
-
-      this.node.on(isTextNode === true ? 'textCalculated' : 'loaded', () => {
-        if (this.eol === true) return
-        this.config.parent.triggerLayout(this.config.parent.props)
-      })
+    updateLayoutParent(this, this.props.props.parent)
+    const membership = layoutParents.get(this)
+    const layoutParent = membership === undefined ? undefined : membership.layout
+    if (layoutParent !== undefined) {
+      layoutParent.triggerLayout(layoutParent.props)
     }
   },
   /**
@@ -854,8 +905,11 @@ const Element = {
       }
     }
 
-    if (this.config.parent.props && this.config.parent.props.__layout === true) {
-      this.config.parent.triggerLayout(this.config.parent.props)
+    if (prop === 'parent') updateLayoutParent(this, this.props.props.parent)
+    const membership = layoutParents.get(this)
+    const layoutParent = membership === undefined ? undefined : membership.layout
+    if (layoutParent !== undefined && layoutParent.eol !== true) {
+      layoutParent.triggerLayout(layoutParent.props)
     }
   },
   animate(prop, value, transition) {
@@ -934,10 +988,12 @@ const Element = {
       })
     }
 
-    if (this.config.parent.props && this.config.parent.props.__layout === true) {
+    if (layoutParents.has(this)) {
       f.on('tick', () => {
         if (this.eol === true || !this.config) return
-        this.config.parent.triggerLayout(this.config.parent.props)
+        const membership = layoutParents.get(this)
+        const parent = membership === undefined ? undefined : membership.layout
+        if (parent !== undefined && parent.eol !== true) parent.triggerLayout(parent.props)
       })
     }
 
@@ -980,6 +1036,11 @@ const Element = {
     this.eol = true
 
     if (this.node === null) return
+
+    // many siblings are usually destroyed in the same tick, re-layout once afterwards
+    updateLayoutParent(this, undefined, true)
+    layouts.delete(this.node)
+    if (this.layoutChildren !== undefined) this.layoutChildren.length = 0
 
     Log.debug('Deleting Node', this.nodeId)
 

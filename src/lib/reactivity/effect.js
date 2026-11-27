@@ -38,8 +38,44 @@ export const resumeTracking = () => {
 const objectMap = new WeakMap()
 const effectDependenciesMap = new WeakMap()
 const computedEffects = new WeakMap()
-const effectQueue = new Set()
+const effectQueue = new Map()
 let pendingEffects = null
+
+const flushEffects = (queue) => {
+  for (const effect of queue.keys()) {
+    const force = queue.get(effect)
+    queue.delete(effect)
+    if (effectDependenciesMap.has(effect) === true) effect(force)
+  }
+}
+
+// Keep invalidation synchronous, but defer consumers until the outermost batch exits.
+export const batch = function (callback) {
+  if (pendingEffects !== null) return callback.call(this)
+  const queue = effectQueue.size === 0 ? effectQueue : new Map()
+  pendingEffects = queue
+  let result
+  let callbackError
+  let callbackFailed = false
+  try {
+    result = callback.call(this)
+  } catch (error) {
+    callbackError = error
+    callbackFailed = true
+  } finally {
+    pendingEffects = null
+  }
+  try {
+    flushEffects(queue)
+  } catch (error) {
+    // Keep the original callback error when flushing fails as well.
+    if (callbackFailed === false) throw error
+  } finally {
+    queue.clear()
+  }
+  if (callbackFailed === true) throw callbackError
+  return result
+}
 
 const computedRunner = (effectFn, key) => {
   if (effectFn.computed === true) return effectFn
@@ -54,10 +90,14 @@ const computedRunner = (effectFn, key) => {
 export const createComputed = (getter, component, key) => {
   let value
   let status = 'dirty'
+  let dirtyForce = false
 
   const invalidate = (force) => {
-    if (status === 'dirty' || status === 'disposed') return
+    if (status === 'disposed') return
+    if (status === 'dirty' && (dirtyForce === true || force !== true)) return
     status = 'dirty'
+    // A later forced notification must upgrade consumers already queued by this cache.
+    dirtyForce = force
     trigger(component, key, force)
   }
   invalidate.computed = true
@@ -186,12 +226,10 @@ export const trigger = (target, key, force = false) => {
   }
   if (effects !== undefined) {
     const parentQueue = pendingEffects
-    // Reuse the root queue; only nested updates with pending consumers need another set.
+    // Reuse the root queue; only nested updates with pending consumers need another queue.
     let queue = parentQueue
     if (queue === null) {
-      queue = effectQueue.size === 0 ? effectQueue : new Set()
-      // All consumers share the source mutation's force flag.
-      queue.force = force
+      queue = effectQueue.size === 0 ? effectQueue : new Map()
     }
     pendingEffects = queue
     try {
@@ -200,16 +238,15 @@ export const trigger = (target, key, force = false) => {
           effect(force)
         } else {
           const runner = computedEffects.get(effect)
-          queue.add(runner === undefined ? effect : runner)
+          const consumer = runner === undefined ? effect : runner
+          // Preserve force for this consumer without forcing unrelated consumers.
+          if (force === true || queue.has(consumer) === false) queue.set(consumer, force)
         }
       }
       // Invalidate the whole computed chain before any consumer can read its cache.
       if (parentQueue === null) {
         pendingEffects = null
-        for (const effect of queue) {
-          queue.delete(effect)
-          if (effectDependenciesMap.has(effect) === true) effect(queue.force)
-        }
+        flushEffects(queue)
       }
     } finally {
       pendingEffects = parentQueue

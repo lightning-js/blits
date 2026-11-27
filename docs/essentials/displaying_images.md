@@ -17,6 +17,16 @@ Remote images are also supported and can be linked directly (e.g., `http://mycdn
 
 It is recommended to give your Element a width (`w`) and a height (`h`) attribute so the Lightning renderer can scale the image to those exact dimensions. If neither is specified, the image will render at its natural dimensions. For best control over layout, always set explicit dimensions.
 
+To preserve the image's aspect ratio when scaling, add a `fit` attribute:
+
+- `cover` scales the image to fill the Element's dimensions, cropping any parts that fall outside its bounds.
+- `contain` scales the image to fit entirely inside the Element, leaving empty space when the aspect ratios differ.
+
+```xml
+<Element src="images/photo.jpg" w="300" h="200" fit="cover" />
+<Element src="images/logo.png" w="300" h="200" fit="contain" />
+```
+
 For the best performance, it's important to keep your source images as small as possible. If you're displaying an image at `200px x 200px`, make sure the image is exactly that size or _smaller_. The latter option may lead to some quality loss, but can positively impact the overall performance of your App.
 
 ## Advanced src Attribute

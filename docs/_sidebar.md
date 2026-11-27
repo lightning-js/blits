@@ -14,6 +14,7 @@
 - Components
   - [State](/components/component_state.md)
   - [Props](/components/props.md)
+  - [Slots](/components/slots.md)
   - [Computed properties](/components/computed_properties.md)
   - [Watchers](/components/watchers.md)
   - [Hooking into lifecycle events](/components/lifecycle_events.md)

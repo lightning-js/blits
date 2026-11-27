@@ -583,6 +583,14 @@ export interface ComponentBase extends CustomComponentProperties {
    */
   $trigger: (key: string) => void
   /**
+   * Groups synchronous reactive writes, flushing consumers before returning.
+   * The callback must be synchronous and must not return a Promise.
+   * Await async work before calling $batch. Nested batches flush together.
+   */
+  $batch<T>(
+    callback: (this: this) => T & (Extract<T, PromiseLike<unknown>> extends never ? unknown : never)
+  ): T
+  /**
    * Router instance
    */
   $router: Router

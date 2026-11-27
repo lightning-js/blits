@@ -3,9 +3,22 @@ import { cp, mkdir, mkdtemp, rm, symlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { buildBenchmark, measureBenchmark, writeReport, saveReport } from './runner.js'
+import {
+  buildBenchmark,
+  measureBenchmark,
+  measureMemoryBenchmark,
+  writeReport,
+  saveReport,
+} from './runner.js'
 import { comparePairs, formatComparison, formatComparisonSuite } from './comparison.js'
-import { benchmarks, defaultBenchmark, validateBenchmark } from './benchmarks.js'
+import {
+  DEFAULT_MEMORY_SIZE,
+  validateMemorySize,
+  compareMemoryPairs,
+  formatMemoryComparison,
+  formatMemoryComparisonOverview,
+} from './memory.js'
+import { benchmarks, defaultBenchmark, validateBenchmark, isMemoryBenchmark } from './benchmarks.js'
 import { validateThreshold, DEFAULT_THRESHOLD_PERCENT } from './statistics.js'
 import { validateOptions, validateCpuSlowdown } from './src/benchmark-utils.js'
 import { runPairs } from './pairs.js'
@@ -77,14 +90,22 @@ const run = async () => {
   const thresholdPercent = validateThreshold(
     Number(value('--threshold', DEFAULT_THRESHOLD_PERCENT))
   )
+  const benchmark = validateBenchmark(value('--benchmark', defaultBenchmark))
+  const sizeArg = value('--size', undefined)
+  const sizeOverride = sizeArg === undefined ? undefined : Number(sizeArg)
   const options = {
-    benchmark: validateBenchmark(value('--benchmark', defaultBenchmark)),
+    benchmark,
     cpuSlowdown: Number(value('--cpu-slowdown', 20)),
-    size: Number(value('--size', 1000)),
+    size: sizeOverride ?? (isMemoryBenchmark(benchmark) ? DEFAULT_MEMORY_SIZE : 1000),
     warmup: Number(value('--warmup', 5)),
     samples: Number(value('--samples', 20)),
   }
-  validateOptions(options)
+  if (isMemoryBenchmark(benchmark)) {
+    // Memory benchmarks run once per launch: no warmup/samples, only size.
+    validateMemorySize(options.size)
+  } else {
+    validateOptions(options)
+  }
   validateCpuSlowdown(options.cpuSlowdown)
   if (!Number.isSafeInteger(pairCount) || pairCount < 1)
     throw new Error('--pairs must be a positive integer')
@@ -113,38 +134,71 @@ const run = async () => {
     progress = { status: 'running', base, candidate, benchmarks: reports }
     const names = all ? Object.keys(benchmarks) : [options.benchmark]
     for (const benchmark of names) {
+      const memory = isMemoryBenchmark(benchmark)
+      // Memory runs once per launch; drop warmup/samples from its options.
+      const { warmup, samples, ...sharedOptions } = options
+      const runOptions = {
+        ...(memory ? sharedOptions : options),
+        benchmark,
+        size: sizeOverride ?? (memory ? DEFAULT_MEMORY_SIZE : options.size),
+      }
       const pairs = await runPairs(
         pairCount,
         async (name, index) => {
           console.log(`${benchmark}: pair ${index + 1}/${pairCount}: ${name}`)
-          return measureBenchmark(
-            configs[name],
-            { ...options, benchmark, allowUnsupported: name === 'base' },
-            args.includes('--headed')
-          )
+          return memory
+            ? measureMemoryBenchmark(configs[name], runOptions, args.includes('--headed'))
+            : measureBenchmark(
+                configs[name],
+                { ...runOptions, allowUnsupported: name === 'base' },
+                args.includes('--headed')
+              )
         },
         async (pairs) => {
-          progress.inProgress = { ...options, benchmark, thresholdPercent, pairs }
+          progress.inProgress = { ...runOptions, benchmark, thresholdPercent, pairs }
           await saveReport(progress, output)
         }
       )
       const report = {
         title: pairs[0].candidate.title,
-        ...options,
-        benchmark,
+        ...runOptions,
         base,
         candidate,
-        cpuSlowdown: options.cpuSlowdown,
+        cpuSlowdown: runOptions.cpuSlowdown,
         browserVersion: pairs[0].candidate.browserVersion,
         pairs,
         thresholdPercent,
-        comparison: comparePairs(pairs, { thresholdPercent }),
+        ...(memory ? { kind: 'memory' } : {}),
+        comparison: memory
+          ? compareMemoryPairs(pairs, { thresholdPercent })
+          : comparePairs(pairs, { thresholdPercent }),
       }
       reports.push(report)
       delete progress.inProgress
     }
     const report = all ? { base, candidate, benchmarks: reports } : reports[0]
-    const summary = all ? formatComparisonSuite(report) : formatComparison(report)
+    const timingReports = reports.filter((result) => !isMemoryBenchmark(result.benchmark))
+    const memoryReports = reports.filter((result) => isMemoryBenchmark(result.benchmark))
+    const summary = all
+      ? [
+          timingReports.length
+            ? formatComparisonSuite({ base, candidate, benchmarks: timingReports })
+            : null,
+          memoryReports.length
+            ? [
+                '# Memory benchmark suite comparison',
+                '',
+                formatMemoryComparisonOverview(memoryReports),
+                '',
+                ...memoryReports.map(formatMemoryComparison),
+              ].join('\n')
+            : null,
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : isMemoryBenchmark(options.benchmark)
+        ? formatMemoryComparison(reports[0])
+        : formatComparison(reports[0])
     if (!short) console.log(summary)
     await writeReport(report, output, summary, short)
   } catch (error) {
