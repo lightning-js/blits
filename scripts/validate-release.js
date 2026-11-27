@@ -47,14 +47,14 @@ if (packageLock.packages?.['']?.version !== version) {
 
 const changelog = fs.readFileSync('CHANGELOG.md', 'utf8')
 const lines = changelog.split('\n')
-const versionHeading = new RegExp(`^# ${version}$`)
+const versionHeading = `# ${version}`
 const versionHeadings = lines.reduce((indices, line, index) => {
   if (/^# (0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(line)) {
     indices.push({ index, line })
   }
   return indices
 }, [])
-const matchingHeadings = versionHeadings.filter(({ line }) => versionHeading.test(line))
+const matchingHeadings = versionHeadings.filter(({ line }) => line === versionHeading)
 
 if (matchingHeadings.length !== 1) {
   fail(`CHANGELOG.md must contain exactly one "# ${version}" heading`)
